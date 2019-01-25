@@ -5,6 +5,10 @@
 #include <QActionGroup>
 #include <QFileSystemWatcher>
 #include <QCollator>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QGroupBox>
+#include <QPushButton>
 
 class Canvas;
 
@@ -29,6 +33,8 @@ public slots:
     void on_empty_mesh();
     void on_missing_file();
     void on_confusing_stl();
+    void on_move_up();
+    void on_move_down();
 
     void enable_open();
     void disable_open();
@@ -72,6 +78,12 @@ private:
 
     QFileSystemWatcher* watcher;
 
+    QWidget* const containerWidget;
+    QVBoxLayout* const containerVBox;
+    QHBoxLayout* const buttonHBox;
+    QGroupBox* const buttonGroupBox;
+    QPushButton* const move_up_button;
+    QPushButton* const move_down_button;
     Canvas* canvas;
 };
 

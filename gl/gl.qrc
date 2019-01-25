@@ -5,6 +5,6 @@
         <file>mesh_wireframe.frag</file>
         <file>quad.frag</file>
         <file>quad.vert</file>
-        <file>sphere.stl</file>
+        <file>BoundingBox.stl</file>
     </qresource>
 </RCC>
