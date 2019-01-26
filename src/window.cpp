@@ -8,20 +8,25 @@ const QString Window::RECENT_FILE_KEY = "recentFiles";
 
 Window::Window(QWidget *parent) :
     QMainWindow(parent),
-    open_action(new QAction("Open", this)),
-    about_action(new QAction("About", this)),
-    quit_action(new QAction("Quit", this)),
-    perspective_action(new QAction("Perspective", this)),
-    orthogonal_action(new QAction("Orthographic", this)),
-    shaded_action(new QAction("Shaded", this)),
-    wireframe_action(new QAction("Wireframe", this)),
-    reload_action(new QAction("Reload", this)),
-    autoreload_action(new QAction("Autoreload", this)),
-    recent_files(new QMenu("Open recent", this)),
+    open_action(new QAction("&Open", this)),
+    about_action(new QAction("&About", this)),
+    quit_action(new QAction("E&xit", this)),
+    perspective_action(new QAction("&Perspective", this)),
+    orthogonal_action(new QAction("&Orthographic", this)),
+    shaded_action(new QAction("&Shaded", this)),
+    wireframe_action(new QAction("&Wireframe", this)),
+    reload_action(new QAction("Re&load", this)),
+    autoreload_action(new QAction("&Autoreload", this)),
+    recent_files(new QMenu("Open &recent", this)),
     recent_files_group(new QActionGroup(this)),
-    recent_files_clear_action(new QAction("Clear recent files", this)),
-    watcher(new QFileSystemWatcher(this))
-
+    recent_files_clear_action(new QAction("&Clear recent files", this)),
+    watcher(new QFileSystemWatcher(this)),
+    containerWidget(new QWidget()),
+    containerVBox(new QVBoxLayout()),
+    buttonHBox(new QHBoxLayout()),
+    buttonGroupBox(new QGroupBox()),
+    move_up_button(new QPushButton("Move &Up")),
+    move_down_button(new QPushButton("Move &Down"))
 {
     setWindowTitle("fstl");
     setAcceptDrops(true);
@@ -33,9 +38,6 @@ Window::Window(QWidget *parent) :
 	format.setProfile(QSurfaceFormat::CoreProfile);
 
 	QSurfaceFormat::setDefaultFormat(format);
-	
-    canvas = new Canvas(format, this);
-    setCentralWidget(canvas);
 
     QObject::connect(watcher, &QFileSystemWatcher::fileChanged,
                      this, &Window::on_watched_change);
@@ -69,7 +71,7 @@ Window::Window(QWidget *parent) :
 
     rebuild_recent_files();
 
-    auto file_menu = menuBar()->addMenu("File");
+    auto file_menu = menuBar()->addMenu("&File");
     file_menu->addAction(open_action);
     file_menu->addMenu(recent_files);
     file_menu->addSeparator();
@@ -77,8 +79,8 @@ Window::Window(QWidget *parent) :
     file_menu->addAction(autoreload_action);
     file_menu->addAction(quit_action);
 
-    auto view_menu = menuBar()->addMenu("View");
-    auto projection_menu = view_menu->addMenu("Projection");
+    auto view_menu = menuBar()->addMenu("&View");
+    auto projection_menu = view_menu->addMenu("&Projection");
     projection_menu->addAction(perspective_action);
     projection_menu->addAction(orthogonal_action);
     auto projections = new QActionGroup(projection_menu);
@@ -92,7 +94,7 @@ Window::Window(QWidget *parent) :
     QObject::connect(projections, &QActionGroup::triggered,
                      this, &Window::on_projection);
 
-    auto draw_menu = view_menu->addMenu("Draw Mode");
+    auto draw_menu = view_menu->addMenu("&Draw Mode");
     draw_menu->addAction(shaded_action);
     draw_menu->addAction(wireframe_action);
     auto drawModes = new QActionGroup(draw_menu);
@@ -106,10 +108,28 @@ Window::Window(QWidget *parent) :
     QObject::connect(drawModes, &QActionGroup::triggered,
                      this, &Window::on_drawMode);
 
-    auto help_menu = menuBar()->addMenu("Help");
+    auto help_menu = menuBar()->addMenu("&Help");
     help_menu->addAction(about_action);
 
-    resize(600, 400);
+    canvas = new Canvas(format, this);
+    canvas->setMinimumSize(600, 400);
+
+    QObject::connect(move_up_button, &QPushButton::clicked, this, &Window::on_move_up);
+    QObject::connect(move_down_button, &QPushButton::clicked, this, &Window::on_move_down);
+
+    buttonHBox->setContentsMargins(0, 0, 0, 0);
+    buttonHBox->addStretch(0);
+    buttonHBox->addWidget(move_up_button);
+    buttonHBox->addWidget(move_down_button);
+    buttonHBox->addStretch(0);
+    buttonGroupBox->setLayout(buttonHBox);
+
+    containerVBox->setContentsMargins(0, 0, 0, 0);
+    containerVBox->addWidget(canvas);
+    containerVBox->addWidget(buttonGroupBox);
+    containerWidget->setLayout(containerVBox);
+
+    setCentralWidget(containerWidget);
 }
 
 void Window::on_open()
@@ -251,6 +271,14 @@ void Window::on_load_recent(QAction* a)
 void Window::on_loaded(const QString& filename)
 {
     current_file = filename;
+}
+
+void Window::on_move_up() {
+    system("echo Move Up button clicked");
+}
+
+void Window::on_move_down() {
+    system("echo Move Down button clicked");
 }
 
 void Window::rebuild_recent_files()
