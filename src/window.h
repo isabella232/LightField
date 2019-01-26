@@ -70,8 +70,6 @@ private:
     QMenu* const recent_files;
     QActionGroup* const recent_files_group;
     QAction* const recent_files_clear_action;
-    const static int MAX_RECENT_FILES=8;
-    const static QString RECENT_FILE_KEY;
     QString current_file;
     QString lookup_folder;
     QStringList lookup_folder_files;
