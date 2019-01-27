@@ -18,7 +18,7 @@ sys.path.append( _baseDirectory + '/printrun' )
 
 import printer
 
-csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote = True, escapechar = '\\', lineterminator = '\n', quotechar = '"', quoting = csv.QUOTE_MINIMAL, skipinitialspace = False )
+csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote = False, escapechar = '\\', lineterminator = '\n', quotechar = '"', quoting = csv.QUOTE_MINIMAL, skipinitialspace = False )
 
 class StdioPrinterDriver( ):
 
