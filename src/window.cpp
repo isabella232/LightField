@@ -150,13 +150,17 @@ void Window::on_open()
 void Window::on_about()
 {
     QMessageBox::about(this, "",
+        "<div style=\"margin: 0 auto;\">"
         "<p align=\"center\"><b>fstl</b></p>"
         "<p>A fast viewer for <code>.stl</code> files.<br>"
-        "<a href=\"https://github.com/mkeeter/fstl\""
-        "   style=\"color: #93a1a1;\">https://github.com/mkeeter/fstl</a></p>"
+        "<a href=\"https://github.com/VolumetricBio/fstl\""
+        "   style=\"color: #93a1a1;\">https://github.com/VolumetricBio/fstl</a></p>"
         "<p>© 2014-2017 Matthew Keeter<br>"
         "<a href=\"mailto:matt.j.keeter@gmail.com\""
-        "   style=\"color: #93a1a1;\">matt.j.keeter@gmail.com</a></p>");
+        "   style=\"color: #93a1a1;\">matt.j.keeter@gmail.com</a></p>"
+        "<p>© 2018-2019 Volumetric Lumen</p>"
+        "</div>"
+    );
 }
 
 void Window::on_bad_stl()
