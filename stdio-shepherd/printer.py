@@ -5,7 +5,8 @@ import glob
 # https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
 import sys
 
-_baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
+#_baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
+_baseDirectory = '/home/lumen/Volumetric'
 sys.path.append(_baseDirectory + '/printrun')
 sys.path.append(_baseDirectory + '/TouchPrint/App')
 
