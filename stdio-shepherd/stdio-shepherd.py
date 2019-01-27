@@ -86,7 +86,7 @@ class StdioPrinterDriver( ):
     ##
 
     def connect( self ):
-        self.printer.connect( )
+        return self.printer.connect( )
 
     def disconnect( self ):
         if self.isPrinting:
@@ -107,7 +107,7 @@ class StdioPrinterDriver( ):
             return False
 
         if len( args ):
-            self.printer.move( args[0] )
+            self.printer.move( float( args[0] ) )
         else:
             self.printer.move( )
 
@@ -118,7 +118,7 @@ class StdioPrinterDriver( ):
             return False
 
         if len( args ):
-            self.printer.moveto( args[0] )
+            self.printer.moveto( float( args[0] ) )
         else:
             self.printer.moveto( )
 
@@ -137,9 +137,9 @@ class StdioPrinterDriver( ):
             return False
 
         if len( args ) > 1:
-            self.printer.lift( args[0], args[1] )
+            self.printer.lift( float( args[0] ), float( args[1] ) )
         elif len( args ) > 0:
-            self.printer.lift( args[0] )
+            self.printer.lift( float( args[0] ) )
         else:
             self.printer.lift( )
 
