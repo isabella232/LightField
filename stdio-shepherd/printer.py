@@ -12,7 +12,6 @@ sys.path.append(_baseDirectory + '/TouchPrint/App')
 # jmil modified import MOTOR_AXIS constant:
 from Util.constants import MOTOR_AXIS
 
-
 from printrun import printcore
 from printrun.eventhandler import PrinterEventHandler
 from threading import Thread
@@ -33,10 +32,10 @@ class printprocess():
         self._stop=True
         self.printer.liftdone=self._liftdone
         self.liftdone=False
-        
+
     def _liftdone(self):
         self.liftdone=True
-        
+
     def print_proc(self):
         if(self.startcb):
             self.startcb()
@@ -48,7 +47,7 @@ class printprocess():
         self.printer.lift(layerthickness,2)
         while(not liftdone):
             time.sleep(0.1)
-            
+
         while not self._stop and self.index<len(self.files):
             self.liftdone=False
             if(self.showcb):
@@ -68,10 +67,10 @@ class printprocess():
         if(self.donecb):
             self.donecb()
         self.print_thread=None
-        
+
     def stop(self):
         self._stop=True
-        
+
     def print(self, files=[], layerthickness=0.1, brightness=127, exptime=1.0):
         if self.printer.p.online and not self.print_thread:
             self.files=files
@@ -84,7 +83,6 @@ class printprocess():
             return True
         else:
             return False
-        
 
 class printer(PrinterEventHandler):
     def __init__(self, onlinecb=None, offlinecb=None, positioncb=None, tempcb=None):
@@ -95,7 +93,7 @@ class printer(PrinterEventHandler):
         self.positioncb=positioncb
         self.liftdone=None
         self.tempcb=tempcb
-        
+
     def on_disconnect(self):
         if(self.offlinecb):
             self.offlinecb()
@@ -121,10 +119,9 @@ class printer(PrinterEventHandler):
         if p is None and len(baselist):
             p=baselist[0]
         if p is None:
-            return
-        # self.p.connect(p,baud)
-        # self.p.disconnect()
+            return False
         self.p.connect(p,baud)
+        return True
 
     def disconnect(self):
         self.p.disconnect()
@@ -156,23 +153,23 @@ class printer(PrinterEventHandler):
             self.p.send_now("G90")
             self.p.send_now("M400")
             self.p.send_now("M114")
-    
+
     def asktemp(self):
         if self.p.online:
             self.p.send_now("M105");
-    
+
     def on_temp(self, line):
         if(self.tempcb):
             self.tempcb(line)
-    
+
     def send(self,gcode):
         if self.p.online:
             self.p.send_now(gcode)
 
 if __name__=="__main__":
-    
+
     import time
-    
+
     _online=False
     _position=0
     def online():
@@ -185,7 +182,7 @@ if __name__=="__main__":
         print(val)
         global _position
         _position=val
-    
+
     p=printer(online,offline,position)
     p.connect("/dev/ttyACM0",115200)
     p.asktemp()
@@ -208,4 +205,3 @@ if __name__=="__main__":
     while not _position==0.3:
         time.sleep(0.1)
     p.disconnect()
-    
