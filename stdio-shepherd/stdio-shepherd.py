@@ -103,29 +103,23 @@ class StdioPrinterDriver( ):
     ## Verbs
     ##
 
-    def move( self, args = [ ] ):
+    def move( self, *args ):
         if not self.isOnline:
             return False
 
-        if len( args ):
-            self.printer.move( float( args[0] ) )
-        else:
-            self.printer.move( )
+        self.printer.move( *map( float, args[0:1] ) )
 
         return True
 
-    def moveTo( self, args = [ ] ):
+    def moveTo( self, *args ):
         if not self.isOnline:
             return False
 
-        if len( args ):
-            self.printer.moveto( float( args[0] ) )
-        else:
-            self.printer.moveto( )
+        self.printer.moveto( *map( float, args[0:1] ) )
 
         return True
 
-    def home( self, args = [ ] ):
+    def home( self, *args ):
         if not self.isOnline:
             return False
 
@@ -133,20 +127,15 @@ class StdioPrinterDriver( ):
 
         return True
 
-    def lift( self, args = [ ] ):
+    def lift( self, *args ):
         if not self.isOnline:
             return False
 
-        if len( args ) > 1:
-            self.printer.lift( float( args[0] ), float( args[1] ) )
-        elif len( args ) > 0:
-            self.printer.lift( float( args[0] ) )
-        else:
-            self.printer.lift( )
+        self.printer.lift( *map( float, args[0:2] ) )
 
         return True
 
-    def askTemp( self, args = [ ] ):
+    def askTemp( self, *args ):
         if not self.isOnline:
             return False
 
@@ -154,7 +143,7 @@ class StdioPrinterDriver( ):
 
         return True
 
-    def send( self, args = [ ] ):
+    def send( self, *args ):
         if not self.isOnline or len( args ) == 0:
             return False
 
@@ -170,7 +159,7 @@ class StdioPrinterDriver( ):
                 self.writer.writerow( [ 'unknown', line[0] ] )
                 continue
 
-            if self.verbMap[line[0]]( line[1:] if len( line ) > 0 else [ ] ):
+            if self.verbMap[line[0]]( *line[1:] ):
                 self.writer.writerow( [ 'ok', line[0] ] )
             else:
                 self.writer.writerow( [ 'fail', line[0] ] )
