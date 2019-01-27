@@ -57,7 +57,7 @@ class StdioPrinterDriver( ):
         self.writer.writerow( [ 'printer_position', position ] )
 
     def printer_temperatureCallback( self, temperatureInfo ):
-        print( "+ printer_temperatureCallback, temperatureInfo: raw: %s" % quote_plus( temperatureInfo ), file = sys.stderr )
+        print( "+ printer_temperatureCallback, temperatureInfo: raw: %s" % temperatureInfo, file = sys.stderr )
         self.writer.writerow( [ 'printer_temperature', temperatureInfo ] )
 
     ##
