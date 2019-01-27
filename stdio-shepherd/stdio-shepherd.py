@@ -12,7 +12,8 @@ import time
 
 from threading    import Thread
 
-_baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
+#_baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
+_baseDirectory = '/home/lumen/Volumetric'
 sys.path.append( _baseDirectory + '/printrun' )
 
 import printer
@@ -52,7 +53,7 @@ class StdioPrinterDriver( ):
         self.writer.writerow( [ 'printer_offline' ] )
 
     def printer_positionCallback( self, position ):
-        print( "+ printer_positionCallback, position: %.3f mm (raw: %s)" % ( float( position ), quote_plus( position ) ), file = sys.stderr )
+        print( "+ printer_positionCallback, position: %.3f mm (raw: %s)" % ( float( position ), position ), file = sys.stderr )
         self.writer.writerow( [ 'printer_position', position ] )
 
     def printer_temperatureCallback( self, temperatureInfo ):
