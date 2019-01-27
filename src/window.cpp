@@ -4,7 +4,12 @@
 #include "canvas.h"
 #include "loader.h"
 
-const QString Window::RECENT_FILE_KEY = "recentFiles";
+namespace {
+
+    const int MAX_RECENT_FILES { 8 };
+    const QString RECENT_FILE_KEY { "recentFiles" };
+
+}
 
 Window::Window(QWidget *parent) :
     QMainWindow(parent),
