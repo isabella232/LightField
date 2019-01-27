@@ -101,6 +101,7 @@ class printer(PrinterEventHandler):
 
     def on_recv(self, line):
         l=line.strip()
+        print( "+ on_recv: line: %s" % line, file = sys.stderr )
         if 'Z:' in line and "E:" in line:
             pos=float(l.split("Z:")[1].split("E:")[0])
             if(self.positioncb):
