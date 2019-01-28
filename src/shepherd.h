@@ -30,6 +30,18 @@ public slots:
 
     void processStarted( );
     void processErrorOccurred( QProcess::ProcessError );
+    void processReadyRead( );
+
+signals:
+
+    void printer_Online( );
+    void printer_Offline( );
+    void printer_Position( float position );
+    void printer_Temperature( char const* temperatureInfo );
+    void printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total );
+    void printProcess_HideImage( );
+    void printProcess_StartedPrinting( );
+    void printProcess_FinishedPrinting( );
 
 private:
 

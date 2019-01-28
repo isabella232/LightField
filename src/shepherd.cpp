@@ -1,19 +1,29 @@
 #include "shepherd.h"
 #include "window.h"
 
-#if 0
-auto _baseDirectory = "/home/icekarma/devel/work/VolumetricLumen";
-#else
-auto _baseDirectory = "/home/lumen/Volumetric";
-#endif
+namespace {
+
+    char const* ProcessErrorStrings[] {
+        "FailedToStart",
+        "Crashed",
+        "Timedout",
+        "WriteError",
+        "ReadError",
+        "UnknownError",
+    };
+
+}
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
+    char const* baseDirectory = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/stdio-shepherd" : "/home/lumen/Volumetric";
+    fprintf( stderr, "+ Shepherd::`ctor: Base directory for launching stdio-shepherd.py: %s\n", baseDirectory );
+
     _process = new QProcess( this );
-    _process->setWorkingDirectory( _baseDirectory );
-    _process->setProgram( "printer.py" );
+    _process->setWorkingDirectory( baseDirectory );
     QObject::connect( _process, &QProcess::started,       this, &Shepherd::processStarted       );
     QObject::connect( _process, &QProcess::errorOccurred, this, &Shepherd::processErrorOccurred );
-    _process->start( );
+    QObject::connect( _process, &QProcess::readyRead,     this, &Shepherd::processReadyRead     );
+    _process->start( QString( "./stdio-shepherd.py" ) );
 }
 
 Shepherd::~Shepherd( ) {
@@ -44,7 +54,13 @@ void Shepherd::doSend( char const* arg ) {
 }
 
 void Shepherd::processStarted( ) {
+    fprintf( stderr, "+ Shepherd::processStarted\n" );
 }
 
-void Shepherd::processErrorOccurred( QProcess::ProcessError ) {
+void Shepherd::processErrorOccurred( QProcess::ProcessError err ) {
+    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[err], err );
+}
+
+void Shepherd::processReadyRead( ) {
+    fprintf( stderr, "+ Shepherd::processReadyRead\n" );
 }
