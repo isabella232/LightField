@@ -31,12 +31,14 @@ class StdioPrinterDriver( ):
         self.reader       = csv.reader( sys.stdin,  csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.writer       = csv.writer( sys.stdout, csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.verbMap      = {
-            'move':    self.move,
-            'moveTo':  self.moveTo,
-            'home':    self.home,
-            'lift':    self.lift,
-            'askTemp': self.askTemp,
-            'send':    self.send
+            'move':          self.move,
+            'moveTo':        self.moveTo,
+            'home':          self.home,
+            'lift':          self.lift,
+            'askTemp':       self.askTemp,
+            'send':          self.send,
+            'queryOnline':   self.queryOnline,
+            'queryPrinting': self.queryPrinting,
         }
 
     ##
@@ -151,6 +153,12 @@ class StdioPrinterDriver( ):
         self.printer.send( args[0] )
 
         return True
+
+    def queryOnline( self, *args ):
+        return self.isOnline
+
+    def queryPrinting( self, *args ):
+        return self.isPrinting
 
     def processInput( self ):
         for line in self.reader:
