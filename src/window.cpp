@@ -3,6 +3,7 @@
 #include "window.h"
 #include "canvas.h"
 #include "loader.h"
+#include "shepherd.h"
 
 namespace {
 
@@ -135,6 +136,8 @@ Window::Window(QWidget *parent) :
     containerWidget->setLayout(containerVBox);
 
     setCentralWidget(containerWidget);
+
+    shepherd = new Shepherd( this );
 }
 
 void Window::on_open()
@@ -283,11 +286,11 @@ void Window::on_loaded(const QString& filename)
 }
 
 void Window::on_move_up() {
-    system("echo Move Up button clicked");
+    shepherd->doMove( 1 );
 }
 
 void Window::on_move_down() {
-    system("echo Move Down button clicked");
+    shepherd->doMove( -1 );
 }
 
 void Window::rebuild_recent_files()

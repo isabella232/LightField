@@ -11,6 +11,7 @@
 #include <QPushButton>
 
 class Canvas;
+class Shepherd;
 
 class Window : public QMainWindow
 {
@@ -83,6 +84,7 @@ private:
     QPushButton* const move_up_button;
     QPushButton* const move_down_button;
     Canvas* canvas;
+    Shepherd* shepherd;
 };
 
 #endif // WINDOW_H

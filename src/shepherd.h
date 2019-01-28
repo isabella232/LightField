@@ -1,7 +1,13 @@
 #ifndef __SHEPHERD_H__
 #define __SHEPHERD_H__
 
-class Shepherd {
+#include <QProcess>
+
+class Window;
+
+class Shepherd: public QObject {
+
+    Q_OBJECT
 
     Shepherd( Shepherd const& ) = delete;
     Shepherd( Shepherd&& ) = delete;
@@ -10,20 +16,24 @@ class Shepherd {
 
 public:
 
-    Shepherd( );
+    Shepherd( QObject* parent );
     ~Shepherd( );
 
-    bool Start( );
-    bool Stop( );
+    void doMove( float arg );
+    void doMoveTo( float arg );
+    void doHome( );
+    void doLift( float arg1, float arg2 );
+    void doAskTemp( );
+    void doSend( char const* arg );
+
+public slots:
+
+    void processStarted( );
+    void processErrorOccurred( QProcess::ProcessError );
 
 private:
 
-    pid_t _childPid      { -1 };
-    int   _stdinPipe[2]  { -1, -1 };
-    int   _stdoutPipe[2] { -1, -1 };
-    int   _stderrPipe[2] { -1, -1 };
-
-    bool _CreatePipes( );
+    QProcess* _process;
 
 };
 
