@@ -1,21 +1,21 @@
-import os, time
 import glob
-
-# jmil modified to point to location of printrun folder
-# https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+import os
 import sys
+import time
 
-#_baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
-_baseDirectory = '/home/lumen/Volumetric'
+from threading import Thread
+
+if 'DEBUGGING_ON_VIOLET' in os.environ:
+    _baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
+else:
+    _baseDirectory = '/home/lumen/Volumetric'
 sys.path.append(_baseDirectory + '/printrun')
 sys.path.append(_baseDirectory + '/TouchPrint/App')
 
-# jmil modified import MOTOR_AXIS constant:
 from Util.constants import MOTOR_AXIS
 
 from printrun import printcore
 from printrun.eventhandler import PrinterEventHandler
-from threading import Thread
 
 class printprocess():
     def __init__(self, printer, showcb=None, hidecb=None, startcb=None, donecb=None):
@@ -101,6 +101,7 @@ class printer(PrinterEventHandler):
 
     def on_recv(self, line):
         l=line.strip()
+        print( "+ on_recv: line: %s" % line, file = sys.stderr )
         if 'Z:' in line and "E:" in line:
             pos=float(l.split("Z:")[1].split("E:")[0])
             if(self.positioncb):
