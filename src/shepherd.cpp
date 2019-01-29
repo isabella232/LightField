@@ -57,8 +57,8 @@ void Shepherd::processStarted( ) {
     fprintf( stderr, "+ Shepherd::processStarted\n" );
 }
 
-void Shepherd::processErrorOccurred( QProcess::ProcessError err ) {
-    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[err], err );
+void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
+    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[error], error );
 }
 
 void Shepherd::processReadyRead( ) {
