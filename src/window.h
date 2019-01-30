@@ -2,7 +2,6 @@
 #define WINDOW_H
 
 #include <QCollator>
-//#include <QFileSystemWatcher>
 #include <QProcess>
 #include <QMainWindow>
 #include <QGridLayout>
@@ -32,14 +31,21 @@ private:
     QString lookup_folder;
     QStringList lookup_folder_files;
 
-    //QFileSystemWatcher* watcher;
     Canvas* canvas;
     Shepherd* shepherd;
 
     Loader* loader = nullptr;
 
-    QWidget* centralWidget;
-    QGridLayout* centralWidgetLayout;
+    QTabWidget* tabWidget;
+
+    QWidget* selectTab;
+    QGridLayout* selectTabLayout;
+
+    QWidget* sliceTab;
+    QGridLayout* sliceTabLayout;
+
+    QWidget* printTab;
+    QGridLayout* printTabLayout;
 
 signals:
 

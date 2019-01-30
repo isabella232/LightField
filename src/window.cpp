@@ -1,37 +1,54 @@
 #include "window.h"
 
-Window::Window(QWidget *parent): QMainWindow(parent)
-{
-    setWindowTitle("fstl");
-    setAcceptDrops(false);
-    setStatusBar(nullptr);
-    setFixedSize(800, 480);
+Window::Window(QWidget *parent): QMainWindow(parent) {
+    setFixedSize( 800, 480 );
 
     QSurfaceFormat format;
-	format.setDepthBufferSize(24);
-	format.setStencilBufferSize(8);
-	format.setVersion(2, 1);
-	format.setProfile(QSurfaceFormat::CoreProfile);
-	QSurfaceFormat::setDefaultFormat(format);
+    format.setDepthBufferSize( 24 );
+    format.setStencilBufferSize( 8 );
+    format.setVersion( 2, 1 );
+    format.setProfile( QSurfaceFormat::CoreProfile );
+    QSurfaceFormat::setDefaultFormat( format );
 
-    canvas = new Canvas(format, this);
-    canvas->setMinimumSize(600, 400);
+    canvas = new Canvas( format, this );
+    canvas->setMinimumSize( 600, 400 );
     canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    centralWidgetLayout = new QGridLayout( );
-    centralWidgetLayout->setContentsMargins( 0, 0, 0, 0 );
-    centralWidgetLayout->addWidget( canvas );
+    selectTabLayout = new QGridLayout( );
+    selectTabLayout->setContentsMargins( { }  );
+    selectTabLayout->addWidget( canvas );
 
-    centralWidget = new QWidget( );
-    centralWidget->setContentsMargins(0, 0, 0, 0);
-    centralWidget->setLayout( centralWidgetLayout );
-    centralWidget->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    selectTab = new QWidget( );
+    selectTab->setContentsMargins( { } );
+    selectTab->setLayout( selectTabLayout );
+    selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    setCentralWidget(centralWidget);
+    sliceTabLayout = new QGridLayout( );
+    sliceTabLayout->setContentsMargins( { }  );
 
-    //watcher = new QFileSystemWatcher(this);
+    sliceTab = new QWidget( );
+    sliceTab->setContentsMargins( { } );
+    sliceTab->setLayout( sliceTabLayout );
+    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    shepherd = new Shepherd(this);
+    printTabLayout = new QGridLayout( );
+    printTabLayout->setContentsMargins( { }  );
+
+    printTab = new QWidget( );
+    printTab->setContentsMargins( { } );
+    printTab->setLayout( printTabLayout );
+    printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    tabWidget = new QTabWidget( );
+    tabWidget->setContentsMargins( { } );
+    tabWidget->addTab( selectTab, "Select" );
+    tabWidget->addTab( sliceTab,  "Slice"  );
+    tabWidget->addTab( printTab,  "Print"  );
+    tabWidget->setCurrentIndex( 0 );
+
+    setCentralWidget( tabWidget );
+
+    shepherd = new Shepherd( this );
     QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
     QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
     QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
