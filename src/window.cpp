@@ -1,43 +1,15 @@
-#include <QMenuBar>
-
 #include "window.h"
+
 #include "canvas.h"
 #include "loader.h"
 #include "shepherd.h"
 
-namespace {
-
-    const int MAX_RECENT_FILES { 8 };
-    const QString RECENT_FILE_KEY { "recentFiles" };
-
-}
-
-Window::Window(QWidget *parent) :
-    QMainWindow(parent),
-    open_action(new QAction("&Open", this)),
-    about_action(new QAction("&About", this)),
-    quit_action(new QAction("E&xit", this)),
-    perspective_action(new QAction("&Perspective", this)),
-    orthogonal_action(new QAction("&Orthographic", this)),
-    shaded_action(new QAction("&Shaded", this)),
-    wireframe_action(new QAction("&Wireframe", this)),
-    reload_action(new QAction("Re&load", this)),
-    autoreload_action(new QAction("&Autoreload", this)),
-    recent_files(new QMenu("Open &recent", this)),
-    recent_files_group(new QActionGroup(this)),
-    recent_files_clear_action(new QAction("&Clear recent files", this)),
-    watcher(new QFileSystemWatcher(this)),
-    containerWidget(new QWidget()),
-    containerVBox(new QVBoxLayout()),
-    buttonHBox(new QHBoxLayout()),
-    buttonGroupBox(new QGroupBox()),
-    move_up_button(new QPushButton("Move &Up")),
-    move_down_button(new QPushButton("Move &Down"))
+Window::Window(QWidget *parent): QMainWindow(parent)
 {
     setWindowTitle("fstl");
-    setAcceptDrops(true);
+    setAcceptDrops(false);
     setStatusBar(nullptr);
-    setFixedSize(800, 600);
+    setFixedSize(800, 480);
 
     QSurfaceFormat format;
 	format.setDepthBufferSize(24);
@@ -46,86 +18,19 @@ Window::Window(QWidget *parent) :
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	QSurfaceFormat::setDefaultFormat(format);
 
-    QObject::connect(watcher, &QFileSystemWatcher::fileChanged,
-                     this, &Window::on_watched_change);
+    move_up_button = new QPushButton("Move &Up");
+    QObject::connect(move_up_button, &QPushButton::clicked, this, &Window::on_move_up);
 
-    open_action->setShortcut(QKeySequence::Open);
-    QObject::connect(open_action, &QAction::triggered,
-                     this, &Window::on_open);
-
-    quit_action->setShortcut(QKeySequence::Quit);
-    QObject::connect(quit_action, &QAction::triggered,
-                     this, &Window::close);
-
-    autoreload_action->setCheckable(true);
-    autoreload_action->setChecked(true);
-    autoreload_action->setEnabled(false);
-    QObject::connect(autoreload_action, &QAction::triggered,
-            this, &Window::on_autoreload_triggered);
-
-    reload_action->setShortcut(QKeySequence::Refresh);
-    reload_action->setEnabled(false);
-    QObject::connect(reload_action, &QAction::triggered,
-                     this, &Window::on_reload);
-
-    QObject::connect(about_action, &QAction::triggered,
-                     this, &Window::on_about);
-
-    QObject::connect(recent_files_clear_action, &QAction::triggered,
-                     this, &Window::on_clear_recent);
-    QObject::connect(recent_files_group, &QActionGroup::triggered,
-                     this, &Window::on_load_recent);
-
-    rebuild_recent_files();
-
-    auto file_menu = menuBar()->addMenu("&File");
-    file_menu->addAction(open_action);
-    file_menu->addMenu(recent_files);
-    file_menu->addSeparator();
-    file_menu->addAction(reload_action);
-    file_menu->addAction(autoreload_action);
-    file_menu->addAction(quit_action);
-
-    auto view_menu = menuBar()->addMenu("&View");
-    auto projection_menu = view_menu->addMenu("&Projection");
-    projection_menu->addAction(perspective_action);
-    projection_menu->addAction(orthogonal_action);
-    auto projections = new QActionGroup(projection_menu);
-    for (auto p : {perspective_action, orthogonal_action})
-    {
-        projections->addAction(p);
-        p->setCheckable(true);
-    }
-    perspective_action->setChecked(true);
-    projections->setExclusive(true);
-    QObject::connect(projections, &QActionGroup::triggered,
-                     this, &Window::on_projection);
-
-    auto draw_menu = view_menu->addMenu("&Draw Mode");
-    draw_menu->addAction(shaded_action);
-    draw_menu->addAction(wireframe_action);
-    auto drawModes = new QActionGroup(draw_menu);
-    for (auto p : {shaded_action, wireframe_action})
-    {
-        drawModes->addAction(p);
-        p->setCheckable(true);
-    }
-    shaded_action->setChecked(true);
-    drawModes->setExclusive(true);
-    QObject::connect(drawModes, &QActionGroup::triggered,
-                     this, &Window::on_drawMode);
-
-    auto help_menu = menuBar()->addMenu("&Help");
-    help_menu->addAction(about_action);
-
-    QObject::connect(move_up_button,   &QPushButton::clicked, this, &Window::on_move_up);
+    move_down_button = new QPushButton("Move &Down");
     QObject::connect(move_down_button, &QPushButton::clicked, this, &Window::on_move_down);
 
+    buttonHBox = new QHBoxLayout();
     buttonHBox->addStretch(0);
     buttonHBox->addWidget(move_up_button);
     buttonHBox->addWidget(move_down_button);
     buttonHBox->addStretch(0);
     //buttonHBox->setContentsMargins(0, 0, 0, 0);
+    buttonGroupBox = new QGroupBox();
     buttonGroupBox->setLayout(buttonHBox);
     //buttonGroupBox->setContentsMargins(0, 0, 0, 0);
 
@@ -134,42 +39,29 @@ Window::Window(QWidget *parent) :
     canvas->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     //canvas->setContentsMargins(0, 0, 0, 0);
 
+    containerVBox = new QVBoxLayout();
     containerVBox->addWidget(canvas);
     containerVBox->addWidget(buttonGroupBox);
     containerVBox->setContentsMargins(0, 0, 0, 0);
+    containerWidget = new QWidget();
     containerWidget->setLayout(containerVBox);
     containerWidget->setContentsMargins(0, 0, 0, 0);
 
     setCentralWidget(containerWidget);
 
+    //watcher = new QFileSystemWatcher(this);
     shepherd = new Shepherd(this);
 }
 
-void Window::on_open()
-{
-    QString filename = QFileDialog::getOpenFileName(
-                this, "Load .stl file", QString(), "*.stl");
-    if (!filename.isNull())
-    {
-        load_stl(filename);
-    }
-}
-
-void Window::on_about()
-{
-    QMessageBox::about(this, "",
-        "<div style=\"margin: 0 auto;\">"
-        "<p align=\"center\"><b>fstl</b></p>"
-        "<p>A fast viewer for <code>.stl</code> files.<br>"
-        "<a href=\"https://github.com/VolumetricBio/fstl\""
-        "   style=\"color: #93a1a1;\">https://github.com/VolumetricBio/fstl</a></p>"
-        "<p>© 2014-2017 Matthew Keeter<br>"
-        "<a href=\"mailto:matt.j.keeter@gmail.com\""
-        "   style=\"color: #93a1a1;\">matt.j.keeter@gmail.com</a></p>"
-        "<p>© 2018-2019 Volumetric Lumen</p>"
-        "</div>"
-    );
-}
+//void Window::on_open()
+//{
+//    QString filename = QFileDialog::getOpenFileName(
+//                this, "Load .stl file", QString(), "*.stl");
+//    if (!filename.isNull())
+//    {
+//        load_stl(filename);
+//    }
+//}
 
 void Window::on_bad_stl()
 {
@@ -201,93 +93,63 @@ void Window::on_missing_file()
                           "The target file is missing.<br>");
 }
 
-void Window::enable_open()
-{
-    open_action->setEnabled(true);
-}
+//void Window::set_watched(const QString& filename)
+//{
+//    const auto files = watcher->files();
+//    if (files.size())
+//    {
+//        watcher->removePaths(watcher->files());
+//    }
+//    watcher->addPath(filename);
+//
+//    QSettings settings;
+//    auto recent = settings.value(RECENT_FILE_KEY).toStringList();
+//    const auto f = QFileInfo(filename).absoluteFilePath();
+//    recent.removeAll(f);
+//    recent.prepend(f);
+//    while (recent.size() > MAX_RECENT_FILES)
+//    {
+//        recent.pop_back();
+//    }
+//    settings.setValue(RECENT_FILE_KEY, recent);
+//}
+//
+//void Window::on_projection(QAction* proj)
+//{
+//    if (proj == perspective_action)
+//    {
+//        canvas->view_perspective();
+//    }
+//    else
+//    {
+//        canvas->view_orthographic();
+//    }
+//}
+//
+//void Window::on_drawMode(QAction* mode)
+//{
+//    if (mode == shaded_action)
+//    {
+//        canvas->draw_shaded();
+//    }
+//    else
+//    {
+//        canvas->draw_wireframe();
+//    }
+//}
 
-void Window::disable_open()
-{
-    open_action->setEnabled(false);
-}
-
-void Window::set_watched(const QString& filename)
-{
-    const auto files = watcher->files();
-    if (files.size())
-    {
-        watcher->removePaths(watcher->files());
-    }
-    watcher->addPath(filename);
-
-    QSettings settings;
-    auto recent = settings.value(RECENT_FILE_KEY).toStringList();
-    const auto f = QFileInfo(filename).absoluteFilePath();
-    recent.removeAll(f);
-    recent.prepend(f);
-    while (recent.size() > MAX_RECENT_FILES)
-    {
-        recent.pop_back();
-    }
-    settings.setValue(RECENT_FILE_KEY, recent);
-    rebuild_recent_files();
-}
-
-void Window::on_projection(QAction* proj)
-{
-    if (proj == perspective_action)
-    {
-        canvas->view_perspective();
-    }
-    else
-    {
-        canvas->view_orthographic();
-    }
-}
-
-void Window::on_drawMode(QAction* mode)
-{
-    if (mode == shaded_action)
-    {
-        canvas->draw_shaded();
-    }
-    else
-    {
-        canvas->draw_wireframe();
-    }
-}
-
-void Window::on_watched_change(const QString& filename)
-{
-    if (autoreload_action->isChecked())
-    {
-        load_stl(filename, true);
-    }
-}
-
-void Window::on_autoreload_triggered(bool b)
-{
-    if (b)
-    {
-        on_reload();
-    }
-}
-
-void Window::on_clear_recent()
-{
-    QSettings settings;
-    settings.setValue(RECENT_FILE_KEY, QStringList());
-    rebuild_recent_files();
-}
-
-void Window::on_load_recent(QAction* a)
-{
-    load_stl(a->data().toString());
+void Window::on_finished() {
+    loader = nullptr;
 }
 
 void Window::on_loaded(const QString& filename)
 {
+    if (filename[0] == ':') {
+        return;
+    }
+
     current_file = filename;
+    setWindowTitle( current_file );
 }
 
 void Window::on_move_up()
@@ -300,101 +162,29 @@ void Window::on_move_down()
     shepherd->doMove( -1 );
 }
 
-void Window::rebuild_recent_files()
-{
-    QSettings settings;
-    QStringList files = settings.value(RECENT_FILE_KEY).toStringList();
-
-    const auto actions = recent_files_group->actions();
-    for (auto a : actions)
-    {
-        recent_files_group->removeAction(a);
-    }
-    recent_files->clear();
-
-    for (auto f : files)
-    {
-        const auto a = new QAction(f, recent_files);
-        a->setData(f);
-        recent_files_group->addAction(a);
-        recent_files->addAction(a);
-    }
-    if (files.size() == 0)
-    {
-        auto a = new QAction("No recent files", recent_files);
-        recent_files->addAction(a);
-        a->setEnabled(false);
-    }
-    recent_files->addSeparator();
-    recent_files->addAction(recent_files_clear_action);
-}
-
-void Window::on_reload()
-{
-    auto fs = watcher->files();
-    if (fs.size() == 1)
-    {
-        load_stl(fs[0], true);
-    }
-}
-
 bool Window::load_stl(const QString& filename, bool is_reload)
 {
-    if (!open_action->isEnabled())  return false;
+    if (loader) {
+        return false;
+    }
+    loader = new Loader(this, filename, is_reload);
 
     canvas->set_status("Loading " + filename);
 
-    Loader* loader = new Loader(this, filename, is_reload);
-    connect(loader, &Loader::started,
-              this, &Window::disable_open);
+    connect(loader, &Loader::got_mesh,              canvas, &Canvas::load_mesh);
+    connect(loader, &Loader::error_bad_stl,         this,   &Window::on_bad_stl);
+    connect(loader, &Loader::error_empty_mesh,      this,   &Window::on_empty_mesh);
+    connect(loader, &Loader::warning_confusing_stl, this,   &Window::on_confusing_stl);
+    connect(loader, &Loader::error_missing_file,    this,   &Window::on_missing_file);
 
-    connect(loader, &Loader::got_mesh,
-            canvas, &Canvas::load_mesh);
-    connect(loader, &Loader::error_bad_stl,
-              this, &Window::on_bad_stl);
-    connect(loader, &Loader::error_empty_mesh,
-              this, &Window::on_empty_mesh);
-    connect(loader, &Loader::warning_confusing_stl,
-              this, &Window::on_confusing_stl);
-    connect(loader, &Loader::error_missing_file,
-              this, &Window::on_missing_file);
+    connect(loader, &Loader::finished,              loader, &Loader::deleteLater);
+    connect(loader, &Loader::finished,              canvas, &Canvas::clear_status);
+    connect(loader, &Loader::finished,              this,   &Window::on_finished);
 
-    connect(loader, &Loader::finished,
-            loader, &Loader::deleteLater);
-    connect(loader, &Loader::finished,
-              this, &Window::enable_open);
-    connect(loader, &Loader::finished,
-            canvas, &Canvas::clear_status);
-
-    if (filename[0] != ':')
-    {
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::setWindowTitle);
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::set_watched);
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::on_loaded);
-        autoreload_action->setEnabled(true);
-        reload_action->setEnabled(true);
-    }
+    connect(loader, &Loader::loaded_file,           this,   &Window::on_loaded);
 
     loader->start();
     return true;
-}
-
-void Window::dragEnterEvent(QDragEnterEvent *event)
-{
-    if (event->mimeData()->hasUrls())
-    {
-        auto urls = event->mimeData()->urls();
-        if (urls.size() == 1 && urls.front().path().endsWith(".stl"))
-            event->acceptProposedAction();
-    }
-}
-
-void Window::dropEvent(QDropEvent *event)
-{
-    load_stl(event->mimeData()->urls().front().toLocalFile());
 }
 
 void Window::sorted_insert(QStringList& list, const QCollator& collator, const QString& value)
@@ -445,44 +235,6 @@ void Window::build_folder_file_list()
     }
 }
 
-QPair<QString, QString> Window::get_file_neighbors()
-{
-    if (current_file.isEmpty()) {
-        return QPair<QString, QString>(QString::null, QString::null);
-    }
-
-    build_folder_file_list();
-
-    QFileInfo fileInfo(current_file);
-
-    QString current_dir = fileInfo.absoluteDir().absolutePath();
-    QString current_name = fileInfo.fileName();
-
-    QString prev = QString::null;
-    QString next = QString::null;
-
-    QListIterator<QString> fileIterator(lookup_folder_files);
-    while (fileIterator.hasNext()) {
-        QString name = fileIterator.next();
-
-        if (name == current_name) {
-            if (fileIterator.hasNext()) {
-                next = current_dir + QDir::separator() + fileIterator.next();
-            }
-            break;
-        }
-
-        prev = name;
-    }
-
-    if (!prev.isEmpty()) {
-        prev.prepend(QDir::separator());
-        prev.prepend(current_dir);
-    }
-
-    return QPair<QString, QString>(prev, next);
-}
-
 void Window::setFullScreen(bool const fullScreen)
 {
     if (fullScreen) {
@@ -490,46 +242,4 @@ void Window::setFullScreen(bool const fullScreen)
     } else {
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }
-}
-
-bool Window::load_prev(void)
-{
-    QPair<QString, QString> neighbors = get_file_neighbors();
-    if (neighbors.first.isEmpty()) {
-        return false;
-    }
-
-    return load_stl(neighbors.first);
-}
-
-bool Window::load_next(void)
-{
-    QPair<QString, QString> neighbors = get_file_neighbors();
-    if (neighbors.second.isEmpty()) {
-        return false;
-    }
-
-    return load_stl(neighbors.second);
-}
-
-void Window::keyPressEvent(QKeyEvent* event)
-{
-    if (!open_action->isEnabled())
-    {
-        QMainWindow::keyPressEvent(event);
-        return;
-    }
-
-    if (event->key() == Qt::Key_Left)
-    {
-        load_prev();
-        return;
-    }
-    else if (event->key() == Qt::Key_Right)
-    {
-        load_next();
-        return;
-    }
-
-    QMainWindow::keyPressEvent(event);
 }
