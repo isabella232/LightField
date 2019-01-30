@@ -1,174 +1,111 @@
-#include <QMenuBar>
-
 #include "window.h"
-#include "canvas.h"
-#include "loader.h"
-#include "shepherd.h"
 
-namespace {
-
-    const int MAX_RECENT_FILES { 8 };
-    const QString RECENT_FILE_KEY { "recentFiles" };
-
-}
-
-Window::Window(QWidget *parent) :
-    QMainWindow(parent),
-    open_action(new QAction("&Open", this)),
-    about_action(new QAction("&About", this)),
-    quit_action(new QAction("E&xit", this)),
-    perspective_action(new QAction("&Perspective", this)),
-    orthogonal_action(new QAction("&Orthographic", this)),
-    shaded_action(new QAction("&Shaded", this)),
-    wireframe_action(new QAction("&Wireframe", this)),
-    reload_action(new QAction("Re&load", this)),
-    autoreload_action(new QAction("&Autoreload", this)),
-    recent_files(new QMenu("Open &recent", this)),
-    recent_files_group(new QActionGroup(this)),
-    recent_files_clear_action(new QAction("&Clear recent files", this)),
-    watcher(new QFileSystemWatcher(this)),
-    containerWidget(new QWidget()),
-    containerVBox(new QVBoxLayout()),
-    buttonHBox(new QHBoxLayout()),
-    buttonGroupBox(new QGroupBox()),
-    move_up_button(new QPushButton("Move &Up")),
-    move_down_button(new QPushButton("Move &Down"))
-{
-    setWindowTitle("fstl");
-    setAcceptDrops(true);
-    setStatusBar(nullptr);
-    setFixedSize(800, 600);
+Window::Window(QWidget *parent): QMainWindow(parent) {
+    setFixedSize( 800, 480 );
 
     QSurfaceFormat format;
-	format.setDepthBufferSize(24);
-	format.setStencilBufferSize(8);
-	format.setVersion(2, 1);
-	format.setProfile(QSurfaceFormat::CoreProfile);
-	QSurfaceFormat::setDefaultFormat(format);
+    format.setDepthBufferSize( 24 );
+    format.setStencilBufferSize( 8 );
+    format.setVersion( 2, 1 );
+    format.setProfile( QSurfaceFormat::CoreProfile );
+    QSurfaceFormat::setDefaultFormat( format );
 
-    QObject::connect(watcher, &QFileSystemWatcher::fileChanged,
-                     this, &Window::on_watched_change);
+    canvas = new Canvas( format, this );
+    canvas->setMinimumSize( 600, 400 );
+    canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    open_action->setShortcut(QKeySequence::Open);
-    QObject::connect(open_action, &QAction::triggered,
-                     this, &Window::on_open);
+    selectTabLayout = new QGridLayout( );
+    selectTabLayout->setContentsMargins( { }  );
+    selectTabLayout->addWidget( canvas );
 
-    quit_action->setShortcut(QKeySequence::Quit);
-    QObject::connect(quit_action, &QAction::triggered,
-                     this, &Window::close);
+    selectTab = new QWidget( );
+    selectTab->setContentsMargins( { } );
+    selectTab->setLayout( selectTabLayout );
+    selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    autoreload_action->setCheckable(true);
-    autoreload_action->setChecked(true);
-    autoreload_action->setEnabled(false);
-    QObject::connect(autoreload_action, &QAction::triggered,
-            this, &Window::on_autoreload_triggered);
+    sliceTabLayout = new QGridLayout( );
+    sliceTabLayout->setContentsMargins( { }  );
 
-    reload_action->setShortcut(QKeySequence::Refresh);
-    reload_action->setEnabled(false);
-    QObject::connect(reload_action, &QAction::triggered,
-                     this, &Window::on_reload);
+    sliceTab = new QWidget( );
+    sliceTab->setContentsMargins( { } );
+    sliceTab->setLayout( sliceTabLayout );
+    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    QObject::connect(about_action, &QAction::triggered,
-                     this, &Window::on_about);
+    printTabLayout = new QGridLayout( );
+    printTabLayout->setContentsMargins( { }  );
 
-    QObject::connect(recent_files_clear_action, &QAction::triggered,
-                     this, &Window::on_clear_recent);
-    QObject::connect(recent_files_group, &QActionGroup::triggered,
-                     this, &Window::on_load_recent);
+    printTab = new QWidget( );
+    printTab->setContentsMargins( { } );
+    printTab->setLayout( printTabLayout );
+    printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    rebuild_recent_files();
+    tabWidget = new QTabWidget( );
+    tabWidget->setContentsMargins( { } );
+    tabWidget->addTab( selectTab, "Select" );
+    tabWidget->addTab( sliceTab,  "Slice"  );
+    tabWidget->addTab( printTab,  "Print"  );
+    tabWidget->setCurrentIndex( 0 );
 
-    auto file_menu = menuBar()->addMenu("&File");
-    file_menu->addAction(open_action);
-    file_menu->addMenu(recent_files);
-    file_menu->addSeparator();
-    file_menu->addAction(reload_action);
-    file_menu->addAction(autoreload_action);
-    file_menu->addAction(quit_action);
+    setCentralWidget( tabWidget );
 
-    auto view_menu = menuBar()->addMenu("&View");
-    auto projection_menu = view_menu->addMenu("&Projection");
-    projection_menu->addAction(perspective_action);
-    projection_menu->addAction(orthogonal_action);
-    auto projections = new QActionGroup(projection_menu);
-    for (auto p : {perspective_action, orthogonal_action})
-    {
-        projections->addAction(p);
-        p->setCheckable(true);
-    }
-    perspective_action->setChecked(true);
-    projections->setExclusive(true);
-    QObject::connect(projections, &QActionGroup::triggered,
-                     this, &Window::on_projection);
+    shepherd = new Shepherd( this );
+    QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
+    QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
+    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
 
-    auto draw_menu = view_menu->addMenu("&Draw Mode");
-    draw_menu->addAction(shaded_action);
-    draw_menu->addAction(wireframe_action);
-    auto drawModes = new QActionGroup(draw_menu);
-    for (auto p : {shaded_action, wireframe_action})
-    {
-        drawModes->addAction(p);
-        p->setCheckable(true);
-    }
-    shaded_action->setChecked(true);
-    drawModes->setExclusive(true);
-    QObject::connect(drawModes, &QActionGroup::triggered,
-                     this, &Window::on_drawMode);
+    QObject::connect( shepherd, &Shepherd::printer_Online,                this, &Window::printer_Online                );
+    QObject::connect( shepherd, &Shepherd::printer_Offline,               this, &Window::printer_Offline               );
+    QObject::connect( shepherd, &Shepherd::printer_Position,              this, &Window::printer_Position              );
+    QObject::connect( shepherd, &Shepherd::printer_Temperature,           this, &Window::printer_Temperature           );
 
-    auto help_menu = menuBar()->addMenu("&Help");
-    help_menu->addAction(about_action);
-
-    QObject::connect(move_up_button,   &QPushButton::clicked, this, &Window::on_move_up);
-    QObject::connect(move_down_button, &QPushButton::clicked, this, &Window::on_move_down);
-
-    buttonHBox->addStretch(0);
-    buttonHBox->addWidget(move_up_button);
-    buttonHBox->addWidget(move_down_button);
-    buttonHBox->addStretch(0);
-    //buttonHBox->setContentsMargins(0, 0, 0, 0);
-    buttonGroupBox->setLayout(buttonHBox);
-    //buttonGroupBox->setContentsMargins(0, 0, 0, 0);
-
-    canvas = new Canvas(format, this);
-    canvas->setMinimumSize(600, 400);
-    canvas->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    //canvas->setContentsMargins(0, 0, 0, 0);
-
-    containerVBox->addWidget(canvas);
-    containerVBox->addWidget(buttonGroupBox);
-    containerVBox->setContentsMargins(0, 0, 0, 0);
-    containerWidget->setLayout(containerVBox);
-    containerWidget->setContentsMargins(0, 0, 0, 0);
-
-    setCentralWidget(containerWidget);
-
-    shepherd = new Shepherd(this);
+    QObject::connect( shepherd, &Shepherd::printProcess_ShowImage,        this, &Window::printProcess_ShowImage        );
+    QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
+    QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
+    QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
 }
 
-void Window::on_open()
-{
-    QString filename = QFileDialog::getOpenFileName(
-                this, "Load .stl file", QString(), "*.stl");
-    if (!filename.isNull())
-    {
-        load_stl(filename);
-    }
+void Window::shepherd_Started( ) {
+    fprintf( stderr, "+ Window::shepherd_Started\n" );
 }
 
-void Window::on_about()
-{
-    QMessageBox::about(this, "",
-        "<div style=\"margin: 0 auto;\">"
-        "<p align=\"center\"><b>fstl</b></p>"
-        "<p>A fast viewer for <code>.stl</code> files.<br>"
-        "<a href=\"https://github.com/VolumetricBio/fstl\""
-        "   style=\"color: #93a1a1;\">https://github.com/VolumetricBio/fstl</a></p>"
-        "<p>© 2014-2017 Matthew Keeter<br>"
-        "<a href=\"mailto:matt.j.keeter@gmail.com\""
-        "   style=\"color: #93a1a1;\">matt.j.keeter@gmail.com</a></p>"
-        "<p>© 2018-2019 Volumetric Lumen</p>"
-        "</div>"
-    );
+void Window::shepherd_Finished( ) {
+    fprintf( stderr, "+ Window::shepherd_Finished\n" );
+}
+
+void Window::shepherd_ProcessError( ) {
+    fprintf( stderr, "+ Window::shepherd_ProcessError\n" );
+}
+
+void Window::printer_Online( ) {
+    fprintf( stderr, "+ Window::printer_Online\n" );
+}
+
+void Window::printer_Offline( ) {
+    fprintf( stderr, "+ Window::printer_Offline\n" );
+}
+
+void Window::printer_Position( float position ) {
+    fprintf( stderr, "+ Window::printer_Position: position: %f\n", position );
+}
+
+void Window::printer_Temperature( char const* temperatureInfo ) {
+    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo );
+}
+
+void Window::printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total ) {
+    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName, brightness, index, total );
+}
+
+void Window::printProcess_HideImage( ) {
+    fprintf( stderr, "+ Window::printProcess_HideImage\n" );
+}
+
+void Window::printProcess_StartedPrinting( ) {
+    fprintf( stderr, "+ Window::printProcess_StartedPrinting\n" );
+}
+
+void Window::printProcess_FinishedPrinting( ) {
+    fprintf( stderr, "+ Window::printProcess_FinishedPrinting\n" );
 }
 
 void Window::on_bad_stl()
@@ -201,89 +138,50 @@ void Window::on_missing_file()
                           "The target file is missing.<br>");
 }
 
-void Window::enable_open()
-{
-    open_action->setEnabled(true);
-}
-
-void Window::disable_open()
-{
-    open_action->setEnabled(false);
-}
-
-void Window::set_watched(const QString& filename)
-{
-    const auto files = watcher->files();
-    if (files.size())
-    {
-        watcher->removePaths(watcher->files());
-    }
-    watcher->addPath(filename);
-
-    QSettings settings;
-    auto recent = settings.value(RECENT_FILE_KEY).toStringList();
-    const auto f = QFileInfo(filename).absoluteFilePath();
-    recent.removeAll(f);
-    recent.prepend(f);
-    while (recent.size() > MAX_RECENT_FILES)
-    {
-        recent.pop_back();
-    }
-    settings.setValue(RECENT_FILE_KEY, recent);
-    rebuild_recent_files();
-}
-
-void Window::on_projection(QAction* proj)
-{
-    if (proj == perspective_action)
-    {
-        canvas->view_perspective();
-    }
-    else
-    {
-        canvas->view_orthographic();
-    }
-}
-
-void Window::on_drawMode(QAction* mode)
-{
-    if (mode == shaded_action)
-    {
-        canvas->draw_shaded();
-    }
-    else
-    {
-        canvas->draw_wireframe();
-    }
-}
-
-void Window::on_watched_change(const QString& filename)
-{
-    if (autoreload_action->isChecked())
-    {
-        load_stl(filename, true);
-    }
-}
-
-void Window::on_autoreload_triggered(bool b)
-{
-    if (b)
-    {
-        on_reload();
-    }
-}
-
-void Window::on_clear_recent()
-{
-    QSettings settings;
-    settings.setValue(RECENT_FILE_KEY, QStringList());
-    rebuild_recent_files();
-}
-
-void Window::on_load_recent(QAction* a)
-{
-    load_stl(a->data().toString());
-}
+//void Window::set_watched(const QString& filename)
+//{
+//    const auto files = watcher->files();
+//    if (files.size())
+//    {
+//        watcher->removePaths(watcher->files());
+//    }
+//    watcher->addPath(filename);
+//
+//    QSettings settings;
+//    auto recent = settings.value(RECENT_FILE_KEY).toStringList();
+//    const auto f = QFileInfo(filename).absoluteFilePath();
+//    recent.removeAll(f);
+//    recent.prepend(f);
+//    while (recent.size() > MAX_RECENT_FILES)
+//    {
+//        recent.pop_back();
+//    }
+//    settings.setValue(RECENT_FILE_KEY, recent);
+//}
+//
+//void Window::on_projection(QAction* proj)
+//{
+//    if (proj == perspective_action)
+//    {
+//        canvas->view_perspective();
+//    }
+//    else
+//    {
+//        canvas->view_orthographic();
+//    }
+//}
+//
+//void Window::on_drawMode(QAction* mode)
+//{
+//    if (mode == shaded_action)
+//    {
+//        canvas->draw_shaded();
+//    }
+//    else
+//    {
+//        canvas->draw_wireframe();
+//    }
+//}
 
 void Window::on_loaded(const QString& filename)
 {
@@ -300,101 +198,35 @@ void Window::on_move_down()
     shepherd->doMove( -1 );
 }
 
-void Window::rebuild_recent_files()
-{
-    QSettings settings;
-    QStringList files = settings.value(RECENT_FILE_KEY).toStringList();
-
-    const auto actions = recent_files_group->actions();
-    for (auto a : actions)
-    {
-        recent_files_group->removeAction(a);
-    }
-    recent_files->clear();
-
-    for (auto f : files)
-    {
-        const auto a = new QAction(f, recent_files);
-        a->setData(f);
-        recent_files_group->addAction(a);
-        recent_files->addAction(a);
-    }
-    if (files.size() == 0)
-    {
-        auto a = new QAction("No recent files", recent_files);
-        recent_files->addAction(a);
-        a->setEnabled(false);
-    }
-    recent_files->addSeparator();
-    recent_files->addAction(recent_files_clear_action);
-}
-
-void Window::on_reload()
-{
-    auto fs = watcher->files();
-    if (fs.size() == 1)
-    {
-        load_stl(fs[0], true);
-    }
+void Window::closeEvent( QCloseEvent* event ) {
+    shepherd->terminate( );
+    event->accept( );
 }
 
 bool Window::load_stl(const QString& filename, bool is_reload)
 {
-    if (!open_action->isEnabled())  return false;
+    if (loader) {
+        return false;
+    }
 
     canvas->set_status("Loading " + filename);
 
-    Loader* loader = new Loader(this, filename, is_reload);
-    connect(loader, &Loader::started,
-              this, &Window::disable_open);
+    loader = new Loader(this, filename, is_reload);
+    connect(loader, &Loader::got_mesh,              canvas, &Canvas::load_mesh);
+    connect(loader, &Loader::error_bad_stl,         this,   &Window::on_bad_stl);
+    connect(loader, &Loader::error_empty_mesh,      this,   &Window::on_empty_mesh);
+    connect(loader, &Loader::warning_confusing_stl, this,   &Window::on_confusing_stl);
+    connect(loader, &Loader::error_missing_file,    this,   &Window::on_missing_file);
+    connect(loader, &Loader::finished,              loader, &Loader::deleteLater);
+    connect(loader, &Loader::finished,              canvas, &Canvas::clear_status);
 
-    connect(loader, &Loader::got_mesh,
-            canvas, &Canvas::load_mesh);
-    connect(loader, &Loader::error_bad_stl,
-              this, &Window::on_bad_stl);
-    connect(loader, &Loader::error_empty_mesh,
-              this, &Window::on_empty_mesh);
-    connect(loader, &Loader::warning_confusing_stl,
-              this, &Window::on_confusing_stl);
-    connect(loader, &Loader::error_missing_file,
-              this, &Window::on_missing_file);
-
-    connect(loader, &Loader::finished,
-            loader, &Loader::deleteLater);
-    connect(loader, &Loader::finished,
-              this, &Window::enable_open);
-    connect(loader, &Loader::finished,
-            canvas, &Canvas::clear_status);
-
-    if (filename[0] != ':')
-    {
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::setWindowTitle);
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::set_watched);
-        connect(loader, &Loader::loaded_file,
-                  this, &Window::on_loaded);
-        autoreload_action->setEnabled(true);
-        reload_action->setEnabled(true);
+    if (filename[0] != ':') {
+        connect(loader, &Loader::loaded_file,       this,   &Window::setWindowTitle);
+        connect(loader, &Loader::loaded_file,       this,   &Window::on_loaded);
     }
 
     loader->start();
     return true;
-}
-
-void Window::dragEnterEvent(QDragEnterEvent *event)
-{
-    if (event->mimeData()->hasUrls())
-    {
-        auto urls = event->mimeData()->urls();
-        if (urls.size() == 1 && urls.front().path().endsWith(".stl"))
-            event->acceptProposedAction();
-    }
-}
-
-void Window::dropEvent(QDropEvent *event)
-{
-    load_stl(event->mimeData()->urls().front().toLocalFile());
 }
 
 void Window::sorted_insert(QStringList& list, const QCollator& collator, const QString& value)
@@ -445,44 +277,6 @@ void Window::build_folder_file_list()
     }
 }
 
-QPair<QString, QString> Window::get_file_neighbors()
-{
-    if (current_file.isEmpty()) {
-        return QPair<QString, QString>(QString::null, QString::null);
-    }
-
-    build_folder_file_list();
-
-    QFileInfo fileInfo(current_file);
-
-    QString current_dir = fileInfo.absoluteDir().absolutePath();
-    QString current_name = fileInfo.fileName();
-
-    QString prev = QString::null;
-    QString next = QString::null;
-
-    QListIterator<QString> fileIterator(lookup_folder_files);
-    while (fileIterator.hasNext()) {
-        QString name = fileIterator.next();
-
-        if (name == current_name) {
-            if (fileIterator.hasNext()) {
-                next = current_dir + QDir::separator() + fileIterator.next();
-            }
-            break;
-        }
-
-        prev = name;
-    }
-
-    if (!prev.isEmpty()) {
-        prev.prepend(QDir::separator());
-        prev.prepend(current_dir);
-    }
-
-    return QPair<QString, QString>(prev, next);
-}
-
 void Window::setFullScreen(bool const fullScreen)
 {
     if (fullScreen) {
@@ -490,46 +284,4 @@ void Window::setFullScreen(bool const fullScreen)
     } else {
         setWindowState(windowState() & ~Qt::WindowFullScreen);
     }
-}
-
-bool Window::load_prev(void)
-{
-    QPair<QString, QString> neighbors = get_file_neighbors();
-    if (neighbors.first.isEmpty()) {
-        return false;
-    }
-
-    return load_stl(neighbors.first);
-}
-
-bool Window::load_next(void)
-{
-    QPair<QString, QString> neighbors = get_file_neighbors();
-    if (neighbors.second.isEmpty()) {
-        return false;
-    }
-
-    return load_stl(neighbors.second);
-}
-
-void Window::keyPressEvent(QKeyEvent* event)
-{
-    if (!open_action->isEnabled())
-    {
-        QMainWindow::keyPressEvent(event);
-        return;
-    }
-
-    if (event->key() == Qt::Key_Left)
-    {
-        load_prev();
-        return;
-    }
-    else if (event->key() == Qt::Key_Right)
-    {
-        load_next();
-        return;
-    }
-
-    QMainWindow::keyPressEvent(event);
 }

@@ -7,8 +7,8 @@
 App::App(int& argc, char *argv[]) :
     QApplication(argc, argv), window(new Window())
 {
-    QCoreApplication::setOrganizationName("VolumetricBio");
-    QCoreApplication::setOrganizationDomain("https://github.com/VolumetricBio/fstl");
+    QCoreApplication::setOrganizationName("Volumetric");
+    QCoreApplication::setOrganizationDomain("https://www.volumetricbio.com/");
     QCoreApplication::setApplicationName("fstl");
 
     if (argc > 1)
