@@ -1,5 +1,5 @@
-build/*
 *.pro.user
 *.qmake.stash
 .vs
+build/*
 Final Eiffel Tower.STL
