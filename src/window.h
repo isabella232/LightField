@@ -7,11 +7,11 @@
 #include <QMainWindow>
 #include <QGridLayout>
 
-class Canvas;
-class Loader;
-class Shepherd;
+#include "shepherd.h"
+#include "canvas.h"
+#include "loader.h"
 
-class Window : public QMainWindow
+class Window: public QMainWindow
 {
     Q_OBJECT
 

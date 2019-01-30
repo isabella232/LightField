@@ -1,9 +1,5 @@
 #include "window.h"
 
-#include "canvas.h"
-#include "loader.h"
-#include "shepherd.h"
-
 Window::Window(QWidget *parent): QMainWindow(parent)
 {
     setWindowTitle("fstl");

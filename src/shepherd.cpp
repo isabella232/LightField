@@ -1,5 +1,3 @@
-#include "shepherd.h"
-#include "shepherd.h"
 #include "window.h"
 
 namespace {
