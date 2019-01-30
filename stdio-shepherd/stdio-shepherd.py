@@ -23,6 +23,9 @@ csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote =
 
 class StdioPrinterDriver( ):
 
+    class QuitNowException( Exception ):
+        pass
+
     def __init__( self ):
         self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback )
         self.printProcess = printer.printprocess( self.printer, self.printProcess_showImageCallback, self.printProcess_hideImageCallback, self.printProcess_startedPrintingCallback, self.printProcess_finishedPrintingCallback )
@@ -31,12 +34,16 @@ class StdioPrinterDriver( ):
         self.reader       = csv.reader( sys.stdin,  csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.writer       = csv.writer( sys.stdout, csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.verbMap      = {
-            'move':    self.move,
-            'moveTo':  self.moveTo,
-            'home':    self.home,
-            'lift':    self.lift,
-            'askTemp': self.askTemp,
-            'send':    self.send
+            'move':          self.move,
+            'moveTo':        self.moveTo,
+            'home':          self.home,
+            'lift':          self.lift,
+            'askTemp':       self.askTemp,
+            'send':          self.send,
+            'queryOnline':   self.queryOnline,
+            'queryPrinting': self.queryPrinting,
+            'stopPrinting':  self.stopPrinting,
+            'terminate':     self.terminate
         }
 
     ##
@@ -152,18 +159,38 @@ class StdioPrinterDriver( ):
 
         return True
 
+    def queryOnline( self, *args ):
+        return self.isOnline
+
+    def queryPrinting( self, *args ):
+        return self.isPrinting
+
+    def stopPrinting( self, *args ):
+        self.stopPrint( )
+
+        return True
+
+    def terminate( self, *args ):
+        self.writer.writerow( [ 'ok', 'terminate' ] )
+        raise QuitNowException( )
+
     def processInput( self ):
         for line in self.reader:
-            print( "verb: |%s| args: |%s|" % ( line[0], '|'.join( line[1:] ) ), file = sys.stderr )
+            print( "+ verb: |%s| args: |%s|" % ( line[0], '|'.join( line[1:] ) ), file = sys.stderr )
 
             if not ( line[0] in self.verbMap ):
                 self.writer.writerow( [ 'unknown', line[0] ] )
                 continue
 
-            if self.verbMap[line[0]]( *line[1:] ):
-                self.writer.writerow( [ 'ok', line[0] ] )
-            else:
-                self.writer.writerow( [ 'fail', line[0] ] )
+            try:
+                if self.verbMap[line[0]]( *line[1:] ):
+                    self.writer.writerow( [ 'ok', line[0] ] )
+                else:
+                    self.writer.writerow( [ 'fail', line[0] ] )
+            except QuitNowException:
+                return
+            except:
+                print( "+ Caught an exception." )
 
 ##
 ## Main

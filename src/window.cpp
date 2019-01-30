@@ -3,6 +3,7 @@
 #include "window.h"
 #include "canvas.h"
 #include "loader.h"
+#include "shepherd.h"
 
 namespace {
 
@@ -35,13 +36,14 @@ Window::Window(QWidget *parent) :
 {
     setWindowTitle("fstl");
     setAcceptDrops(true);
+    setStatusBar(nullptr);
+    setFixedSize(800, 600);
 
     QSurfaceFormat format;
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	format.setVersion(2, 1);
 	format.setProfile(QSurfaceFormat::CoreProfile);
-
 	QSurfaceFormat::setDefaultFormat(format);
 
     QObject::connect(watcher, &QFileSystemWatcher::fileChanged,
@@ -116,25 +118,31 @@ Window::Window(QWidget *parent) :
     auto help_menu = menuBar()->addMenu("&Help");
     help_menu->addAction(about_action);
 
-    canvas = new Canvas(format, this);
-    canvas->setMinimumSize(600, 400);
-
-    QObject::connect(move_up_button, &QPushButton::clicked, this, &Window::on_move_up);
+    QObject::connect(move_up_button,   &QPushButton::clicked, this, &Window::on_move_up);
     QObject::connect(move_down_button, &QPushButton::clicked, this, &Window::on_move_down);
 
-    buttonHBox->setContentsMargins(0, 0, 0, 0);
     buttonHBox->addStretch(0);
     buttonHBox->addWidget(move_up_button);
     buttonHBox->addWidget(move_down_button);
     buttonHBox->addStretch(0);
+    //buttonHBox->setContentsMargins(0, 0, 0, 0);
     buttonGroupBox->setLayout(buttonHBox);
+    //buttonGroupBox->setContentsMargins(0, 0, 0, 0);
 
-    containerVBox->setContentsMargins(0, 0, 0, 0);
+    canvas = new Canvas(format, this);
+    canvas->setMinimumSize(600, 400);
+    canvas->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //canvas->setContentsMargins(0, 0, 0, 0);
+
     containerVBox->addWidget(canvas);
     containerVBox->addWidget(buttonGroupBox);
+    containerVBox->setContentsMargins(0, 0, 0, 0);
     containerWidget->setLayout(containerVBox);
+    containerWidget->setContentsMargins(0, 0, 0, 0);
 
     setCentralWidget(containerWidget);
+
+    shepherd = new Shepherd(this);
 }
 
 void Window::on_open()
@@ -282,12 +290,14 @@ void Window::on_loaded(const QString& filename)
     current_file = filename;
 }
 
-void Window::on_move_up() {
-    system("echo Move Up button clicked");
+void Window::on_move_up()
+{
+    shepherd->doMove( 1 );
 }
 
-void Window::on_move_down() {
-    system("echo Move Down button clicked");
+void Window::on_move_down()
+{
+    shepherd->doMove( -1 );
 }
 
 void Window::rebuild_recent_files()
@@ -471,6 +481,15 @@ QPair<QString, QString> Window::get_file_neighbors()
     }
 
     return QPair<QString, QString>(prev, next);
+}
+
+void Window::setFullScreen(bool const fullScreen)
+{
+    if (fullScreen) {
+        setWindowState(windowState() |  Qt::WindowFullScreen);
+    } else {
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
+    }
 }
 
 bool Window::load_prev(void)

@@ -11,6 +11,7 @@
 #include <QPushButton>
 
 class Canvas;
+class Shepherd;
 
 class Window : public QMainWindow
 {
@@ -33,8 +34,6 @@ public slots:
     void on_empty_mesh();
     void on_missing_file();
     void on_confusing_stl();
-    void on_move_up();
-    void on_move_down();
 
     void enable_open();
     void disable_open();
@@ -50,12 +49,15 @@ private slots:
     void on_clear_recent();
     void on_load_recent(QAction* a);
     void on_loaded(const QString& filename);
+    void on_move_up();
+    void on_move_down();
 
 private:
     void rebuild_recent_files();
     void sorted_insert(QStringList& list, const QCollator& collator, const QString& value);
     void build_folder_file_list();
     QPair<QString, QString> get_file_neighbors();
+    void setFullScreen(bool const fullScreen = true);
 
     QAction* const open_action;
     QAction* const about_action;
@@ -75,6 +77,8 @@ private:
     QStringList lookup_folder_files;
 
     QFileSystemWatcher* watcher;
+    Canvas* canvas;
+    Shepherd* shepherd;
 
     QWidget* const containerWidget;
     QVBoxLayout* const containerVBox;
@@ -82,7 +86,6 @@ private:
     QGroupBox* const buttonGroupBox;
     QPushButton* const move_up_button;
     QPushButton* const move_down_button;
-    Canvas* canvas;
 };
 
 #endif // WINDOW_H
