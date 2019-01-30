@@ -50,7 +50,21 @@ Window::Window(QWidget *parent): QMainWindow(parent)
     setCentralWidget(containerWidget);
 
     //watcher = new QFileSystemWatcher(this);
+
     shepherd = new Shepherd(this);
+    QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
+    QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
+    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
+
+    QObject::connect( shepherd, &Shepherd::printer_Online,                this, &Window::printer_Online                );
+    QObject::connect( shepherd, &Shepherd::printer_Offline,               this, &Window::printer_Offline               );
+    QObject::connect( shepherd, &Shepherd::printer_Position,              this, &Window::printer_Position              );
+    QObject::connect( shepherd, &Shepherd::printer_Temperature,           this, &Window::printer_Temperature           );
+
+    QObject::connect( shepherd, &Shepherd::printProcess_ShowImage,        this, &Window::printProcess_ShowImage        );
+    QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
+    QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
+    QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
 }
 
 //void Window::on_open()
@@ -62,6 +76,50 @@ Window::Window(QWidget *parent): QMainWindow(parent)
 //        load_stl(filename);
 //    }
 //}
+
+void Window::shepherd_Started( ) {
+    fprintf( stderr, "+ Window::shepherd_Started\n" );
+}
+
+void Window::shepherd_Finished( ) {
+    fprintf( stderr, "+ Window::shepherd_Finished\n" );
+}
+
+void Window::shepherd_ProcessError( ) {
+    fprintf( stderr, "+ Window::shepherd_ProcessError\n" );
+}
+
+void Window::printer_Online( ) {
+    fprintf( stderr, "+ Window::printer_Online\n" );
+}
+
+void Window::printer_Offline( ) {
+    fprintf( stderr, "+ Window::printer_Offline\n" );
+}
+
+void Window::printer_Position( float position ) {
+    fprintf( stderr, "+ Window::printer_Position: position: %f\n", position );
+}
+
+void Window::printer_Temperature( char const* temperatureInfo ) {
+    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo );
+}
+
+void Window::printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total ) {
+    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName, brightness, index, total );
+}
+
+void Window::printProcess_HideImage( ) {
+    fprintf( stderr, "+ Window::printProcess_HideImage\n" );
+}
+
+void Window::printProcess_StartedPrinting( ) {
+    fprintf( stderr, "+ Window::printProcess_StartedPrinting\n" );
+}
+
+void Window::printProcess_FinishedPrinting( ) {
+    fprintf( stderr, "+ Window::printProcess_FinishedPrinting\n" );
+}
 
 void Window::on_bad_stl()
 {
@@ -138,18 +196,9 @@ void Window::on_missing_file()
 //    }
 //}
 
-void Window::on_finished() {
-    loader = nullptr;
-}
-
 void Window::on_loaded(const QString& filename)
 {
-    if (filename[0] == ':') {
-        return;
-    }
-
     current_file = filename;
-    setWindowTitle( current_file );
 }
 
 void Window::on_move_up()
@@ -162,26 +211,32 @@ void Window::on_move_down()
     shepherd->doMove( -1 );
 }
 
+void Window::closeEvent( QCloseEvent* event ) {
+    shepherd->terminate( );
+    event->accept( );
+}
+
 bool Window::load_stl(const QString& filename, bool is_reload)
 {
     if (loader) {
         return false;
     }
-    loader = new Loader(this, filename, is_reload);
 
     canvas->set_status("Loading " + filename);
 
+    loader = new Loader(this, filename, is_reload);
     connect(loader, &Loader::got_mesh,              canvas, &Canvas::load_mesh);
     connect(loader, &Loader::error_bad_stl,         this,   &Window::on_bad_stl);
     connect(loader, &Loader::error_empty_mesh,      this,   &Window::on_empty_mesh);
     connect(loader, &Loader::warning_confusing_stl, this,   &Window::on_confusing_stl);
     connect(loader, &Loader::error_missing_file,    this,   &Window::on_missing_file);
-
     connect(loader, &Loader::finished,              loader, &Loader::deleteLater);
     connect(loader, &Loader::finished,              canvas, &Canvas::clear_status);
-    connect(loader, &Loader::finished,              this,   &Window::on_finished);
 
-    connect(loader, &Loader::loaded_file,           this,   &Window::on_loaded);
+    if (filename[0] != ':') {
+        connect(loader, &Loader::loaded_file,       this,   &Window::setWindowTitle);
+        connect(loader, &Loader::loaded_file,       this,   &Window::on_loaded);
+    }
 
     loader->start();
     return true;
