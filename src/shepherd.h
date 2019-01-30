@@ -26,17 +26,22 @@ public:
     void doAskTemp( );
     void doSend( char const* arg );
 
-public slots:
+    void terminate( );
 
-    void processStarted( );
+private slots:
+
     void processErrorOccurred( QProcess::ProcessError error );
-    void processReadyRead( );
+    void processStarted( );
+    void processStateChanged( );
+    void processReadyReadStdout( );
+    void processReadyReadStderr( );
+    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 signals:
 
     void shepherd_Started( );
-    void shepherd_Exited( );
-    void shepherd_FailedToStart( );
+    void shepherd_Finished( );
+    void shepherd_ProcessError( );
 
     void printer_Online( );
     void printer_Offline( );
@@ -51,6 +56,7 @@ signals:
 private:
 
     QProcess* _process;
+    QString _buffer;
 
 };
 
