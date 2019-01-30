@@ -5,10 +5,7 @@
 //#include <QFileSystemWatcher>
 #include <QProcess>
 #include <QMainWindow>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QGroupBox>
-#include <QPushButton>
+#include <QGridLayout>
 
 class Canvas;
 class Loader;
@@ -41,12 +38,8 @@ private:
 
     Loader* loader = nullptr;
 
-    QPushButton* move_up_button;
-    QPushButton* move_down_button;
-    QWidget* containerWidget;
-    QVBoxLayout* containerVBox;
-    QHBoxLayout* buttonHBox;
-    QGroupBox* buttonGroupBox;
+    QWidget* centralWidget;
+    QGridLayout* centralWidgetLayout;
 
 signals:
 

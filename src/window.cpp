@@ -18,36 +18,20 @@ Window::Window(QWidget *parent): QMainWindow(parent)
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	QSurfaceFormat::setDefaultFormat(format);
 
-    move_up_button = new QPushButton("Move &Up");
-    QObject::connect(move_up_button, &QPushButton::clicked, this, &Window::on_move_up);
-
-    move_down_button = new QPushButton("Move &Down");
-    QObject::connect(move_down_button, &QPushButton::clicked, this, &Window::on_move_down);
-
-    buttonHBox = new QHBoxLayout();
-    buttonHBox->addStretch(0);
-    buttonHBox->addWidget(move_up_button);
-    buttonHBox->addWidget(move_down_button);
-    buttonHBox->addStretch(0);
-    //buttonHBox->setContentsMargins(0, 0, 0, 0);
-    buttonGroupBox = new QGroupBox();
-    buttonGroupBox->setLayout(buttonHBox);
-    //buttonGroupBox->setContentsMargins(0, 0, 0, 0);
-
     canvas = new Canvas(format, this);
     canvas->setMinimumSize(600, 400);
-    canvas->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    //canvas->setContentsMargins(0, 0, 0, 0);
+    canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    containerVBox = new QVBoxLayout();
-    containerVBox->addWidget(canvas);
-    containerVBox->addWidget(buttonGroupBox);
-    containerVBox->setContentsMargins(0, 0, 0, 0);
-    containerWidget = new QWidget();
-    containerWidget->setLayout(containerVBox);
-    containerWidget->setContentsMargins(0, 0, 0, 0);
+    centralWidgetLayout = new QGridLayout( );
+    centralWidgetLayout->setContentsMargins( 0, 0, 0, 0 );
+    centralWidgetLayout->addWidget( canvas );
 
-    setCentralWidget(containerWidget);
+    centralWidget = new QWidget( );
+    centralWidget->setContentsMargins(0, 0, 0, 0);
+    centralWidget->setLayout( centralWidgetLayout );
+    centralWidget->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    setCentralWidget(centralWidget);
 
     //watcher = new QFileSystemWatcher(this);
 
@@ -66,16 +50,6 @@ Window::Window(QWidget *parent): QMainWindow(parent)
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
 }
-
-//void Window::on_open()
-//{
-//    QString filename = QFileDialog::getOpenFileName(
-//                this, "Load .stl file", QString(), "*.stl");
-//    if (!filename.isNull())
-//    {
-//        load_stl(filename);
-//    }
-//}
 
 void Window::shepherd_Started( ) {
     fprintf( stderr, "+ Window::shepherd_Started\n" );
