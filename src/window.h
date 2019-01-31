@@ -1,61 +1,76 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <QCollator>
+#include <QtDebug>
 #include <QProcess>
 #include <QMainWindow>
+#include <QFileSystemModel>
+#include <QListView>
 #include <QGridLayout>
 
 #include "shepherd.h"
 #include "canvas.h"
 #include "loader.h"
 
-class Window: public QMainWindow
-{
+class Window: public QMainWindow {
+
     Q_OBJECT
 
 public:
+
     explicit Window(QWidget* parent=0);
 
-    bool load_stl(const QString& filename, bool is_reload=false);
+    bool load_stl(const QString& filename);
 
 protected:
+
     void closeEvent(QCloseEvent *event);
 
 private:
-    void sorted_insert(QStringList& list, const QCollator& collator, const QString& value);
-    void build_folder_file_list();
+
     void setFullScreen(bool const fullScreen = true);
 
-    QString current_file;
-    QString lookup_folder;
-    QStringList lookup_folder_files;
+    QString           currentFileName;
 
-    Canvas* canvas;
-    Shepherd* shepherd;
+    Shepherd*         shepherd               { nullptr };
+    Loader*           loader                 { nullptr };
 
-    Loader* loader = nullptr;
+    QTabWidget*       tabs;
 
-    QTabWidget* tabWidget;
+    Canvas*           canvas;
+    QFileSystemModel* fileSystemModel;
+    QListView*        availableFilesListView;
+    QPushButton*      selectButton;
+    QWidget*          selectTab;
+    QGridLayout*      selectTabLayout;
 
-    QWidget* selectTab;
-    QGridLayout* selectTabLayout;
+    QWidget*          slicePlaceholder;
+    QStringListModel* printQualityStringListModel;
+    QListView*        printQualityListView;
+    QPushButton*      sliceButton;
+    QWidget*          sliceTab;
+    QGridLayout*      sliceTabLayout;
 
-    QWidget* sliceTab;
-    QGridLayout* sliceTabLayout;
+    QWidget*          printPlaceholder;
+    QPushButton*      printButton;
+    QWidget*          printTab;
+    QGridLayout*      printTabLayout;
 
-    QWidget* printTab;
-    QGridLayout* printTabLayout;
+    QWidget*          progressPlaceholder;
+    QWidget*          progressTab;
+    QGridLayout*      progressTabLayout;
 
 signals:
 
 public slots:
 
+protected slots:
+
 private slots:
 
     void shepherd_Started( );
-    void shepherd_Finished( );
-    void shepherd_ProcessError( );
+    void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void shepherd_ProcessError( QProcess::ProcessError error );
 
     void printer_Online( );
     void printer_Offline( );
@@ -67,14 +82,30 @@ private slots:
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
 
-    void on_bad_stl();
-    void on_empty_mesh();
-    void on_confusing_stl();
-    void on_missing_file();
+    void loader_ErrorBadStl();
+    void loader_ErrorEmptyMesh();
+    void loader_ErrorMissingFile();
 
-    void on_loaded(const QString& filename);
-    void on_move_up();
-    void on_move_down();
+    void loader_Finished();
+    void loader_LoadedFile(const QString& filename);
+
+    void tabs_currentChanged( int index );
+    void tabs_tabBarClicked( int index );
+    void tabs_tabBarDoubleClicked( int index );
+    void tabs_tabCloseRequested( int index );
+
+    void fileSystemModel_DirectoryLoaded( QString const& name );
+    void fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName );
+    void fileSystemModel_RootPathChanged( QString const& newPath );
+
+    void availableFilesListView_clicked( QModelIndex const& index );
+    void selectButton_clicked( bool checked );
+
+    void printQualityListView_clicked( QModelIndex const& index );
+    void sliceButton_clicked( bool checked );
+
+    void printButton_clicked( bool checked );
+
 };
 
 #endif // WINDOW_H

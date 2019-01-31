@@ -1,7 +1,18 @@
 #include "window.h"
 
+#include <cstdlib>
+
+namespace {
+
+    QString const StlModelLibraryPath = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/model-library" : "/home/lumen/Volumetric/module-library";
+
+}
+
 Window::Window(QWidget *parent): QMainWindow(parent) {
+    QMargins emptyMargins { };
+
     setFixedSize( 800, 480 );
+    move( { 0, 0 } );
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
@@ -10,43 +21,168 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     format.setProfile( QSurfaceFormat::CoreProfile );
     QSurfaceFormat::setDefaultFormat( format );
 
+    //
+    // "Select" tab
+    //
+
+    fileSystemModel = new QFileSystemModel;
+    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
+    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
+    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
+    fileSystemModel->setFilter( QDir::Files );
+    fileSystemModel->setNameFilterDisables( false );
+    fileSystemModel->setNameFilters( {
+        {
+            "*.stl",
+        }
+    } );
+    fileSystemModel->setRootPath( StlModelLibraryPath );
+
+    availableFilesListView = new QListView;
+    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
+    availableFilesListView->setFlow( QListView::TopToBottom );
+    availableFilesListView->setLayoutMode( QListView::SinglePass );
+    availableFilesListView->setMovement( QListView::Static );
+    availableFilesListView->setResizeMode( QListView::Fixed );
+    availableFilesListView->setViewMode( QListView::ListMode );
+    availableFilesListView->setWrapping( true );
+    availableFilesListView->setModel( fileSystemModel );
+
+    selectButton = new QPushButton( "Select" );
+    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
+    {
+        auto font { selectButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        selectButton->setFont( font );
+    }
+    selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+
     canvas = new Canvas( format, this );
     canvas->setMinimumSize( 600, 400 );
     canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    selectTabLayout = new QGridLayout( );
-    selectTabLayout->setContentsMargins( { }  );
-    selectTabLayout->addWidget( canvas );
+    selectTabLayout = new QGridLayout;
+    selectTabLayout->setContentsMargins( emptyMargins );
+    selectTabLayout->addWidget( availableFilesListView, 0, 0, 1, 1 );
+    selectTabLayout->addWidget( selectButton,           1, 0, 1, 1 );
+    selectTabLayout->addWidget( canvas,                 0, 1, 2, 1 );
+    selectTabLayout->setRowStretch( 0, 4 );
+    selectTabLayout->setRowStretch( 1, 1 );
 
-    selectTab = new QWidget( );
-    selectTab->setContentsMargins( { } );
+    selectTab = new QWidget;
+    selectTab->setContentsMargins( emptyMargins );
     selectTab->setLayout( selectTabLayout );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    sliceTabLayout = new QGridLayout( );
-    sliceTabLayout->setContentsMargins( { }  );
+    //
+    // "Slice" tab
+    //
 
-    sliceTab = new QWidget( );
-    sliceTab->setContentsMargins( { } );
+    printQualityStringListModel = new QStringListModel( QStringList {
+        {
+            "50 µm",
+            "100 µm",
+            "200 µm",
+        }
+    } );
+
+    printQualityListView = new QListView;
+    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
+    printQualityListView->setFlow( QListView::TopToBottom );
+    printQualityListView->setLayoutMode( QListView::SinglePass );
+    printQualityListView->setMovement( QListView::Static );
+    printQualityListView->setResizeMode( QListView::Fixed );
+    printQualityListView->setViewMode( QListView::ListMode );
+    printQualityListView->setWrapping( true );
+    printQualityListView->setModel( printQualityStringListModel );
+
+    sliceButton = new QPushButton( "Slice" );
+    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
+    {
+        auto font { sliceButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        sliceButton->setFont( font );
+    }
+    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+
+    slicePlaceholder = new QWidget;
+    slicePlaceholder->setMinimumSize( 600, 400 );
+    slicePlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    sliceTabLayout = new QGridLayout;
+    sliceTabLayout->setContentsMargins( emptyMargins );
+    sliceTabLayout->addWidget( printQualityListView, 0, 0, 1, 1 );
+    sliceTabLayout->addWidget( sliceButton,          1, 0, 1, 1 );
+    sliceTabLayout->addWidget( slicePlaceholder,     0, 1, 2, 1 );
+    sliceTabLayout->setRowStretch( 0, 4 );
+    sliceTabLayout->setRowStretch( 1, 1 );
+
+    sliceTab = new QWidget;
+    sliceTab->setContentsMargins( emptyMargins );
     sliceTab->setLayout( sliceTabLayout );
     sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    printTabLayout = new QGridLayout( );
-    printTabLayout->setContentsMargins( { }  );
+    //
+    // "Print" tab
+    //
 
-    printTab = new QWidget( );
-    printTab->setContentsMargins( { } );
+    printButton = new QPushButton( "Print" );
+    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
+    {
+        auto font { printButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        printButton->setFont( font );
+    }
+    printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+
+    printPlaceholder = new QWidget;
+    printPlaceholder->setMinimumSize( 600, 400 );
+    printPlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    printTabLayout = new QGridLayout;
+    printTabLayout->setContentsMargins( emptyMargins );
+    printTabLayout->addWidget( printButton,          1, 0, 1, 1 );
+    printTabLayout->addWidget( printPlaceholder,     0, 1, 2, 1 );
+    printTabLayout->setRowStretch( 0, 4 );
+    printTabLayout->setRowStretch( 1, 1 );
+
+    printTab = new QWidget;
+    printTab->setContentsMargins( emptyMargins );
     printTab->setLayout( printTabLayout );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    tabWidget = new QTabWidget( );
-    tabWidget->setContentsMargins( { } );
-    tabWidget->addTab( selectTab, "Select" );
-    tabWidget->addTab( sliceTab,  "Slice"  );
-    tabWidget->addTab( printTab,  "Print"  );
-    tabWidget->setCurrentIndex( 0 );
+    //
+    // "Progress" tab
+    //
 
-    setCentralWidget( tabWidget );
+    progressPlaceholder = new QWidget;
+    progressPlaceholder->setMinimumSize( 600, 400 );
+    progressPlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    progressTabLayout = new QGridLayout;
+    progressTabLayout->setContentsMargins( emptyMargins );
+    progressTabLayout->addWidget( progressPlaceholder,     0, 1, 2, 1 );
+    progressTabLayout->setRowStretch( 0, 4 );
+    progressTabLayout->setRowStretch( 1, 1 );
+
+    progressTab = new QWidget;
+    progressTab->setContentsMargins( emptyMargins );
+    progressTab->setLayout( progressTabLayout );
+    progressTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    //
+    // Tab widget
+    //
+
+    tabs = new QTabWidget;
+    tabs->setContentsMargins( emptyMargins );
+    tabs->addTab( selectTab,   "Select"   );
+    tabs->addTab( sliceTab,    "Slice"    );
+    tabs->addTab( printTab,    "Print"    );
+    tabs->addTab( progressTab, "Progress" );
+    tabs->setCurrentIndex( 0 );
+
+    setCentralWidget( tabs );
 
     shepherd = new Shepherd( this );
     QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
@@ -68,12 +204,12 @@ void Window::shepherd_Started( ) {
     fprintf( stderr, "+ Window::shepherd_Started\n" );
 }
 
-void Window::shepherd_Finished( ) {
-    fprintf( stderr, "+ Window::shepherd_Finished\n" );
+void Window::shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus ) {
+    fprintf( stderr, "+ Window::shepherd_Finished: exitStatus %d, exitCode %d\n", exitStatus, exitCode );
 }
 
-void Window::shepherd_ProcessError( ) {
-    fprintf( stderr, "+ Window::shepherd_ProcessError\n" );
+void Window::shepherd_ProcessError( QProcess::ProcessError error ) {
+    fprintf( stderr, "+ Window::shepherd_ProcessError: %d\n", error );
 }
 
 void Window::printer_Online( ) {
@@ -108,7 +244,7 @@ void Window::printProcess_FinishedPrinting( ) {
     fprintf( stderr, "+ Window::printProcess_FinishedPrinting\n" );
 }
 
-void Window::on_bad_stl()
+void Window::loader_ErrorBadStl()
 {
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
@@ -116,165 +252,119 @@ void Window::on_bad_stl()
                           "Please export it from the original source, verify, and retry.");
 }
 
-void Window::on_empty_mesh()
+void Window::loader_ErrorEmptyMesh()
 {
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "This file is syntactically correct<br>but contains no triangles.");
 }
 
-void Window::on_confusing_stl()
-{
-    QMessageBox::warning(this, "Warning",
-                         "<b>Warning:</b><br>"
-                         "This <code>.stl</code> file begins with <code>solid </code>but appears to be a binary file.<br>"
-                         "<code>fstl</code> loaded it, but other programs may be confused by this file.");
-}
-
-void Window::on_missing_file()
+void Window::loader_ErrorMissingFile()
 {
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "The target file is missing.<br>");
 }
 
-//void Window::set_watched(const QString& filename)
-//{
-//    const auto files = watcher->files();
-//    if (files.size())
-//    {
-//        watcher->removePaths(watcher->files());
-//    }
-//    watcher->addPath(filename);
-//
-//    QSettings settings;
-//    auto recent = settings.value(RECENT_FILE_KEY).toStringList();
-//    const auto f = QFileInfo(filename).absoluteFilePath();
-//    recent.removeAll(f);
-//    recent.prepend(f);
-//    while (recent.size() > MAX_RECENT_FILES)
-//    {
-//        recent.pop_back();
-//    }
-//    settings.setValue(RECENT_FILE_KEY, recent);
-//}
-//
-//void Window::on_projection(QAction* proj)
-//{
-//    if (proj == perspective_action)
-//    {
-//        canvas->view_perspective();
-//    }
-//    else
-//    {
-//        canvas->view_orthographic();
-//    }
-//}
-//
-//void Window::on_drawMode(QAction* mode)
-//{
-//    if (mode == shaded_action)
-//    {
-//        canvas->draw_shaded();
-//    }
-//    else
-//    {
-//        canvas->draw_wireframe();
-//    }
-//}
-
-void Window::on_loaded(const QString& filename)
-{
-    current_file = filename;
+void Window::loader_Finished( ) {
+    loader = nullptr;
 }
 
-void Window::on_move_up()
+void Window::loader_LoadedFile(const QString& filename)
 {
-    shepherd->doMove( 1 );
-}
-
-void Window::on_move_down()
-{
-    shepherd->doMove( -1 );
+    fprintf( stderr, "+ Window::loader_LoadedFile: filename: '%s'\n", filename.toUtf8( ).data( ) );
+    currentFileName = filename;
 }
 
 void Window::closeEvent( QCloseEvent* event ) {
+    fprintf( stderr, "+ Window::closeEvent\n" );
     shepherd->terminate( );
     event->accept( );
 }
 
-bool Window::load_stl(const QString& filename, bool is_reload)
-{
+void Window::tabs_currentChanged( int index ) {
+    fprintf( stderr, "+ Window::tabs_currentChanged: index: %d\n", index );
+}
+
+void Window::tabs_tabBarClicked( int index ) {
+    fprintf( stderr, "+ Window::tabs_tabBarClicked: index: %d\n", index );
+}
+
+void Window::tabs_tabBarDoubleClicked( int index ) {
+    fprintf( stderr, "+ Window::tabs_tabBarDoubleClicked: index: %d\n", index );
+}
+
+void Window::tabs_tabCloseRequested( int index ) {
+    fprintf( stderr, "+ Window::tabs_tabCloseRequested: index: %d\n", index );
+}
+
+void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
+    fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+    fileSystemModel->sort( 0, Qt::AscendingOrder );
+
+    auto index = fileSystemModel->index( StlModelLibraryPath );
+    fprintf( stderr, "  + fileSystemModel->rootIndex() %d,%d\n", index.row( ), index.column( ) );
+    availableFilesListView->setRootIndex( index );
+}
+
+void Window::fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName ) {
+    fprintf( stderr, "+ Window::fileSystemModel_FileRenamed: path '%s', oldName '%s', newName '%s'\n", path.toUtf8( ).data( ), oldName.toUtf8( ).data( ), newName.toUtf8( ).data( ) );
+}
+
+void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
+    fprintf( stderr, "+ Window::fileSystemModel_RootPathChanged: newPath '%s'\n", newPath.toUtf8( ).data( ) );
+}
+
+void Window::availableFilesListView_clicked( QModelIndex const& index ) {
+    QString fileName = StlModelLibraryPath + '/' + index.data( ).toString( );
+    fprintf( stderr, "+ Window::availableFilesListView_clicked:\n" );
+    fprintf( stderr, "  + row %d, selected file name: %s\n", index.row( ), fileName.toUtf8( ).data( ) );
+    if ( !load_stl( StlModelLibraryPath + '/' + index.data( ).toString( ) ) ) {
+        fprintf( stderr, "  + load_stl failed!\n" );
+    }
+}
+
+void Window::selectButton_clicked( bool /*checked*/ ) {
+    fprintf( stderr, "+ Window::selectButton_clicked\n" );
+}
+
+void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
+    fprintf( stderr, "+ Window::printQualityListView_clicked\n" );
+}
+
+void Window::sliceButton_clicked( bool /*checked*/ ) {
+    fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+}
+
+void Window::printButton_clicked( bool /*checked*/ ) {
+    fprintf( stderr, "+ Window::printButton_clicked\n" );
+}
+
+bool Window::load_stl( QString const& filename ) {
+    fprintf( stderr, "+ Window::load_stl: loader %p\n", loader );
+
     if (loader) {
         return false;
     }
 
     canvas->set_status("Loading " + filename);
 
-    loader = new Loader(this, filename, is_reload);
-    connect(loader, &Loader::got_mesh,              canvas, &Canvas::load_mesh);
-    connect(loader, &Loader::error_bad_stl,         this,   &Window::on_bad_stl);
-    connect(loader, &Loader::error_empty_mesh,      this,   &Window::on_empty_mesh);
-    connect(loader, &Loader::warning_confusing_stl, this,   &Window::on_confusing_stl);
-    connect(loader, &Loader::error_missing_file,    this,   &Window::on_missing_file);
-    connect(loader, &Loader::finished,              loader, &Loader::deleteLater);
-    connect(loader, &Loader::finished,              canvas, &Canvas::clear_status);
+    loader = new Loader(this, filename, false);
+    connect(loader, &Loader::got_mesh,           canvas, &Canvas::load_mesh);
+    connect(loader, &Loader::error_bad_stl,      this,   &Window::loader_ErrorBadStl);
+    connect(loader, &Loader::error_empty_mesh,   this,   &Window::loader_ErrorEmptyMesh);
+    connect(loader, &Loader::error_missing_file, this,   &Window::loader_ErrorMissingFile);
+    connect(loader, &Loader::finished,           loader, &Loader::deleteLater);
+    connect(loader, &Loader::finished,           canvas, &Canvas::clear_status);
+    connect(loader, &Loader::finished,           this,   &Window::loader_Finished);
 
     if (filename[0] != ':') {
-        connect(loader, &Loader::loaded_file,       this,   &Window::setWindowTitle);
-        connect(loader, &Loader::loaded_file,       this,   &Window::on_loaded);
+        connect(loader, &Loader::loaded_file,    this,   &Window::setWindowTitle);
+        connect(loader, &Loader::loaded_file,    this,   &Window::loader_LoadedFile);
     }
 
     loader->start();
     return true;
-}
-
-void Window::sorted_insert(QStringList& list, const QCollator& collator, const QString& value)
-{
-    int start = 0;
-    int end = list.size() - 1;
-    int index = 0;
-    while (start <= end){
-        int mid = (start+end)/2;
-        if (list[mid] == value) {
-            return;
-        }
-        int compare = collator.compare(value, list[mid]);
-        if (compare < 0) {
-            end = mid-1;
-            index = mid;
-        } else {
-            start = mid+1;
-            index = start;
-        }
-    }
-
-    list.insert(index, value);
-}
-
-void Window::build_folder_file_list()
-{
-    QString current_folder_path = QFileInfo(current_file).absoluteDir().absolutePath();
-    if (!lookup_folder_files.isEmpty())
-    {
-        if (current_folder_path == lookup_folder) {
-            return;
-        }
-
-        lookup_folder_files.clear();
-    }
-    lookup_folder = current_folder_path;
-
-    QCollator collator;
-    collator.setNumericMode(true);
-
-    QDirIterator dirIterator(lookup_folder, QStringList() << "*.stl", QDir::Files | QDir::Readable | QDir::Hidden);
-    while (dirIterator.hasNext()) {
-        dirIterator.next();
-
-        QString name = dirIterator.fileName();
-        sorted_insert(lookup_folder_files, collator, name);
-    }
 }
 
 void Window::setFullScreen(bool const fullScreen)
