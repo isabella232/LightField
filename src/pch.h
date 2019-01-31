@@ -8,7 +8,6 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QFile>
-#include <QFileOpenEvent>
 #include <QFileSystemModel>
 #include <QGridLayout>
 #include <QListView>
