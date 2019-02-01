@@ -126,6 +126,18 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     // "Print" tab
     //
 
+    printLayerTime = new QTextEdit;
+    printLayerTime->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printLayerTime->setAcceptDrops( false );
+    printLayerTime->setAcceptRichText( false );
+    printLayerTime->setAutoFormatting( QTextEdit::AutoFormattingFlag::AutoNone );
+    printLayerTime->setOverwriteMode( false );
+    printLayerTime->setReadOnly( false );
+    printLayerTime->setTabChangesFocus( true );
+    printLayerTime->setTextInteractionFlags( Qt::TextEditorInteraction );
+    printLayerTime->setUndoRedoEnabled( true );
+    printLayerTime->setWordWrapMode( QTextOption::NoWrap );
+
     printButton = new QPushButton( "Print" );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
     {
@@ -141,6 +153,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     printTabLayout = new QGridLayout;
     printTabLayout->setContentsMargins( emptyMargins );
+    printTabLayout->addWidget( printLayerTime,       0, 0, 1, 1 );
     printTabLayout->addWidget( printButton,          1, 0, 1, 1 );
     printTabLayout->addWidget( printPlaceholder,     0, 1, 2, 1 );
     printTabLayout->setRowStretch( 0, 4 );

@@ -20,6 +20,7 @@
 #include <QString>
 #include <QSurfaceFormat>
 #include <QtDebug>
+#include <QTextEdit>
 #include <QThread>
 #include <QtOpenGL>
 #include <QtOpenGL/QtOpenGL>

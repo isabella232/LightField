@@ -7,6 +7,7 @@
 #include <QFileSystemModel>
 #include <QListView>
 #include <QGridLayout>
+#include <QTextEdit>
 
 #include "shepherd.h"
 #include "canvas.h"
@@ -52,6 +53,7 @@ private:
     QGridLayout*      sliceTabLayout;
 
     QWidget*          printPlaceholder;
+    QTextEdit*        printLayerTime;
     QPushButton*      printButton;
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
