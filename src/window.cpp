@@ -96,6 +96,18 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printQualityListView->setWrapping( true );
     printQualityListView->setModel( printQualityStringListModel );
 
+    printQualityLabel = new QLabel( "Print quality:" );
+    printQualityLabel->setBuddy( printQualityListView );
+
+    printQualityLayout = new QGridLayout;
+    printQualityLayout->setContentsMargins( emptyMargins );
+    printQualityLayout->addWidget( printQualityLabel,    0, 0 );
+    printQualityLayout->addWidget( printQualityListView, 1, 0 );
+
+    printQualityContainer = new QWidget( );
+    printQualityContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printQualityContainer->setLayout( printQualityLayout );
+
     sliceButton = new QPushButton( "Slice" );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
     {
@@ -111,9 +123,9 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     sliceTabLayout = new QGridLayout;
     sliceTabLayout->setContentsMargins( emptyMargins );
-    sliceTabLayout->addWidget( printQualityListView, 0, 0, 1, 1 );
-    sliceTabLayout->addWidget( sliceButton,          1, 0, 1, 1 );
-    sliceTabLayout->addWidget( slicePlaceholder,     0, 1, 2, 1 );
+    sliceTabLayout->addWidget( printQualityContainer, 0, 0, 1, 1 );
+    sliceTabLayout->addWidget( sliceButton,           1, 0, 1, 1 );
+    sliceTabLayout->addWidget( slicePlaceholder,      0, 1, 2, 1 );
     sliceTabLayout->setRowStretch( 0, 4 );
     sliceTabLayout->setRowStretch( 1, 1 );
 

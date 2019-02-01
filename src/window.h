@@ -2,12 +2,19 @@
 #define WINDOW_H
 
 #include <QtDebug>
-#include <QProcess>
+
 #include <QMainWindow>
+
 #include <QFileSystemModel>
 #include <QListView>
 #include <QGridLayout>
+#include <QProcess>
+#include <QPushButton>
+#include <QString>
+#include <QStringListModel>
+#include <QTabWidget>
 #include <QTextEdit>
+#include <QWidget>
 
 #include "shepherd.h"
 #include "canvas.h"
@@ -46,8 +53,11 @@ private:
     QGridLayout*      selectTabLayout;
 
     QWidget*          slicePlaceholder;
+    QGridLayout*      printQualityLayout;
+    QLabel*           printQualityLabel;
     QStringListModel* printQualityStringListModel;
     QListView*        printQualityListView;
+    QWidget*          printQualityContainer;
     QPushButton*      sliceButton;
     QWidget*          sliceTab;
     QGridLayout*      sliceTabLayout;
