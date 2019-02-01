@@ -162,6 +162,29 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printLayerTime->setUndoRedoEnabled( true );
     printLayerTime->setWordWrapMode( QTextOption::NoWrap );
 
+    printLayerTimeLabel = new QLabel( "Exposure time:" );
+    printLayerTimeLabel->setBuddy( printLayerTime );
+
+    projectorPowerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
+    projectorPowerLevelSlider->setTickInterval( 10 );
+    projectorPowerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
+    projectorPowerLevelSlider->setMinimum( 20 );
+    projectorPowerLevelSlider->setMaximum( 100 );
+
+    projectorPowerLevelLabel = new QLabel( "Projector power level:" );
+    projectorPowerLevelLabel->setBuddy( projectorPowerLevelSlider );
+
+    printOptionsLayout = new QGridLayout;
+    printOptionsLayout->setContentsMargins( emptyMargins );
+    printOptionsLayout->addWidget( printLayerTimeLabel,       0, 0 );
+    printOptionsLayout->addWidget( printLayerTime,            1, 0 );
+    printOptionsLayout->addWidget( projectorPowerLevelLabel,  2, 0 );
+    printOptionsLayout->addWidget( projectorPowerLevelSlider, 3, 0 );
+
+    printOptionsContainer = new QWidget( );
+    printOptionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printOptionsContainer->setLayout( printOptionsLayout );
+
     printButton = new QPushButton( "Print" );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
     {
@@ -177,9 +200,9 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     printTabLayout = new QGridLayout;
     printTabLayout->setContentsMargins( emptyMargins );
-    printTabLayout->addWidget( printLayerTime,       0, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,          1, 0, 1, 1 );
-    printTabLayout->addWidget( printPlaceholder,     0, 1, 2, 1 );
+    printTabLayout->addWidget( printOptionsContainer, 0, 0, 1, 1 );
+    printTabLayout->addWidget( printButton,           1, 0, 1, 1 );
+    printTabLayout->addWidget( printPlaceholder,      0, 1, 2, 1 );
     printTabLayout->setRowStretch( 0, 4 );
     printTabLayout->setRowStretch( 1, 1 );
 
@@ -371,6 +394,10 @@ void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+}
+
+void Window::projectorPowerLevelSlider_valueChanged( int value ) {
+    fprintf( stderr, "+ Window::projectorPowerLevelSlider_valueChanged: value %d%%\n", value );
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {

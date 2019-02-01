@@ -18,6 +18,7 @@
 #include <QOpenGLShaderProgram>
 #include <QProcess>
 #include <QPushButton>
+#include <QSlider>
 #include <QString>
 #include <QStringListModel>
 #include <QSurfaceFormat>

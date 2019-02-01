@@ -10,6 +10,7 @@
 #include <QGridLayout>
 #include <QProcess>
 #include <QPushButton>
+#include <QSlider>
 #include <QString>
 #include <QStringListModel>
 #include <QTabWidget>
@@ -38,35 +39,40 @@ private:
 
     void setFullScreen(bool const fullScreen = true);
 
-    QString           currentFileName;
-
     Shepherd*         shepherd               { nullptr };
     Loader*           loader                 { nullptr };
+
+    QString           currentFileName;
 
     QTabWidget*       tabs;
 
     Canvas*           canvas;
-    QGridLayout*      availableFilesLayout;
     QLabel*           availableFilesLabel;
     QFileSystemModel* fileSystemModel;
     QListView*        availableFilesListView;
+    QGridLayout*      availableFilesLayout;
     QWidget*          availableFilesContainer;
     QPushButton*      selectButton;
     QWidget*          selectTab;
     QGridLayout*      selectTabLayout;
 
     QWidget*          slicePlaceholder;
-    QGridLayout*      printQualityLayout;
     QLabel*           printQualityLabel;
     QStringListModel* printQualityStringListModel;
     QListView*        printQualityListView;
+    QGridLayout*      printQualityLayout;
     QWidget*          printQualityContainer;
     QPushButton*      sliceButton;
     QWidget*          sliceTab;
     QGridLayout*      sliceTabLayout;
 
     QWidget*          printPlaceholder;
+    QLabel*           printLayerTimeLabel;
     QTextEdit*        printLayerTime;
+    QLabel*           projectorPowerLevelLabel;
+    QSlider*          projectorPowerLevelSlider;
+    QGridLayout*      printOptionsLayout;
+    QWidget*          printOptionsContainer;
     QPushButton*      printButton;
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
@@ -119,6 +125,7 @@ private slots:
     void printQualityListView_clicked( QModelIndex const& index );
     void sliceButton_clicked( bool checked );
 
+    void projectorPowerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
 
 };
