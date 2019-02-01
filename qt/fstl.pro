@@ -29,6 +29,9 @@ HEADERS  += \
     ../src/shepherd.h
 
 CONFIG += c++11
+CONFIG += debug
+CONFIG += precompile_header
+PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \
     qt.qrc \

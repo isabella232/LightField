@@ -32,7 +32,7 @@ private slots:
 
     void processErrorOccurred( QProcess::ProcessError error );
     void processStarted( );
-    void processStateChanged( );
+    void processStateChanged( QProcess::ProcessState newState );
     void processReadyReadStdout( );
     void processReadyReadStderr( );
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
@@ -40,8 +40,8 @@ private slots:
 signals:
 
     void shepherd_Started( );
-    void shepherd_Finished( );
-    void shepherd_ProcessError( );
+    void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void shepherd_ProcessError( QProcess::ProcessError error );
 
     void printer_Online( );
     void printer_Offline( );

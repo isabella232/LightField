@@ -11,11 +11,22 @@ namespace {
         "UnknownError",
     };
 
+    char const* ProcessStateStrings[] {
+        "NotRunning",
+        "Starting",
+        "Running",
+    };
+
+    char const* ExitStatusStrings[] {
+        "NormalExit",
+        "CrashExit"
+    };
+
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     char const* baseDirectory = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/stdio-shepherd" : "/home/lumen/Volumetric";
-    fprintf( stderr, "+ Shepherd::`ctor: Base directory for launching stdio-shepherd.py: %s\n", baseDirectory );
+    fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", baseDirectory );
 
     _process = new QProcess( this );
     _process->setWorkingDirectory( baseDirectory );
@@ -29,18 +40,21 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
 }
 
 Shepherd::~Shepherd( ) {
+    /*empty*/
 }
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
     fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[error], error );
+    emit shepherd_ProcessError( error );
 }
 
 void Shepherd::processStarted( ) {
     fprintf( stderr, "+ Shepherd::processStarted\n" );
+    emit shepherd_Started( );
 }
 
-void Shepherd::processStateChanged( ) {
-    fprintf( stderr, "+ Shepherd::processStateChanged\n" );
+void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
+    fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ProcessStateStrings[newState], newState );
 }
 
 void Shepherd::processReadyReadStdout( ) {
@@ -62,7 +76,8 @@ void Shepherd::processReadyReadStderr( ) {
 }
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %d\n", exitCode, exitStatus );
+    fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ExitStatusStrings[exitStatus], exitStatus );
+    emit shepherd_Finished( exitCode, exitStatus );
 }
 
 void Shepherd::doMove( float arg ) {
