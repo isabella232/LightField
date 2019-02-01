@@ -46,8 +46,11 @@ private:
     QTabWidget*       tabs;
 
     Canvas*           canvas;
+    QGridLayout*      availableFilesLayout;
+    QLabel*           availableFilesLabel;
     QFileSystemModel* fileSystemModel;
     QListView*        availableFilesListView;
+    QWidget*          availableFilesContainer;
     QPushButton*      selectButton;
     QWidget*          selectTab;
     QGridLayout*      selectTabLayout;

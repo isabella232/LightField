@@ -48,6 +48,18 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     availableFilesListView->setWrapping( true );
     availableFilesListView->setModel( fileSystemModel );
 
+    availableFilesLabel = new QLabel( "Available files:" );
+    availableFilesLabel->setBuddy( availableFilesListView );
+
+    availableFilesLayout = new QGridLayout;
+    availableFilesLayout->setContentsMargins( emptyMargins );
+    availableFilesLayout->addWidget( availableFilesLabel,    0, 0 );
+    availableFilesLayout->addWidget( availableFilesListView, 1, 0 );
+
+    availableFilesContainer = new QWidget( );
+    availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    availableFilesContainer->setLayout( availableFilesLayout );
+
     selectButton = new QPushButton( "Select" );
     QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
     {
@@ -63,9 +75,9 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     selectTabLayout = new QGridLayout;
     selectTabLayout->setContentsMargins( emptyMargins );
-    selectTabLayout->addWidget( availableFilesListView, 0, 0, 1, 1 );
-    selectTabLayout->addWidget( selectButton,           1, 0, 1, 1 );
-    selectTabLayout->addWidget( canvas,                 0, 1, 2, 1 );
+    selectTabLayout->addWidget( availableFilesContainer, 0, 0, 1, 1 );
+    selectTabLayout->addWidget( selectButton,            1, 0, 1, 1 );
+    selectTabLayout->addWidget( canvas,                  0, 1, 2, 1 );
     selectTabLayout->setRowStretch( 0, 4 );
     selectTabLayout->setRowStretch( 1, 1 );
 
