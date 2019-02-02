@@ -21,10 +21,10 @@ import printer
 
 csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote = False, escapechar = '\\', lineterminator = '\n', quotechar = '"', quoting = csv.QUOTE_MINIMAL, skipinitialspace = False )
 
-class StdioPrinterDriver( ):
+class QuitNowException( Exception ):
+    pass
 
-    class QuitNowException( Exception ):
-        pass
+class StdioPrinterDriver( ):
 
     def __init__( self ):
         self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback )
@@ -198,7 +198,7 @@ class StdioPrinterDriver( ):
 
 driver = StdioPrinterDriver( )
 if not driver.connect( ):
-    print( "Warning: Couldn't open any serial device", file = sys.stderr )
+    print( "warning \"Couldn't open any serial device\"", file = sys.stderr )
 
 driver.processInput( )
 driver.disconnect( )

@@ -2,11 +2,20 @@
 #define WINDOW_H
 
 #include <QtDebug>
-#include <QProcess>
+
 #include <QMainWindow>
+
 #include <QFileSystemModel>
 #include <QListView>
 #include <QGridLayout>
+#include <QProcess>
+#include <QPushButton>
+#include <QSlider>
+#include <QString>
+#include <QStringListModel>
+#include <QTabWidget>
+#include <QTextEdit>
+#include <QWidget>
 
 #include "shepherd.h"
 #include "canvas.h"
@@ -30,28 +39,43 @@ private:
 
     void setFullScreen(bool const fullScreen = true);
 
+    Shepherd*         shepherd                    { nullptr };
+    Loader*           loader                      { nullptr };
+
     QString           currentFileName;
 
-    Shepherd*         shepherd               { nullptr };
-    Loader*           loader                 { nullptr };
+    bool              isSlicing                   { false   };
+    bool              isPrinting                  { false   };
 
     QTabWidget*       tabs;
 
     Canvas*           canvas;
+    QLabel*           availableFilesLabel;
     QFileSystemModel* fileSystemModel;
     QListView*        availableFilesListView;
+    QGridLayout*      availableFilesLayout;
+    QWidget*          availableFilesContainer;
     QPushButton*      selectButton;
     QWidget*          selectTab;
     QGridLayout*      selectTabLayout;
 
     QWidget*          slicePlaceholder;
+    QLabel*           printQualityLabel;
     QStringListModel* printQualityStringListModel;
     QListView*        printQualityListView;
+    QGridLayout*      printQualityLayout;
+    QWidget*          printQualityContainer;
     QPushButton*      sliceButton;
     QWidget*          sliceTab;
     QGridLayout*      sliceTabLayout;
 
     QWidget*          printPlaceholder;
+    QLabel*           printLayerTimeLabel;
+    QTextEdit*        printLayerTime;
+    QLabel*           projectorPowerLevelLabel;
+    QSlider*          projectorPowerLevelSlider;
+    QGridLayout*      printOptionsLayout;
+    QWidget*          printOptionsContainer;
     QPushButton*      printButton;
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
@@ -104,6 +128,7 @@ private slots:
     void printQualityListView_clicked( QModelIndex const& index );
     void sliceButton_clicked( bool checked );
 
+    void projectorPowerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
 
 };

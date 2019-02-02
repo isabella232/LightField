@@ -17,10 +17,16 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QProcess>
+#include <QPushButton>
+#include <QSlider>
 #include <QString>
+#include <QStringListModel>
 #include <QSurfaceFormat>
+#include <QTabWidget>
 #include <QtDebug>
+#include <QTextEdit>
 #include <QThread>
 #include <QtOpenGL>
 #include <QtOpenGL/QtOpenGL>
 #include <QVector3D>
+#include <QWidget>
