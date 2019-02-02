@@ -4,7 +4,8 @@
 
 namespace {
 
-    QString const StlModelLibraryPath = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/model-library" : "/home/lumen/Volumetric/module-library";
+    char const* StlModelLibraryPath = "/home/lumen/Volumetric/module-library";
+    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
 
 }
 
@@ -402,6 +403,7 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
+    system( BurnInScriptPath );
 }
 
 bool Window::load_stl( QString const& filename ) {
