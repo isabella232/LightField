@@ -33,8 +33,7 @@ private slots:
     void processErrorOccurred( QProcess::ProcessError error );
     void processStarted( );
     void processStateChanged( QProcess::ProcessState newState );
-    void processReadyReadStdout( );
-    void processReadyReadStderr( );
+    void processReadyRead( );
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 signals:

@@ -29,13 +29,21 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", baseDirectory );
 
     _process = new QProcess( this );
-    _process->setWorkingDirectory( baseDirectory );
     QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred   );
     QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted         );
     QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged    );
-    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyReadStdout );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyReadStderr );
+    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyRead       );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyRead       );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
+
+    auto env = _process->processEnvironment( );
+    if ( env.isEmpty( ) ) {
+        printf( "+ Shepherd::`ctor: process environment was empty\n" );
+        env = QProcessEnvironment::systemEnvironment( );
+    }
+    env.insert( "PYTHONUNBUFFERED", "x" );
+    _process->setProcessEnvironment( env );
+    _process->setWorkingDirectory( baseDirectory );
     _process->start( QString( "./stdio-shepherd.py" ) );
 }
 
@@ -57,22 +65,30 @@ void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
     fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ProcessStateStrings[newState], newState );
 }
 
-void Shepherd::processReadyReadStdout( ) {
-    QString input { _process->readAllStandardOutput( ) };
-    fprintf( stderr,
-        "+ Shepherd::processReadyReadStdout\n"
-        "  + received: >>%s<<\n",
-        input.toUtf8( ).data( )
-    );
-}
+void Shepherd::processReadyRead( ) {
+    QString input;
 
-void Shepherd::processReadyReadStderr( ) {
-    QString input { _process->readAllStandardError( ) };
-    fprintf( stderr,
-        "+ Shepherd::processReadyReadStderr\n"
-        "  + received: >>%s<<\n",
-        input.toUtf8( ).data( )
-    );
+    _process->setReadChannel( QProcess::StandardError );
+    input = _process->readAllStandardError( );
+    if ( input.length( ) ) {
+        fprintf( stderr,
+            "+ Shepherd::processReadyReadStdout\n"
+            "  + received from stderr: >>%s<<\n",
+            input.toUtf8( ).data( )
+        );
+    }
+
+    _process->setReadChannel( QProcess::StandardOutput );
+    input = _process->readAllStandardOutput( );
+    if ( input.length( ) ) {
+        fprintf( stderr,
+            "+ Shepherd::processReadyReadStdout\n"
+            "  + received from stdout: >>%s<<\n",
+            input.toUtf8( ).data( )
+        );
+    }
+
+    _process->setReadChannel( QProcess::StandardOutput );
 }
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
