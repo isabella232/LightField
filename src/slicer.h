@@ -10,7 +10,7 @@ class Slicer: public QObject {
 public:
 
     Slicer( QString const& fileName, QString const& outputPath, float layerThickness, QObject* parent = 0 );
-    ~Slicer( );
+    virtual ~Slicer( ) override;
 
     void start( );
 

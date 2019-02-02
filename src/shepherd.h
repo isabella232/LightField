@@ -3,21 +3,14 @@
 
 #include <QProcess>
 
-class Window;
-
 class Shepherd: public QObject {
 
     Q_OBJECT
 
-    Shepherd( Shepherd const& ) = delete;
-    Shepherd( Shepherd&& ) = delete;
-    Shepherd& operator=( Shepherd const& ) = delete;
-    Shepherd& operator=( Shepherd&& ) = delete;
-
 public:
 
     Shepherd( QObject* parent );
-    ~Shepherd( );
+    virtual ~Shepherd( ) override;
 
     void start( );
     void doMove( float arg );
