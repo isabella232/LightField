@@ -39,10 +39,13 @@ private:
 
     void setFullScreen(bool const fullScreen = true);
 
-    Shepherd*         shepherd               { nullptr };
-    Loader*           loader                 { nullptr };
+    Shepherd*         shepherd                    { nullptr };
+    Loader*           loader                      { nullptr };
 
     QString           currentFileName;
+
+    bool              isSlicing                   { false   };
+    bool              isPrinting                  { false   };
 
     QTabWidget*       tabs;
 
