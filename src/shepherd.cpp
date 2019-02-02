@@ -2,6 +2,8 @@
 
 namespace {
 
+    char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/fstl/stdio-shepherd";
+
     char const* ProcessErrorStrings[] {
         "FailedToStart",
         "Crashed",
@@ -25,8 +27,7 @@ namespace {
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
-    char const* baseDirectory = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/stdio-shepherd" : "/home/lumen/Volumetric";
-    fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", baseDirectory );
+    fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
 
     _process = new QProcess( this );
     QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred   );
@@ -42,7 +43,7 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     }
     env.insert( "PYTHONUNBUFFERED", "x" );
     _process->setProcessEnvironment( env );
-    _process->setWorkingDirectory( baseDirectory );
+    _process->setWorkingDirectory( ShepherdBaseDirectory );
     _process->start( QString( "./stdio-shepherd.py" ) );
 }
 

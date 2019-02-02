@@ -4,26 +4,8 @@
 
 namespace {
 
-    class _Info {
-
-    public:
-
-        _Info( ) {
-            DebuggingOnViolet = ( nullptr != getenv( "DEBUGGING_ON_VIOLET" ) );
-            if ( DebuggingOnViolet ) {
-                StlModelLibraryPath = "/home/icekarma/devel/work/VolumetricLumen/fstl/model-library";
-                BurnInScriptPath    = "/home/icekarma/devel/work/VolumetricLumen/printrun/burn_in.py";
-            } else {
-                StlModelLibraryPath = "/home/lumen/Volumetric/module-library";
-                BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
-            }
-        }
-
-        bool DebuggingOnViolet;
-        QString StlModelLibraryPath;
-        QString BurnInScriptPath;
-
-    } Info;
+    char const* StlModelLibraryPath = "/home/lumen/Volumetric/module-library";
+    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
 
 }
 
@@ -55,7 +37,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
             "*.stl",
         }
     } );
-    fileSystemModel->setRootPath( Info.StlModelLibraryPath );
+    fileSystemModel->setRootPath( StlModelLibraryPath );
 
     availableFilesListView = new QListView;
     QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
@@ -381,7 +363,7 @@ void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
     fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     fileSystemModel->sort( 0, Qt::AscendingOrder );
 
-    auto index = fileSystemModel->index( Info.StlModelLibraryPath );
+    auto index = fileSystemModel->index( StlModelLibraryPath );
     fprintf( stderr, "  + fileSystemModel->rootIndex() %d,%d\n", index.row( ), index.column( ) );
     availableFilesListView->setRootIndex( index );
 }
@@ -395,10 +377,10 @@ void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
 }
 
 void Window::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = Info.StlModelLibraryPath + '/' + index.data( ).toString( );
+    QString fileName = StlModelLibraryPath + '/' + index.data( ).toString( );
     fprintf( stderr, "+ Window::availableFilesListView_clicked:\n" );
     fprintf( stderr, "  + row %d, selected file name: %s\n", index.row( ), fileName.toUtf8( ).data( ) );
-    if ( !load_stl( Info.StlModelLibraryPath + '/' + index.data( ).toString( ) ) ) {
+    if ( !load_stl( StlModelLibraryPath + '/' + index.data( ).toString( ) ) ) {
         fprintf( stderr, "  + load_stl failed!\n" );
     }
 }
@@ -421,7 +403,7 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    system( Info.BurnInScriptPath.toUtf8( ).data( ) );
+    system( BurnInScriptPath );
 }
 
 bool Window::load_stl( QString const& filename ) {

@@ -12,11 +12,7 @@ import time
 
 from threading import Thread
 
-if 'DEBUGGING_ON_VIOLET' in os.environ:
-    _baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
-else:
-    _baseDirectory = '/home/lumen/Volumetric'
-sys.path.append( _baseDirectory + '/printrun' )
+sys.path.append( '/home/lumen/Volumetric/printrun' )
 import printer
 
 csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote = False, escapechar = '\\', lineterminator = '\n', quotechar = '"', quoting = csv.QUOTE_MINIMAL, skipinitialspace = False )
