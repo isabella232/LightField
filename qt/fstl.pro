@@ -18,7 +18,8 @@ SOURCES += \
     ../src/backdrop.cpp \
     ../src/shepherd.cpp \
     ../src/slicer.cpp \
-    ../src/strings.cpp
+    ../src/strings.cpp \
+    ../src/printmanager.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -30,7 +31,8 @@ HEADERS  += \
     ../src/backdrop.h \
     ../src/shepherd.h \
     ../src/slicer.h \
-    ../src/strings.h
+    ../src/strings.h \
+    ../src/printmanager.h
 
 CONFIG += c++11
 CONFIG += precompile_header
