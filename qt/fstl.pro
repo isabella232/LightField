@@ -16,7 +16,8 @@ SOURCES += \
     ../src/loader.cpp \
     ../src/window.cpp \
     ../src/backdrop.cpp \
-    ../src/shepherd.cpp
+    ../src/shepherd.cpp \
+    ../src/slicer.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -26,10 +27,10 @@ HEADERS  += \
     ../src/loader.h \
     ../src/window.h \
     ../src/backdrop.h \
-    ../src/shepherd.h
+    ../src/shepherd.h \
+    ../src/slicer.h
 
 CONFIG += c++11
-CONFIG += debug
 CONFIG += precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 

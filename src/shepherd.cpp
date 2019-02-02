@@ -38,7 +38,6 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
 
     auto env = _process->processEnvironment( );
     if ( env.isEmpty( ) ) {
-        printf( "+ Shepherd::`ctor: process environment was empty\n" );
         env = QProcessEnvironment::systemEnvironment( );
     }
     env.insert( "PYTHONUNBUFFERED", "x" );
