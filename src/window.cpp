@@ -4,7 +4,7 @@
 
 namespace {
 
-    char const* StlModelLibraryPath = "/home/lumen/Volumetric/module-library";
+    char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
     char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
 
 }
