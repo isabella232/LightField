@@ -41,6 +41,7 @@ private:
 
     Shepherd*         shepherd                    { nullptr };
     Loader*           loader                      { nullptr };
+    QProcess*         burnInProcess               { nullptr };
 
     QString           currentFileName;
 

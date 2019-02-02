@@ -5,7 +5,7 @@
 namespace {
 
     char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
-    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
+    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun";
 
 }
 
@@ -377,16 +377,16 @@ void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
 }
 
 void Window::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = StlModelLibraryPath + '/' + index.data( ).toString( );
-    fprintf( stderr, "+ Window::availableFilesListView_clicked:\n" );
-    fprintf( stderr, "  + row %d, selected file name: %s\n", index.row( ), fileName.toUtf8( ).data( ) );
-    if ( !load_stl( StlModelLibraryPath + '/' + index.data( ).toString( ) ) ) {
+    QString fileName = QString( StlModelLibraryPath ) + QString( '/' ) + index.data( ).toString( );
+    fprintf( stderr, "+ Window::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), fileName.toUtf8( ).data( ) );
+    if ( !load_stl( fileName ) ) {
         fprintf( stderr, "  + load_stl failed!\n" );
     }
 }
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
+    tabs->setCurrentIndex( 1 );
 }
 
 void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
@@ -395,6 +395,7 @@ void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+    tabs->setCurrentIndex( 2 );
 }
 
 void Window::projectorPowerLevelSlider_valueChanged( int value ) {
@@ -403,13 +404,22 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    system( BurnInScriptPath );
+    tabs->setCurrentIndex( 3 );
+
+    burnInProcess = new QProcess;
+    auto env = burnInProcess->processEnvironment( );
+    if ( env.isEmpty( ) ) {
+        env = QProcessEnvironment::systemEnvironment( );
+    }
+    env.insert( "PYTHONUNBUFFERED", "x" );
+    burnInProcess->setProcessEnvironment( env );
+    burnInProcess->setWorkingDirectory( BurnInScriptPath );
+    burnInProcess->start( "./burn_in.py" );
 }
 
 bool Window::load_stl( QString const& filename ) {
-    fprintf( stderr, "+ Window::load_stl: loader %p\n", loader );
-
     if (loader) {
+        fprintf( stderr, "+ Window::load_stl: loader object exists, not loading\n" );
         return false;
     }
 
