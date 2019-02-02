@@ -1,28 +1,9 @@
 #include "window.h"
+#include "strings.h"
 
 namespace {
 
     char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/fstl/stdio-shepherd";
-
-    char const* ProcessErrorStrings[] {
-        "FailedToStart",
-        "Crashed",
-        "Timedout",
-        "WriteError",
-        "ReadError",
-        "UnknownError",
-    };
-
-    char const* ProcessStateStrings[] {
-        "NotRunning",
-        "Starting",
-        "Running",
-    };
-
-    char const* ExitStatusStrings[] {
-        "NormalExit",
-        "CrashExit"
-    };
 
 }
 
@@ -30,12 +11,6 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
 
     _process = new QProcess( this );
-    QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred   );
-    QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted         );
-    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged    );
-    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyRead       );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyRead       );
-    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
 
     auto env = _process->processEnvironment( );
     if ( env.isEmpty( ) ) {
@@ -44,7 +19,13 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     env.insert( "PYTHONUNBUFFERED", "x" );
     _process->setProcessEnvironment( env );
     _process->setWorkingDirectory( ShepherdBaseDirectory );
-    _process->start( QString( "./stdio-shepherd.py" ) );
+
+    QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred );
+    QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted       );
+    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged  );
+    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyRead     );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyRead     );
+    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
 }
 
 Shepherd::~Shepherd( ) {
@@ -52,7 +33,7 @@ Shepherd::~Shepherd( ) {
 }
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[error], error );
+    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
     emit shepherd_ProcessError( error );
 }
 
@@ -62,7 +43,7 @@ void Shepherd::processStarted( ) {
 }
 
 void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ProcessStateStrings[newState], newState );
+    fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
 void Shepherd::processReadyRead( ) {
@@ -72,7 +53,7 @@ void Shepherd::processReadyRead( ) {
     input = _process->readAllStandardError( );
     if ( input.length( ) ) {
         fprintf( stderr,
-            "+ Shepherd::processReadyReadStdout\n"
+            "+ Shepherd::processReadyRead:\n"
             "  + received from stderr: >>%s<<\n",
             input.toUtf8( ).data( )
         );
@@ -82,7 +63,7 @@ void Shepherd::processReadyRead( ) {
     input = _process->readAllStandardOutput( );
     if ( input.length( ) ) {
         fprintf( stderr,
-            "+ Shepherd::processReadyReadStdout\n"
+            "+ Shepherd::processReadyRead\n"
             "  + received from stdout: >>%s<<\n",
             input.toUtf8( ).data( )
         );
@@ -92,8 +73,14 @@ void Shepherd::processReadyRead( ) {
 }
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ExitStatusStrings[exitStatus], exitStatus );
+    fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
     emit shepherd_Finished( exitCode, exitStatus );
+}
+
+void Shepherd::start( ) {
+    if ( _process->state( ) == QProcess::NotRunning ) {
+        _process->start( "./stdio-shepherd.py" );
+    }
 }
 
 void Shepherd::doMove( float arg ) {

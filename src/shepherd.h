@@ -19,6 +19,7 @@ public:
     Shepherd( QObject* parent );
     ~Shepherd( );
 
+    void start( );
     void doMove( float arg );
     void doMoveTo( float arg );
     void doHome( );

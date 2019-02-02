@@ -3,7 +3,7 @@
 
 #include <QProcess>
 
-class Slicer: QObject {
+class Slicer: public QObject {
 
     Q_OBJECT
 
@@ -12,11 +12,13 @@ public:
     Slicer( QString const& fileName, QString const& outputPath, float layerThickness, QObject* parent = 0 );
     ~Slicer( );
 
+    void start( );
+
 protected:
 
 private:
 
-    QProcess _process;
+    QProcess* _process;
 
 signals:
 

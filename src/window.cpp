@@ -7,6 +7,17 @@ namespace {
     char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
     char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun";
 
+    enum class TabIndex: int {
+        Select,
+        Slice,
+        Print,
+        Progress
+    };
+
+    int operator+( TabIndex const value ) {
+        return static_cast<int>( value );
+    }
+
 }
 
 Window::Window(QWidget *parent): QMainWindow(parent) {
@@ -27,9 +38,6 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     //
 
     fileSystemModel = new QFileSystemModel;
-    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
-    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
-    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
     fileSystemModel->setFilter( QDir::Files );
     fileSystemModel->setNameFilterDisables( false );
     fileSystemModel->setNameFilters( {
@@ -38,9 +46,11 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
         }
     } );
     fileSystemModel->setRootPath( StlModelLibraryPath );
+    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
+    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
+    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
 
     availableFilesListView = new QListView;
-    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
     availableFilesListView->setFlow( QListView::TopToBottom );
     availableFilesListView->setLayoutMode( QListView::SinglePass );
     availableFilesListView->setMovement( QListView::Static );
@@ -48,6 +58,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     availableFilesListView->setViewMode( QListView::ListMode );
     availableFilesListView->setWrapping( true );
     availableFilesListView->setModel( fileSystemModel );
+    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
 
     availableFilesLabel = new QLabel( "Available files:" );
     availableFilesLabel->setBuddy( availableFilesListView );
@@ -62,13 +73,13 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     availableFilesContainer->setLayout( availableFilesLayout );
 
     selectButton = new QPushButton( "Select" );
-    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
     {
         auto font { selectButton->font( ) };
         font.setPointSizeF( 22.25 );
         selectButton->setFont( font );
     }
     selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
 
     canvas = new Canvas( format, this );
     canvas->setMinimumSize( 600, 400 );
@@ -100,7 +111,6 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     } );
 
     printQualityListView = new QListView;
-    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
     printQualityListView->setFlow( QListView::TopToBottom );
     printQualityListView->setLayoutMode( QListView::SinglePass );
     printQualityListView->setMovement( QListView::Static );
@@ -108,6 +118,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printQualityListView->setViewMode( QListView::ListMode );
     printQualityListView->setWrapping( true );
     printQualityListView->setModel( printQualityStringListModel );
+    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
 
     printQualityLabel = new QLabel( "Print quality:" );
     printQualityLabel->setBuddy( printQualityListView );
@@ -122,13 +133,13 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printQualityContainer->setLayout( printQualityLayout );
 
     sliceButton = new QPushButton( "Slice" );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
     {
         auto font { sliceButton->font( ) };
         font.setPointSizeF( 22.25 );
         sliceButton->setFont( font );
     }
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
 
     slicePlaceholder = new QWidget;
     slicePlaceholder->setMinimumSize( 600, 400 );
@@ -187,13 +198,13 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printOptionsContainer->setLayout( printOptionsLayout );
 
     printButton = new QPushButton( "Print" );
-    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
     {
         auto font { printButton->font( ) };
         font.setPointSizeF( 22.25 );
         printButton->setFont( font );
     }
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
     printPlaceholder = new QWidget;
     printPlaceholder->setMinimumSize( 600, 400 );
@@ -241,7 +252,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     tabs->addTab( sliceTab,    "Slice"    );
     tabs->addTab( printTab,    "Print"    );
     tabs->addTab( progressTab, "Progress" );
-    tabs->setCurrentIndex( 0 );
+    tabs->setCurrentIndex( +TabIndex::Select );
 
     setCentralWidget( tabs );
 
@@ -259,6 +270,8 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
+
+    shepherd->start( );
 }
 
 void Window::shepherd_Started( ) {
@@ -386,7 +399,7 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
-    tabs->setCurrentIndex( 1 );
+    tabs->setCurrentIndex( +TabIndex::Slice );
 }
 
 void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
@@ -395,7 +408,7 @@ void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
-    tabs->setCurrentIndex( 2 );
+    tabs->setCurrentIndex( +TabIndex::Print );
 }
 
 void Window::projectorPowerLevelSlider_valueChanged( int value ) {
@@ -404,7 +417,7 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    tabs->setCurrentIndex( 3 );
+    tabs->setCurrentIndex( +TabIndex::Progress );
 
     burnInProcess = new QProcess;
     auto env = burnInProcess->processEnvironment( );

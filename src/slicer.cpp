@@ -1,16 +1,17 @@
 #include "slicer.h"
+#include "strings.h"
 
-Slicer::Slicer( QString const& /*fileName*/, QString const& outputPath, float layerThickness, QObject* parent ): QObject( parent ) {
-    char const* baseDirectory = getenv( "DEBUGGING_ON_VIOLET" ) ? "/home/icekarma/devel/work/VolumetricLumen/fstl/stdio-shepherd" : "/home/lumen/Volumetric";
-    fprintf( stderr, "+ Slicer::`ctor: Slicer base directory: '%s'\n", baseDirectory );
+namespace {
+
+    char const* BaseDirectory = "/home/lumen/Volumetric/printrun";
+
+}
+
+Slicer::Slicer( QString const& /*fileName*/, QString const& /*outputPath*/, float /*layerThickness*/, QObject* parent ): QObject( parent ) {
+    fprintf( stderr, "+ Slicer::`ctor: Slicer base directory: '%s'\n", BaseDirectory );
 
     _process = new QProcess( this );
-    QObject::connect( _process, &QProcess::errorOccurred,           this, &Slicer::processErrorOccurred   );
-    QObject::connect( _process, &QProcess::started,                 this, &Slicer::processStarted         );
-    QObject::connect( _process, &QProcess::stateChanged,            this, &Slicer::processStateChanged    );
-    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Slicer::processReadyRead       );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Slicer::processReadyRead       );
-    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Slicer::processFinished );
+    _process->setWorkingDirectory( BaseDirectory );
 
     auto env = _process->processEnvironment( );
     if ( env.isEmpty( ) ) {
@@ -18,17 +19,21 @@ Slicer::Slicer( QString const& /*fileName*/, QString const& outputPath, float la
     }
     env.insert( "PYTHONUNBUFFERED", "x" );
     _process->setProcessEnvironment( env );
-    _process->setWorkingDirectory( baseDirectory );
-    _process->start( QString( "./stdio-shepherd.py" ) );
-    emit starting( );
+
+    QObject::connect( _process, &QProcess::errorOccurred,           this, &Slicer::processErrorOccurred );
+    QObject::connect( _process, &QProcess::started,                 this, &Slicer::processStarted       );
+    QObject::connect( _process, &QProcess::stateChanged,            this, &Slicer::processStateChanged  );
+    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Slicer::processReadyRead     );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Slicer::processReadyRead     );
+    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Slicer::processFinished );
 }
 
 Slicer::~Slicer( ) {
 
 }
 
-void Slicer::processErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ Slicer::processErrorOccurred: error %s [%d]\n", ProcessErrorStrings[error], error );
+void Slicer::processErrorOccurred( QProcess::ProcessError processError ) {
+    fprintf( stderr, "+ Slicer::processErrorOccurred: error %s [%d]\n", ToString( processError ), processError );
     emit error( );
 }
 
@@ -37,7 +42,7 @@ void Slicer::processStarted( ) {
 }
 
 void Slicer::processStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ Slicer::processStateChanged: new state %s [%d]\n", ProcessStateStrings[newState], newState );
+    fprintf( stderr, "+ Slicer::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
 void Slicer::processReadyRead( ) {
@@ -67,6 +72,15 @@ void Slicer::processReadyRead( ) {
 }
 
 void Slicer::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Slicer::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ExitStatusStrings[exitStatus], exitStatus );
+    fprintf( stderr, "+ Slicer::processFinished: exitStatus: %s [%d], exitCode: %d\n", ToString( exitStatus ), exitStatus, exitCode );
     emit finished( );
+}
+
+void Slicer::start( ) {
+    //TODO
+    if ( _process->state( ) == QProcess::NotRunning ) {
+        //_process->start( "./stdio-shepherd.py" );
+    }
+
+    emit starting( );
 }
