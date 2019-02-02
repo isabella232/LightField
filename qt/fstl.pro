@@ -57,3 +57,11 @@ linux {
 static {
     CONFIG += static
 }
+
+debug {
+    QMAKE_CXXFLAGS_DEBUG += -D_DEBUG
+}
+
+release {
+    QMAKE_CXXFLAGS_RELEASE += -DNDEBUG
+}
