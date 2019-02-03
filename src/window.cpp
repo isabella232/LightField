@@ -442,8 +442,8 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printJob->modelFileName  = "makerook.stl";
     printJob->pngFilesPath   = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
     printJob->layerCount     = 238;
-    printJob->layerThickness = 100; // µm
-    printJob->exposureTime   = 1;   // seconds
+    printJob->layerThickness = 100;  // µm
+    printJob->exposureTime   = 1000; // milliseconds
     printJob->brightness     = 126;
 
     printManager = new PrintManager( shepherd, this );

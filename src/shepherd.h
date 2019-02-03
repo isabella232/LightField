@@ -46,7 +46,12 @@ signals:
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
 
+    void action_moveComplete( bool successful );
+    void action_moveToComplete( bool successful );
     void action_homeComplete( bool successful );
+    void action_liftComplete( bool successful );
+    void action_askTempComplete( bool successful );
+    void action_sendComplete( bool successful );
 
 private:
 

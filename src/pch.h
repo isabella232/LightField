@@ -27,6 +27,7 @@
 #include <QTabWidget>
 #include <QtDebug>
 #include <QThread>
+#include <QTimer>
 #include <QtOpenGL/QtOpenGL>
 #include <QtOpenGL>
 #include <QVBoxLayout>
