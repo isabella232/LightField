@@ -16,8 +16,10 @@ SOURCES += \
     ../src/loader.cpp \
     ../src/window.cpp \
     ../src/backdrop.cpp \
-    ../src/shepherd.cpp
-#    ../src/slicer.cpp
+    ../src/shepherd.cpp \
+    ../src/slicer.cpp \
+    ../src/strings.cpp \
+    ../src/printmanager.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -27,8 +29,11 @@ HEADERS  += \
     ../src/loader.h \
     ../src/window.h \
     ../src/backdrop.h \
-    ../src/shepherd.h
-#    ../src/slicer.h
+    ../src/shepherd.h \
+    ../src/slicer.h \
+    ../src/strings.h \
+    ../src/printmanager.h \
+    ../src/printjob.h
 
 CONFIG += c++11
 CONFIG += precompile_header
@@ -54,4 +59,12 @@ linux {
 
 static {
     CONFIG += static
+}
+
+debug {
+    QMAKE_CXXFLAGS_DEBUG += -D_DEBUG
+}
+
+release {
+    QMAKE_CXXFLAGS_RELEASE += -DNDEBUG
 }

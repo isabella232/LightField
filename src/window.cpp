@@ -1,11 +1,21 @@
-#include "window.h"
-
 #include <cstdlib>
+
+#include "window.h"
+#include "printmanager.h"
 
 namespace {
 
     char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
-    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun/burn_in.py";
+
+    class TabIndex {
+    public:
+        enum {
+            Select,
+            Slice,
+            Print,
+            Progress
+        };
+    };
 
 }
 
@@ -27,9 +37,6 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     //
 
     fileSystemModel = new QFileSystemModel;
-    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
-    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
-    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
     fileSystemModel->setFilter( QDir::Files );
     fileSystemModel->setNameFilterDisables( false );
     fileSystemModel->setNameFilters( {
@@ -38,9 +45,11 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
         }
     } );
     fileSystemModel->setRootPath( StlModelLibraryPath );
+    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
+    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
+    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
 
     availableFilesListView = new QListView;
-    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
     availableFilesListView->setFlow( QListView::TopToBottom );
     availableFilesListView->setLayoutMode( QListView::SinglePass );
     availableFilesListView->setMovement( QListView::Static );
@@ -48,6 +57,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     availableFilesListView->setViewMode( QListView::ListMode );
     availableFilesListView->setWrapping( true );
     availableFilesListView->setModel( fileSystemModel );
+    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
 
     availableFilesLabel = new QLabel( "Available files:" );
     availableFilesLabel->setBuddy( availableFilesListView );
@@ -62,13 +72,13 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     availableFilesContainer->setLayout( availableFilesLayout );
 
     selectButton = new QPushButton( "Select" );
-    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
     {
         auto font { selectButton->font( ) };
         font.setPointSizeF( 22.25 );
         selectButton->setFont( font );
     }
     selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
 
     canvas = new Canvas( format, this );
     canvas->setMinimumSize( 600, 400 );
@@ -100,7 +110,6 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     } );
 
     printQualityListView = new QListView;
-    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
     printQualityListView->setFlow( QListView::TopToBottom );
     printQualityListView->setLayoutMode( QListView::SinglePass );
     printQualityListView->setMovement( QListView::Static );
@@ -108,27 +117,29 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printQualityListView->setViewMode( QListView::ListMode );
     printQualityListView->setWrapping( true );
     printQualityListView->setModel( printQualityStringListModel );
+    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
 
     printQualityLabel = new QLabel( "Print quality:" );
     printQualityLabel->setBuddy( printQualityListView );
 
-    printQualityLayout = new QGridLayout;
+    printQualityLayout = new QVBoxLayout;
     printQualityLayout->setContentsMargins( emptyMargins );
-    printQualityLayout->addWidget( printQualityLabel,    0, 0 );
-    printQualityLayout->addWidget( printQualityListView, 1, 0 );
+    printQualityLayout->addWidget( printQualityLabel );
+    printQualityLayout->addWidget( printQualityListView );
+    printQualityLayout->addStretch( );
 
     printQualityContainer = new QWidget( );
     printQualityContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     printQualityContainer->setLayout( printQualityLayout );
 
     sliceButton = new QPushButton( "Slice" );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
     {
         auto font { sliceButton->font( ) };
         font.setPointSizeF( 22.25 );
         sliceButton->setFont( font );
     }
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
 
     slicePlaceholder = new QWidget;
     slicePlaceholder->setMinimumSize( 600, 400 );
@@ -151,49 +162,58 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     // "Print" tab
     //
 
-    printLayerTime = new QTextEdit;
-    printLayerTime->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printLayerTime->setAcceptDrops( false );
-    printLayerTime->setAcceptRichText( false );
-    printLayerTime->setAutoFormatting( QTextEdit::AutoFormattingFlag::AutoNone );
-    printLayerTime->setOverwriteMode( false );
-    printLayerTime->setReadOnly( false );
-    printLayerTime->setTabChangesFocus( true );
-    printLayerTime->setTextInteractionFlags( Qt::TextEditorInteraction );
-    printLayerTime->setUndoRedoEnabled( true );
-    printLayerTime->setWordWrapMode( QTextOption::NoWrap );
+    printLayerTime = new QLineEdit;
+    printLayerTime->setAlignment( Qt::AlignRight );
+    printLayerTime->setText( "1.0" );
+    printLayerTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
 
     printLayerTimeLabel = new QLabel( "Exposure time:" );
     printLayerTimeLabel->setBuddy( printLayerTime );
+    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
 
-    projectorPowerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
-    projectorPowerLevelSlider->setTickInterval( 10 );
-    projectorPowerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
-    projectorPowerLevelSlider->setMinimum( 20 );
-    projectorPowerLevelSlider->setMaximum( 100 );
+    powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
+    powerLevelSlider->setTickInterval( 26 );
+    powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
+    powerLevelSlider->setMinimum( 1 );
+    powerLevelSlider->setMaximum( 255 );
 
-    projectorPowerLevelLabel = new QLabel( "Projector power level:" );
-    projectorPowerLevelLabel->setBuddy( projectorPowerLevelSlider );
+    powerLevelLabel = new QLabel( "Projector power level:" );
+    powerLevelLabel->setBuddy( powerLevelSlider );
 
-    printOptionsLayout = new QGridLayout;
+    powerLevelSliderLeftLabel = new QLabel( "20%" );
+    powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
+    powerLevelSliderRightLabel = new QLabel( "100%" );
+    powerLevelSliderRightLabel->setAlignment( Qt::AlignRight );
+
+    powerLevelSliderLabelsLayout = new QHBoxLayout( );
+    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderLeftLabel );
+    powerLevelSliderLabelsLayout->addStretch( );
+    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderRightLabel );
+
+    powerLevelSliderLabelsContainer = new QWidget( );
+    powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
+
+    printOptionsLayout = new QVBoxLayout;
     printOptionsLayout->setContentsMargins( emptyMargins );
-    printOptionsLayout->addWidget( printLayerTimeLabel,       0, 0 );
-    printOptionsLayout->addWidget( printLayerTime,            1, 0 );
-    printOptionsLayout->addWidget( projectorPowerLevelLabel,  2, 0 );
-    printOptionsLayout->addWidget( projectorPowerLevelSlider, 3, 0 );
+    printOptionsLayout->addWidget( printLayerTimeLabel );
+    printOptionsLayout->addWidget( printLayerTime );
+    printOptionsLayout->addWidget( powerLevelLabel );
+    printOptionsLayout->addWidget( powerLevelSlider );
+    printOptionsLayout->addWidget( powerLevelSliderLabelsContainer );
+    printOptionsLayout->addStretch( );
 
     printOptionsContainer = new QWidget( );
     printOptionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     printOptionsContainer->setLayout( printOptionsLayout );
 
     printButton = new QPushButton( "Print" );
-    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
     {
         auto font { printButton->font( ) };
         font.setPointSizeF( 22.25 );
         printButton->setFont( font );
     }
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
     printPlaceholder = new QWidget;
     printPlaceholder->setMinimumSize( 600, 400 );
@@ -222,7 +242,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     progressTabLayout = new QGridLayout;
     progressTabLayout->setContentsMargins( emptyMargins );
-    progressTabLayout->addWidget( progressPlaceholder,     0, 1, 2, 1 );
+    progressTabLayout->addWidget( progressPlaceholder, 0, 1, 2, 1 );
     progressTabLayout->setRowStretch( 0, 4 );
     progressTabLayout->setRowStretch( 1, 1 );
 
@@ -241,7 +261,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     tabs->addTab( sliceTab,    "Slice"    );
     tabs->addTab( printTab,    "Print"    );
     tabs->addTab( progressTab, "Progress" );
-    tabs->setCurrentIndex( 0 );
+    tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
 
@@ -259,6 +279,8 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
+
+    shepherd->start( );
 }
 
 void Window::shepherd_Started( ) {
@@ -377,16 +399,16 @@ void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
 }
 
 void Window::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = StlModelLibraryPath + '/' + index.data( ).toString( );
-    fprintf( stderr, "+ Window::availableFilesListView_clicked:\n" );
-    fprintf( stderr, "  + row %d, selected file name: %s\n", index.row( ), fileName.toUtf8( ).data( ) );
-    if ( !load_stl( StlModelLibraryPath + '/' + index.data( ).toString( ) ) ) {
+    QString fileName = QString( StlModelLibraryPath ) + QString( '/' ) + index.data( ).toString( );
+    fprintf( stderr, "+ Window::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), fileName.toUtf8( ).data( ) );
+    if ( !load_stl( fileName ) ) {
         fprintf( stderr, "  + load_stl failed!\n" );
     }
 }
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
+    tabs->setCurrentIndex( TabIndex::Slice );
 }
 
 void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
@@ -395,6 +417,17 @@ void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+    tabs->setCurrentIndex( TabIndex::Print );
+}
+
+void Window::printLayerTime_editingFinished( ) {
+    bool valueOk = false;
+    double value = printLayerTime->validator( )->locale( ).toDouble( printLayerTime->text( ), &valueOk );
+    if ( valueOk ) {
+        fprintf( stderr, "+ Window::printLayerTime_editingFinished: new value %f\n", value );
+    } else {
+        fprintf( stderr, "+ Window::printLayerTime_editingFinished: bad value\n" );
+    }
 }
 
 void Window::projectorPowerLevelSlider_valueChanged( int value ) {
@@ -403,13 +436,23 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    system( BurnInScriptPath );
+    tabs->setCurrentIndex( TabIndex::Progress );
+
+    printJob = new PrintJob;
+    printJob->modelFileName  = "makerook.stl";
+    printJob->pngFilesPath   = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
+    printJob->layerCount     = 238;
+    printJob->layerThickness = 100; // µm
+    printJob->exposureTime   = 1;   // seconds
+    printJob->brightness     = 126;
+
+    printManager = new PrintManager( shepherd, this );
+    printManager->print( printJob );
 }
 
 bool Window::load_stl( QString const& filename ) {
-    fprintf( stderr, "+ Window::load_stl: loader %p\n", loader );
-
     if (loader) {
+        fprintf( stderr, "+ Window::load_stl: loader object exists, not loading\n" );
         return false;
     }
 
