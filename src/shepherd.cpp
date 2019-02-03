@@ -10,7 +10,7 @@ namespace {
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
 
-    _process = new QProcess( this );
+    _process = new QProcess( parent );
 
     auto env = _process->processEnvironment( );
     if ( env.isEmpty( ) ) {
@@ -20,11 +20,11 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     _process->setProcessEnvironment( env );
     _process->setWorkingDirectory( ShepherdBaseDirectory );
 
-    QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred );
-    QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted       );
-    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged  );
-    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyRead     );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyRead     );
+    QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred           );
+    QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted                 );
+    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged            );
+    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyReadStandardError  );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
 }
 
@@ -46,35 +46,106 @@ void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
     fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
-void Shepherd::processReadyRead( ) {
-    QString input;
-
+void Shepherd::processReadyReadStandardError( ) {
     _process->setReadChannel( QProcess::StandardError );
-    input = _process->readAllStandardError( );
+    QString input = _process->readAllStandardError( );
     if ( input.length( ) ) {
         fprintf( stderr,
-            "+ Shepherd::processReadyRead:\n"
-            "  + received from stderr: >>%s<<\n",
+            "+ Shepherd::processReadyReadStandardError: from stderr:\n"
+            "%s\n",
             input.toUtf8( ).data( )
         );
     }
+}
 
+void Shepherd::processReadyReadStandardOutput( ) {
     _process->setReadChannel( QProcess::StandardOutput );
-    input = _process->readAllStandardOutput( );
+
+    QString input = _process->readAllStandardOutput( );
     if ( input.length( ) ) {
-        fprintf( stderr,
-            "+ Shepherd::processReadyRead\n"
-            "  + received from stdout: >>%s<<\n",
-            input.toUtf8( ).data( )
-        );
+        handleInput( input );
     }
-
-    _process->setReadChannel( QProcess::StandardOutput );
 }
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
     emit shepherd_Finished( exitCode, exitStatus );
+}
+
+QStringList Shepherd::splitLine( QString const& line ) {
+    QStringList pieces;
+    QString piece;
+    bool inQuote = false;
+
+    int length = line.length( );
+    int index = 0;
+    while ( index < length ) {
+        QChar ch = line[index];
+        switch ( ch.unicode( ) ) {
+            case L' ':
+                if ( inQuote ) {
+                    piece += ch;
+                } else {
+                    pieces += piece;
+                    piece.clear( );
+                }
+                break;
+
+            case L'"':
+                inQuote = !inQuote;
+                break;
+
+            case L'\\':
+                if ( inQuote ) {
+                    if ( ( index + 1 ) < length ) {
+                        piece += line[++index];
+                    }
+                } else {
+                    piece += ch;
+                }
+                break;
+
+            default:
+                piece += ch;
+                break;
+        }
+        ++index;
+    }
+    if ( !piece.isEmpty( ) ) {
+        pieces += piece;
+    }
+
+    return pieces;
+}
+
+void Shepherd::handleInput( QString const& input ) {
+    _buffer += input;
+
+    auto lines = _buffer.split( "\n", QString::SplitBehavior::KeepEmptyParts );
+    // if the buffer doesn't end with a newline character, then the last line is not yet complete. put it back in the buffer and forget about it for now.
+    if ( !_buffer.endsWith( "\n" ) ) {
+        _buffer = lines.last( );
+        lines.removeLast( );
+    } else {
+        _buffer.clear( );
+    }
+
+    for ( auto line : lines ) {
+        if ( line.endsWith( "\r" ) ) {
+            line.resize( line.length( ) - 1 );
+        }
+        if ( line.isEmpty( ) ) {
+            continue;
+        }
+
+        fprintf( stderr, "+ Shepherd::handleInput: line '%s'\n", line.toUtf8( ).data( ) );
+        auto pieces = splitLine( line );
+        for ( auto piece : pieces ) {
+            fprintf( stderr, "  + piece '%s'\n", piece.toUtf8( ).data( ) );
+        }
+    }
+
+    fprintf( stderr, "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
 }
 
 void Shepherd::start( ) {
@@ -107,7 +178,7 @@ void Shepherd::doSend( char const* arg ) {
     _process->write( QString( "send \"%1\"\n" ).arg( QString( arg ).replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) ).toUtf8( ) );
 }
 
-void Shepherd::terminate( ) {
+void Shepherd::doTerminate( ) {
     _process->write( "terminate\n" );
     _process->waitForFinished( );
 }

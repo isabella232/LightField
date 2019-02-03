@@ -5,12 +5,8 @@ import time
 
 from threading import Thread
 
-if 'DEBUGGING_ON_VIOLET' in os.environ:
-    _baseDirectory = '/home/icekarma/devel/work/VolumetricLumen'
-else:
-    _baseDirectory = '/home/lumen/Volumetric'
-sys.path.append(_baseDirectory + '/printrun')
-sys.path.append(_baseDirectory + '/TouchPrint/App')
+sys.path.append('/home/lumen/Volumetric/printrun')
+sys.path.append('/home/lumen/Volumetric/TouchPrint/App')
 
 from Util.constants import MOTOR_AXIS
 
@@ -86,14 +82,15 @@ class printprocess():
             return False
 
 class printer(PrinterEventHandler):
-    def __init__(self, onlinecb=None, offlinecb=None, positioncb=None, tempcb=None):
+    def __init__(self, onlinecb=None, offlinecb=None, positioncb=None, tempcb=None, receivecb=None):
         self.p=printcore.printcore()
         self.p.addEventHandler(self)
         self.onlinecb=onlinecb
         self.offlinecb=offlinecb
         self.positioncb=positioncb
-        self.liftdone=None
         self.tempcb=tempcb
+        self.receivecb=receivecb
+        self.liftdone=None
 
     def on_disconnect(self):
         if(self.offlinecb):
@@ -101,13 +98,15 @@ class printer(PrinterEventHandler):
 
     def on_recv(self, line):
         l=line.strip()
-        print( "+ on_recv: line: %s" % line, file = sys.stderr )
-        if 'Z:' in line and "E:" in line:
-            pos=float(l.split("Z:")[1].split("E:")[0])
-            if(self.positioncb):
-                self.positioncb(pos)
-            if(self.liftdone):
-                self.liftdone()
+        if self.receivecb:
+            self.receivecb(line)
+        else:
+            if 'Z:' in line and "E:" in line:
+                pos=float(l.split("Z:")[1].split("E:")[0])
+                if(self.positioncb):
+                    self.positioncb(pos)
+                if(self.liftdone):
+                    self.liftdone()
 
     def on_online(self):
         if(self.onlinecb):

@@ -265,7 +265,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     setCentralWidget( tabs );
 
-    shepherd = new Shepherd( this );
+    shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
     QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
     QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
@@ -361,7 +361,7 @@ void Window::loader_LoadedFile(const QString& filename)
 
 void Window::closeEvent( QCloseEvent* event ) {
     fprintf( stderr, "+ Window::closeEvent\n" );
-    shepherd->terminate( );
+    shepherd->doTerminate( );
     event->accept( );
 }
 
