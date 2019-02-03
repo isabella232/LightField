@@ -1,22 +1,21 @@
-#include "window.h"
-
 #include <cstdlib>
+
+#include "window.h"
+#include "printmanager.h"
 
 namespace {
 
     char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
-    char const* BurnInScriptPath    = "/home/lumen/Volumetric/printrun";
 
-    enum class TabIndex: int {
-        Select,
-        Slice,
-        Print,
-        Progress
+    class TabIndex {
+    public:
+        enum {
+            Select,
+            Slice,
+            Print,
+            Progress
+        };
     };
-
-    int operator+( TabIndex const value ) {
-        return static_cast<int>( value );
-    }
 
 }
 
@@ -123,10 +122,11 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printQualityLabel = new QLabel( "Print quality:" );
     printQualityLabel->setBuddy( printQualityListView );
 
-    printQualityLayout = new QGridLayout;
+    printQualityLayout = new QVBoxLayout;
     printQualityLayout->setContentsMargins( emptyMargins );
-    printQualityLayout->addWidget( printQualityLabel,    0, 0 );
-    printQualityLayout->addWidget( printQualityListView, 1, 0 );
+    printQualityLayout->addWidget( printQualityLabel );
+    printQualityLayout->addWidget( printQualityListView );
+    printQualityLayout->addStretch( );
 
     printQualityContainer = new QWidget( );
     printQualityContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -162,36 +162,45 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     // "Print" tab
     //
 
-    printLayerTime = new QTextEdit;
-    printLayerTime->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printLayerTime->setAcceptDrops( false );
-    printLayerTime->setAcceptRichText( false );
-    printLayerTime->setAutoFormatting( QTextEdit::AutoFormattingFlag::AutoNone );
-    printLayerTime->setOverwriteMode( false );
-    printLayerTime->setReadOnly( false );
-    printLayerTime->setTabChangesFocus( true );
-    printLayerTime->setTextInteractionFlags( Qt::TextEditorInteraction );
-    printLayerTime->setUndoRedoEnabled( true );
-    printLayerTime->setWordWrapMode( QTextOption::NoWrap );
+    printLayerTime = new QLineEdit;
+    printLayerTime->setAlignment( Qt::AlignRight );
+    printLayerTime->setText( "1.0" );
+    printLayerTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
 
     printLayerTimeLabel = new QLabel( "Exposure time:" );
     printLayerTimeLabel->setBuddy( printLayerTime );
+    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
 
-    projectorPowerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
-    projectorPowerLevelSlider->setTickInterval( 10 );
-    projectorPowerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
-    projectorPowerLevelSlider->setMinimum( 20 );
-    projectorPowerLevelSlider->setMaximum( 100 );
+    powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
+    powerLevelSlider->setTickInterval( 26 );
+    powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
+    powerLevelSlider->setMinimum( 1 );
+    powerLevelSlider->setMaximum( 255 );
 
-    projectorPowerLevelLabel = new QLabel( "Projector power level:" );
-    projectorPowerLevelLabel->setBuddy( projectorPowerLevelSlider );
+    powerLevelLabel = new QLabel( "Projector power level:" );
+    powerLevelLabel->setBuddy( powerLevelSlider );
 
-    printOptionsLayout = new QGridLayout;
+    powerLevelSliderLeftLabel = new QLabel( "20%" );
+    powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
+    powerLevelSliderRightLabel = new QLabel( "100%" );
+    powerLevelSliderRightLabel->setAlignment( Qt::AlignRight );
+
+    powerLevelSliderLabelsLayout = new QHBoxLayout( );
+    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderLeftLabel );
+    powerLevelSliderLabelsLayout->addStretch( );
+    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderRightLabel );
+
+    powerLevelSliderLabelsContainer = new QWidget( );
+    powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
+
+    printOptionsLayout = new QVBoxLayout;
     printOptionsLayout->setContentsMargins( emptyMargins );
-    printOptionsLayout->addWidget( printLayerTimeLabel,       0, 0 );
-    printOptionsLayout->addWidget( printLayerTime,            1, 0 );
-    printOptionsLayout->addWidget( projectorPowerLevelLabel,  2, 0 );
-    printOptionsLayout->addWidget( projectorPowerLevelSlider, 3, 0 );
+    printOptionsLayout->addWidget( printLayerTimeLabel );
+    printOptionsLayout->addWidget( printLayerTime );
+    printOptionsLayout->addWidget( powerLevelLabel );
+    printOptionsLayout->addWidget( powerLevelSlider );
+    printOptionsLayout->addWidget( powerLevelSliderLabelsContainer );
+    printOptionsLayout->addStretch( );
 
     printOptionsContainer = new QWidget( );
     printOptionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -233,7 +242,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     progressTabLayout = new QGridLayout;
     progressTabLayout->setContentsMargins( emptyMargins );
-    progressTabLayout->addWidget( progressPlaceholder,     0, 1, 2, 1 );
+    progressTabLayout->addWidget( progressPlaceholder, 0, 1, 2, 1 );
     progressTabLayout->setRowStretch( 0, 4 );
     progressTabLayout->setRowStretch( 1, 1 );
 
@@ -252,7 +261,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     tabs->addTab( sliceTab,    "Slice"    );
     tabs->addTab( printTab,    "Print"    );
     tabs->addTab( progressTab, "Progress" );
-    tabs->setCurrentIndex( +TabIndex::Select );
+    tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
 
@@ -399,7 +408,7 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
-    tabs->setCurrentIndex( +TabIndex::Slice );
+    tabs->setCurrentIndex( TabIndex::Slice );
 }
 
 void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
@@ -408,7 +417,17 @@ void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
-    tabs->setCurrentIndex( +TabIndex::Print );
+    tabs->setCurrentIndex( TabIndex::Print );
+}
+
+void Window::printLayerTime_editingFinished( ) {
+    bool valueOk = false;
+    double value = printLayerTime->validator( )->locale( ).toDouble( printLayerTime->text( ), &valueOk );
+    if ( valueOk ) {
+        fprintf( stderr, "+ Window::printLayerTime_editingFinished: new value %f\n", value );
+    } else {
+        fprintf( stderr, "+ Window::printLayerTime_editingFinished: bad value\n" );
+    }
 }
 
 void Window::projectorPowerLevelSlider_valueChanged( int value ) {
@@ -417,17 +436,18 @@ void Window::projectorPowerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    tabs->setCurrentIndex( +TabIndex::Progress );
+    tabs->setCurrentIndex( TabIndex::Progress );
 
-    burnInProcess = new QProcess;
-    auto env = burnInProcess->processEnvironment( );
-    if ( env.isEmpty( ) ) {
-        env = QProcessEnvironment::systemEnvironment( );
-    }
-    env.insert( "PYTHONUNBUFFERED", "x" );
-    burnInProcess->setProcessEnvironment( env );
-    burnInProcess->setWorkingDirectory( BurnInScriptPath );
-    burnInProcess->start( "./burn_in.py" );
+    printJob = new PrintJob;
+    printJob->modelFileName  = "makerook.stl";
+    printJob->pngFilesPath   = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
+    printJob->layerCount     = 238;
+    printJob->layerThickness = 100; // µm
+    printJob->exposureTime   = 1;   // seconds
+    printJob->brightness     = 126;
+
+    printManager = new PrintManager( shepherd, this );
+    printManager->print( printJob );
 }
 
 bool Window::load_stl( QString const& filename ) {

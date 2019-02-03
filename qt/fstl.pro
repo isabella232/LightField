@@ -32,7 +32,8 @@ HEADERS  += \
     ../src/shepherd.h \
     ../src/slicer.h \
     ../src/strings.h \
-    ../src/printmanager.h
+    ../src/printmanager.h \
+    ../src/printjob.h
 
 CONFIG += c++11
 CONFIG += precompile_header

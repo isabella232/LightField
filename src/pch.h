@@ -10,6 +10,8 @@
 #include <QFile>
 #include <QFileSystemModel>
 #include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLineEdit>
 #include <QListView>
 #include <QMainWindow>
 #include <QMouseEvent>
@@ -24,9 +26,9 @@
 #include <QSurfaceFormat>
 #include <QTabWidget>
 #include <QtDebug>
-#include <QTextEdit>
 #include <QThread>
-#include <QtOpenGL>
 #include <QtOpenGL/QtOpenGL>
+#include <QtOpenGL>
+#include <QVBoxLayout>
 #include <QVector3D>
 #include <QWidget>

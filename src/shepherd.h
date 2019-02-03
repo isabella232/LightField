@@ -46,6 +46,8 @@ signals:
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
 
+    void action_homeComplete( bool successful );
+
 private:
 
     QProcess* _process;

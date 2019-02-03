@@ -8,18 +8,21 @@
 #include <QFileSystemModel>
 #include <QListView>
 #include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLineEdit>
 #include <QProcess>
 #include <QPushButton>
 #include <QSlider>
 #include <QString>
 #include <QStringListModel>
 #include <QTabWidget>
-#include <QTextEdit>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include "shepherd.h"
 #include "canvas.h"
 #include "loader.h"
+#include "printmanager.h"
 
 class Window: public QMainWindow {
 
@@ -41,7 +44,8 @@ private:
 
     Shepherd*         shepherd                    { nullptr };
     Loader*           loader                      { nullptr };
-    QProcess*         burnInProcess               { nullptr };
+    PrintManager*     printManager                { nullptr };
+    PrintJob*         printJob                    { nullptr };
 
     QString           currentFileName;
 
@@ -64,7 +68,7 @@ private:
     QLabel*           printQualityLabel;
     QStringListModel* printQualityStringListModel;
     QListView*        printQualityListView;
-    QGridLayout*      printQualityLayout;
+    QVBoxLayout*      printQualityLayout;
     QWidget*          printQualityContainer;
     QPushButton*      sliceButton;
     QWidget*          sliceTab;
@@ -72,10 +76,14 @@ private:
 
     QWidget*          printPlaceholder;
     QLabel*           printLayerTimeLabel;
-    QTextEdit*        printLayerTime;
-    QLabel*           projectorPowerLevelLabel;
-    QSlider*          projectorPowerLevelSlider;
-    QGridLayout*      printOptionsLayout;
+    QLineEdit*        printLayerTime;
+    QLabel*           powerLevelLabel;
+    QSlider*          powerLevelSlider;
+    QLabel*           powerLevelSliderLeftLabel;
+    QLabel*           powerLevelSliderRightLabel;
+    QHBoxLayout*      powerLevelSliderLabelsLayout;
+    QWidget*          powerLevelSliderLabelsContainer;
+    QVBoxLayout*      printOptionsLayout;
     QWidget*          printOptionsContainer;
     QPushButton*      printButton;
     QWidget*          printTab;
@@ -129,6 +137,7 @@ private slots:
     void printQualityListView_clicked( QModelIndex const& index );
     void sliceButton_clicked( bool checked );
 
+    void printLayerTime_editingFinished( );
     void projectorPowerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
 
