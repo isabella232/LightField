@@ -14,7 +14,7 @@ public:
 	~App();
 
 private:
-    Window* const window;
+    Window* window;
 };
 
 #endif // APP_H

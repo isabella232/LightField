@@ -30,7 +30,7 @@ class Window: public QMainWindow {
 
 public:
 
-    explicit Window(QWidget* parent=0);
+    explicit Window(bool fullScreen, QWidget* parent=0);
 
     bool load_stl(const QString& filename);
 

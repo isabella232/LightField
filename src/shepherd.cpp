@@ -153,6 +153,7 @@ void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
     auto lines = _buffer.split( "\n", QString::SplitBehavior::KeepEmptyParts );
+
     // if the buffer doesn't end with a newline character, then the last line is
     // not yet complete. put it back in the buffer and forget about it for now.
     if ( !_buffer.endsWith( "\n" ) ) {

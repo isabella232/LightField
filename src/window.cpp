@@ -19,11 +19,15 @@ namespace {
 
 }
 
-Window::Window(QWidget *parent): QMainWindow(parent) {
+Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QMargins emptyMargins { };
 
-    setFixedSize( 800, 480 );
-    move( { 0, 0 } );
+    if ( fullScreen ) {
+        setFullScreen( true );
+    } else {
+        setFixedSize( 800, 480 );
+        move( { 0, 0 } );
+    }
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
