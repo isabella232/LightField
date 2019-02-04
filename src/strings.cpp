@@ -1,5 +1,6 @@
 #include <QProcess>
 
+#include "shepherd.h"
 #include "strings.h"
 
 namespace {
@@ -22,6 +23,14 @@ namespace {
     char const* ExitStatusStrings[] {
         "NormalExit",
         "CrashExit"
+    };
+
+    char const* PendingCommandStrings[] {
+        "none",
+        "move",
+        "moveTo",
+        "home",
+        "lift",
     };
 
 }
@@ -55,6 +64,18 @@ char const* ToString( QProcess::ExitStatus value ) {
     if ( ( value >= QProcess::NormalExit ) && ( value <= QProcess::CrashExit ) ) {
 #endif
         return ExitStatusStrings[value];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( PendingCommand value ) {
+#if defined _DEBUG
+    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::lift ) ) {
+#endif
+        return PendingCommandStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;
