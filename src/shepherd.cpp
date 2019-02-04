@@ -218,7 +218,7 @@ void Shepherd::doMoveTo( float arg ) {
         fprintf( stderr, "Shepherd::doMove: command already in progress" );
         return;
     }
-    _pendingCommand = PendingCommand::move;
+    _pendingCommand = PendingCommand::moveTo;
     _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
 }
 
@@ -227,7 +227,7 @@ void Shepherd::doHome( ) {
         fprintf( stderr, "Shepherd::doMove: command already in progress" );
         return;
     }
-    _pendingCommand = PendingCommand::move;
+    _pendingCommand = PendingCommand::home;
     _process->write( "home\n" );
 }
 
@@ -236,7 +236,7 @@ void Shepherd::doLift( float arg1, float arg2 ) {
         fprintf( stderr, "Shepherd::doMove: command already in progress" );
         return;
     }
-    _pendingCommand = PendingCommand::move;
+    _pendingCommand = PendingCommand::lift;
     _process->write( QString( "lift %1 %2\n" ).arg( arg1 ).arg( arg2 ).toUtf8( ) );
 }
 
