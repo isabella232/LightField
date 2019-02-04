@@ -1,3 +1,4 @@
+#include "shepherd.h"
 #include "window.h"
 #include "strings.h"
 
@@ -118,6 +119,32 @@ QStringList Shepherd::splitLine( QString const& line ) {
     return pieces;
 }
 
+void Shepherd::handlePrinterOutput( QString const& input ) {
+    if ( input == "ok" ) {
+        switch ( _pendingCommand ) {
+            case PendingCommand::move:
+                emit action_moveComplete( true );
+                break;
+
+            case PendingCommand::moveTo:
+                emit action_moveToComplete( true );
+                break;
+
+            case PendingCommand::home:
+                emit action_homeComplete( true );
+                break;
+
+            case PendingCommand::lift:
+                emit action_liftComplete( true );
+                break;
+
+            default:
+                fprintf( stderr, "+ Shepherd::handlePrinterOutput: unknown pending command\n" );
+        }
+        _pendingCommand = PendingCommand::none;
+    }
+}
+
 void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
@@ -142,9 +169,7 @@ void Shepherd::handleInput( QString const& input ) {
         auto pieces = splitLine( line );
         fprintf( stderr, "  + first piece: '%s'\n", pieces[0].toUtf8( ).data( ) );
         if ( pieces[0] == "printer_online" ) {
-            fprintf( stderr, "  + emitting printer_Online signal\n" );
             emit printer_Online( );
-            fprintf( stderr, "  + emitted  printer_Online signal\n" );
         } else if ( pieces[0] == "printer_offline" ) {
             emit printer_Offline( );
         } else if ( pieces[0] == "printer_position" ) {
@@ -152,7 +177,7 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printer_temperature" ) {
             emit printer_Temperature( pieces[1] );
         } else if ( pieces[0] == "printer_output" ) {
-            emit printer_Output( pieces[1] );
+            handlePrinterOutput( pieces[1] );
         } else if ( pieces[0] == "printProcess_showImage" ) {
             emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
         } else if ( pieces[0] == "printProcess_hideImage" ) {
@@ -178,18 +203,38 @@ void Shepherd::start( ) {
 }
 
 void Shepherd::doMove( float arg ) {
+    if ( _pendingCommand != PendingCommand::none ) {
+        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        return;
+    }
+    _pendingCommand = PendingCommand::move;
     _process->write( QString( "move %1\n" ).arg( arg ).toUtf8( ) );
 }
 
 void Shepherd::doMoveTo( float arg ) {
+    if ( _pendingCommand != PendingCommand::none ) {
+        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        return;
+    }
+    _pendingCommand = PendingCommand::move;
     _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
 }
 
 void Shepherd::doHome( ) {
+    if ( _pendingCommand != PendingCommand::none ) {
+        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        return;
+    }
+    _pendingCommand = PendingCommand::move;
     _process->write( "home\n" );
 }
 
 void Shepherd::doLift( float arg1, float arg2 ) {
+    if ( _pendingCommand != PendingCommand::none ) {
+        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        return;
+    }
+    _pendingCommand = PendingCommand::move;
     _process->write( QString( "lift %1 %2\n" ).arg( arg1 ).arg( arg2 ).toUtf8( ) );
 }
 
