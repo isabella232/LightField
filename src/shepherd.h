@@ -24,10 +24,20 @@ public:
 
 private:
 
+    enum class PendingCommand {
+        none,
+        move,
+        moveTo,
+        home,
+        lift,
+    };
+
     QProcess* _process;
     QString _buffer;
+    PendingCommand _pendingCommand { PendingCommand::none };
 
     QStringList splitLine( QString const& line );
+    void handlePrinterOutput( QString const& input );
     void handleInput( QString const& input );
 
 private slots:
@@ -60,8 +70,6 @@ signals:
     void action_moveToComplete( bool successful );
     void action_homeComplete( bool successful );
     void action_liftComplete( bool successful );
-    void action_askTempComplete( bool successful );
-    void action_sendComplete( bool successful );
 
 };
 
