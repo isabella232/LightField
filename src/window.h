@@ -108,9 +108,9 @@ private slots:
     void printer_Online( );
     void printer_Offline( );
     void printer_Position( float position );
-    void printer_Temperature( char const* temperatureInfo );
+    void printer_Temperature( QString const& temperatureInfo );
 
-    void printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total );
+    void printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total );
     void printProcess_HideImage( );
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
@@ -120,7 +120,7 @@ private slots:
     void loader_ErrorMissingFile();
 
     void loader_Finished();
-    void loader_LoadedFile(const QString& filename);
+    void loader_LoadedFile(QString const& filename);
 
     void tabs_currentChanged( int index );
     void tabs_tabBarClicked( int index );

@@ -279,7 +279,6 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
-
     shepherd->start( );
 }
 
@@ -307,12 +306,12 @@ void Window::printer_Position( float position ) {
     fprintf( stderr, "+ Window::printer_Position: position: %f\n", position );
 }
 
-void Window::printer_Temperature( char const* temperatureInfo ) {
-    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo );
+void Window::printer_Temperature( QString const& temperatureInfo ) {
+    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo.toUtf8( ).data( ) );
 }
 
-void Window::printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total ) {
-    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName, brightness, index, total );
+void Window::printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total ) {
+    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName.toUtf8( ).data( ), brightness.toUtf8( ).data( ), index.toUtf8( ).data( ), total.toUtf8( ).data( ) );
 }
 
 void Window::printProcess_HideImage( ) {
