@@ -120,6 +120,7 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handlePrinterOutput( QString const& input ) {
+    fprintf( stderr, "+ Shepherd::handlePrinterOutput: input='%s' pendingCommand=%d\n", input.toUtf8( ).data( ), static_cast<int>( _pendingCommand ) );
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
@@ -177,6 +178,7 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printer_temperature" ) {
             emit printer_Temperature( pieces[1] );
         } else if ( pieces[0] == "printer_output" ) {
+            fprintf( stderr, "  + got printer_output\n" );
             handlePrinterOutput( pieces[1] );
         } else if ( pieces[0] == "printProcess_showImage" ) {
             emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
