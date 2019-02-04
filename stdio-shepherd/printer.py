@@ -99,7 +99,7 @@ class printer(PrinterEventHandler):
     def on_recv(self, line):
         l=line.strip()
         if self.receivecb:
-            self.receivecb(line)
+            self.receivecb(l)
         else:
             if 'Z:' in line and "E:" in line:
                 pos=float(l.split("Z:")[1].split("E:")[0])
