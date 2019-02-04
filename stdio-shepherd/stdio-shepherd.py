@@ -23,7 +23,7 @@ class QuitNowException( Exception ):
 class StdioPrinterDriver( ):
 
     def __init__( self ):
-        self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback )
+        self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback, self.printer_receiveCallback )
         self.printProcess = printer.printprocess( self.printer, self.printProcess_showImageCallback, self.printProcess_hideImageCallback, self.printProcess_startedPrintingCallback, self.printProcess_finishedPrintingCallback )
         self.isOnline     = False
         self.isPrinting   = False
@@ -48,21 +48,27 @@ class StdioPrinterDriver( ):
 
     def printer_onlineCallback( self ):
         self.isOnline = True
-        print( "+ printer_online", file = sys.stderr )
         self.writer.writerow( [ 'printer_online' ] )
+        sys.stdout.flush( )
 
     def printer_offlineCallback( self ):
         self.isOnline = False
-        print( "+ printer_offlineCallback", file = sys.stderr )
         self.writer.writerow( [ 'printer_offline' ] )
+        sys.stdout.flush( )
 
     def printer_positionCallback( self, position ):
         print( "+ printer_positionCallback, position: %.3f mm (raw: %s)" % ( float( position ), position ), file = sys.stderr )
         self.writer.writerow( [ 'printer_position', position ] )
+        sys.stdout.flush( )
 
     def printer_temperatureCallback( self, temperatureInfo ):
         print( "+ printer_temperatureCallback, temperatureInfo: raw: %s" % temperatureInfo, file = sys.stderr )
         self.writer.writerow( [ 'printer_temperature', temperatureInfo ] )
+        sys.stdout.flush( )
+
+    def printer_receiveCallback( self, line ):
+        self.writer.writerow( [ 'printer_output', line ] )
+        sys.stdout.flush( )
 
     ##
     ## Callbacks for printprocess instance
@@ -71,20 +77,21 @@ class StdioPrinterDriver( ):
     def printProcess_showImageCallback( self, fileName, brightness, index, total ):
         print( "+ printProcess_showImageCallback: file name %s, brightness %s, index %s, total %s" % ( fileName, brightness, index, total ), file = sys.stderr )
         self.writer.writerow( [ 'printProcess_showImage', fileName, brightness, index, total ] )
+        sys.stdout.flush( )
 
     def printProcess_hideImageCallback( self ):
-        print( "+ printProcess_hideImageCallback", file = sys.stderr )
         self.writer.writerow( [ 'printProcess_hideImage' ] )
+        sys.stdout.flush( )
 
     def printProcess_startedPrintingCallback( self ):
         self.isPrinting = True
-        print( "+ printProcess_startedPrintingCallback", file = sys.stderr )
         self.writer.writerow( [ 'printProcess_startedPrinting' ] )
+        sys.stdout.flush( )
 
     def printProcess_finishedPrintingCallback( self ):
         self.isPrinting = False
-        print( "+ printProcess_finishedPrintingCallback", file = sys.stderr )
         self.writer.writerow( [ 'printProcess_finishedPrinting' ] )
+        sys.stdout.flush( )
 
     ##
     ## Methods
@@ -109,84 +116,76 @@ class StdioPrinterDriver( ):
 
     def move( self, *args ):
         if not self.isOnline:
-            return False
-
+            return [ 'fail', 'move', 'not online', *args ]
         self.printer.move( *map( float, args[0:1] ) )
-
-        return True
+        return [ 'ok', 'move', *args ]
 
     def moveTo( self, *args ):
         if not self.isOnline:
-            return False
-
+            return [ 'fail', 'moveTo', 'not online', *args ]
         self.printer.moveto( *map( float, args[0:1] ) )
-
-        return True
+        return [ 'ok', 'moveTo', *args ]
 
     def home( self, *args ):
         if not self.isOnline:
-            return False
-
+            return [ 'fail', 'home', 'not online' ]
         self.printer.home( )
-
-        return True
+        return [ 'ok', 'home' ]
 
     def lift( self, *args ):
         if not self.isOnline:
-            return False
-
+            return [ 'fail', 'lift', 'not online', *args ]
         self.printer.lift( *map( float, args[0:2] ) )
-
-        return True
+        return [ 'ok', 'lift', *args ]
 
     def askTemp( self, *args ):
         if not self.isOnline:
-            return False
-
+            return [ 'fail', 'askTemp', 'not online' ]
         self.printer.asktemp( )
-
-        return True
+        return [ 'ok', 'askTemp' ]
 
     def send( self, *args ):
         if not self.isOnline or len( args ) == 0:
-            return False
-
+            return [ 'fail', 'send', 'not online', *args ]
         self.printer.send( args[0] )
-
-        return True
+        return [ 'ok', 'send', *args ]
 
     def queryOnline( self, *args ):
-        return self.isOnline
+        return [ 'ok', 'queryOnline', 'true' if self.isOnline else 'false' ]
 
     def queryPrinting( self, *args ):
-        return self.isPrinting
+        return [ 'ok', 'queryPrinting', 'true' if self.isPrinting else 'false' ]
 
     def stopPrinting( self, *args ):
         self.stopPrint( )
-
-        return True
+        return [ 'ok', 'stopPrinting' ]
 
     def terminate( self, *args ):
         self.writer.writerow( [ 'ok', 'terminate' ] )
+        sys.stdout.flush( )
         raise QuitNowException( )
 
+    ##
+    ## Main I/O loop
+    ##
+
     def processInput( self ):
+        self.writer.writerow( [ 'ok','started' ] )
+        sys.stdout.flush( )
+
         for line in self.reader:
-            print( "+ verb: |%s| args: |%s|" % ( line[0], '|'.join( line[1:] ) ), file = sys.stderr )
-
             if not ( line[0] in self.verbMap ):
-                self.writer.writerow( [ 'unknown', line[0] ] )
-                continue
+                resultRow = [ 'unknown', line[0] ]
+            else:
+                try:
+                    resultRow = self.verbMap[line[0]]( *line[1:] )
+                    self.writer.writerow( resultRow )
+                except QuitNowException:
+                    return
+                except:
+                    print( "+ Caught an exception.", file = sys.stderr )
 
-            try:
-                if self.verbMap[line[0]]( *line[1:] ):
-                    self.writer.writerow( [ 'ok', line[0] ] )
-                else:
-                    self.writer.writerow( [ 'fail', line[0] ] )
-            except QuitNowException:
-                return
-            except:
-                print( "+ Caught an exception." )
+            sys.stdout.flush( )
 
 ##
 ## Main

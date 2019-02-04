@@ -12,7 +12,7 @@ public:
     QString pngFilesPath;
     int layerCount;
     double layerThickness;
-    double exposureTime;
+    int exposureTime;
     int brightness;
 
 };

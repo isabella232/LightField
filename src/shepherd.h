@@ -13,21 +13,30 @@ public:
     virtual ~Shepherd( ) override;
 
     void start( );
+
     void doMove( float arg );
     void doMoveTo( float arg );
     void doHome( );
     void doLift( float arg1, float arg2 );
     void doAskTemp( );
     void doSend( char const* arg );
+    void doTerminate( );
 
-    void terminate( );
+private:
+
+    QProcess* _process;
+    QString _buffer;
+
+    QStringList splitLine( QString const& line );
+    void handleInput( QString const& input );
 
 private slots:
 
     void processErrorOccurred( QProcess::ProcessError error );
     void processStarted( );
     void processStateChanged( QProcess::ProcessState newState );
-    void processReadyRead( );
+    void processReadyReadStandardError( );
+    void processReadyReadStandardOutput( );
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 signals:
@@ -46,12 +55,12 @@ signals:
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
 
+    void action_moveComplete( bool successful );
+    void action_moveToComplete( bool successful );
     void action_homeComplete( bool successful );
-
-private:
-
-    QProcess* _process;
-    QString _buffer;
+    void action_liftComplete( bool successful );
+    void action_askTempComplete( bool successful );
+    void action_sendComplete( bool successful );
 
 };
 
