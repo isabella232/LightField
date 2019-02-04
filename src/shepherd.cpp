@@ -140,8 +140,31 @@ void Shepherd::handleInput( QString const& input ) {
 
         fprintf( stderr, "+ Shepherd::handleInput: line '%s'\n", line.toUtf8( ).data( ) );
         auto pieces = splitLine( line );
-        for ( auto piece : pieces ) {
-            fprintf( stderr, "  + piece '%s'\n", piece.toUtf8( ).data( ) );
+        fprintf( stderr, "  + first piece: '%s'\n", pieces[0].toUtf8( ).data( ) );
+        if ( pieces[0] == "printer_online" ) {
+            fprintf( stderr, "  + emitting printer_Online signal\n" );
+            emit printer_Online( );
+            fprintf( stderr, "  + emitted  printer_Online signal\n" );
+        } else if ( pieces[0] == "printer_offline" ) {
+            emit printer_Offline( );
+        } else if ( pieces[0] == "printer_position" ) {
+            emit printer_Position( QLocale( ).toDouble( pieces[1] ) );
+        } else if ( pieces[0] == "printer_temperature" ) {
+            emit printer_Temperature( pieces[1] );
+        } else if ( pieces[0] == "printer_output" ) {
+            emit printer_Output( pieces[1] );
+        } else if ( pieces[0] == "printProcess_showImage" ) {
+            emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
+        } else if ( pieces[0] == "printProcess_hideImage" ) {
+            emit printProcess_HideImage( );
+        } else if ( pieces[0] == "printProcess_startedPrinting" ) {
+            emit printProcess_StartedPrinting( );
+        } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
+            emit printProcess_FinishedPrinting( );
+        } else if ( pieces[0] == "ok" ) {
+            fprintf( stderr, "  + got ok for %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "fail" ) {
+            fprintf( stderr, "  + got fail for %s\n", pieces[1].toUtf8( ).data( ) );
         }
     }
 

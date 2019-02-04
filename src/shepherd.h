@@ -47,10 +47,11 @@ signals:
 
     void printer_Online( );
     void printer_Offline( );
-    void printer_Position( float position );
-    void printer_Temperature( char const* temperatureInfo );
+    void printer_Position( double position );
+    void printer_Temperature( QString const& temperatureInfo );
+    void printer_Output( QString const& output );
 
-    void printProcess_ShowImage( char const* fileName, char const* brightness, char const* index, char const* total );
+    void printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total );
     void printProcess_HideImage( );
     void printProcess_StartedPrinting( );
     void printProcess_FinishedPrinting( );
