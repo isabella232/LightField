@@ -3,6 +3,14 @@
 
 #include <QProcess>
 
+enum class PendingCommand {
+    none,
+    move,
+    moveTo,
+    home,
+    lift,
+};
+
 class Shepherd: public QObject {
 
     Q_OBJECT
@@ -23,14 +31,6 @@ public:
     void doTerminate( );
 
 private:
-
-    enum class PendingCommand {
-        none,
-        move,
-        moveTo,
-        home,
-        lift,
-    };
 
     QProcess* _process;
     QString _buffer;
