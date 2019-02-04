@@ -165,6 +165,7 @@ void PrintManager::print( PrintJob* printJob ) {
         fprintf( stderr, "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
     }
+    fprintf( stderr, "+ PrintManager::print: new job\n" );
     _printJob = printJob;
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
