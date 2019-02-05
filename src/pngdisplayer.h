@@ -15,6 +15,7 @@ public:
     ~PngDisplayer( );
 
     bool load( QString const& fileName );
+    void setFullScreen( bool const fullScreen );
 
 protected:
 

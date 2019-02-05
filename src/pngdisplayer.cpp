@@ -18,3 +18,11 @@ bool PngDisplayer::load( QString const& fileName ) {
     _label->setPixmap( pixmap );
     return true;
 }
+
+void PngDisplayer::setFullScreen( bool const fullScreen ) {
+    if ( fullScreen ) {
+        setWindowState( windowState( ) | Qt::WindowFullScreen );
+    } else {
+        setWindowState( windowState( ) & ~Qt::WindowFullScreen );
+    }
+}
