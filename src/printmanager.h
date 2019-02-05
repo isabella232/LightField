@@ -76,6 +76,8 @@ private slots:
     void step3_fehProcessStarted( );
     void step3_fehProcessStateChanged( QProcess::ProcessState newState );
     void step3_fehProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void step3_fehProcessReadyReadStandardError( );
+    void step3_fehProcessReadyReadStandardOutput( );
 
     void step4_timerExpired( );
 

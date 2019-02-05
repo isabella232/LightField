@@ -113,9 +113,11 @@ void PrintManager::_cleanUp( ) {
 }
 
 void PrintManager::_connectFehProcess( ) {
-    QObject::connect( _fehProcess, &QProcess::errorOccurred, this, &PrintManager::step3_fehProcessErrorOccurred );
-    QObject::connect( _fehProcess, &QProcess::started,       this, &PrintManager::step3_fehProcessStarted       );
-    QObject::connect( _fehProcess, &QProcess::stateChanged,  this, &PrintManager::step3_fehProcessStateChanged  );
+    QObject::connect( _fehProcess, &QProcess::errorOccurred,           this, &PrintManager::step3_fehProcessErrorOccurred           );
+    QObject::connect( _fehProcess, &QProcess::started,                 this, &PrintManager::step3_fehProcessStarted                 );
+    QObject::connect( _fehProcess, &QProcess::stateChanged,            this, &PrintManager::step3_fehProcessStateChanged            );
+    QObject::connect( _fehProcess, &QProcess::readyReadStandardError,  this, &PrintManager::step3_fehProcessReadyReadStandardError  );
+    QObject::connect( _fehProcess, &QProcess::readyReadStandardOutput, this, &PrintManager::step3_fehProcessReadyReadStandardOutput );
     QObject::connect( _fehProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step3_fehProcessFinished );
     _fehProcessConnected = true;
 }
@@ -275,6 +277,32 @@ void PrintManager::step3_fehProcessFinished( int exitCode, QProcess::ExitStatus 
         return;
     } else {
         step8_fehProcessTerminated( );
+    }
+}
+
+void PrintManager::step3_fehProcessReadyReadStandardError( ) {
+    _fehProcess->setReadChannel( QProcess::StandardError );
+
+    QString input = _fehProcess->readAllStandardError( );
+    if ( input.length( ) ) {
+        fprintf( stderr,
+            "+ PrintManager::step3_fehProcessReadyReadStandardError: from stderr:\n"
+            "%s\n",
+            input.toUtf8( ).data( )
+        );
+    }
+}
+
+void PrintManager::step3_fehProcessReadyReadStandardOutput( ) {
+    _fehProcess->setReadChannel( QProcess::StandardOutput );
+
+    QString input = _fehProcess->readAllStandardOutput( );
+    if ( input.length( ) ) {
+        fprintf( stderr,
+            "+ PrintManager::step3_fehProcessReadyReadStandardOutput: from stdout:\n"
+            "%s\n",
+            input.toUtf8( ).data( )
+        );
     }
 }
 
