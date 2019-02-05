@@ -5,7 +5,15 @@
 
 namespace {
 
-    char const* StlModelLibraryPath = "/home/lumen/Volumetric/model-library";
+    QString StlModelLibraryPath { "/home/lumen/Volumetric/model-library" };
+
+    QStringList LayerThicknessStringList {
+        "50 µm",
+        "100 µm",
+        "200 µm",
+    };
+
+    int LayerThicknessValues[] { 50, 100, 200 };
 
     class TabIndex {
     public:
@@ -19,11 +27,15 @@ namespace {
 
 }
 
-Window::Window(QWidget *parent): QMainWindow(parent) {
+Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QMargins emptyMargins { };
 
-    setFixedSize( 800, 480 );
-    move( { 0, 0 } );
+    if ( fullScreen ) {
+        setFullScreen( true );
+    } else {
+        setFixedSize( 800, 480 );
+        move( { 0, 0 } );
+    }
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
@@ -77,6 +89,7 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
         font.setPointSizeF( 22.25 );
         selectButton->setFont( font );
     }
+    selectButton->setEnabled( false );
     selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
 
@@ -101,36 +114,34 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     // "Slice" tab
     //
 
-    printQualityStringListModel = new QStringListModel( QStringList {
-        {
-            "50 µm",
-            "100 µm",
-            "200 µm",
-        }
-    } );
+    layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
 
-    printQualityListView = new QListView;
-    printQualityListView->setFlow( QListView::TopToBottom );
-    printQualityListView->setLayoutMode( QListView::SinglePass );
-    printQualityListView->setMovement( QListView::Static );
-    printQualityListView->setResizeMode( QListView::Fixed );
-    printQualityListView->setViewMode( QListView::ListMode );
-    printQualityListView->setWrapping( true );
-    printQualityListView->setModel( printQualityStringListModel );
-    QObject::connect( printQualityListView, &QListView::clicked, this, &Window::printQualityListView_clicked );
+    layerThicknessListView = new QListView;
+    layerThicknessListView->setLayoutMode( QListView::SinglePass );
+    layerThicknessListView->setMovement( QListView::Static );
+    layerThicknessListView->setResizeMode( QListView::Fixed );
+    layerThicknessListView->setFlow( QListView::TopToBottom );
+    layerThicknessListView->setViewMode( QListView::ListMode );
+    layerThicknessListView->setWrapping( true );
+    //not until Qt 5.12:
+    //layerThicknessListView->setItemAlignment( Qt::AlignRight );
 
-    printQualityLabel = new QLabel( "Print quality:" );
-    printQualityLabel->setBuddy( printQualityListView );
+    layerThicknessListView->setModel( layerThicknessStringListModel );
+    layerThicknessListView->setCurrentIndex( layerThicknessStringListModel->index( 1, 0 ) );
+    QObject::connect( layerThicknessListView, &QListView::clicked, this, &Window::layerThicknessListView_clicked );
 
-    printQualityLayout = new QVBoxLayout;
-    printQualityLayout->setContentsMargins( emptyMargins );
-    printQualityLayout->addWidget( printQualityLabel );
-    printQualityLayout->addWidget( printQualityListView );
-    printQualityLayout->addStretch( );
+    layerThicknessLabel = new QLabel( "Layer thickness:" );
+    layerThicknessLabel->setBuddy( layerThicknessListView );
 
-    printQualityContainer = new QWidget( );
-    printQualityContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printQualityContainer->setLayout( printQualityLayout );
+    layerThicknessLayout = new QVBoxLayout;
+    layerThicknessLayout->setContentsMargins( emptyMargins );
+    layerThicknessLayout->addWidget( layerThicknessLabel );
+    layerThicknessLayout->addWidget( layerThicknessListView );
+    layerThicknessLayout->addStretch( );
+
+    layerThicknessContainer = new QWidget( );
+    layerThicknessContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    layerThicknessContainer->setLayout( layerThicknessLayout );
 
     sliceButton = new QPushButton( "Slice" );
     {
@@ -147,9 +158,9 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
 
     sliceTabLayout = new QGridLayout;
     sliceTabLayout->setContentsMargins( emptyMargins );
-    sliceTabLayout->addWidget( printQualityContainer, 0, 0, 1, 1 );
-    sliceTabLayout->addWidget( sliceButton,           1, 0, 1, 1 );
-    sliceTabLayout->addWidget( slicePlaceholder,      0, 1, 2, 1 );
+    sliceTabLayout->addWidget( layerThicknessContainer, 0, 0, 1, 1 );
+    sliceTabLayout->addWidget( sliceButton,             1, 0, 1, 1 );
+    sliceTabLayout->addWidget( slicePlaceholder,        0, 1, 2, 1 );
     sliceTabLayout->setRowStretch( 0, 4 );
     sliceTabLayout->setRowStretch( 1, 1 );
 
@@ -166,16 +177,17 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     printLayerTime->setAlignment( Qt::AlignRight );
     printLayerTime->setText( "1.0" );
     printLayerTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
+    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
 
     printLayerTimeLabel = new QLabel( "Exposure time:" );
     printLayerTimeLabel->setBuddy( printLayerTime );
-    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
 
     powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
-    powerLevelSlider->setTickInterval( 26 );
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
-    powerLevelSlider->setMinimum( 1 );
-    powerLevelSlider->setMaximum( 255 );
+    powerLevelSlider->setMinimum( 20 );
+    powerLevelSlider->setMaximum( 100 );
+    powerLevelSlider->setValue( 50 );
+    QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
 
     powerLevelLabel = new QLabel( "Projector power level:" );
     powerLevelLabel->setBuddy( powerLevelSlider );
@@ -280,6 +292,8 @@ Window::Window(QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
+
+    printJob = new PrintJob;
 }
 
 void Window::shepherd_Started( ) {
@@ -355,7 +369,8 @@ void Window::loader_Finished( ) {
 void Window::loader_LoadedFile(const QString& filename)
 {
     fprintf( stderr, "+ Window::loader_LoadedFile: filename: '%s'\n", filename.toUtf8( ).data( ) );
-    currentFileName = filename;
+    printJob->modelFileName = filename;
+    selectButton->setEnabled( true );
 }
 
 void Window::closeEvent( QCloseEvent* event ) {
@@ -398,7 +413,7 @@ void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
 }
 
 void Window::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = QString( StlModelLibraryPath ) + QString( '/' ) + index.data( ).toString( );
+    QString fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
     fprintf( stderr, "+ Window::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), fileName.toUtf8( ).data( ) );
     if ( !load_stl( fileName ) ) {
         fprintf( stderr, "  + load_stl failed!\n" );
@@ -410,8 +425,9 @@ void Window::selectButton_clicked( bool /*checked*/ ) {
     tabs->setCurrentIndex( TabIndex::Slice );
 }
 
-void Window::printQualityListView_clicked( QModelIndex const& /*index*/ ) {
-    fprintf( stderr, "+ Window::printQualityListView_clicked\n" );
+void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
+    fprintf( stderr, "+ Window::layerThicknessListView_clicked: new value: %d µm\n", LayerThicknessValues[index.row( )] );
+    printJob->layerThickness = LayerThicknessValues[index.row( )];
 }
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
@@ -424,29 +440,47 @@ void Window::printLayerTime_editingFinished( ) {
     double value = printLayerTime->validator( )->locale( ).toDouble( printLayerTime->text( ), &valueOk );
     if ( valueOk ) {
         fprintf( stderr, "+ Window::printLayerTime_editingFinished: new value %f\n", value );
+        printJob->exposureTime = value;
     } else {
         fprintf( stderr, "+ Window::printLayerTime_editingFinished: bad value\n" );
     }
 }
 
-void Window::projectorPowerLevelSlider_valueChanged( int value ) {
-    fprintf( stderr, "+ Window::projectorPowerLevelSlider_valueChanged: value %d%%\n", value );
+void Window::powerLevelSlider_valueChanged( int value ) {
+    fprintf( stderr, "+ Window::powerLevelSlider_valueChanged: value %d%%\n", value );
+    printJob->brightness = value * 255 / 100;
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
     tabs->setCurrentIndex( TabIndex::Progress );
 
-    printJob = new PrintJob;
-    printJob->modelFileName  = "makerook.stl";
-    printJob->pngFilesPath   = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
-    printJob->layerCount     = 238;
-    printJob->layerThickness = 100;  // µm
-    printJob->exposureTime   = 1000; // milliseconds
-    printJob->brightness     = 126;
+    printJob->pngFilesPath = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
+    printJob->layerCount   = 238;
+
+    fprintf( stderr,
+        "  + Print job:\n"
+        "    + modelFileName:     '%s'\n"
+        "    + slicedSvgFileName: '%s'\n"
+        "    + pngFilesPath:      '%s'\n"
+        "    + layerCount:        %d\n"
+        "    + layerThickness:    %d\n"
+        "    + exposureTime:      %f\n"
+        "    + brightness:        %d\n"
+        "",
+        printJob->modelFileName.toUtf8( ).data( ),
+        printJob->slicedSvgFileName.toUtf8( ).data( ),
+        printJob->pngFilesPath.toUtf8( ).data( ),
+        printJob->layerCount,
+        printJob->layerThickness,
+        printJob->exposureTime,
+        printJob->brightness
+    );
 
     printManager = new PrintManager( shepherd, this );
     printManager->print( printJob );
+
+    printJob = new PrintJob;
 }
 
 bool Window::load_stl( QString const& filename ) {

@@ -11,9 +11,9 @@ public:
     QString slicedSvgFileName;
     QString pngFilesPath;
     int layerCount;
-    double layerThickness;
-    int exposureTime;
-    int brightness;
+    int layerThickness;  // µm
+    double exposureTime; // s
+    int brightness;      // 0..255
 
 };
 

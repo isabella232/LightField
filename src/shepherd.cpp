@@ -120,29 +120,32 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handlePrinterOutput( QString const& input ) {
-    fprintf( stderr, "+ Shepherd::handlePrinterOutput: input='%s' pendingCommand=%d\n", input.toUtf8( ).data( ), static_cast<int>( _pendingCommand ) );
+    fprintf( stderr, "+ Shepherd::handlePrinterOutput: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
                 emit action_moveComplete( true );
+                _pendingCommand = PendingCommand::none;
                 break;
 
             case PendingCommand::moveTo:
                 emit action_moveToComplete( true );
+                _pendingCommand = PendingCommand::none;
                 break;
 
             case PendingCommand::home:
                 emit action_homeComplete( true );
+                _pendingCommand = PendingCommand::none;
                 break;
 
             case PendingCommand::lift:
                 emit action_liftComplete( true );
+                _pendingCommand = PendingCommand::none;
                 break;
 
             default:
                 fprintf( stderr, "+ Shepherd::handlePrinterOutput: unknown pending command\n" );
         }
-        _pendingCommand = PendingCommand::none;
     }
 }
 
@@ -150,7 +153,9 @@ void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
     auto lines = _buffer.split( "\n", QString::SplitBehavior::KeepEmptyParts );
-    // if the buffer doesn't end with a newline character, then the last line is not yet complete. put it back in the buffer and forget about it for now.
+
+    // if the buffer doesn't end with a newline character, then the last line is
+    // not yet complete. put it back in the buffer and forget about it for now.
     if ( !_buffer.endsWith( "\n" ) ) {
         _buffer = lines.last( );
         lines.removeLast( );
@@ -169,7 +174,10 @@ void Shepherd::handleInput( QString const& input ) {
         fprintf( stderr, "+ Shepherd::handleInput: line '%s'\n", line.toUtf8( ).data( ) );
         auto pieces = splitLine( line );
         fprintf( stderr, "  + first piece: '%s'\n", pieces[0].toUtf8( ).data( ) );
-        if ( pieces[0] == "printer_online" ) {
+        if ( pieces[0] == "printer_output" ) {
+            fprintf( stderr, "  + got printer_output\n" );
+            handlePrinterOutput( pieces[1] );
+        } else if ( pieces[0] == "printer_online" ) {
             emit printer_Online( );
         } else if ( pieces[0] == "printer_offline" ) {
             emit printer_Offline( );
@@ -177,9 +185,6 @@ void Shepherd::handleInput( QString const& input ) {
             emit printer_Position( QLocale( ).toDouble( pieces[1] ) );
         } else if ( pieces[0] == "printer_temperature" ) {
             emit printer_Temperature( pieces[1] );
-        } else if ( pieces[0] == "printer_output" ) {
-            fprintf( stderr, "  + got printer_output\n" );
-            handlePrinterOutput( pieces[1] );
         } else if ( pieces[0] == "printProcess_showImage" ) {
             emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
         } else if ( pieces[0] == "printProcess_hideImage" ) {
@@ -215,7 +220,7 @@ void Shepherd::doMove( float arg ) {
 
 void Shepherd::doMoveTo( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        fprintf( stderr, "Shepherd::doMoveTo: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::moveTo;
@@ -224,7 +229,7 @@ void Shepherd::doMoveTo( float arg ) {
 
 void Shepherd::doHome( ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        fprintf( stderr, "Shepherd::doHome: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::home;
@@ -233,7 +238,7 @@ void Shepherd::doHome( ) {
 
 void Shepherd::doLift( float arg1, float arg2 ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        fprintf( stderr, "Shepherd::doLift: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::lift;

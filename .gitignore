@@ -1,5 +1,4 @@
-*.pro.user
-*.qmake.stash
 .vs
-build/*
-Final Eiffel Tower.STL
+build
+makerook-imgs
+src/saved-window.cpp.txt
