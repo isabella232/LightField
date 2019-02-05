@@ -228,7 +228,7 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
         "-x",
         "--geometry",
         "1280x800+0+0",
-        QString( _printJob->pngFilesPath + QString( "/%1.png" ) ).arg( _currentLayer, 3, QChar( '0' ) )
+        QString( _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 3, QChar( '0' ) ) )
     } );
     _connectFehProcess( );
     _fehProcess->start( );
