@@ -188,6 +188,7 @@ void PrintManager::initialHomeComplete( bool success ) {
 
 void PrintManager::startNextLayer( ) {
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
+    fprintf( stderr, "+ PrintManager::startNextLayer: moving %f\n", LiftDistance );
     _shepherd->doMove( LiftDistance );
     emit startingLayer( _currentLayer );
 }
@@ -204,7 +205,8 @@ void PrintManager::step1_LiftUpComplete( bool success ) {
     fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
-    _shepherd->doMove( -LiftDistance + _printJob->layerThickness );
+    fprintf( stderr, "+ PrintManager::startNextLayer: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
+    _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
 }
 
 void PrintManager::step2_LiftDownComplete( bool success ) {
