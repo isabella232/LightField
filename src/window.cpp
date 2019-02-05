@@ -44,6 +44,8 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     format.setProfile( QSurfaceFormat::CoreProfile );
     QSurfaceFormat::setDefaultFormat( format );
 
+    printJob = new PrintJob;
+
     //
     // "Select" tab
     //
@@ -294,8 +296,6 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
-
-    printJob = new PrintJob;
 }
 
 void Window::shepherd_Started( ) {
