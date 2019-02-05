@@ -128,6 +128,7 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
 
     layerThicknessListView->setModel( layerThicknessStringListModel );
     layerThicknessListView->setCurrentIndex( layerThicknessStringListModel->index( 1, 0 ) );
+    printJob->layerThickness = 100;
     QObject::connect( layerThicknessListView, &QListView::clicked, this, &Window::layerThicknessListView_clicked );
 
     layerThicknessLabel = new QLabel( "Layer thickness:" );
@@ -187,6 +188,7 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     powerLevelSlider->setMinimum( 20 );
     powerLevelSlider->setMaximum( 100 );
     powerLevelSlider->setValue( 50 );
+    printJob->brightness = 50;
     QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
 
     powerLevelLabel = new QLabel( "Projector power level:" );
