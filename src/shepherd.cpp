@@ -124,23 +124,23 @@ void Shepherd::handlePrinterOutput( QString const& input ) {
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
-                emit action_moveComplete( true );
                 _pendingCommand = PendingCommand::none;
+                emit action_moveComplete( true );
                 break;
 
             case PendingCommand::moveTo:
-                emit action_moveToComplete( true );
                 _pendingCommand = PendingCommand::none;
+                emit action_moveToComplete( true );
                 break;
 
             case PendingCommand::home:
-                emit action_homeComplete( true );
                 _pendingCommand = PendingCommand::none;
+                emit action_homeComplete( true );
                 break;
 
             case PendingCommand::lift:
-                emit action_liftComplete( true );
                 _pendingCommand = PendingCommand::none;
+                emit action_liftComplete( true );
                 break;
 
             default:
