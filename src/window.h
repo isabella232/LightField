@@ -47,8 +47,6 @@ private:
     PrintManager*     printManager                { nullptr };
     PrintJob*         printJob                    { nullptr };
 
-    QString           currentFileName;
-
     bool              isSlicing                   { false   };
     bool              isPrinting                  { false   };
 
@@ -65,11 +63,11 @@ private:
     QGridLayout*      selectTabLayout;
 
     QWidget*          slicePlaceholder;
-    QLabel*           printQualityLabel;
-    QStringListModel* printQualityStringListModel;
-    QListView*        printQualityListView;
-    QVBoxLayout*      printQualityLayout;
-    QWidget*          printQualityContainer;
+    QLabel*           layerThicknessLabel;
+    QStringListModel* layerThicknessStringListModel;
+    QListView*        layerThicknessListView;
+    QVBoxLayout*      layerThicknessLayout;
+    QWidget*          layerThicknessContainer;
     QPushButton*      sliceButton;
     QWidget*          sliceTab;
     QGridLayout*      sliceTabLayout;
@@ -134,11 +132,11 @@ private slots:
     void availableFilesListView_clicked( QModelIndex const& index );
     void selectButton_clicked( bool checked );
 
-    void printQualityListView_clicked( QModelIndex const& index );
+    void layerThicknessListView_clicked( QModelIndex const& index );
     void sliceButton_clicked( bool checked );
 
     void printLayerTime_editingFinished( );
-    void projectorPowerLevelSlider_valueChanged( int value );
+    void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
 
 };
