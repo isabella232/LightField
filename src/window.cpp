@@ -457,7 +457,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
     tabs->setCurrentIndex( TabIndex::Progress );
 
-    printJob->pngFilesPath = "/home/lumen/Volumetric/fstl/model-library/makerook_imgs";
+    printJob->pngFilesPath = "/home/lumen/Volumetric/model-library/makerook_imgs";
     printJob->layerCount   = 238;
 
     fprintf( stderr,
