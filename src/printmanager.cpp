@@ -1,8 +1,6 @@
 #include "printmanager.h"
-#include "printmanager.h"
-#include <QProcess>
 
-#include "printmanager.h"
+#include "pngdisplayer.h"
 #include "shepherd.h"
 #include "strings.h"
 
@@ -53,7 +51,6 @@ namespace {
     auto PauseBeforeLift    = 1000;
     auto LiftDistance       = 2.0;
 
-    auto FehCommand         = QString { "feh"      };
     auto SetPowerCommand    = QString { "setpower" };
 
 }
@@ -66,9 +63,7 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
 }
 
 PrintManager::~PrintManager( ) {
-    if ( _fehProcess->state( ) != QProcess::NotRunning ) {
-        _fehProcess->terminate( );
-    }
+    /*empty*/
 }
 
 void PrintManager::_cleanUp( ) {
@@ -77,13 +72,10 @@ void PrintManager::_cleanUp( ) {
         _printJob = nullptr;
     }
 
-    if ( _fehProcessConnected ) {
-        _disconnectFehProcess( );
-    }
-
-    if ( _fehProcess ) {
-        delete _fehProcess;
-        _fehProcess = nullptr;
+    if ( _pngDisplayer ) {
+        _pngDisplayer->close( );
+        delete _pngDisplayer;
+        _pngDisplayer = nullptr;
     }
 
     if ( _preProjectionTimer ) {
@@ -101,6 +93,10 @@ void PrintManager::_cleanUp( ) {
     }
 
     if ( _setPowerProcess ) {
+        if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
+            _setPowerProcess->terminate( );
+            _setPowerProcess->waitForFinished( );
+        }
         delete _setPowerProcess;
         _setPowerProcess = nullptr;
     }
@@ -110,24 +106,6 @@ void PrintManager::_cleanUp( ) {
         delete _preLiftTimer;
         _preLiftTimer = nullptr;
     }
-}
-
-void PrintManager::_connectFehProcess( ) {
-    QObject::connect( _fehProcess, &QProcess::errorOccurred,           this, &PrintManager::step3_fehProcessErrorOccurred           );
-    QObject::connect( _fehProcess, &QProcess::started,                 this, &PrintManager::step3_fehProcessStarted                 );
-    QObject::connect( _fehProcess, &QProcess::stateChanged,            this, &PrintManager::step3_fehProcessStateChanged            );
-    QObject::connect( _fehProcess, &QProcess::readyReadStandardError,  this, &PrintManager::step3_fehProcessReadyReadStandardError  );
-    QObject::connect( _fehProcess, &QProcess::readyReadStandardOutput, this, &PrintManager::step3_fehProcessReadyReadStandardOutput );
-    QObject::connect( _fehProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step3_fehProcessFinished );
-    _fehProcessConnected = true;
-}
-
-void PrintManager::_disconnectFehProcess( ) {
-    QObject::disconnect( _fehProcess, &QProcess::errorOccurred, this, &PrintManager::step3_fehProcessErrorOccurred );
-    QObject::disconnect( _fehProcess, &QProcess::started,       this, &PrintManager::step3_fehProcessStarted       );
-    QObject::disconnect( _fehProcess, &QProcess::stateChanged,  this, &PrintManager::step3_fehProcessStateChanged  );
-    QObject::disconnect( _fehProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step3_fehProcessFinished );
-    _fehProcessConnected = false;
 }
 
 void PrintManager::_connectSetPowerProcess_step5( ) {
@@ -169,6 +147,11 @@ void PrintManager::print( PrintJob* printJob ) {
     }
     fprintf( stderr, "+ PrintManager::print: new job\n" );
     _printJob = printJob;
+
+    _pngDisplayer = new PngDisplayer( );
+    _pngDisplayer->move( { 0, 0 } );
+    _pngDisplayer->resize( { 1280, 800 } );
+    _pngDisplayer->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
     _shepherd->doHome( );
@@ -222,88 +205,16 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
     }
     fprintf( stderr, "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
 
-    _fehProcess = new QProcess( this );
-    _fehProcess->setProgram( FehCommand );
-    _fehProcess->setArguments( QStringList {
-        "-x",
-        "--geometry",
-        "1280x800+0+0",
-        QString( _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 3, 10, QChar( '0' ) ) )
-    } );
-    _connectFehProcess( );
-    _fehProcess->start( );
-}
-
-void PrintManager::step3_fehProcessErrorOccurred( QProcess::ProcessError error ) {
-    _disconnectFehProcess( );
-
-    fprintf( stderr, "+ PrintManager::step3_fehProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
-
-    if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + feh process failed to start\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
+    QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 3, 10, QChar( '0' ) );
+    if ( !_pngDisplayer->load( pngFileName ) ) {
+        fprintf( stderr, "+ PrintManager::step2_LiftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
     }
-}
-
-void PrintManager::step3_fehProcessStarted( ) {
-    fprintf( stderr, "+ PrintManager::step3_fehProcessStarted\n" );
 
     _preProjectionTimer = new QTimer( this );
     _preProjectionTimer->setInterval( PauseBeforeProject );
     _preProjectionTimer->setSingleShot( true );
     _preProjectionTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _preProjectionTimer, &QTimer::timeout, this, &PrintManager::step4_timerExpired );
-}
-
-void PrintManager::step3_fehProcessStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ PrintManager::step3_fehProcessStateChanged: new state %s [%d]\n", ToString( newState ), newState );
-    _fehProcessState = _fehProcess->state( );
-}
-
-void PrintManager::step3_fehProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    _disconnectFehProcess( );
-
-    fprintf( stderr, "+ PrintManager::step3_fehProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
-
-    delete _fehProcess;
-    _fehProcess = nullptr;
-
-    if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + feh process crashed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
-    } else {
-        step8_fehProcessTerminated( );
-    }
-}
-
-void PrintManager::step3_fehProcessReadyReadStandardError( ) {
-    _fehProcess->setReadChannel( QProcess::StandardError );
-
-    QString input = _fehProcess->readAllStandardError( );
-    if ( input.length( ) ) {
-        fprintf( stderr,
-            "+ PrintManager::step3_fehProcessReadyReadStandardError: from stderr:\n"
-            "%s\n",
-            input.toUtf8( ).data( )
-        );
-    }
-}
-
-void PrintManager::step3_fehProcessReadyReadStandardOutput( ) {
-    _fehProcess->setReadChannel( QProcess::StandardOutput );
-
-    QString input = _fehProcess->readAllStandardOutput( );
-    if ( input.length( ) ) {
-        fprintf( stderr,
-            "+ PrintManager::step3_fehProcessReadyReadStandardOutput: from stdout:\n"
-            "%s\n",
-            input.toUtf8( ).data( )
-        );
-    }
 }
 
 void PrintManager::step4_timerExpired( ) {
@@ -372,6 +283,7 @@ void PrintManager::step6_timerExpired( ) {
     fprintf( stderr, "+ PrintManager::step6_timerExpired\n" );
 
     delete _layerProjectionTimer;
+    _layerProjectionTimer = nullptr;
 
     _setPowerProcess = new QProcess( this );
     _setPowerProcess->setProgram( SetPowerCommand );
@@ -417,15 +329,6 @@ void PrintManager::step7_setPowerProcessFinished( int exitCode, QProcess::ExitSt
         return;
     }
 
-    _fehProcess->terminate( );
-}
-
-void PrintManager::step8_fehProcessTerminated( ) {
-    _disconnectFehProcess( );
-
-    delete _fehProcess;
-    _fehProcess = nullptr;
-
     ++_currentLayer;
     if ( _currentLayer == _printJob->layerCount ) {
         _cleanUp( );
@@ -444,6 +347,7 @@ void PrintManager::step9_timerExpired( ) {
     QObject::disconnect( _preLiftTimer, &QTimer::timeout, this, &PrintManager::step9_timerExpired );
 
     delete _preLiftTimer;
+    _preLiftTimer = nullptr;
 
     startNextLayer( );
 }

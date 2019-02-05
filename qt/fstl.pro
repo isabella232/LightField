@@ -19,7 +19,8 @@ SOURCES += \
     ../src/shepherd.cpp \
     ../src/slicer.cpp \
     ../src/strings.cpp \
-    ../src/printmanager.cpp
+    ../src/printmanager.cpp \
+    ../src/pngdisplayer.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -33,7 +34,8 @@ HEADERS  += \
     ../src/slicer.h \
     ../src/strings.h \
     ../src/printmanager.h \
-    ../src/printjob.h
+    ../src/printjob.h \
+    ../src/pngdisplayer.h
 
 CONFIG += c++11
 CONFIG += precompile_header

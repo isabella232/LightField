@@ -6,8 +6,8 @@
 
 #include "printjob.h"
 
+class PngDisplayer;
 class Shepherd;
-class QProcess;
 
 class PrintManager: public QObject {
 
@@ -26,12 +26,9 @@ private:
 
     Shepherd*              _shepherd                       { };
     PrintJob*              _printJob                       { };
+    PngDisplayer*          _pngDisplayer                   { };
 
     int                    _currentLayer                   { };
-
-    QProcess*              _fehProcess                     { };
-    bool                   _fehProcessConnected            { false };
-    QProcess::ProcessState _fehProcessState                { QProcess::NotRunning };
 
     QProcess*              _setPowerProcess                { };
     bool                   _setPowerProcessConnected_step5 { false };
@@ -43,9 +40,6 @@ private:
     QTimer*                _preLiftTimer                   { };
 
     void _cleanUp( );
-
-    void _connectFehProcess( );
-    void _disconnectFehProcess( );
 
     void _connectSetPowerProcess_step5( );
     void _disconnectSetPowerProcess_step5( );
@@ -72,13 +66,6 @@ private slots:
 
     void step2_LiftDownComplete( bool success );
 
-    void step3_fehProcessErrorOccurred( QProcess::ProcessError error );
-    void step3_fehProcessStarted( );
-    void step3_fehProcessStateChanged( QProcess::ProcessState newState );
-    void step3_fehProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
-    void step3_fehProcessReadyReadStandardError( );
-    void step3_fehProcessReadyReadStandardOutput( );
-
     void step4_timerExpired( );
 
     void step5_setPowerProcessErrorOccurred( QProcess::ProcessError error );
@@ -92,8 +79,6 @@ private slots:
     void step7_setPowerProcessStarted( );
     void step7_setPowerProcessStateChanged( QProcess::ProcessState newState );
     void step7_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
-
-    void step8_fehProcessTerminated( );
 
     void step9_timerExpired( );
 
