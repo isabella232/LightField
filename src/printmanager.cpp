@@ -205,7 +205,7 @@ void PrintManager::step1_LiftUpComplete( bool success ) {
     fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
-    fprintf( stderr, "+ PrintManager::startNextLayer: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
+    fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
     _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
 }
 
@@ -225,7 +225,7 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
     _fehProcess->setArguments( QStringList {
         "-x",
         "--geometry",
-        "1280x800+800+0",
+        "1280x800+0+0",
         QString( _printJob->pngFilesPath + QString( "/%1.png" ) ).arg( _currentLayer, 3, QChar( '0' ) )
     } );
     _connectFehProcess( );
