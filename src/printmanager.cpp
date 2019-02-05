@@ -152,6 +152,7 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer->move( { 0, 0 } );
     _pngDisplayer->resize( { 1280, 800 } );
     _pngDisplayer->show( );
+    _pngDisplayer->setFullScreen( true );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
     _shepherd->doHome( );
