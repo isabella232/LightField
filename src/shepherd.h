@@ -37,7 +37,7 @@ private:
     PendingCommand _pendingCommand { PendingCommand::none };
 
     QStringList splitLine( QString const& line );
-    void handlePrinterOutput( QString const& input );
+    void handleFromPrinter( QString const& input );
     void handleInput( QString const& input );
 
 private slots:
