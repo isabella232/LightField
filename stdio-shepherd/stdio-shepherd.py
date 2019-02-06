@@ -23,7 +23,7 @@ class QuitNowException( Exception ):
 class StdioPrinterDriver( ):
 
     def __init__( self ):
-        self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback, self.printer_receiveCallback )
+        self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback, self.printer_receiveCallback, self.printer_sendCallback )
         self.printProcess = printer.printprocess( self.printer, self.printProcess_showImageCallback, self.printProcess_hideImageCallback, self.printProcess_startedPrintingCallback, self.printProcess_finishedPrintingCallback )
         self.isOnline     = False
         self.isPrinting   = False
@@ -67,7 +67,11 @@ class StdioPrinterDriver( ):
         sys.stdout.flush( )
 
     def printer_receiveCallback( self, line ):
-        self.writer.writerow( [ 'printer_output', line ] )
+        self.writer.writerow( [ 'from_printer', line ] )
+        sys.stdout.flush( )
+
+    def printer_sendCallback( self, line ):
+        self.writer.writerow( [ 'to_printer', line ] )
         sys.stdout.flush( )
 
     ##

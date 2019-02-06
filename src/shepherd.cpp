@@ -119,8 +119,8 @@ QStringList Shepherd::splitLine( QString const& line ) {
     return pieces;
 }
 
-void Shepherd::handlePrinterOutput( QString const& input ) {
-    fprintf( stderr, "+ Shepherd::handlePrinterOutput: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
+void Shepherd::handleFromPrinter( QString const& input ) {
+    fprintf( stderr, "+ Shepherd::handleFromPrinter: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
@@ -143,8 +143,13 @@ void Shepherd::handlePrinterOutput( QString const& input ) {
                 emit action_liftComplete( true );
                 break;
 
+            case PendingCommand::none:
+                fprintf( stderr, "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
+                break;
+
             default:
-                fprintf( stderr, "+ Shepherd::handlePrinterOutput: unknown pending command\n" );
+                fprintf( stderr, "+ Shepherd::handleFromPrinter: unknown pending command\n" );
+                break;
         }
     }
 }
@@ -171,12 +176,13 @@ void Shepherd::handleInput( QString const& input ) {
             continue;
         }
 
-        fprintf( stderr, "+ Shepherd::handleInput: line '%s'\n", line.toUtf8( ).data( ) );
         auto pieces = splitLine( line );
-        fprintf( stderr, "  + first piece: '%s'\n", pieces[0].toUtf8( ).data( ) );
-        if ( pieces[0] == "printer_output" ) {
-            fprintf( stderr, "  + got printer_output\n" );
-            handlePrinterOutput( pieces[1] );
+        fprintf( stderr, "+ Shepherd::handleInput:\n" );
+        if ( pieces[0] == "from_printer" ) {
+            fprintf( stderr, "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
+            handleFromPrinter( pieces[1] );
+        } else if ( pieces[0] == "to_printer" ) {
+            fprintf( stderr, ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "printer_online" ) {
             emit printer_Online( );
         } else if ( pieces[0] == "printer_offline" ) {
@@ -194,9 +200,9 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
             emit printProcess_FinishedPrinting( );
         } else if ( pieces[0] == "ok" ) {
-            fprintf( stderr, "  + got ok for %s\n", pieces[1].toUtf8( ).data( ) );
+            fprintf( stderr, "  + got ok from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "fail" ) {
-            fprintf( stderr, "  + got fail for %s\n", pieces[1].toUtf8( ).data( ) );
+            fprintf( stderr, "  + got fail from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
         }
     }
 

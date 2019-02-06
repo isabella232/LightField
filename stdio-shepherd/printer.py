@@ -82,7 +82,7 @@ class printprocess():
             return False
 
 class printer(PrinterEventHandler):
-    def __init__(self, onlinecb=None, offlinecb=None, positioncb=None, tempcb=None, receivecb=None):
+    def __init__(self, onlinecb=None, offlinecb=None, positioncb=None, tempcb=None, receivecb=None, sendcb=None):
         self.p=printcore.printcore()
         self.p.addEventHandler(self)
         self.onlinecb=onlinecb
@@ -90,6 +90,7 @@ class printer(PrinterEventHandler):
         self.positioncb=positioncb
         self.tempcb=tempcb
         self.receivecb=receivecb
+        self.sendcb=sendcb
         self.liftdone=None
 
     def on_disconnect(self):
@@ -127,37 +128,42 @@ class printer(PrinterEventHandler):
     def disconnect(self):
         self.p.disconnect()
 
+    def send_noisy(self, output):
+        if self.sendcb:
+            self.sendcb(output)
+        self.p.send_now(output)
+
     def move(self, d=1.0, axis=MOTOR_AXIS):
         if(self.p.online):
-            self.p.send_now("G91")
-            self.p.send_now("G1 %s%f"%(axis,d))
-            self.p.send_now("G90")
-            self.p.send_now("M400")
-            self.p.send_now("M114")
+            self.send_noisy("G91")
+            self.send_noisy("G1 %s%f"%(axis,d))
+            self.send_noisy("G90")
+            self.send_noisy("M400")
+            self.send_noisy("M114")
 
     def moveto(self, d=1.0, axis=MOTOR_AXIS):
         if(self.p.online):
-            self.p.send_now("G90")
-            self.p.send_now("G1 %s%f"%(axis,d))
-            self.p.send_now("M400")
-            self.p.send_now("M114")
+            self.send_noisy("G90")
+            self.send_noisy("G1 %s%f"%(axis,d))
+            self.send_noisy("M400")
+            self.send_noisy("M114")
 
     def home(self, axis="X"):
         if(self.p.online):
-            self.p.send_now("G28 "+axis)
+            self.send_noisy("G28 "+axis)
 
     def lift(self, d=0.1, l=2.0, axis=MOTOR_AXIS):
         if(self.p.online):
-            self.p.send_now("G91")
-            self.p.send_now("G1 %s%f"%(axis,l))
-            self.p.send_now("G1 %s%f"%(axis,d-l))
-            self.p.send_now("G90")
-            self.p.send_now("M400")
-            self.p.send_now("M114")
+            self.send_noisy("G91")
+            self.send_noisy("G1 %s%f"%(axis,l))
+            self.send_noisy("G1 %s%f"%(axis,d-l))
+            self.send_noisy("G90")
+            self.send_noisy("M400")
+            self.send_noisy("M114")
 
     def asktemp(self):
         if self.p.online:
-            self.p.send_now("M105");
+            self.send_noisy("M105");
 
     def on_temp(self, line):
         if(self.tempcb):
@@ -165,7 +171,7 @@ class printer(PrinterEventHandler):
 
     def send(self,gcode):
         if self.p.online:
-            self.p.send_now(gcode)
+            self.send_noisy(gcode)
 
 if __name__=="__main__":
 
