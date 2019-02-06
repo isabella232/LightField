@@ -14,8 +14,8 @@ class Canvas : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-	explicit Canvas(const QSurfaceFormat& format, QWidget* parent=0);
-    ~Canvas();
+	Canvas(const QSurfaceFormat& format, QWidget* parent=0);
+    virtual ~Canvas() override;
 
     void view_orthographic();
     void view_perspective();

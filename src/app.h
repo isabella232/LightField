@@ -10,8 +10,8 @@ class App : public QApplication
     Q_OBJECT
 
 public:
-    explicit App(int& argc, char *argv[]);
-	~App();
+    App(int& argc, char *argv[]);
+	virtual ~App() override;
 
 private:
     Window* window;
