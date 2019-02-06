@@ -190,7 +190,7 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     powerLevelSlider->setMinimum( 20 );
     powerLevelSlider->setMaximum( 100 );
     powerLevelSlider->setValue( 50 );
-    printJob->brightness = 50;
+    printJob->brightness = 127;
     QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
 
     powerLevelLabel = new QLabel( "Projector power level:" );
@@ -296,6 +296,23 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
+
+#if defined _DEBUG
+    printJob->modelFileName     = "/home/lumen/Volumetric/model-library/makerook.stl";
+    printJob->slicedSvgFileName = "";
+    printJob->pngFilesPath      = "/home/lumen/Volumetric/model-library/makerook_imgs";
+    printJob->layerCount        = 238;
+    printJob->layerThickness    = 100;
+    printJob->exposureTime      = 1.0;
+    printJob->brightness        = 127;
+
+    printManager = new PrintManager( shepherd, this );
+    printManager->print( printJob );
+
+    printJob = new PrintJob;
+    printJob->layerThickness    = 100;
+    printJob->brightness        = 127;
+#endif // _DEBUG
 }
 
 void Window::shepherd_Started( ) {
