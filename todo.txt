@@ -1,5 +1,3 @@
-* Last lift.
-* Background colour of PNG window.
 * SIGINT handler.
 * Launch slice script
 * Slice feedback in UI

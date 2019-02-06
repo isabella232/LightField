@@ -110,7 +110,6 @@ void PrintManager::_cleanUp( ) {
 void PrintManager::_connectSetPowerProcess_step4( ) {
     QObject::connect( _setPowerProcess, &QProcess::errorOccurred, this, &PrintManager::step4_setPowerProcessErrorOccurred );
     QObject::connect( _setPowerProcess, &QProcess::started,       this, &PrintManager::step4_setPowerProcessStarted       );
-    QObject::connect( _setPowerProcess, &QProcess::stateChanged,  this, &PrintManager::step4_setPowerProcessStateChanged  );
     QObject::connect( _setPowerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step4_setPowerProcessFinished );
     _setPowerProcessConnected_step4 = true;
 }
@@ -118,7 +117,6 @@ void PrintManager::_connectSetPowerProcess_step4( ) {
 void PrintManager::_disconnectSetPowerProcess_step4( ) {
     QObject::disconnect( _setPowerProcess, &QProcess::errorOccurred, this, &PrintManager::step4_setPowerProcessErrorOccurred );
     QObject::disconnect( _setPowerProcess, &QProcess::started,       this, &PrintManager::step4_setPowerProcessStarted       );
-    QObject::disconnect( _setPowerProcess, &QProcess::stateChanged,  this, &PrintManager::step4_setPowerProcessStateChanged  );
     QObject::disconnect( _setPowerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step4_setPowerProcessFinished );
     _setPowerProcessConnected_step4 = false;
 }
@@ -126,7 +124,6 @@ void PrintManager::_disconnectSetPowerProcess_step4( ) {
 void PrintManager::_connectSetPowerProcess_step6( ) {
     QObject::connect( _setPowerProcess, &QProcess::errorOccurred, this, &PrintManager::step6_setPowerProcessErrorOccurred );
     QObject::connect( _setPowerProcess, &QProcess::started,       this, &PrintManager::step6_setPowerProcessStarted       );
-    QObject::connect( _setPowerProcess, &QProcess::stateChanged,  this, &PrintManager::step6_setPowerProcessStateChanged  );
     QObject::connect( _setPowerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step6_setPowerProcessFinished );
     _setPowerProcessConnected_step6 = true;
 }
@@ -134,7 +131,6 @@ void PrintManager::_connectSetPowerProcess_step6( ) {
 void PrintManager::_disconnectSetPowerProcess_step6( ) {
     QObject::disconnect( _setPowerProcess, &QProcess::errorOccurred, this, &PrintManager::step6_setPowerProcessErrorOccurred );
     QObject::disconnect( _setPowerProcess, &QProcess::started,       this, &PrintManager::step6_setPowerProcessStarted       );
-    QObject::disconnect( _setPowerProcess, &QProcess::stateChanged,  this, &PrintManager::step6_setPowerProcessStateChanged  );
     QObject::disconnect( _setPowerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrintManager::step6_setPowerProcessFinished );
     _setPowerProcessConnected_step6 = false;
 }
@@ -256,11 +252,6 @@ void PrintManager::step4_setPowerProcessStarted( ) {
     fprintf( stderr, "+ PrintManager::step4_setPowerProcessStarted\n" );
 }
 
-void PrintManager::step4_setPowerProcessStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ PrintManager::step4_setPowerProcessStateChanged: new state %s [%d]\n", ToString( newState ), newState );
-    _setPowerProcessState = _setPowerProcess->state( );
-}
-
 void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     _disconnectSetPowerProcess_step4( );
 
@@ -318,11 +309,6 @@ void PrintManager::step6_setPowerProcessErrorOccurred( QProcess::ProcessError er
 
 void PrintManager::step6_setPowerProcessStarted( ) {
     fprintf( stderr, "+ PrintManager::step6_setPowerProcessStarted\n" );
-}
-
-void PrintManager::step6_setPowerProcessStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ PrintManager::step6_setPowerProcessStateChanged: new state %s [%d]\n", ToString( newState ), newState );
-    _setPowerProcessState = _setPowerProcess->state( );
 }
 
 void PrintManager::step6_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {

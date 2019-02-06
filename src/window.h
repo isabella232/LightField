@@ -46,9 +46,7 @@ private:
     Loader*           loader                      { nullptr };
     PrintManager*     printManager                { nullptr };
     PrintJob*         printJob                    { nullptr };
-
-    bool              isSlicing                   { false   };
-    bool              isPrinting                  { false   };
+    QProcess*         slicerProcess               { nullptr };
 
     QTabWidget*       tabs;
 
@@ -138,6 +136,10 @@ private slots:
     void printLayerTime_editingFinished( );
     void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
+
+    void slicerProcessErrorOccurred( QProcess::ProcessError error );
+    void slicerProcessStarted( );
+    void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 };
 

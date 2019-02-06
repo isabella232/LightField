@@ -1,7 +1,12 @@
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <cstdlib>
 
 #include "window.h"
+
 #include "printmanager.h"
+#include "strings.h"
 
 namespace {
 
@@ -24,6 +29,8 @@ namespace {
             Progress
         };
     };
+
+    QString SlicerCommand { "/home/lumen/Volumetric/fstl/slicer-command" };
 
 }
 
@@ -441,6 +448,7 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
+    printJob->pngFilesPath = StlModelLibraryPath + QString( "/%1" ).arg( getpid( ) * 100000 + rand( ) );
     tabs->setCurrentIndex( TabIndex::Slice );
 }
 
@@ -451,7 +459,17 @@ void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
-    tabs->setCurrentIndex( TabIndex::Print );
+
+    slicerProcess = new QProcess( this );
+    slicerProcess->setProgram( SlicerCommand );
+    slicerProcess->setArguments( QStringList {
+        printJob->modelFileName,
+        printJob->pngFilesPath
+    } );
+    QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
+    QObject::connect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
+    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
+    slicerProcess->start( );
 }
 
 void Window::printLayerTime_editingFinished( ) {
@@ -500,6 +518,49 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = new PrintJob;
+}
+
+void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
+    QObject::disconnect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
+    QObject::disconnect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
+    QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
+
+    fprintf( stderr, "+ Window::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
+
+    if ( QProcess::FailedToStart == error ) {
+        fprintf( stderr, "  + setpower process failed to start\n" );
+    } else if ( QProcess::Crashed == error ) {
+        fprintf( stderr, "  + setpower process crashed?\n" );
+        if ( slicerProcess->state( ) != QProcess::NotRunning ) {
+            slicerProcess->terminate( );
+            slicerProcess->waitForFinished( );
+        }
+    }
+
+    delete slicerProcess;
+    slicerProcess = nullptr;
+}
+
+void Window::slicerProcessStarted( ) {
+    fprintf( stderr, "+ Window::slicerProcessStarted\n" );
+}
+
+void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
+    QObject::disconnect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
+    QObject::disconnect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
+    QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
+
+    fprintf( stderr, "+ Window::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+
+    delete slicerProcess;
+    slicerProcess = nullptr;
+
+    if ( exitStatus == QProcess::CrashExit ) {
+        fprintf( stderr, "  + setpower process crashed?\n" );
+        return;
+    }
+
+    tabs->setCurrentIndex( +TabIndex::Print );
 }
 
 bool Window::load_stl( QString const& filename ) {

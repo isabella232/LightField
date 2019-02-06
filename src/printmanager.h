@@ -33,7 +33,6 @@ private:
     QProcess*              _setPowerProcess                { };
     bool                   _setPowerProcessConnected_step4 { false };
     bool                   _setPowerProcessConnected_step6 { false };
-    QProcess::ProcessState _setPowerProcessState           { QProcess::NotRunning };
 
     QTimer*                _preProjectionTimer             { };
     QTimer*                _layerProjectionTimer           { };
@@ -70,14 +69,12 @@ private slots:
 
     void step4_setPowerProcessErrorOccurred( QProcess::ProcessError error );
     void step4_setPowerProcessStarted( );
-    void step4_setPowerProcessStateChanged( QProcess::ProcessState newState );
     void step4_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void step5_layerProjectionTimerExpired( );
 
     void step6_setPowerProcessErrorOccurred( QProcess::ProcessError error );
     void step6_setPowerProcessStarted( );
-    void step6_setPowerProcessStateChanged( QProcess::ProcessState newState );
     void step6_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void step7_preLiftTimerExpired( );
