@@ -31,8 +31,8 @@ private:
     int                    _currentLayer                   { };
 
     QProcess*              _setPowerProcess                { };
-    bool                   _setPowerProcessConnected_step5 { false };
-    bool                   _setPowerProcessConnected_step7 { false };
+    bool                   _setPowerProcessConnected_step4 { false };
+    bool                   _setPowerProcessConnected_step6 { false };
     QProcess::ProcessState _setPowerProcessState           { QProcess::NotRunning };
 
     QTimer*                _preProjectionTimer             { };
@@ -41,11 +41,11 @@ private:
 
     void _cleanUp( );
 
-    void _connectSetPowerProcess_step5( );
-    void _disconnectSetPowerProcess_step5( );
+    void _connectSetPowerProcess_step4( );
+    void _disconnectSetPowerProcess_step4( );
 
-    void _connectSetPowerProcess_step7( );
-    void _disconnectSetPowerProcess_step7( );
+    void _connectSetPowerProcess_step6( );
+    void _disconnectSetPowerProcess_step6( );
 
     void startNextLayer( );
 
@@ -66,23 +66,23 @@ private slots:
 
     void step2_LiftDownComplete( bool success );
 
-    void step4_preProjectionTimerExpired( );
+    void step3_preProjectionTimerExpired( );
 
-    void step5_setPowerProcessErrorOccurred( QProcess::ProcessError error );
-    void step5_setPowerProcessStarted( );
-    void step5_setPowerProcessStateChanged( QProcess::ProcessState newState );
-    void step5_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void step4_setPowerProcessErrorOccurred( QProcess::ProcessError error );
+    void step4_setPowerProcessStarted( );
+    void step4_setPowerProcessStateChanged( QProcess::ProcessState newState );
+    void step4_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void step6_layerProjectionTimerExpired( );
+    void step5_layerProjectionTimerExpired( );
 
-    void step7_setPowerProcessErrorOccurred( QProcess::ProcessError error );
-    void step7_setPowerProcessStarted( );
-    void step7_setPowerProcessStateChanged( QProcess::ProcessState newState );
-    void step7_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void step6_setPowerProcessErrorOccurred( QProcess::ProcessError error );
+    void step6_setPowerProcessStarted( );
+    void step6_setPowerProcessStateChanged( QProcess::ProcessState newState );
+    void step6_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void step9_preLiftTimerExpired( );
+    void step7_preLiftTimerExpired( );
 
-    void step10_LiftUpComplete( bool success );
+    void step8_LiftUpComplete( bool success );
 
 };
 
