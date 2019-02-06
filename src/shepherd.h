@@ -35,6 +35,7 @@ private:
     QProcess* _process;
     QString _buffer;
     PendingCommand _pendingCommand { PendingCommand::none };
+    int _okCount { };
 
     QStringList splitLine( QString const& line );
     void handleFromPrinter( QString const& input );
