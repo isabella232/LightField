@@ -19,6 +19,7 @@ public:
     virtual ~PrintManager( ) override;
 
     void print( PrintJob* printJob );
+    void terminate( );
 
 protected:
 
