@@ -9,12 +9,12 @@
 //
 // ✓ 1. Lift up
 // ✓ 2. Lift down
-// ✓ 3. Start feh
+// ✓ 3. [deleted]
 // ✓ 4. Pause before projection
 // ✓ 5. Start projecting: setpower ${brightness}
 // ✓ 6. Pause for layer time
 // ✓ 7. Stop projection: setpower 0
-// ✓ 8. Stop feh
+// ✓ 8. [deleted]
 // ✓ 9. Pause before lift
 //
 
@@ -216,6 +216,7 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
     _preProjectionTimer->setSingleShot( true );
     _preProjectionTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _preProjectionTimer, &QTimer::timeout, this, &PrintManager::step4_timerExpired );
+    _preProjectionTimer->start( );
 }
 
 void PrintManager::step4_timerExpired( ) {
@@ -224,6 +225,7 @@ void PrintManager::step4_timerExpired( ) {
     fprintf( stderr, "+ PrintManager::step4_timerExpired\n" );
 
     delete _preProjectionTimer;
+    _preProjectionTimer = nullptr;
 
     _setPowerProcess = new QProcess( this );
     _setPowerProcess->setProgram( SetPowerCommand );
@@ -243,7 +245,9 @@ void PrintManager::step5_setPowerProcessErrorOccurred( QProcess::ProcessError er
         fprintf( stderr, "  + setpower process failed to start\n" );
         _cleanUp( );
         emit printComplete( false );
-        return;
+    } else if ( QProcess::Crashed == error ) {
+        fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        step5_setPowerProcessFinished( 139, QProcess::CrashExit );
     }
 }
 
@@ -265,17 +269,18 @@ void PrintManager::step5_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
+        fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        //_cleanUp( );
+        //emit printComplete( false );
+        //return;
     }
 
     _layerProjectionTimer = new QTimer( this );
-    _layerProjectionTimer->setInterval( _printJob->exposureTime );
+    _layerProjectionTimer->setInterval( _printJob->exposureTime * 1000.0 );
     _layerProjectionTimer->setSingleShot( true );
     _layerProjectionTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _layerProjectionTimer, &QTimer::timeout, this, &PrintManager::step6_timerExpired );
+    _layerProjectionTimer->start( );
 }
 
 void PrintManager::step6_timerExpired( ) {
@@ -289,7 +294,7 @@ void PrintManager::step6_timerExpired( ) {
     _setPowerProcess = new QProcess( this );
     _setPowerProcess->setProgram( SetPowerCommand );
     _setPowerProcess->setArguments( QStringList { "0" } );
-    _connectSetPowerProcess_step5( );
+    _connectSetPowerProcess_step7( );
     _setPowerProcess->start( );
 }
 
@@ -302,7 +307,9 @@ void PrintManager::step7_setPowerProcessErrorOccurred( QProcess::ProcessError er
         fprintf( stderr, "  + setpower process failed to start\n" );
         _cleanUp( );
         emit printComplete( false );
-        return;
+    } else if ( QProcess::Crashed == error ) {
+        fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        step7_setPowerProcessFinished( 139, QProcess::CrashExit );
     }
 }
 
@@ -324,10 +331,10 @@ void PrintManager::step7_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
+        fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        //_cleanUp( );
+        //emit printComplete( false );
+        //return;
     }
 
     ++_currentLayer;
@@ -342,6 +349,7 @@ void PrintManager::step7_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     _preLiftTimer->setSingleShot( true );
     _preLiftTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _preLiftTimer, &QTimer::timeout, this, &PrintManager::step9_timerExpired );
+    _preLiftTimer->start( );
 }
 
 void PrintManager::step9_timerExpired( ) {

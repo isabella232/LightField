@@ -4,6 +4,8 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QPixmap>
+#include <QString>
+#include <QWidget>
 
 class PngDisplayer: public QMainWindow {
 

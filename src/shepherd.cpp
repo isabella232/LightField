@@ -124,8 +124,11 @@ void Shepherd::handleFromPrinter( QString const& input ) {
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
-                _pendingCommand = PendingCommand::none;
-                emit action_moveComplete( true );
+                ++_okCount;
+                if ( 5 == _okCount ) {
+                    _pendingCommand = PendingCommand::none;
+                    emit action_moveComplete( true );
+                }
                 break;
 
             case PendingCommand::moveTo:
@@ -134,8 +137,11 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                 break;
 
             case PendingCommand::home:
-                _pendingCommand = PendingCommand::none;
-                emit action_homeComplete( true );
+                ++_okCount;
+                if ( 1 == _okCount ) {
+                    _pendingCommand = PendingCommand::none;
+                    emit action_homeComplete( true );
+                }
                 break;
 
             case PendingCommand::lift:
@@ -221,6 +227,7 @@ void Shepherd::doMove( float arg ) {
         return;
     }
     _pendingCommand = PendingCommand::move;
+    _okCount = 0;
     _process->write( QString( "move %1\n" ).arg( arg ).toUtf8( ) );
 }
 
@@ -230,6 +237,7 @@ void Shepherd::doMoveTo( float arg ) {
         return;
     }
     _pendingCommand = PendingCommand::moveTo;
+    _okCount = 0;
     _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
 }
 
@@ -239,6 +247,7 @@ void Shepherd::doHome( ) {
         return;
     }
     _pendingCommand = PendingCommand::home;
+    _okCount = 0;
     _process->write( "home\n" );
 }
 
@@ -248,6 +257,7 @@ void Shepherd::doLift( float arg1, float arg2 ) {
         return;
     }
     _pendingCommand = PendingCommand::lift;
+    _okCount = 0;
     _process->write( QString( "lift %1 %2\n" ).arg( arg1 ).arg( arg2 ).toUtf8( ) );
 }
 
