@@ -66,21 +66,23 @@ private slots:
 
     void step2_LiftDownComplete( bool success );
 
-    void step4_timerExpired( );
+    void step4_preProjectionTimerExpired( );
 
     void step5_setPowerProcessErrorOccurred( QProcess::ProcessError error );
     void step5_setPowerProcessStarted( );
     void step5_setPowerProcessStateChanged( QProcess::ProcessState newState );
     void step5_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void step6_timerExpired( );
+    void step6_layerProjectionTimerExpired( );
 
     void step7_setPowerProcessErrorOccurred( QProcess::ProcessError error );
     void step7_setPowerProcessStarted( );
     void step7_setPowerProcessStateChanged( QProcess::ProcessState newState );
     void step7_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void step9_timerExpired( );
+    void step9_preLiftTimerExpired( );
+
+    void step10_LiftUpComplete( bool success );
 
 };
 
