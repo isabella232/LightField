@@ -3,6 +3,7 @@
 #include <QPalette>
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
+    fprintf( stderr, "+ construct PngDisplayer at %p\n", this );
     _label = new QLabel( );
     setCentralWidget( _label );
 
@@ -12,7 +13,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
 }
 
 PngDisplayer::~PngDisplayer( ) {
-
+    fprintf( stderr, "+ destruct PngDisplayer at %p\n", this );
 }
 
 bool PngDisplayer::load( QString const& fileName ) {
@@ -23,12 +24,4 @@ bool PngDisplayer::load( QString const& fileName ) {
 
     _label->setPixmap( pixmap );
     return true;
-}
-
-void PngDisplayer::setFullScreen( bool const fullScreen ) {
-    if ( fullScreen ) {
-        setWindowState( windowState( ) | Qt::WindowFullScreen );
-    } else {
-        setWindowState( windowState( ) & ~Qt::WindowFullScreen );
-    }
 }

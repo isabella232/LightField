@@ -14,10 +14,9 @@ class PngDisplayer: public QMainWindow {
 public:
 
     PngDisplayer( QWidget* parent = nullptr );
-    ~PngDisplayer( );
+    virtual ~PngDisplayer( ) override;
 
     bool load( QString const& fileName );
-    void setFullScreen( bool const fullScreen );
 
 protected:
 
