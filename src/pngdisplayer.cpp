@@ -1,8 +1,14 @@
 #include "pngdisplayer.h"
 
+#include <QPalette>
+
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     _label = new QLabel( );
     setCentralWidget( _label );
+
+    auto pal = palette( );
+    pal.setColor( QPalette::Background, Qt::black );
+    setPalette( pal );
 }
 
 PngDisplayer::~PngDisplayer( ) {
