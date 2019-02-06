@@ -247,6 +247,9 @@ void PrintManager::step5_setPowerProcessErrorOccurred( QProcess::ProcessError er
         emit printComplete( false );
     } else if ( QProcess::Crashed == error ) {
         fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
+            _setPowerProcess->terminate( );
+        }
         step5_setPowerProcessFinished( 139, QProcess::CrashExit );
     }
 }
@@ -309,6 +312,9 @@ void PrintManager::step7_setPowerProcessErrorOccurred( QProcess::ProcessError er
         emit printComplete( false );
     } else if ( QProcess::Crashed == error ) {
         fprintf( stderr, "  + setpower process crashed, but carrying on anyway\n" );
+        if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
+            _setPowerProcess->terminate( );
+        }
         step7_setPowerProcessFinished( 139, QProcess::CrashExit );
     }
 }
