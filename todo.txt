@@ -1,0 +1,4 @@
+* SIGINT handler.
+* Launch slice script
+* Slice feedback in UI
+* Print feedback in UI
