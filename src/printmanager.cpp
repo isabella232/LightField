@@ -93,8 +93,7 @@ void PrintManager::_cleanUp( ) {
 
     if ( _setPowerProcess ) {
         if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setPowerProcess->terminate( );
-            _setPowerProcess->waitForFinished( );
+            _setPowerProcess->kill( );
         }
         delete _setPowerProcess;
         _setPowerProcess = nullptr;
@@ -236,8 +235,6 @@ void PrintManager::step3_preProjectionTimerExpired( ) {
 }
 
 void PrintManager::step4_setPowerProcessErrorOccurred( QProcess::ProcessError error ) {
-    _disconnectSetPowerProcess_step4( );
-
     fprintf( stderr, "+ PrintManager::step4_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
@@ -245,11 +242,10 @@ void PrintManager::step4_setPowerProcessErrorOccurred( QProcess::ProcessError er
     } else if ( QProcess::Crashed == error ) {
         fprintf( stderr, "  + setpower process crashed?\n" );
         if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setPowerProcess->terminate( );
+            _setPowerProcess->kill( );
+            fprintf( stderr, "  + setpower terminated\n" );
         }
     }
-    _cleanUp( );
-    emit printComplete( false );
 }
 
 void PrintManager::step4_setPowerProcessStarted( ) {
@@ -295,8 +291,6 @@ void PrintManager::step5_layerProjectionTimerExpired( ) {
 }
 
 void PrintManager::step6_setPowerProcessErrorOccurred( QProcess::ProcessError error ) {
-    _disconnectSetPowerProcess_step6( );
-
     fprintf( stderr, "+ PrintManager::step6_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
@@ -304,11 +298,10 @@ void PrintManager::step6_setPowerProcessErrorOccurred( QProcess::ProcessError er
     } else if ( QProcess::Crashed == error ) {
         fprintf( stderr, "  + setpower process crashed?\n" );
         if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setPowerProcess->terminate( );
+            _setPowerProcess->kill( );
+            fprintf( stderr, "  + setpower terminated\n" );
         }
     }
-    _cleanUp( );
-    emit printComplete( false );
 }
 
 void PrintManager::step6_setPowerProcessStarted( ) {
