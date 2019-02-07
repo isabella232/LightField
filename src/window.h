@@ -1,6 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#undef DO_PRINT_JOB_AT_STARTUP
+
 #include <QtDebug>
 
 #include <QMainWindow>
@@ -37,7 +39,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-#if defined _DEBUG
+#if defined DO_PRINT_JOB_AT_STARTUP
     virtual void showEvent( QShowEvent* event ) override;
 #endif
 
@@ -61,6 +63,9 @@ private:
     QWidget*          selectTab;
     QGridLayout*      selectTabLayout;
 
+    QLabel*           sliceProgressLabel;
+    QLabel*           sliceProgress;
+    QGridLayout*      sliceProgressLayout;
     QWidget*          slicePlaceholder;
     QLabel*           layerThicknessLabel;
     QStringListModel* layerThicknessStringListModel;
@@ -90,7 +95,7 @@ private:
     QWidget*          progressTab;
     QGridLayout*      progressTabLayout;
 
-#if defined _DEBUG
+#if defined DO_PRINT_JOB_AT_STARTUP
     bool              hasBeenShown { false };
 #endif
 

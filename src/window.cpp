@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -30,7 +31,7 @@ namespace {
         };
     };
 
-    QString SlicerCommand { "/home/lumen/Volumetric/fstl/slicer-command" };
+    QString SlicerCommand { "slic3r" };
 
 }
 
@@ -123,6 +124,19 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     // "Slice" tab
     //
 
+    sliceProgressLabel = new QLabel( "Progress:" );
+    sliceProgress      = new QLabel( "Slicer not running" );
+
+    sliceProgressLayout = new QGridLayout;
+    sliceProgressLayout->setContentsMargins( emptyMargins );
+    sliceProgressLayout->addWidget( sliceProgressLabel, 0, 0, Qt::AlignTop );
+    sliceProgressLayout->addWidget( sliceProgress,      0, 1, Qt::AlignTop );
+
+    slicePlaceholder = new QWidget;
+    slicePlaceholder->setMinimumSize( 600, 400 );
+    slicePlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    slicePlaceholder->setLayout( sliceProgressLayout );
+
     layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
 
     layerThicknessListView = new QListView;
@@ -159,10 +173,6 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     }
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
-
-    slicePlaceholder = new QWidget;
-    slicePlaceholder->setMinimumSize( 600, 400 );
-    slicePlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     sliceTabLayout = new QGridLayout;
     sliceTabLayout->setContentsMargins( emptyMargins );
@@ -382,14 +392,14 @@ void Window::loader_LoadedFile(const QString& filename)
 
 void Window::closeEvent( QCloseEvent* event ) {
     fprintf( stderr, "+ Window::closeEvent\n" );
-    shepherd->doTerminate( );
     if ( printManager ) {
         printManager->terminate( );
     }
+    shepherd->doTerminate( );
     event->accept( );
 }
 
-#if defined _DEBUG
+#if defined DO_PRINT_JOB_AT_STARTUP
 void Window::showEvent( QShowEvent* event ) {
     fprintf( stderr, "+ Window::showEvent\n" );
     if ( !hasBeenShown ) {
@@ -452,7 +462,6 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
-    printJob->pngFilesPath = StlModelLibraryPath + QString( "/%1" ).arg( getpid( ) * 100000 + rand( ) );
     tabs->setCurrentIndex( TabIndex::Slice );
 }
 
@@ -464,12 +473,35 @@ void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
 
+    printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
+    mkdir( printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
+    QString baseName = printJob->modelFileName;
+    int index = baseName.lastIndexOf( "/" );
+    if ( index > -1 ) {
+        baseName = baseName.mid( index + 1 );
+    }
+    printJob->slicedSvgFileName = printJob->pngFilesPath + "/" + baseName + ".svg";
+    fprintf( stderr,
+        "  + model filename:      '%s'\n"
+        "  + sliced SVG filename: '%s'\n"
+        "  + PNG files path:      '%s'\n"
+        "",
+        printJob->modelFileName.toUtf8( ).data( ),
+        printJob->slicedSvgFileName.toUtf8( ).data( ),
+        printJob->pngFilesPath.toUtf8( ).data( )
+    );
+
     slicerProcess = new QProcess( this );
     slicerProcess->setProgram( SlicerCommand );
     slicerProcess->setArguments( QStringList {
         printJob->modelFileName,
+        "--export-svg",
+        "--layer-height",
+        QString( "%1" ).arg( printJob->layerThickness / 1000000.0 ),
+        "--output",
         printJob->pngFilesPath
     } );
+    fprintf( stderr, "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
     QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
     QObject::connect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
     QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
@@ -525,28 +557,24 @@ void Window::printButton_clicked( bool /*checked*/ ) {
 }
 
 void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
-    QObject::disconnect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
-    QObject::disconnect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
-    QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
-
     fprintf( stderr, "+ Window::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + setpower process failed to start\n" );
+        fprintf( stderr, "  + slicer process failed to start\n" );
+        sliceProgress->setText( "Slicer failed to start" );
     } else if ( QProcess::Crashed == error ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
+        fprintf( stderr, "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
         if ( slicerProcess->state( ) != QProcess::NotRunning ) {
-            slicerProcess->terminate( );
-            slicerProcess->waitForFinished( );
+            slicerProcess->kill( );
+            fprintf( stderr, "  + slicer terminated\n" );
         }
+        sliceProgress->setText( "Slicer crashed" );
     }
-
-    delete slicerProcess;
-    slicerProcess = nullptr;
 }
 
 void Window::slicerProcessStarted( ) {
     fprintf( stderr, "+ Window::slicerProcessStarted\n" );
+    sliceProgress->setText( "Slicer started" );
 }
 
 void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
@@ -560,10 +588,11 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
     slicerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
+        fprintf( stderr, "  + slicer process crashed?\n" );
         return;
     }
 
+    sliceProgress->setText( "Slicer finished" );
     tabs->setCurrentIndex( +TabIndex::Print );
 }
 
