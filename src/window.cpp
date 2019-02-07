@@ -480,7 +480,11 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
     if ( index > -1 ) {
         baseName = baseName.mid( index + 1 );
     }
-    printJob->slicedSvgFileName = printJob->pngFilesPath + "/" + baseName + ".svg";
+    if ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ) {
+        printJob->slicedSvgFileName = baseName.left( baseName.length( ) - 4 ) + ".svg";
+    } else {
+        printJob->slicedSvgFileName = baseName + ".svg";
+    }
     fprintf( stderr,
         "  + model filename:      '%s'\n"
         "  + sliced SVG filename: '%s'\n"
@@ -499,7 +503,7 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
         "--layer-height",
         QString( "%1" ).arg( printJob->layerThickness / 1000.0 ),
         "--output",
-        printJob->pngFilesPath
+        printJob->slicedSvgFileName
     } );
     fprintf( stderr, "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
     QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
