@@ -497,7 +497,7 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
         printJob->modelFileName,
         "--export-svg",
         "--layer-height",
-        QString( "%1" ).arg( printJob->layerThickness / 1000000.0 ),
+        QString( "%1" ).arg( printJob->layerThickness / 1000.0 ),
         "--output",
         printJob->pngFilesPath
     } );
