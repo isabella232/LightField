@@ -70,3 +70,7 @@ debug {
 release {
     QMAKE_CXXFLAGS_RELEASE += -DNDEBUG
 }
+
+warn_on {
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
+}

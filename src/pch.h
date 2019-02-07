@@ -11,6 +11,7 @@
 #include <QFileSystemModel>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListView>
 #include <QMainWindow>
@@ -18,6 +19,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
+#include <QPalette>
+#include <QPixmap>
 #include <QProcess>
 #include <QPushButton>
 #include <QSlider>
@@ -28,8 +31,8 @@
 #include <QtDebug>
 #include <QThread>
 #include <QTimer>
-#include <QtOpenGL/QtOpenGL>
 #include <QtOpenGL>
+#include <QtOpenGL/QtOpenGL>
 #include <QVBoxLayout>
 #include <QVector3D>
 #include <QWidget>

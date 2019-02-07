@@ -9,7 +9,7 @@ class Loader : public QThread
 {
     Q_OBJECT
 public:
-    explicit Loader(QObject* parent, const QString& filename, bool is_reload);
+    Loader(QObject* parent, const QString& filename, bool is_reload);
     void run();
 
 protected:

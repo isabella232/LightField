@@ -30,17 +30,18 @@ class Window: public QMainWindow {
 
 public:
 
-    explicit Window(bool fullScreen, QWidget* parent=0);
+    Window(bool fullScreen, QWidget* parent=0);
 
     bool load_stl(const QString& filename);
 
 protected:
 
-    void closeEvent(QCloseEvent *event);
+    virtual void closeEvent( QCloseEvent* event ) override;
+#if defined _DEBUG
+    virtual void showEvent( QShowEvent* event ) override;
+#endif
 
 private:
-
-    void setFullScreen(bool const fullScreen = true);
 
     Shepherd*         shepherd                    { nullptr };
     Loader*           loader                      { nullptr };
@@ -88,6 +89,10 @@ private:
     QWidget*          progressPlaceholder;
     QWidget*          progressTab;
     QGridLayout*      progressTabLayout;
+
+#if defined _DEBUG
+    bool              hasBeenShown { false };
+#endif
 
 signals:
 

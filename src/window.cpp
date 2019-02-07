@@ -39,7 +39,7 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
 
     move( { 0, 800 } );
     if ( fullScreen ) {
-        setFullScreen( true );
+        showFullScreen( );
     } else {
         setFixedSize( 800, 480 );
     }
@@ -132,8 +132,6 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     layerThicknessListView->setFlow( QListView::TopToBottom );
     layerThicknessListView->setViewMode( QListView::ListMode );
     layerThicknessListView->setWrapping( true );
-    //not until Qt 5.12:
-    //layerThicknessListView->setItemAlignment( Qt::AlignRight );
 
     layerThicknessListView->setModel( layerThicknessStringListModel );
     layerThicknessListView->setCurrentIndex( layerThicknessStringListModel->index( 1, 0 ) );
@@ -303,23 +301,6 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
-
-#if defined _DEBUG
-    printJob->modelFileName     = "/home/lumen/Volumetric/model-library/makerook.stl";
-    printJob->slicedSvgFileName = "";
-    printJob->pngFilesPath      = "/home/lumen/Volumetric/model-library/makerook_imgs";
-    printJob->layerCount        = 238;
-    printJob->layerThickness    = 100;
-    printJob->exposureTime      = 1.0;
-    printJob->brightness        = 127;
-
-    printManager = new PrintManager( shepherd, this );
-    printManager->print( printJob );
-
-    printJob = new PrintJob;
-    printJob->layerThickness    = 100;
-    printJob->brightness        = 127;
-#endif // _DEBUG
 }
 
 void Window::shepherd_Started( ) {
@@ -402,8 +383,31 @@ void Window::loader_LoadedFile(const QString& filename)
 void Window::closeEvent( QCloseEvent* event ) {
     fprintf( stderr, "+ Window::closeEvent\n" );
     shepherd->doTerminate( );
+    if ( printManager ) {
+        printManager->terminate( );
+    }
     event->accept( );
 }
+
+#if defined _DEBUG
+void Window::showEvent( QShowEvent* event ) {
+    fprintf( stderr, "+ Window::showEvent\n" );
+    if ( !hasBeenShown ) {
+        PrintJob* printJob = new PrintJob;
+        printJob->modelFileName     = "/home/lumen/Volumetric/model-library/makerook.stl";
+        printJob->slicedSvgFileName = "";
+        printJob->pngFilesPath      = "/home/lumen/Volumetric/model-library/makerook_imgs";
+        printJob->layerCount        = 238;
+        printJob->layerThickness    = 100;
+        printJob->exposureTime      = 1.0;
+        printJob->brightness        = 127;
+
+        printManager = new PrintManager( shepherd, this );
+        printManager->print( printJob );
+    }
+    event->accept( );
+}
+#endif // _DEBUG
 
 void Window::tabs_currentChanged( int index ) {
     fprintf( stderr, "+ Window::tabs_currentChanged: index: %d\n", index );
@@ -587,13 +591,4 @@ bool Window::load_stl( QString const& filename ) {
 
     loader->start();
     return true;
-}
-
-void Window::setFullScreen(bool const fullScreen)
-{
-    if (fullScreen) {
-        setWindowState(windowState() |  Qt::WindowFullScreen);
-    } else {
-        setWindowState(windowState() & ~Qt::WindowFullScreen);
-    }
 }

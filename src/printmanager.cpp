@@ -13,8 +13,8 @@
 // ✓ 4. Start projecting: setpower ${brightness}
 // ✓ 5. Pause for layer time
 // ✓ 6. Stop projection: setpower 0
-// ✓ 8. [deleted]
-// ✓ 9. Pause before lift
+// ✓ 7. Pause before lift
+// ✓ 8. Lift up after final layer complete
 //
 
 /*
@@ -58,11 +58,11 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
     _shepherd ( shepherd )
 {
-    /*empty*/
+    fprintf( stderr, "+ construct PrintManager at %p\n", this );
 }
 
 PrintManager::~PrintManager( ) {
-    /*empty*/
+    fprintf( stderr, "+ destruct PrintManager at %p\n", this );
 }
 
 void PrintManager::_cleanUp( ) {
@@ -146,11 +146,15 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer = new PngDisplayer( );
     _pngDisplayer->move( { 0, 0 } );
     _pngDisplayer->resize( { 1280, 800 } );
-    _pngDisplayer->show( );
-    _pngDisplayer->setFullScreen( true );
+    _pngDisplayer->showFullScreen( );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
     _shepherd->doHome( );
+}
+
+void PrintManager::terminate( ) {
+    fprintf( stderr, "+ PrintManager::terminate\n" );
+    _cleanUp( );
 }
 
 void PrintManager::initialHomeComplete( bool success ) {
