@@ -25,6 +25,8 @@
 #include "canvas.h"
 #include "loader.h"
 #include "printmanager.h"
+#include "svgrenderer.h"
+#include "debug.h"
 
 class Window: public QMainWindow {
 
@@ -45,11 +47,12 @@ protected:
 
 private:
 
-    Shepherd*         shepherd                    { nullptr };
-    Loader*           loader                      { nullptr };
-    PrintManager*     printManager                { nullptr };
-    PrintJob*         printJob                    { nullptr };
-    QProcess*         slicerProcess               { nullptr };
+    Shepherd*         shepherd      { nullptr };
+    Loader*           loader        { nullptr };
+    PrintManager*     printManager  { nullptr };
+    PrintJob*         printJob      { nullptr };
+    QProcess*         slicerProcess { nullptr };
+    SvgRenderer*      svgRenderer   { nullptr };
 
     QTabWidget*       tabs;
 
@@ -65,6 +68,8 @@ private:
 
     QLabel*           sliceProgressLabel;
     QLabel*           sliceProgress;
+    QLabel*           renderProgressLabel;
+    QLabel*           renderProgress;
     QGridLayout*      sliceProgressLayout;
     QWidget*          slicePlaceholder;
     QLabel*           layerThicknessLabel;
@@ -150,6 +155,9 @@ private slots:
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );
     void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+
+    void svgRenderer_progress( int const currentLayer );
+    void svgRenderer_done( int const totalLayers );
 
 };
 

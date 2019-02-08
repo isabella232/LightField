@@ -1,4 +1,4 @@
-QT += core gui opengl widgets
+QT += core gui opengl widgets xml
 
 TARGET = fstl
 TEMPLATE = app
@@ -20,7 +20,9 @@ SOURCES += \
     ../src/slicer.cpp \
     ../src/strings.cpp \
     ../src/printmanager.cpp \
-    ../src/pngdisplayer.cpp
+    ../src/pngdisplayer.cpp \
+    ../src/svgrenderer.cpp \
+    ../src/processrunner.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -35,7 +37,10 @@ HEADERS  += \
     ../src/strings.h \
     ../src/printmanager.h \
     ../src/printjob.h \
-    ../src/pngdisplayer.h
+    ../src/pngdisplayer.h \
+    ../src/svgrenderer.h \
+    ../src/processrunner.h \
+    ../src/debug.h
 
 CONFIG += c++11
 CONFIG += precompile_header
