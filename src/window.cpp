@@ -124,13 +124,18 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     // "Slice" tab
     //
 
-    sliceProgressLabel = new QLabel( "Progress:" );
-    sliceProgress      = new QLabel( "Slicer not running" );
+    sliceProgressLabel = new QLabel( "Slicer status:" );
+    sliceProgress      = new QLabel( "Not slicing" );
+
+    renderProgressLabel = new QLabel( "Render status:" );
+    renderProgress      = new QLabel( "Not rendering" );
 
     sliceProgressLayout = new QGridLayout;
     sliceProgressLayout->setContentsMargins( emptyMargins );
-    sliceProgressLayout->addWidget( sliceProgressLabel, 0, 0, Qt::AlignTop );
-    sliceProgressLayout->addWidget( sliceProgress,      0, 1, Qt::AlignTop );
+    sliceProgressLayout->addWidget( sliceProgressLabel,  0, 0, Qt::AlignTop );
+    sliceProgressLayout->addWidget( sliceProgress,       0, 1, Qt::AlignTop );
+    sliceProgressLayout->addWidget( renderProgressLabel, 1, 0, Qt::AlignTop );
+    sliceProgressLayout->addWidget( renderProgress,      1, 1, Qt::AlignTop );
 
     slicePlaceholder = new QWidget;
     slicePlaceholder->setMinimumSize( 600, 400 );
@@ -481,9 +486,9 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
         baseName = baseName.mid( index + 1 );
     }
     if ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ) {
-        printJob->slicedSvgFileName = baseName.left( baseName.length( ) - 4 ) + ".svg";
+        printJob->slicedSvgFileName = printJob->pngFilesPath + QChar( '/' ) + baseName.left( baseName.length( ) - 4 ) + QString( ".svg" );
     } else {
-        printJob->slicedSvgFileName = baseName + ".svg";
+        printJob->slicedSvgFileName = printJob->pngFilesPath + QChar( '/' ) + baseName                                + QString( ".svg" );
     }
     fprintf( stderr,
         "  + model filename:      '%s'\n"
@@ -531,9 +536,6 @@ void Window::powerLevelSlider_valueChanged( int value ) {
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
     tabs->setCurrentIndex( TabIndex::Progress );
-
-    printJob->pngFilesPath = "/home/lumen/Volumetric/model-library/makerook_imgs";
-    printJob->layerCount   = 238;
 
     fprintf( stderr,
         "  + Print job:\n"
@@ -597,7 +599,30 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
     }
 
     sliceProgress->setText( "Slicer finished" );
-    tabs->setCurrentIndex( +TabIndex::Print );
+
+    svgRenderer = new SvgRenderer;
+    QObject::connect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
+    QObject::connect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
+    svgRenderer->startRender( printJob->slicedSvgFileName, printJob->pngFilesPath );
+}
+
+void Window::svgRenderer_progress( int const currentLayer ) {
+    renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+}
+
+void Window::svgRenderer_done( int const totalLayers ) {
+    if ( totalLayers == -1 ) {
+        renderProgress->setText( QString( "Rendering failed" ) );
+    } else {
+        renderProgress->setText( QString( "Rendering complete" ) );
+        tabs->setCurrentIndex( +TabIndex::Print );
+        printJob->layerCount = totalLayers;
+    }
+
+    QObject::disconnect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
+    QObject::disconnect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
+    delete svgRenderer;
+    svgRenderer = nullptr;
 }
 
 bool Window::load_stl( QString const& filename ) {
