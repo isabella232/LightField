@@ -5,6 +5,7 @@
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     fprintf( stderr, "+ construct PngDisplayer at %p\n", this );
     _label = new QLabel( );
+    _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );
 
     auto pal = palette( );
