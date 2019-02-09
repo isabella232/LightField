@@ -26,7 +26,7 @@ namespace {
     public:
         enum {
             Select,
-            Slice,
+            Print,
             Progress
         };
     };
@@ -123,7 +123,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
-    // "Slice" tab
+    // "Print" tab
     //
 
     sliceProgress  = new QLabel( "Not slicing" );
@@ -223,20 +223,20 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
-    sliceTabLayout = new QGridLayout;
-    sliceTabLayout->setContentsMargins( emptyMargins );
-    sliceTabLayout->addWidget( optionsContainer, 0, 0, 1, 1 );
-    sliceTabLayout->addWidget( sliceButton,      1, 0, 1, 1 );
-    sliceTabLayout->addWidget( printButton,      2, 0, 1, 1 );
-    sliceTabLayout->addWidget( slicePlaceholder, 0, 1, 3, 1 );
-    sliceTabLayout->setRowStretch( 0, 3 );
-    sliceTabLayout->setRowStretch( 1, 1 );
-    sliceTabLayout->setRowStretch( 2, 1 );
+    printTabLayout = new QGridLayout;
+    printTabLayout->setContentsMargins( emptyMargins );
+    printTabLayout->addWidget( optionsContainer, 0, 0, 1, 1 );
+    printTabLayout->addWidget( sliceButton,      1, 0, 1, 1 );
+    printTabLayout->addWidget( printButton,      2, 0, 1, 1 );
+    printTabLayout->addWidget( slicePlaceholder, 0, 1, 3, 1 );
+    printTabLayout->setRowStretch( 0, 3 );
+    printTabLayout->setRowStretch( 1, 1 );
+    printTabLayout->setRowStretch( 2, 1 );
 
-    sliceTab = new QWidget;
-    sliceTab->setContentsMargins( emptyMargins );
-    sliceTab->setLayout( sliceTabLayout );
-    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printTab = new QWidget;
+    printTab->setContentsMargins( emptyMargins );
+    printTab->setLayout( printTabLayout );
+    printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // "Progress" tab
@@ -262,7 +262,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     tabs = new QTabWidget;
     tabs->setContentsMargins( emptyMargins );
     tabs->addTab( selectTab,   "Select"   );
-    tabs->addTab( sliceTab,    "Slice"    );
+    tabs->addTab( printTab,    "Print"    );
     tabs->addTab( progressTab, "Progress" );
     tabs->setCurrentIndex( TabIndex::Select );
 
@@ -421,7 +421,7 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
     printButton->setEnabled( false );
-    tabs->setCurrentIndex( TabIndex::Slice );
+    tabs->setCurrentIndex( TabIndex::Print );
 }
 
 void Window::layerThicknessListView_clicked( QModelIndex const& index ) {

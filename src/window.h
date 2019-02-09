@@ -82,8 +82,8 @@ private:
     QWidget*          optionsContainer;
     QPushButton*      sliceButton;
     QPushButton*      printButton;
-    QWidget*          sliceTab;
-    QGridLayout*      sliceTabLayout;
+    QWidget*          printTab;
+    QGridLayout*      printTabLayout;
 
     QWidget*          progressPlaceholder;
     QWidget*          progressTab;
