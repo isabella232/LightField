@@ -272,16 +272,8 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
     QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
     QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
-
     QObject::connect( shepherd, &Shepherd::printer_Online,                this, &Window::printer_Online                );
     QObject::connect( shepherd, &Shepherd::printer_Offline,               this, &Window::printer_Offline               );
-    QObject::connect( shepherd, &Shepherd::printer_Position,              this, &Window::printer_Position              );
-    QObject::connect( shepherd, &Shepherd::printer_Temperature,           this, &Window::printer_Temperature           );
-
-    QObject::connect( shepherd, &Shepherd::printProcess_ShowImage,        this, &Window::printProcess_ShowImage        );
-    QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
-    QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
-    QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
 }
 
@@ -311,36 +303,13 @@ void Window::printer_Offline( ) {
     fprintf( stderr, "+ Window::printer_Offline\n" );
 }
 
-void Window::printer_Position( float position ) {
-    fprintf( stderr, "+ Window::printer_Position: position: %f\n", position );
-}
-
-void Window::printer_Temperature( QString const& temperatureInfo ) {
-    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo.toUtf8( ).data( ) );
-}
-
-void Window::printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total ) {
-    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName.toUtf8( ).data( ), brightness.toUtf8( ).data( ), index.toUtf8( ).data( ), total.toUtf8( ).data( ) );
-}
-
-void Window::printProcess_HideImage( ) {
-    fprintf( stderr, "+ Window::printProcess_HideImage\n" );
-}
-
-void Window::printProcess_StartedPrinting( ) {
-    fprintf( stderr, "+ Window::printProcess_StartedPrinting\n" );
-}
-
-void Window::printProcess_FinishedPrinting( ) {
-    fprintf( stderr, "+ Window::printProcess_FinishedPrinting\n" );
-}
-
 void Window::loader_ErrorBadStl()
 {
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "This <code>.stl</code> file is invalid or corrupted.<br>"
                           "Please export it from the original source, verify, and retry.");
+    selectButton->setEnabled( false );
 }
 
 void Window::loader_ErrorEmptyMesh()
@@ -348,6 +317,7 @@ void Window::loader_ErrorEmptyMesh()
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "This file is syntactically correct<br>but contains no triangles.");
+    selectButton->setEnabled( false );
 }
 
 void Window::loader_ErrorMissingFile()
@@ -355,6 +325,7 @@ void Window::loader_ErrorMissingFile()
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "The target file is missing.<br>");
+    selectButton->setEnabled( false );
 }
 
 void Window::loader_Finished( ) {
@@ -396,10 +367,7 @@ void Window::tabs_tabCloseRequested( int index ) {
 void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
     fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     fileSystemModel->sort( 0, Qt::AscendingOrder );
-
-    auto index = fileSystemModel->index( StlModelLibraryPath );
-    fprintf( stderr, "  + fileSystemModel->rootIndex() %d,%d\n", index.row( ), index.column( ) );
-    availableFilesListView->setRootIndex( index );
+    availableFilesListView->setRootIndex( fileSystemModel->index( StlModelLibraryPath ) );
 }
 
 void Window::fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName ) {
@@ -608,7 +576,6 @@ bool Window::load_stl( QString const& filename ) {
     connect(loader, &Loader::finished,           this,   &Window::loader_Finished);
 
     if (filename[0] != ':') {
-        connect(loader, &Loader::loaded_file,    this,   &Window::setWindowTitle);
         connect(loader, &Loader::loaded_file,    this,   &Window::loader_LoadedFile);
     }
 

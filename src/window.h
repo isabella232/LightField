@@ -103,13 +103,6 @@ private slots:
 
     void printer_Online( );
     void printer_Offline( );
-    void printer_Position( float position );
-    void printer_Temperature( QString const& temperatureInfo );
-
-    void printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total );
-    void printProcess_HideImage( );
-    void printProcess_StartedPrinting( );
-    void printProcess_FinishedPrinting( );
 
     void loader_ErrorBadStl();
     void loader_ErrorEmptyMesh();
