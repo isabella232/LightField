@@ -10,7 +10,7 @@
 // ✓ 1. Lift up
 // ✓ 2. Lift down
 // ✓ 3. Pause before projection
-// ✓ 4. Start projecting: setpower ${brightness}
+// ✓ 4. Start projecting: setpower ${powerLevel}
 // ✓ 5. Pause for layer time
 // ✓ 6. Stop projection: setpower 0
 // ✓ 7. Pause before lift
@@ -228,7 +228,7 @@ void PrintManager::step3_preProjectionTimerExpired( ) {
     _setPowerProcess = new QProcess( this );
     _setPowerProcess->setProgram( SetPowerCommand );
     _setPowerProcess->setArguments( QStringList {
-        QString( "%1" ).arg( _printJob->brightness )
+        QString( "%1" ).arg( _printJob->powerLevel )
     } );
     _connectSetPowerProcess_step4( );
     _setPowerProcess->start( );
