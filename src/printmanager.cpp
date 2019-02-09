@@ -261,10 +261,7 @@ void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
+        fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
     }
 
     _layerProjectionTimer = new QTimer( this );
@@ -317,10 +314,7 @@ void PrintManager::step6_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
+        fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
     }
 
     _preLiftTimer = new QTimer( this );
