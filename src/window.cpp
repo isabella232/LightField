@@ -413,26 +413,6 @@ void Window::closeEvent( QCloseEvent* event ) {
     event->accept( );
 }
 
-#if defined DO_PRINT_JOB_AT_STARTUP
-void Window::showEvent( QShowEvent* event ) {
-    fprintf( stderr, "+ Window::showEvent\n" );
-    if ( !hasBeenShown ) {
-        PrintJob* printJob = new PrintJob;
-        printJob->modelFileName     = "/home/lumen/Volumetric/model-library/makerook.stl";
-        printJob->slicedSvgFileName = "";
-        printJob->pngFilesPath      = "/home/lumen/Volumetric/model-library/makerook_imgs";
-        printJob->layerCount        = 238;
-        printJob->layerThickness    = 100;
-        printJob->exposureTime      = 1.0;
-        printJob->brightness        = 127;
-
-        printManager = new PrintManager( shepherd, this );
-        printManager->print( printJob );
-    }
-    event->accept( );
-}
-#endif // _DEBUG
-
 void Window::tabs_currentChanged( int index ) {
     fprintf( stderr, "+ Window::tabs_currentChanged: index: %d\n", index );
 }
