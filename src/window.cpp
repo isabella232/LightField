@@ -556,10 +556,13 @@ void Window::printButton_clicked( bool /*checked*/ ) {
         printJob->brightness
     );
 
+    PrintJob* newJob = new PrintJob;
+    *newJob = *printJob;
+
     printManager = new PrintManager( shepherd, this );
     printManager->print( printJob );
 
-    printJob = new PrintJob;
+    printJob = newJob;
 }
 
 void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
