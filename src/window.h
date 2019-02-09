@@ -6,6 +6,7 @@
 #include <QMainWindow>
 
 #include <QFileSystemModel>
+#include <QFormLayout>
 #include <QListView>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -62,35 +63,27 @@ private:
     QWidget*          selectTab;
     QGridLayout*      selectTabLayout;
 
-    QLabel*           sliceProgressLabel;
     QLabel*           sliceProgress;
-    QLabel*           renderProgressLabel;
     QLabel*           renderProgress;
-    QGridLayout*      sliceProgressLayout;
+    QFormLayout*      sliceProgressLayout;
     QWidget*          slicePlaceholder;
     QLabel*           layerThicknessLabel;
     QStringListModel* layerThicknessStringListModel;
     QListView*        layerThicknessListView;
-    QVBoxLayout*      layerThicknessLayout;
-    QWidget*          layerThicknessContainer;
-    QPushButton*      sliceButton;
-    QWidget*          sliceTab;
-    QGridLayout*      sliceTabLayout;
-
-    QWidget*          printPlaceholder;
-    QLabel*           printLayerTimeLabel;
-    QLineEdit*        printLayerTime;
+    QLabel*           exposureTimeLabel;
+    QLineEdit*        exposureTime;
     QLabel*           powerLevelLabel;
     QSlider*          powerLevelSlider;
     QLabel*           powerLevelSliderLeftLabel;
     QLabel*           powerLevelSliderRightLabel;
     QHBoxLayout*      powerLevelSliderLabelsLayout;
     QWidget*          powerLevelSliderLabelsContainer;
-    QVBoxLayout*      printOptionsLayout;
-    QWidget*          printOptionsContainer;
+    QVBoxLayout*      optionsLayout;
+    QWidget*          optionsContainer;
+    QPushButton*      sliceButton;
     QPushButton*      printButton;
-    QWidget*          printTab;
-    QGridLayout*      printTabLayout;
+    QWidget*          sliceTab;
+    QGridLayout*      sliceTabLayout;
 
     QWidget*          progressPlaceholder;
     QWidget*          progressTab;
@@ -140,7 +133,7 @@ private slots:
     void layerThicknessListView_clicked( QModelIndex const& index );
     void sliceButton_clicked( bool checked );
 
-    void printLayerTime_editingFinished( );
+    void exposureTime_editingFinished( );
     void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
 

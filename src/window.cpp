@@ -27,7 +27,6 @@ namespace {
         enum {
             Select,
             Slice,
-            Print,
             Progress
         };
     };
@@ -127,18 +126,13 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Slice" tab
     //
 
-    sliceProgressLabel = new QLabel( "Slicer status:" );
-    sliceProgress      = new QLabel( "Not slicing" );
+    sliceProgress  = new QLabel( "Not slicing" );
+    renderProgress = new QLabel( "Not rendering" );
 
-    renderProgressLabel = new QLabel( "Render status:" );
-    renderProgress      = new QLabel( "Not rendering" );
-
-    sliceProgressLayout = new QGridLayout;
-    sliceProgressLayout->setContentsMargins( emptyMargins );
-    sliceProgressLayout->addWidget( sliceProgressLabel,  0, 0, Qt::AlignTop );
-    sliceProgressLayout->addWidget( sliceProgress,       0, 1, Qt::AlignTop );
-    sliceProgressLayout->addWidget( renderProgressLabel, 1, 0, Qt::AlignTop );
-    sliceProgressLayout->addWidget( renderProgress,      1, 1, Qt::AlignTop );
+    sliceProgressLayout = new QFormLayout;
+    //sliceProgressLayout->setContentsMargins( emptyMargins );
+    sliceProgressLayout->addRow( "Slicer status:", sliceProgress  );
+    sliceProgressLayout->addRow( "Render status:", renderProgress );
 
     slicePlaceholder = new QWidget;
     slicePlaceholder->setMinimumSize( 600, 400 );
@@ -163,57 +157,21 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     layerThicknessLabel = new QLabel( "Layer thickness:" );
     layerThicknessLabel->setBuddy( layerThicknessListView );
 
-    layerThicknessLayout = new QVBoxLayout;
-    layerThicknessLayout->setContentsMargins( emptyMargins );
-    layerThicknessLayout->addWidget( layerThicknessLabel );
-    layerThicknessLayout->addWidget( layerThicknessListView );
-    layerThicknessLayout->addStretch( );
+    exposureTime = new QLineEdit;
+    exposureTime->setAlignment( Qt::AlignRight );
+    exposureTime->setText( "1.0" );
+    exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
+    QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &Window::exposureTime_editingFinished );
 
-    layerThicknessContainer = new QWidget( );
-    layerThicknessContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    layerThicknessContainer->setLayout( layerThicknessLayout );
-
-    sliceButton = new QPushButton( "Slice" );
-    {
-        auto font { sliceButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        sliceButton->setFont( font );
-    }
-    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
-
-    sliceTabLayout = new QGridLayout;
-    sliceTabLayout->setContentsMargins( emptyMargins );
-    sliceTabLayout->addWidget( layerThicknessContainer, 0, 0, 1, 1 );
-    sliceTabLayout->addWidget( sliceButton,             1, 0, 1, 1 );
-    sliceTabLayout->addWidget( slicePlaceholder,        0, 1, 2, 1 );
-    sliceTabLayout->setRowStretch( 0, 4 );
-    sliceTabLayout->setRowStretch( 1, 1 );
-
-    sliceTab = new QWidget;
-    sliceTab->setContentsMargins( emptyMargins );
-    sliceTab->setLayout( sliceTabLayout );
-    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
-    //
-    // "Print" tab
-    //
-
-    printLayerTime = new QLineEdit;
-    printLayerTime->setAlignment( Qt::AlignRight );
-    printLayerTime->setText( "1.0" );
-    printLayerTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
-    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
-
-    printLayerTimeLabel = new QLabel( "Exposure time:" );
-    printLayerTimeLabel->setBuddy( printLayerTime );
+    exposureTimeLabel = new QLabel( "Exposure time:" );
+    exposureTimeLabel->setBuddy( exposureTime );
 
     powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
     powerLevelSlider->setMinimum( 20 );
     powerLevelSlider->setMaximum( 100 );
     powerLevelSlider->setValue( 50 );
-    printJob->brightness = 127;
+    printJob->powerLevel = 127;
     QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
 
     powerLevelLabel = new QLabel( "Projector power level:" );
@@ -232,18 +190,29 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     powerLevelSliderLabelsContainer = new QWidget( );
     powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
 
-    printOptionsLayout = new QVBoxLayout;
-    printOptionsLayout->setContentsMargins( emptyMargins );
-    printOptionsLayout->addWidget( printLayerTimeLabel );
-    printOptionsLayout->addWidget( printLayerTime );
-    printOptionsLayout->addWidget( powerLevelLabel );
-    printOptionsLayout->addWidget( powerLevelSlider );
-    printOptionsLayout->addWidget( powerLevelSliderLabelsContainer );
-    printOptionsLayout->addStretch( );
+    optionsLayout = new QVBoxLayout;
+    optionsLayout->setContentsMargins( emptyMargins );
+    optionsLayout->addWidget( layerThicknessLabel );
+    optionsLayout->addWidget( layerThicknessListView );
+    optionsLayout->addWidget( exposureTimeLabel );
+    optionsLayout->addWidget( exposureTime );
+    optionsLayout->addWidget( powerLevelLabel );
+    optionsLayout->addWidget( powerLevelSlider );
+    optionsLayout->addWidget( powerLevelSliderLabelsContainer );
+    optionsLayout->addStretch( );
 
-    printOptionsContainer = new QWidget( );
-    printOptionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printOptionsContainer->setLayout( printOptionsLayout );
+    optionsContainer = new QWidget( );
+    optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    optionsContainer->setLayout( optionsLayout );
+
+    sliceButton = new QPushButton( "Slice" );
+    {
+        auto font { sliceButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        sliceButton->setFont( font );
+    }
+    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
 
     printButton = new QPushButton( "Print" );
     {
@@ -254,22 +223,20 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
-    printPlaceholder = new QWidget;
-    printPlaceholder->setMinimumSize( 600, 400 );
-    printPlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    sliceTabLayout = new QGridLayout;
+    sliceTabLayout->setContentsMargins( emptyMargins );
+    sliceTabLayout->addWidget( optionsContainer, 0, 0, 1, 1 );
+    sliceTabLayout->addWidget( sliceButton,      1, 0, 1, 1 );
+    sliceTabLayout->addWidget( printButton,      2, 0, 1, 1 );
+    sliceTabLayout->addWidget( slicePlaceholder, 0, 1, 3, 1 );
+    sliceTabLayout->setRowStretch( 0, 3 );
+    sliceTabLayout->setRowStretch( 1, 1 );
+    sliceTabLayout->setRowStretch( 2, 1 );
 
-    printTabLayout = new QGridLayout;
-    printTabLayout->setContentsMargins( emptyMargins );
-    printTabLayout->addWidget( printOptionsContainer, 0, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,           1, 0, 1, 1 );
-    printTabLayout->addWidget( printPlaceholder,      0, 1, 2, 1 );
-    printTabLayout->setRowStretch( 0, 4 );
-    printTabLayout->setRowStretch( 1, 1 );
-
-    printTab = new QWidget;
-    printTab->setContentsMargins( emptyMargins );
-    printTab->setLayout( printTabLayout );
-    printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    sliceTab = new QWidget;
+    sliceTab->setContentsMargins( emptyMargins );
+    sliceTab->setLayout( sliceTabLayout );
+    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // "Progress" tab
@@ -281,9 +248,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     progressTabLayout = new QGridLayout;
     progressTabLayout->setContentsMargins( emptyMargins );
-    progressTabLayout->addWidget( progressPlaceholder, 0, 1, 2, 1 );
-    progressTabLayout->setRowStretch( 0, 4 );
-    progressTabLayout->setRowStretch( 1, 1 );
+    progressTabLayout->addWidget( progressPlaceholder, 0, 0, 0, 0 );
 
     progressTab = new QWidget;
     progressTab->setContentsMargins( emptyMargins );
@@ -298,7 +263,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     tabs->setContentsMargins( emptyMargins );
     tabs->addTab( selectTab,   "Select"   );
     tabs->addTab( sliceTab,    "Slice"    );
-    tabs->addTab( printTab,    "Print"    );
     tabs->addTab( progressTab, "Progress" );
     tabs->setCurrentIndex( TabIndex::Select );
 
@@ -456,6 +420,7 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
+    printButton->setEnabled( false );
     tabs->setCurrentIndex( TabIndex::Slice );
 }
 
@@ -506,20 +471,20 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
     slicerProcess->start( );
 }
 
-void Window::printLayerTime_editingFinished( ) {
+void Window::exposureTime_editingFinished( ) {
     bool valueOk = false;
-    double value = printLayerTime->validator( )->locale( ).toDouble( printLayerTime->text( ), &valueOk );
+    double value = exposureTime->validator( )->locale( ).toDouble( exposureTime->text( ), &valueOk );
     if ( valueOk ) {
-        fprintf( stderr, "+ Window::printLayerTime_editingFinished: new value %f\n", value );
+        fprintf( stderr, "+ Window::exposureTime_editingFinished: new value %f\n", value );
         printJob->exposureTime = value;
     } else {
-        fprintf( stderr, "+ Window::printLayerTime_editingFinished: bad value\n" );
+        fprintf( stderr, "+ Window::exposureTime_editingFinished: bad value\n" );
     }
 }
 
 void Window::powerLevelSlider_valueChanged( int value ) {
     fprintf( stderr, "+ Window::powerLevelSlider_valueChanged: value %d%%\n", value );
-    printJob->brightness = value * 255 / 100;
+    printJob->powerLevel = value * 255 / 100;
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {
@@ -534,7 +499,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
         "    + layerCount:        %d\n"
         "    + layerThickness:    %d\n"
         "    + exposureTime:      %f\n"
-        "    + brightness:        %d\n"
+        "    + powerLevel:        %d\n"
         "",
         printJob->modelFileName.toUtf8( ).data( ),
         printJob->slicedSvgFileName.toUtf8( ).data( ),
@@ -542,7 +507,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
         printJob->layerCount,
         printJob->layerThickness,
         printJob->exposureTime,
-        printJob->brightness
+        printJob->powerLevel
     );
 
     PrintJob* newJob = new PrintJob;
@@ -587,6 +552,7 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
 
     if ( exitStatus == QProcess::CrashExit ) {
         fprintf( stderr, "  + slicer process crashed?\n" );
+        sliceProgress->setText( "Slicer crashed" );
         return;
     }
 
@@ -599,7 +565,9 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
 }
 
 void Window::svgRenderer_progress( int const currentLayer ) {
-    renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+    if ( 0 == ( currentLayer % 5 ) ) {
+        renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+    }
 }
 
 void Window::svgRenderer_done( int const totalLayers ) {
@@ -607,8 +575,8 @@ void Window::svgRenderer_done( int const totalLayers ) {
         renderProgress->setText( QString( "Rendering failed" ) );
     } else {
         renderProgress->setText( QString( "Rendering complete" ) );
-        tabs->setCurrentIndex( +TabIndex::Print );
         printJob->layerCount = totalLayers;
+        printButton->setEnabled( true );
     }
 
     QObject::disconnect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
