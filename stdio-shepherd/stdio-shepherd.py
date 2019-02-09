@@ -6,6 +6,7 @@ import glob
 import io
 import os
 import re
+import signal
 import string
 import sys
 import time
@@ -195,9 +196,16 @@ class StdioPrinterDriver( ):
 ## Main
 ##
 
+signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+signal.signal( signal.SIGQUIT, signal.SIG_IGN )
+
 driver = StdioPrinterDriver( )
 if not driver.connect( ):
     print( "warning \"Couldn't open any serial device\"", file = sys.stderr )
 
-driver.processInput( )
+try:
+    driver.processInput( )
+except KeyboardInterrupt:
+    pass
+
 driver.disconnect( )
