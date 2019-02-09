@@ -34,7 +34,8 @@ class Window: public QMainWindow {
 
 public:
 
-    Window(bool fullScreen, QWidget* parent=0);
+    Window(bool fullScreen, bool debuggingPosition, QWidget* parent=0);
+    virtual ~Window( ) override;
 
     bool load_stl(const QString& filename);
 
@@ -158,6 +159,8 @@ private slots:
 
     void svgRenderer_progress( int const currentLayer );
     void svgRenderer_done( int const totalLayers );
+
+    void signalHandler_quit( int signalNumber );
 
 };
 

@@ -7,6 +7,7 @@
 #include "window.h"
 
 #include "printmanager.h"
+#include "signalhandler.h"
 #include "strings.h"
 
 namespace {
@@ -35,10 +36,10 @@ namespace {
 
 }
 
-Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
+Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainWindow(parent) {
     QMargins emptyMargins { };
 
-    move( { 0, 800 } );
+    move( { 0, debuggingPosition ? 560 : 800 } );
     if ( fullScreen ) {
         showFullScreen( );
     } else {
@@ -53,6 +54,8 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QSurfaceFormat::setDefaultFormat( format );
 
     printJob = new PrintJob;
+
+    QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
     //
     // "Select" tab
@@ -316,6 +319,12 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
     QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
+}
+
+Window::~Window( ) {
+    if ( g_signalHandler ) {
+        QObject::disconnect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
+    }
 }
 
 void Window::shepherd_Started( ) {
@@ -626,6 +635,11 @@ void Window::svgRenderer_done( int const totalLayers ) {
     QObject::disconnect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
     delete svgRenderer;
     svgRenderer = nullptr;
+}
+
+void Window::signalHandler_quit( int signalNumber ) {
+    fprintf( stderr, "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
+    close( );
 }
 
 bool Window::load_stl( QString const& filename ) {

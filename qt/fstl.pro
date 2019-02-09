@@ -22,7 +22,8 @@ SOURCES += \
     ../src/printmanager.cpp \
     ../src/pngdisplayer.cpp \
     ../src/svgrenderer.cpp \
-    ../src/processrunner.cpp
+    ../src/processrunner.cpp \
+    ../src/signalhandler.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -40,6 +41,7 @@ HEADERS  += \
     ../src/pngdisplayer.h \
     ../src/svgrenderer.h \
     ../src/processrunner.h \
+    ../src/signalhandler.h \
     ../src/debug.h
 
 CONFIG += c++11

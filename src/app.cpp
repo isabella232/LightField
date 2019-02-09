@@ -1,7 +1,9 @@
-#include <QDebug>
+#include <QtDebug>
 
 #include "app.h"
+
 #include "window.h"
+#include "signalhandler.h"
 
 App::App( int& argc, char *argv[] ):
     QApplication( argc, argv )
@@ -11,18 +13,26 @@ App::App( int& argc, char *argv[] ):
     QCoreApplication::setApplicationName( "fstl" );
 
     bool fullScreen = true;
-    if ( argc > 1 ) {
-        if ( 0 == strcmp( argv[1], "-f" ) ) {
+    bool debuggingPosition = false;
+    for ( int n = 1; n < argc; ++n ) {
+        if ( 0 == strcmp( argv[n], "-f" ) ) {
             fullScreen = false;
+        } else if ( 0 == strcmp( argv[n], "-g" ) ) {
+            debuggingPosition = true;
+        } else {
+            fprintf( stderr, "ignoring unrecognized parameter '%s'\n", argv[n] );
         }
     }
 
     qDebug( ).setVerbosity( 7 );
-    window = new Window( fullScreen );
+    g_signalHandler = new SignalHandler;
+
+    window = new Window( fullScreen, debuggingPosition, nullptr );
     window->load_stl( ":gl/BoundingBox.stl" );
     window->show( );
 }
 
 App::~App( ) {
     delete window;
+    delete g_signalHandler;
 }
