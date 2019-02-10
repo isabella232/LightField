@@ -1,9 +1,6 @@
 #ifndef __PRINT_MANAGER_H__
 #define __PRINT_MANAGER_H__
 
-#include <QProcess>
-#include <QTimer>
-
 #include "printjob.h"
 
 class PngDisplayer;

@@ -1,8 +1,4 @@
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <cstdlib>
+#include "pch.h"
 
 #include "window.h"
 
@@ -14,13 +10,11 @@ namespace {
 
     QString StlModelLibraryPath { "/home/lumen/Volumetric/model-library" };
 
-    QStringList LayerThicknessStringList {
-        "50 µm",
-        "100 µm",
-        "200 µm",
-    };
-
+    QStringList LayerThicknessStringList { "50 µm", "100 µm", "200 µm", };
     int LayerThicknessValues[] { 50, 100, 200 };
+
+    QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
+    int ExposureScaleFactorValues[] { 1, 2, 3, 4, 5 };
 
     class TabIndex {
     public:
@@ -138,23 +132,16 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     sliceProgressContainer->setLayout( sliceProgressLayout );
     sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
-    layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
-
-    layerThicknessListView = new QListView;
-    layerThicknessListView->setLayoutMode( QListView::SinglePass );
-    layerThicknessListView->setMovement( QListView::Static );
-    layerThicknessListView->setResizeMode( QListView::Fixed );
-    layerThicknessListView->setFlow( QListView::TopToBottom );
-    layerThicknessListView->setViewMode( QListView::ListMode );
-    layerThicknessListView->setWrapping( true );
-
-    layerThicknessListView->setModel( layerThicknessStringListModel );
-    layerThicknessListView->setCurrentIndex( layerThicknessStringListModel->index( 1, 0 ) );
+    layerThicknessComboBox = new QComboBox;
+    layerThicknessComboBox->setEditable( false );
+    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
+    layerThicknessComboBox->addItems( LayerThicknessStringList );
+    layerThicknessComboBox->setCurrentIndex( 1 );
     printJob->layerThickness = 100;
-    QObject::connect( layerThicknessListView, &QListView::clicked, this, &Window::layerThicknessListView_clicked );
+    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::layerThicknessComboBox_currentIndexChanged );
 
     layerThicknessLabel = new QLabel( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessListView );
+    layerThicknessLabel->setBuddy( layerThicknessComboBox );
 
     exposureTime = new QLineEdit;
     exposureTime->setAlignment( Qt::AlignRight );
@@ -164,6 +151,16 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     exposureTimeLabel = new QLabel( "Exposure time:" );
     exposureTimeLabel->setBuddy( exposureTime );
+
+    exposureScaleFactorComboBox = new QComboBox;
+    exposureScaleFactorComboBox->setEditable( false );
+    exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
+    exposureScaleFactorComboBox->addItems( ExposureScaleFactorStringList );
+    printJob->exposureTimeScaleFactor = 1;
+    QObject::connect( exposureScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::exposureScaleFactorComboBox_currentIndexChanged );
+
+    exposureScaleFactorLabel = new QLabel( "First layers time scale factor:" );
+    exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
 
     powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
@@ -175,6 +172,19 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     powerLevelLabel = new QLabel( "Projector power level:" );
     powerLevelLabel->setBuddy( powerLevelSlider );
+
+    powerLevelValue = new QLabel( "50%" );
+    powerLevelValue->setAlignment( Qt::AlignRight );
+
+    powerLevelValueLayout = new QHBoxLayout( );
+    powerLevelValueLayout->setContentsMargins( emptyMargins );
+    powerLevelValueLayout->addWidget( powerLevelLabel );
+    powerLevelValueLayout->addStretch( );
+    powerLevelValueLayout->addWidget( powerLevelValue );
+
+    powerLevelValueContainer = new QWidget( );
+    powerLevelValueContainer->setContentsMargins( emptyMargins );
+    powerLevelValueContainer->setLayout( powerLevelValueLayout );
 
     powerLevelSliderLeftLabel = new QLabel( "20%" );
     powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
@@ -192,10 +202,12 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     optionsLayout = new QVBoxLayout;
     optionsLayout->setContentsMargins( emptyMargins );
     optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addWidget( layerThicknessListView );
+    optionsLayout->addWidget( layerThicknessComboBox );
     optionsLayout->addWidget( exposureTimeLabel );
     optionsLayout->addWidget( exposureTime );
-    optionsLayout->addWidget( powerLevelLabel );
+    optionsLayout->addWidget( exposureScaleFactorLabel );
+    optionsLayout->addWidget( exposureScaleFactorComboBox );
+    optionsLayout->addWidget( powerLevelValueContainer );
     optionsLayout->addWidget( powerLevelSlider );
     optionsLayout->addWidget( powerLevelSliderLabelsContainer );
     optionsLayout->addStretch( );
@@ -316,9 +328,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         auto pal = currentLayerImageDisplay->palette( );
         pal.setColor( QPalette::Background, Qt::black );
         currentLayerImageDisplay->setPalette( pal );
-
-        auto pixmap = QPixmap( QString( StlModelLibraryPath + QString( "/makerook_imgs/000.png" ) ) );
-        currentLayerImageDisplay->setPixmap( pixmap );
     }
 
     currentLayerImageLayout = new QVBoxLayout;
@@ -488,9 +497,9 @@ void Window::selectButton_clicked( bool /*checked*/ ) {
     tabs->setCurrentIndex( TabIndex::Print );
 }
 
-void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
-    fprintf( stderr, "+ Window::layerThicknessListView_clicked: new value: %d µm\n", LayerThicknessValues[index.row( )] );
-    printJob->layerThickness = LayerThicknessValues[index.row( )];
+void Window::layerThicknessComboBox_currentIndexChanged( int index ) {
+    fprintf( stderr, "+ Window::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+    printJob->layerThickness = LayerThicknessValues[index];
 }
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
@@ -548,9 +557,15 @@ void Window::exposureTime_editingFinished( ) {
     }
 }
 
+void Window::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
+    fprintf( stderr, "+ Window::exposureScaleFactorComboBox_currentIndexChanged: new value: %d×\n", ExposureScaleFactorValues[index] );
+    printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
+}
+
 void Window::powerLevelSlider_valueChanged( int value ) {
-    fprintf( stderr, "+ Window::powerLevelSlider_valueChanged: value %d%%\n", value );
-    printJob->powerLevel = value * 255 / 100;
+    int scaledValue = ( value / 100.0 * 255.0 ) + 0.5;
+    printJob->powerLevel = scaledValue;
+    powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {
@@ -583,6 +598,8 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = newJob;
+
+    stopButton->setEnabled( true );
 }
 
 void Window::stopButton_clicked( bool /*checked*/ ) {

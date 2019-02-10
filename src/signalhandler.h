@@ -1,8 +1,6 @@
 #ifndef __SIGNALHANDLER_H__
 #define __SIGNALHANDLER_H__
 
-#include <QSocketNotifier>
-
 class SignalHandler: public QObject {
 
     Q_OBJECT

@@ -1,12 +1,6 @@
 #ifndef __PNGDISPLAYER_H__
 #define __PNGDISPLAYER_H__
 
-#include <QLabel>
-#include <QMainWindow>
-#include <QPixmap>
-#include <QString>
-#include <QWidget>
-
 class PngDisplayer: public QMainWindow {
 
     Q_OBJECT

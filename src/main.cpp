@@ -1,4 +1,4 @@
-#include <QApplication>
+#include "pch.h"
 
 #include "app.h"
 

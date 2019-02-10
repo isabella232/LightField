@@ -1,8 +1,6 @@
 #ifndef APP_H
 #define APP_H
 
-#include <QApplication>
-
 class Window;
 
 class App : public QApplication

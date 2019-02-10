@@ -1,10 +1,6 @@
 #ifndef __PROCESSRUNNER_H__
 #define __PROCESSRUNNER_H__
 
-#include <QProcess>
-#include <QString>
-#include <QStringList>
-
 class ProcessRunner: public QObject {
 
     Q_OBJECT

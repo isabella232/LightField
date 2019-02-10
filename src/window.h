@@ -1,25 +1,6 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <QtDebug>
-
-#include <QMainWindow>
-
-#include <QFileSystemModel>
-#include <QFormLayout>
-#include <QListView>
-#include <QGridLayout>
-#include <QHBoxLayout>
-#include <QLineEdit>
-#include <QProcess>
-#include <QPushButton>
-#include <QSlider>
-#include <QString>
-#include <QStringListModel>
-#include <QTabWidget>
-#include <QVBoxLayout>
-#include <QWidget>
-
 #include "shepherd.h"
 #include "canvas.h"
 #include "loader.h"
@@ -70,11 +51,15 @@ private:
     QFormLayout*      sliceProgressLayout;
     QWidget*          sliceProgressContainer;
     QLabel*           layerThicknessLabel;
-    QStringListModel* layerThicknessStringListModel;
-    QListView*        layerThicknessListView;
+    QComboBox*        layerThicknessComboBox;
     QLabel*           exposureTimeLabel;
     QLineEdit*        exposureTime;
+    QLabel*           exposureScaleFactorLabel;
+    QComboBox*        exposureScaleFactorComboBox;
     QLabel*           powerLevelLabel;
+    QLabel*           powerLevelValue;
+    QHBoxLayout*      powerLevelValueLayout;
+    QWidget*          powerLevelValueContainer;
     QSlider*          powerLevelSlider;
     QLabel*           powerLevelSliderLeftLabel;
     QLabel*           powerLevelSliderRightLabel;
@@ -138,8 +123,9 @@ private slots:
     void availableFilesListView_clicked( QModelIndex const& index );
     void selectButton_clicked( bool checked );
 
-    void layerThicknessListView_clicked( QModelIndex const& index );
+    void layerThicknessComboBox_currentIndexChanged( int index );
     void exposureTime_editingFinished( );
+    void exposureScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelSlider_valueChanged( int value );
     void sliceButton_clicked( bool checked );
     void printButton_clicked( bool checked );

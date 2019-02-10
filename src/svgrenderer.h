@@ -1,13 +1,6 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
-#include <QtXml>
-
-#include <QDomDocument>
-#include <QMainWindow>
-#include <QPushButton>
-#include <QString>
-
 #include "processrunner.h"
 
 class SvgRenderer: public QObject {
