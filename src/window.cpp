@@ -354,22 +354,6 @@ void Window::closeEvent( QCloseEvent* event ) {
     event->accept( );
 }
 
-void Window::tabs_currentChanged( int index ) {
-    fprintf( stderr, "+ Window::tabs_currentChanged: index: %d\n", index );
-}
-
-void Window::tabs_tabBarClicked( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabBarClicked: index: %d\n", index );
-}
-
-void Window::tabs_tabBarDoubleClicked( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabBarDoubleClicked: index: %d\n", index );
-}
-
-void Window::tabs_tabCloseRequested( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabCloseRequested: index: %d\n", index );
-}
-
 void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
     fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     fileSystemModel->sort( 0, Qt::AscendingOrder );
@@ -497,11 +481,11 @@ void Window::printManager_printStarting( ) {
     // TODO update job status control
 }
 
-void Window::printManager_printingLayer( int layer ) {
+void Window::printManager_printingLayer( int /*layer*/ ) {
     // TODO update current layer control
 }
 
-void Window::printManager_printComplete( bool success ) {
+void Window::printManager_printComplete( bool /*success*/ ) {
     // TODO update job status control
 }
 

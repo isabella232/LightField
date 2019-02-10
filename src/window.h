@@ -113,11 +113,6 @@ private slots:
     void loader_Finished();
     void loader_LoadedFile(QString const& filename);
 
-    void tabs_currentChanged( int index );
-    void tabs_tabBarClicked( int index );
-    void tabs_tabBarDoubleClicked( int index );
-    void tabs_tabCloseRequested( int index );
-
     void fileSystemModel_DirectoryLoaded( QString const& name );
     void fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName );
     void fileSystemModel_RootPathChanged( QString const& newPath );
