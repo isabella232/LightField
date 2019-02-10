@@ -316,9 +316,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         auto pal = currentLayerImageDisplay->palette( );
         pal.setColor( QPalette::Background, Qt::black );
         currentLayerImageDisplay->setPalette( pal );
-
-        auto pixmap = QPixmap( QString( StlModelLibraryPath + QString( "/makerook_imgs/000.png" ) ) );
-        currentLayerImageDisplay->setPixmap( pixmap );
     }
 
     currentLayerImageLayout = new QVBoxLayout;
@@ -583,6 +580,8 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = newJob;
+
+    stopButton->setEnabled( true );
 }
 
 void Window::stopButton_clicked( bool /*checked*/ ) {
