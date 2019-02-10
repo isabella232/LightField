@@ -52,10 +52,13 @@ private:
     QWidget*          sliceProgressContainer;
     QLabel*           layerThicknessLabel;
     QStringListModel* layerThicknessStringListModel;
-    QListView*        layerThicknessListView;
+    QComboBox*        layerThicknessComboBox;
     QLabel*           exposureTimeLabel;
     QLineEdit*        exposureTime;
     QLabel*           powerLevelLabel;
+    QLabel*           powerLevelValue;
+    QHBoxLayout*      powerLevelValueLayout;
+    QWidget*          powerLevelValueContainer;
     QSlider*          powerLevelSlider;
     QLabel*           powerLevelSliderLeftLabel;
     QLabel*           powerLevelSliderRightLabel;
@@ -119,7 +122,7 @@ private slots:
     void availableFilesListView_clicked( QModelIndex const& index );
     void selectButton_clicked( bool checked );
 
-    void layerThicknessListView_clicked( QModelIndex const& index );
+    void layerThicknessComboBox_currentIndexChanged( int index );
     void exposureTime_editingFinished( );
     void powerLevelSlider_valueChanged( int value );
     void sliceButton_clicked( bool checked );

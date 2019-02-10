@@ -136,21 +136,16 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
 
-    layerThicknessListView = new QListView;
-    layerThicknessListView->setLayoutMode( QListView::SinglePass );
-    layerThicknessListView->setMovement( QListView::Static );
-    layerThicknessListView->setResizeMode( QListView::Fixed );
-    layerThicknessListView->setFlow( QListView::TopToBottom );
-    layerThicknessListView->setViewMode( QListView::ListMode );
-    layerThicknessListView->setWrapping( true );
-
-    layerThicknessListView->setModel( layerThicknessStringListModel );
-    layerThicknessListView->setCurrentIndex( layerThicknessStringListModel->index( 1, 0 ) );
+    layerThicknessComboBox = new QComboBox;
+    layerThicknessComboBox->setEditable( false );
+    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
+    layerThicknessComboBox->setModel( layerThicknessStringListModel );
+    layerThicknessComboBox->setCurrentIndex( 1 );
     printJob->layerThickness = 100;
-    QObject::connect( layerThicknessListView, &QListView::clicked, this, &Window::layerThicknessListView_clicked );
+    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::layerThicknessComboBox_currentIndexChanged );
 
     layerThicknessLabel = new QLabel( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessListView );
+    layerThicknessLabel->setBuddy( layerThicknessComboBox );
 
     exposureTime = new QLineEdit;
     exposureTime->setAlignment( Qt::AlignRight );
@@ -172,6 +167,19 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     powerLevelLabel = new QLabel( "Projector power level:" );
     powerLevelLabel->setBuddy( powerLevelSlider );
 
+    powerLevelValue = new QLabel( "50%" );
+    powerLevelValue->setAlignment( Qt::AlignRight );
+
+    powerLevelValueLayout = new QHBoxLayout( );
+    powerLevelValueLayout->setContentsMargins( emptyMargins );
+    powerLevelValueLayout->addWidget( powerLevelLabel );
+    powerLevelValueLayout->addStretch( );
+    powerLevelValueLayout->addWidget( powerLevelValue );
+
+    powerLevelValueContainer = new QWidget( );
+    powerLevelValueContainer->setContentsMargins( emptyMargins );
+    powerLevelValueContainer->setLayout( powerLevelValueLayout );
+
     powerLevelSliderLeftLabel = new QLabel( "20%" );
     powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
     powerLevelSliderRightLabel = new QLabel( "100%" );
@@ -188,10 +196,10 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     optionsLayout = new QVBoxLayout;
     optionsLayout->setContentsMargins( emptyMargins );
     optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addWidget( layerThicknessListView );
+    optionsLayout->addWidget( layerThicknessComboBox );
     optionsLayout->addWidget( exposureTimeLabel );
     optionsLayout->addWidget( exposureTime );
-    optionsLayout->addWidget( powerLevelLabel );
+    optionsLayout->addWidget( powerLevelValueContainer );
     optionsLayout->addWidget( powerLevelSlider );
     optionsLayout->addWidget( powerLevelSliderLabelsContainer );
     optionsLayout->addStretch( );
@@ -481,9 +489,9 @@ void Window::selectButton_clicked( bool /*checked*/ ) {
     tabs->setCurrentIndex( TabIndex::Print );
 }
 
-void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
-    fprintf( stderr, "+ Window::layerThicknessListView_clicked: new value: %d µm\n", LayerThicknessValues[index.row( )] );
-    printJob->layerThickness = LayerThicknessValues[index.row( )];
+void Window::layerThicknessComboBox_currentIndexChanged( int index ) {
+    fprintf( stderr, "+ Window::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+    printJob->layerThickness = LayerThicknessValues[index];
 }
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
@@ -542,8 +550,9 @@ void Window::exposureTime_editingFinished( ) {
 }
 
 void Window::powerLevelSlider_valueChanged( int value ) {
-    fprintf( stderr, "+ Window::powerLevelSlider_valueChanged: value %d%%\n", value );
-    printJob->powerLevel = value * 255 / 100;
+    int scaledValue = ( value / 100.0 * 255.0 ) + 0.5;
+    printJob->powerLevel = scaledValue;
+    powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {
