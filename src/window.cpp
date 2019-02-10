@@ -134,10 +134,9 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     sliceProgressLayout->addRow( "Slicer status:", sliceProgress  );
     sliceProgressLayout->addRow( "Render status:", renderProgress );
 
-    slicePlaceholder = new QWidget;
-    slicePlaceholder->setMinimumSize( 600, 400 );
-    slicePlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    slicePlaceholder->setLayout( sliceProgressLayout );
+    sliceProgressContainer = new QWidget;
+    sliceProgressContainer->setLayout( sliceProgressLayout );
+    sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
     layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
 
@@ -225,12 +224,35 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
+    currentSliceLabel = new QLabel( "Current slice:" );
+    currentSliceDisplay = new QLabel;
+    currentSliceLabel->setBuddy( currentSliceDisplay );
+    currentSliceDisplay->setAlignment( Qt::AlignCenter );
+    {
+        auto pal = currentSliceDisplay->palette( );
+        pal.setColor( QPalette::Background, Qt::black );
+        currentSliceDisplay->setPalette( pal );
+    }
+
+    currentSliceLayout = new QVBoxLayout;
+    currentSliceLayout->setContentsMargins( emptyMargins );
+    currentSliceLayout->addWidget( sliceProgressContainer );
+    currentSliceLayout->addWidget( currentSliceLabel );
+    currentSliceLayout->addWidget( currentSliceDisplay );
+    currentSliceLayout->addStretch( );
+
+    currentSliceContainer = new QWidget;
+    currentSliceContainer->setContentsMargins( emptyMargins );
+    currentSliceContainer->setLayout( currentSliceLayout );
+    currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceContainer->setMinimumSize( 600, 400 );
+
     printTabLayout = new QGridLayout;
     printTabLayout->setContentsMargins( emptyMargins );
-    printTabLayout->addWidget( optionsContainer, 0, 0, 1, 1 );
-    printTabLayout->addWidget( sliceButton,      1, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,      2, 0, 1, 1 );
-    printTabLayout->addWidget( slicePlaceholder, 0, 1, 3, 1 );
+    printTabLayout->addWidget( optionsContainer,      0, 0, 1, 1 );
+    printTabLayout->addWidget( sliceButton,           1, 0, 1, 1 );
+    printTabLayout->addWidget( printButton,           2, 0, 1, 1 );
+    printTabLayout->addWidget( currentSliceContainer, 0, 1, 3, 1 );
     printTabLayout->setRowStretch( 0, 3 );
     printTabLayout->setRowStretch( 1, 1 );
     printTabLayout->setRowStretch( 2, 1 );
@@ -473,6 +495,8 @@ void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+    sliceButton->setEnabled( false );
+    printButton->setEnabled( false );
 
     printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
     mkdir( printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
@@ -630,6 +654,11 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
 void Window::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
         renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+        if ( currentLayer > 0 ) {
+            auto pngFileName = QString( "%1/%2.png" ).arg( printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
+            auto pixMap = QPixmap( pngFileName );
+            currentSliceDisplay->setPixmap( pixMap );
+        }
     }
 }
 

@@ -68,7 +68,7 @@ private:
     QLabel*           sliceProgress;
     QLabel*           renderProgress;
     QFormLayout*      sliceProgressLayout;
-    QWidget*          slicePlaceholder;
+    QWidget*          sliceProgressContainer;
     QLabel*           layerThicknessLabel;
     QStringListModel* layerThicknessStringListModel;
     QListView*        layerThicknessListView;
@@ -84,6 +84,10 @@ private:
     QWidget*          optionsContainer;
     QPushButton*      sliceButton;
     QPushButton*      printButton;
+    QLabel*           currentSliceLabel;
+    QLabel*           currentSliceDisplay;
+    QVBoxLayout*      currentSliceLayout;
+    QWidget*          currentSliceContainer;
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
 
