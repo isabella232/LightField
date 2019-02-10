@@ -299,10 +299,14 @@ void Window::shepherd_ProcessError( QProcess::ProcessError error ) {
 
 void Window::printer_Online( ) {
     fprintf( stderr, "+ Window::printer_Online\n" );
+    isPrinterOnline = true;
+    // TODO update Printer Online indicator
 }
 
 void Window::printer_Offline( ) {
     fprintf( stderr, "+ Window::printer_Offline\n" );
+    isPrinterOnline = false;
+    // TODO update Printer Online indicator
 }
 
 void Window::loader_ErrorBadStl()
@@ -487,6 +491,18 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = newJob;
+}
+
+void Window::printManager_printStarting( ) {
+    // TODO update job status control
+}
+
+void Window::printManager_printingLayer( int layer ) {
+    // TODO update current layer control
+}
+
+void Window::printManager_printComplete( bool success ) {
+    // TODO update job status control
 }
 
 void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {

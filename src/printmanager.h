@@ -51,8 +51,9 @@ private:
 
 signals:
 
-    void printComplete( bool success );
+    void printStarting( );
     void startingLayer( int layer );
+    void printComplete( bool success );
 
 public slots:
 

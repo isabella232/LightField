@@ -51,6 +51,8 @@ private:
     QProcess*         slicerProcess { nullptr };
     SvgRenderer*      svgRenderer   { nullptr };
 
+    bool              isPrinterOnline { false };
+
     QTabWidget*       tabs;
 
     Canvas*           canvas;
@@ -124,11 +126,14 @@ private slots:
     void selectButton_clicked( bool checked );
 
     void layerThicknessListView_clicked( QModelIndex const& index );
-    void sliceButton_clicked( bool checked );
-
     void exposureTime_editingFinished( );
     void powerLevelSlider_valueChanged( int value );
+    void sliceButton_clicked( bool checked );
     void printButton_clicked( bool checked );
+
+    void printManager_printStarting( );
+    void printManager_printingLayer( int layer );
+    void printManager_printComplete( bool success );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );
