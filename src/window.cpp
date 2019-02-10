@@ -212,6 +212,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         sliceButton->setFont( font );
     }
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
 
     printButton = new QPushButton( "Print" );
@@ -221,6 +222,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         printButton->setFont( font );
     }
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
     printTabLayout = new QGridLayout;
