@@ -1,8 +1,6 @@
 #ifndef __PRINTJOB_H__
 #define __PRINTJOB_H__
 
-#include <QString>
-
 class PrintJob {
 
 public:

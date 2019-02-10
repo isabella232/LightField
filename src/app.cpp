@@ -1,4 +1,4 @@
-#include <QtDebug>
+#include "pch.h"
 
 #include "app.h"
 

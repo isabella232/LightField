@@ -1,8 +1,4 @@
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <cstdlib>
+#include "pch.h"
 
 #include "window.h"
 

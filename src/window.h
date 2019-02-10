@@ -1,26 +1,6 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <QtDebug>
-
-#include <QMainWindow>
-
-#include <QFileSystemModel>
-#include <QFormLayout>
-#include <QListView>
-#include <QGridLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QProcess>
-#include <QPushButton>
-#include <QSlider>
-#include <QString>
-#include <QStringListModel>
-#include <QTabWidget>
-#include <QVBoxLayout>
-#include <QWidget>
-
 #include "shepherd.h"
 #include "canvas.h"
 #include "loader.h"

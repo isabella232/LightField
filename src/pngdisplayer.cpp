@@ -1,6 +1,6 @@
-#include "pngdisplayer.h"
+#include "pch.h"
 
-#include <QPalette>
+#include "pngdisplayer.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     fprintf( stderr, "+ construct PngDisplayer at %p\n", this );

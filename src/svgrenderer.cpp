@@ -1,13 +1,4 @@
-#include <unistd.h>
-
-#include <cmath>
-
-#include <QDomElement>
-#include <QDomNode>
-#include <QDomNodeList>
-#include <QFile>
-#include <QString>
-#include <QTextStream>
+#include "pch.h"
 
 #include "svgrenderer.h"
 

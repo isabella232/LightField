@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "printmanager.h"
 
 #include "pngdisplayer.h"

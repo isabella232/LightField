@@ -1,8 +1,6 @@
 #ifndef __SHEPHERD_H__
 #define __SHEPHERD_H__
 
-#include <QProcess>
-
 enum class PendingCommand {
     none,
     move,

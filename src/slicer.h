@@ -1,8 +1,6 @@
 #ifndef __SLICER_H__
 #define __SLICER_H__
 
-#include <QProcess>
-
 class Slicer: public QObject {
 
     Q_OBJECT
