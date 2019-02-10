@@ -10,6 +10,7 @@
 #include <QListView>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QProcess>
 #include <QPushButton>
