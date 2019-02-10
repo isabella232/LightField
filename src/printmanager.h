@@ -21,6 +21,8 @@ public:
     void print( PrintJob* printJob );
     void terminate( );
 
+    void abortJob( );
+
 protected:
 
 private:
@@ -47,12 +49,14 @@ private:
     void _connectSetPowerProcess_step6( );
     void _disconnectSetPowerProcess_step6( );
 
-    void startNextLayer( );
+    void _startNextLayer( );
 
 signals:
 
-    void printComplete( bool success );
-    void startingLayer( int layer );
+    void printStarting( );
+    void startingLayer( int const layer );
+    void lampStatusChange( bool const on );
+    void printComplete( bool const success );
 
 public slots:
 

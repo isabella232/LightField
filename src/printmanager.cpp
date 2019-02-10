@@ -10,7 +10,7 @@
 // ✓ 1. Lift up
 // ✓ 2. Lift down
 // ✓ 3. Pause before projection
-// ✓ 4. Start projecting: setpower ${brightness}
+// ✓ 4. Start projecting: setpower ${powerLevel}
 // ✓ 5. Pause for layer time
 // ✓ 6. Stop projection: setpower 0
 // ✓ 7. Pause before lift
@@ -147,12 +147,20 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer->resize( { 1280, 800 } );
     _pngDisplayer->showFullScreen( );
 
+    emit printStarting( );
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
     _shepherd->doHome( );
 }
 
 void PrintManager::terminate( ) {
     fprintf( stderr, "+ PrintManager::terminate\n" );
+    _cleanUp( );
+}
+
+void PrintManager::abortJob( ) {
+    fprintf( stderr, "+ PrintManager::abortJob\n" );
+    // TODO abort command if possible
+    // TODO home printer
     _cleanUp( );
 }
 
@@ -167,12 +175,12 @@ void PrintManager::initialHomeComplete( bool success ) {
     }
     fprintf( stderr, "+ PrintManager::initialHomeComplete: action succeeded\n" );
 
-    startNextLayer( );
+    _startNextLayer( );
 }
 
-void PrintManager::startNextLayer( ) {
+void PrintManager::_startNextLayer( ) {
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
-    fprintf( stderr, "+ PrintManager::startNextLayer: moving %f\n", LiftDistance );
+    fprintf( stderr, "+ PrintManager::_startNextLayer: moving %f\n", LiftDistance );
     _shepherd->doMove( LiftDistance );
     emit startingLayer( _currentLayer );
 }
@@ -228,7 +236,7 @@ void PrintManager::step3_preProjectionTimerExpired( ) {
     _setPowerProcess = new QProcess( this );
     _setPowerProcess->setProgram( SetPowerCommand );
     _setPowerProcess->setArguments( QStringList {
-        QString( "%1" ).arg( _printJob->brightness )
+        QString( "%1" ).arg( _printJob->powerLevel )
     } );
     _connectSetPowerProcess_step4( );
     _setPowerProcess->start( );
@@ -263,6 +271,8 @@ void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     if ( exitStatus == QProcess::CrashExit ) {
         fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
     }
+
+    emit lampStatusChange( true );
 
     _layerProjectionTimer = new QTimer( this );
     _layerProjectionTimer->setInterval( _printJob->exposureTime * 1000.0 );
@@ -317,6 +327,8 @@ void PrintManager::step6_setPowerProcessFinished( int exitCode, QProcess::ExitSt
         fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
     }
 
+    emit lampStatusChange( false );
+
     _preLiftTimer = new QTimer( this );
     _preLiftTimer->setInterval( PauseBeforeLift );
     _preLiftTimer->setSingleShot( true );
@@ -337,7 +349,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
         fprintf( stderr, "+ PrintManager::step7_preLiftTimerExpired: moving %f\n", LiftDistance );
         _shepherd->doMove( LiftDistance );
     } else {
-        startNextLayer( );
+        _startNextLayer( );
     }
 }
 

@@ -13,7 +13,7 @@ public:
     int layerCount;
     int layerThickness;  // µm
     double exposureTime; // s
-    int brightness;      // 0..255
+    int powerLevel;      // 0..255
 
 };
 

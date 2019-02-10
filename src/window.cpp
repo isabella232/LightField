@@ -7,6 +7,7 @@
 #include "window.h"
 
 #include "printmanager.h"
+#include "signalhandler.h"
 #include "strings.h"
 
 namespace {
@@ -25,7 +26,6 @@ namespace {
     public:
         enum {
             Select,
-            Slice,
             Print,
             Progress
         };
@@ -35,10 +35,10 @@ namespace {
 
 }
 
-Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
+Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainWindow(parent) {
     QMargins emptyMargins { };
 
-    move( { 0, 800 } );
+    move( { 0, debuggingPosition ? 560 : 800 } );
     if ( fullScreen ) {
         showFullScreen( );
     } else {
@@ -53,6 +53,8 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QSurfaceFormat::setDefaultFormat( format );
 
     printJob = new PrintJob;
+
+    QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
     //
     // "Select" tab
@@ -121,26 +123,20 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
-    // "Slice" tab
+    // "Print" tab
     //
 
-    sliceProgressLabel = new QLabel( "Slicer status:" );
-    sliceProgress      = new QLabel( "Not slicing" );
+    sliceProgress  = new QLabel( "Not slicing" );
+    renderProgress = new QLabel( "Not rendering" );
 
-    renderProgressLabel = new QLabel( "Render status:" );
-    renderProgress      = new QLabel( "Not rendering" );
-
-    sliceProgressLayout = new QGridLayout;
+    sliceProgressLayout = new QFormLayout;
     sliceProgressLayout->setContentsMargins( emptyMargins );
-    sliceProgressLayout->addWidget( sliceProgressLabel,  0, 0, Qt::AlignTop );
-    sliceProgressLayout->addWidget( sliceProgress,       0, 1, Qt::AlignTop );
-    sliceProgressLayout->addWidget( renderProgressLabel, 1, 0, Qt::AlignTop );
-    sliceProgressLayout->addWidget( renderProgress,      1, 1, Qt::AlignTop );
+    sliceProgressLayout->addRow( "Slicer status:", sliceProgress  );
+    sliceProgressLayout->addRow( "Render status:", renderProgress );
 
-    slicePlaceholder = new QWidget;
-    slicePlaceholder->setMinimumSize( 600, 400 );
-    slicePlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    slicePlaceholder->setLayout( sliceProgressLayout );
+    sliceProgressContainer = new QWidget;
+    sliceProgressContainer->setLayout( sliceProgressLayout );
+    sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
     layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
 
@@ -160,57 +156,21 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     layerThicknessLabel = new QLabel( "Layer thickness:" );
     layerThicknessLabel->setBuddy( layerThicknessListView );
 
-    layerThicknessLayout = new QVBoxLayout;
-    layerThicknessLayout->setContentsMargins( emptyMargins );
-    layerThicknessLayout->addWidget( layerThicknessLabel );
-    layerThicknessLayout->addWidget( layerThicknessListView );
-    layerThicknessLayout->addStretch( );
+    exposureTime = new QLineEdit;
+    exposureTime->setAlignment( Qt::AlignRight );
+    exposureTime->setText( "1.0" );
+    exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
+    QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &Window::exposureTime_editingFinished );
 
-    layerThicknessContainer = new QWidget( );
-    layerThicknessContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    layerThicknessContainer->setLayout( layerThicknessLayout );
-
-    sliceButton = new QPushButton( "Slice" );
-    {
-        auto font { sliceButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        sliceButton->setFont( font );
-    }
-    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
-
-    sliceTabLayout = new QGridLayout;
-    sliceTabLayout->setContentsMargins( emptyMargins );
-    sliceTabLayout->addWidget( layerThicknessContainer, 0, 0, 1, 1 );
-    sliceTabLayout->addWidget( sliceButton,             1, 0, 1, 1 );
-    sliceTabLayout->addWidget( slicePlaceholder,        0, 1, 2, 1 );
-    sliceTabLayout->setRowStretch( 0, 4 );
-    sliceTabLayout->setRowStretch( 1, 1 );
-
-    sliceTab = new QWidget;
-    sliceTab->setContentsMargins( emptyMargins );
-    sliceTab->setLayout( sliceTabLayout );
-    sliceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
-    //
-    // "Print" tab
-    //
-
-    printLayerTime = new QLineEdit;
-    printLayerTime->setAlignment( Qt::AlignRight );
-    printLayerTime->setText( "1.0" );
-    printLayerTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
-    QObject::connect( printLayerTime, &QLineEdit::editingFinished, this, &Window::printLayerTime_editingFinished );
-
-    printLayerTimeLabel = new QLabel( "Exposure time:" );
-    printLayerTimeLabel->setBuddy( printLayerTime );
+    exposureTimeLabel = new QLabel( "Exposure time:" );
+    exposureTimeLabel->setBuddy( exposureTime );
 
     powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
     powerLevelSlider->setMinimum( 20 );
     powerLevelSlider->setMaximum( 100 );
     powerLevelSlider->setValue( 50 );
-    printJob->brightness = 127;
+    printJob->powerLevel = 127;
     QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
 
     powerLevelLabel = new QLabel( "Projector power level:" );
@@ -229,18 +189,30 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     powerLevelSliderLabelsContainer = new QWidget( );
     powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
 
-    printOptionsLayout = new QVBoxLayout;
-    printOptionsLayout->setContentsMargins( emptyMargins );
-    printOptionsLayout->addWidget( printLayerTimeLabel );
-    printOptionsLayout->addWidget( printLayerTime );
-    printOptionsLayout->addWidget( powerLevelLabel );
-    printOptionsLayout->addWidget( powerLevelSlider );
-    printOptionsLayout->addWidget( powerLevelSliderLabelsContainer );
-    printOptionsLayout->addStretch( );
+    optionsLayout = new QVBoxLayout;
+    optionsLayout->setContentsMargins( emptyMargins );
+    optionsLayout->addWidget( layerThicknessLabel );
+    optionsLayout->addWidget( layerThicknessListView );
+    optionsLayout->addWidget( exposureTimeLabel );
+    optionsLayout->addWidget( exposureTime );
+    optionsLayout->addWidget( powerLevelLabel );
+    optionsLayout->addWidget( powerLevelSlider );
+    optionsLayout->addWidget( powerLevelSliderLabelsContainer );
+    optionsLayout->addStretch( );
 
-    printOptionsContainer = new QWidget( );
-    printOptionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printOptionsContainer->setLayout( printOptionsLayout );
+    optionsContainer = new QWidget( );
+    optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    optionsContainer->setLayout( optionsLayout );
+
+    sliceButton = new QPushButton( "Slice" );
+    {
+        auto font { sliceButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        sliceButton->setFont( font );
+    }
+    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    sliceButton->setEnabled( false );
+    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
 
     printButton = new QPushButton( "Print" );
     {
@@ -249,19 +221,41 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
         printButton->setFont( font );
     }
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
-    printPlaceholder = new QWidget;
-    printPlaceholder->setMinimumSize( 600, 400 );
-    printPlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceLabel = new QLabel( "Current slice:" );
+    currentSliceDisplay = new QLabel;
+    currentSliceLabel->setBuddy( currentSliceDisplay );
+    currentSliceDisplay->setAlignment( Qt::AlignCenter );
+    {
+        auto pal = currentSliceDisplay->palette( );
+        pal.setColor( QPalette::Background, Qt::black );
+        currentSliceDisplay->setPalette( pal );
+    }
+
+    currentSliceLayout = new QVBoxLayout;
+    currentSliceLayout->setContentsMargins( emptyMargins );
+    currentSliceLayout->addWidget( sliceProgressContainer );
+    currentSliceLayout->addWidget( currentSliceLabel );
+    currentSliceLayout->addWidget( currentSliceDisplay );
+    currentSliceLayout->addStretch( );
+
+    currentSliceContainer = new QWidget;
+    currentSliceContainer->setContentsMargins( emptyMargins );
+    currentSliceContainer->setLayout( currentSliceLayout );
+    currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceContainer->setMinimumSize( 600, 400 );
 
     printTabLayout = new QGridLayout;
     printTabLayout->setContentsMargins( emptyMargins );
-    printTabLayout->addWidget( printOptionsContainer, 0, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,           1, 0, 1, 1 );
-    printTabLayout->addWidget( printPlaceholder,      0, 1, 2, 1 );
-    printTabLayout->setRowStretch( 0, 4 );
+    printTabLayout->addWidget( optionsContainer,      0, 0, 1, 1 );
+    printTabLayout->addWidget( sliceButton,           1, 0, 1, 1 );
+    printTabLayout->addWidget( printButton,           2, 0, 1, 1 );
+    printTabLayout->addWidget( currentSliceContainer, 0, 1, 3, 1 );
+    printTabLayout->setRowStretch( 0, 3 );
     printTabLayout->setRowStretch( 1, 1 );
+    printTabLayout->setRowStretch( 2, 1 );
 
     printTab = new QWidget;
     printTab->setContentsMargins( emptyMargins );
@@ -272,20 +266,95 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     // "Progress" tab
     //
 
-    progressPlaceholder = new QWidget;
-    progressPlaceholder->setMinimumSize( 600, 400 );
-    progressPlaceholder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printerStateLabel   = new QLabel( "Printer status:" );
+    printerStateDisplay = new QLabel( "Offline" );
+    printerStateLabel->setBuddy( printerStateDisplay );
+    printerStateDisplay->setFrameShadow( QFrame::Sunken );
+    printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
-    progressTabLayout = new QGridLayout;
-    progressTabLayout->setContentsMargins( emptyMargins );
-    progressTabLayout->addWidget( progressPlaceholder, 0, 1, 2, 1 );
-    progressTabLayout->setRowStretch( 0, 4 );
-    progressTabLayout->setRowStretch( 1, 1 );
+    projectorLampStateLabel   = new QLabel( "Projector lamp status:" );
+    projectorLampStateDisplay = new QLabel( "Off" );
+    projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
+    projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
+    projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
-    progressTab = new QWidget;
-    progressTab->setContentsMargins( emptyMargins );
-    progressTab->setLayout( progressTabLayout );
-    progressTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    jobStateLabel   = new QLabel( "Job status:" );
+    jobStateDisplay = new QLabel( "Not printing" );
+    jobStateLabel->setBuddy( jobStateDisplay );
+    jobStateDisplay->setFrameShadow( QFrame::Sunken );
+    jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
+
+    currentLayerLabel   = new QLabel( "Printer status:" );
+    currentLayerDisplay = new QLabel( "Offline" );
+    currentLayerLabel->setBuddy( currentLayerDisplay );
+    currentLayerDisplay->setFrameShadow( QFrame::Sunken );
+    currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
+
+    progressControlsLayout = new QVBoxLayout;
+    progressControlsLayout->setContentsMargins( emptyMargins );
+    progressControlsLayout->addWidget( printerStateLabel );
+    progressControlsLayout->addWidget( printerStateDisplay );
+    progressControlsLayout->addWidget( projectorLampStateLabel );
+    progressControlsLayout->addWidget( projectorLampStateDisplay );
+    progressControlsLayout->addWidget( jobStateLabel );
+    progressControlsLayout->addWidget( jobStateDisplay );
+    progressControlsLayout->addWidget( currentLayerLabel );
+    progressControlsLayout->addWidget( currentLayerDisplay );
+    progressControlsLayout->addStretch( );
+
+    progressControlsContainer = new QWidget;
+    progressControlsContainer->setContentsMargins( emptyMargins );
+    progressControlsContainer->setLayout( progressControlsLayout );
+    progressControlsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    currentLayerImageLabel = new QLabel( "Current layer:" );
+    currentLayerImageDisplay = new QLabel;
+    currentLayerImageLabel->setBuddy( currentLayerImageDisplay );
+    currentLayerImageDisplay->setAlignment( Qt::AlignCenter );
+    currentLayerImageDisplay->setMaximumSize( 600, 400 );
+    {
+        auto pal = currentLayerImageDisplay->palette( );
+        pal.setColor( QPalette::Background, Qt::black );
+        currentLayerImageDisplay->setPalette( pal );
+
+        auto pixmap = QPixmap( QString( StlModelLibraryPath + QString( "/makerook_imgs/000.png" ) ) );
+        currentLayerImageDisplay->setPixmap( pixmap );
+    }
+
+    currentLayerImageLayout = new QVBoxLayout;
+    currentLayerImageLayout->setContentsMargins( emptyMargins );
+    currentLayerImageLayout->addWidget( currentLayerImageLabel );
+    currentLayerImageLayout->addWidget( currentLayerImageDisplay );
+    currentLayerImageLayout->addStretch( );
+
+    currentLayerImageContainer = new QWidget;
+    currentLayerImageContainer->setContentsMargins( emptyMargins );
+    currentLayerImageContainer->setLayout( currentLayerImageLayout );
+    currentLayerImageContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentLayerImageContainer->setMinimumSize( 600, 400 );
+
+    stopButton = new QPushButton( "STOP" );
+    {
+        auto font { stopButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        stopButton->setFont( font );
+    }
+    stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    stopButton->setEnabled( false );
+    QObject::connect( stopButton, &QPushButton::clicked, this, &Window::stopButton_clicked );
+
+    statusTabLayout = new QGridLayout;
+    statusTabLayout->setContentsMargins( emptyMargins );
+    statusTabLayout->addWidget( progressControlsContainer,  0, 0, 1, 1 );
+    statusTabLayout->addWidget( stopButton,                 1, 0, 1, 1 );
+    statusTabLayout->addWidget( currentLayerImageContainer, 0, 1, 2, 1 );
+    statusTabLayout->setRowStretch( 0, 4 );
+    statusTabLayout->setRowStretch( 1, 1 );
+
+    statusTab = new QWidget;
+    statusTab->setContentsMargins( emptyMargins );
+    statusTab->setLayout( statusTabLayout );
+    statusTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // Tab widget
@@ -293,10 +362,9 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
 
     tabs = new QTabWidget;
     tabs->setContentsMargins( emptyMargins );
-    tabs->addTab( selectTab,   "Select"   );
-    tabs->addTab( sliceTab,    "Slice"    );
-    tabs->addTab( printTab,    "Print"    );
-    tabs->addTab( progressTab, "Progress" );
+    tabs->addTab( selectTab, "Select" );
+    tabs->addTab( printTab,  "Print"  );
+    tabs->addTab( statusTab, "Status" );
     tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
@@ -305,17 +373,15 @@ Window::Window(bool fullScreen, QWidget *parent): QMainWindow(parent) {
     QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
     QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
     QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
-
     QObject::connect( shepherd, &Shepherd::printer_Online,                this, &Window::printer_Online                );
     QObject::connect( shepherd, &Shepherd::printer_Offline,               this, &Window::printer_Offline               );
-    QObject::connect( shepherd, &Shepherd::printer_Position,              this, &Window::printer_Position              );
-    QObject::connect( shepherd, &Shepherd::printer_Temperature,           this, &Window::printer_Temperature           );
-
-    QObject::connect( shepherd, &Shepherd::printProcess_ShowImage,        this, &Window::printProcess_ShowImage        );
-    QObject::connect( shepherd, &Shepherd::printProcess_HideImage,        this, &Window::printProcess_HideImage        );
-    QObject::connect( shepherd, &Shepherd::printProcess_StartedPrinting,  this, &Window::printProcess_StartedPrinting  );
-    QObject::connect( shepherd, &Shepherd::printProcess_FinishedPrinting, this, &Window::printProcess_FinishedPrinting );
     shepherd->start( );
+}
+
+Window::~Window( ) {
+    if ( g_signalHandler ) {
+        QObject::disconnect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
+    }
 }
 
 void Window::shepherd_Started( ) {
@@ -332,34 +398,14 @@ void Window::shepherd_ProcessError( QProcess::ProcessError error ) {
 
 void Window::printer_Online( ) {
     fprintf( stderr, "+ Window::printer_Online\n" );
+    isPrinterOnline = true;
+    printerStateDisplay->setText( "Online" );
 }
 
 void Window::printer_Offline( ) {
     fprintf( stderr, "+ Window::printer_Offline\n" );
-}
-
-void Window::printer_Position( float position ) {
-    fprintf( stderr, "+ Window::printer_Position: position: %f\n", position );
-}
-
-void Window::printer_Temperature( QString const& temperatureInfo ) {
-    fprintf( stderr, "+ Window::printer_Temperature: temperatureInfo: '%s'\n", temperatureInfo.toUtf8( ).data( ) );
-}
-
-void Window::printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total ) {
-    fprintf( stderr, "+ Window::printProcess_ShowImage: fileName '%s', brightness %s, index %s, total %s\n", fileName.toUtf8( ).data( ), brightness.toUtf8( ).data( ), index.toUtf8( ).data( ), total.toUtf8( ).data( ) );
-}
-
-void Window::printProcess_HideImage( ) {
-    fprintf( stderr, "+ Window::printProcess_HideImage\n" );
-}
-
-void Window::printProcess_StartedPrinting( ) {
-    fprintf( stderr, "+ Window::printProcess_StartedPrinting\n" );
-}
-
-void Window::printProcess_FinishedPrinting( ) {
-    fprintf( stderr, "+ Window::printProcess_FinishedPrinting\n" );
+    isPrinterOnline = false;
+    printerStateDisplay->setText( "Offline" );
 }
 
 void Window::loader_ErrorBadStl()
@@ -368,6 +414,9 @@ void Window::loader_ErrorBadStl()
                           "<b>Error:</b><br>"
                           "This <code>.stl</code> file is invalid or corrupted.<br>"
                           "Please export it from the original source, verify, and retry.");
+    selectButton->setEnabled( false );
+    sliceButton->setEnabled( false );
+    printButton->setEnabled( false );
 }
 
 void Window::loader_ErrorEmptyMesh()
@@ -375,6 +424,9 @@ void Window::loader_ErrorEmptyMesh()
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "This file is syntactically correct<br>but contains no triangles.");
+    selectButton->setEnabled( false );
+    sliceButton->setEnabled( false );
+    printButton->setEnabled( false );
 }
 
 void Window::loader_ErrorMissingFile()
@@ -382,6 +434,9 @@ void Window::loader_ErrorMissingFile()
     QMessageBox::critical(this, "Error",
                           "<b>Error:</b><br>"
                           "The target file is missing.<br>");
+    selectButton->setEnabled( false );
+    sliceButton->setEnabled( false );
+    printButton->setEnabled( false );
 }
 
 void Window::loader_Finished( ) {
@@ -404,49 +459,10 @@ void Window::closeEvent( QCloseEvent* event ) {
     event->accept( );
 }
 
-#if defined DO_PRINT_JOB_AT_STARTUP
-void Window::showEvent( QShowEvent* event ) {
-    fprintf( stderr, "+ Window::showEvent\n" );
-    if ( !hasBeenShown ) {
-        PrintJob* printJob = new PrintJob;
-        printJob->modelFileName     = "/home/lumen/Volumetric/model-library/makerook.stl";
-        printJob->slicedSvgFileName = "";
-        printJob->pngFilesPath      = "/home/lumen/Volumetric/model-library/makerook_imgs";
-        printJob->layerCount        = 238;
-        printJob->layerThickness    = 100;
-        printJob->exposureTime      = 1.0;
-        printJob->brightness        = 127;
-
-        printManager = new PrintManager( shepherd, this );
-        printManager->print( printJob );
-    }
-    event->accept( );
-}
-#endif // _DEBUG
-
-void Window::tabs_currentChanged( int index ) {
-    fprintf( stderr, "+ Window::tabs_currentChanged: index: %d\n", index );
-}
-
-void Window::tabs_tabBarClicked( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabBarClicked: index: %d\n", index );
-}
-
-void Window::tabs_tabBarDoubleClicked( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabBarDoubleClicked: index: %d\n", index );
-}
-
-void Window::tabs_tabCloseRequested( int index ) {
-    fprintf( stderr, "+ Window::tabs_tabCloseRequested: index: %d\n", index );
-}
-
 void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
     fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     fileSystemModel->sort( 0, Qt::AscendingOrder );
-
-    auto index = fileSystemModel->index( StlModelLibraryPath );
-    fprintf( stderr, "  + fileSystemModel->rootIndex() %d,%d\n", index.row( ), index.column( ) );
-    availableFilesListView->setRootIndex( index );
+    availableFilesListView->setRootIndex( fileSystemModel->index( StlModelLibraryPath ) );
 }
 
 void Window::fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName ) {
@@ -467,7 +483,9 @@ void Window::availableFilesListView_clicked( QModelIndex const& index ) {
 
 void Window::selectButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::selectButton_clicked\n" );
-    tabs->setCurrentIndex( TabIndex::Slice );
+    sliceButton->setEnabled( true );
+    printButton->setEnabled( false );
+    tabs->setCurrentIndex( TabIndex::Print );
 }
 
 void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
@@ -477,6 +495,8 @@ void Window::layerThicknessListView_clicked( QModelIndex const& index ) {
 
 void Window::sliceButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::sliceButton_clicked\n" );
+    sliceButton->setEnabled( false );
+    printButton->setEnabled( false );
 
     printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
     mkdir( printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
@@ -517,20 +537,20 @@ void Window::sliceButton_clicked( bool /*checked*/ ) {
     slicerProcess->start( );
 }
 
-void Window::printLayerTime_editingFinished( ) {
+void Window::exposureTime_editingFinished( ) {
     bool valueOk = false;
-    double value = printLayerTime->validator( )->locale( ).toDouble( printLayerTime->text( ), &valueOk );
+    double value = exposureTime->validator( )->locale( ).toDouble( exposureTime->text( ), &valueOk );
     if ( valueOk ) {
-        fprintf( stderr, "+ Window::printLayerTime_editingFinished: new value %f\n", value );
+        fprintf( stderr, "+ Window::exposureTime_editingFinished: new value %f\n", value );
         printJob->exposureTime = value;
     } else {
-        fprintf( stderr, "+ Window::printLayerTime_editingFinished: bad value\n" );
+        fprintf( stderr, "+ Window::exposureTime_editingFinished: bad value\n" );
     }
 }
 
 void Window::powerLevelSlider_valueChanged( int value ) {
     fprintf( stderr, "+ Window::powerLevelSlider_valueChanged: value %d%%\n", value );
-    printJob->brightness = value * 255 / 100;
+    printJob->powerLevel = value * 255 / 100;
 }
 
 void Window::printButton_clicked( bool /*checked*/ ) {
@@ -545,7 +565,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
         "    + layerCount:        %d\n"
         "    + layerThickness:    %d\n"
         "    + exposureTime:      %f\n"
-        "    + brightness:        %d\n"
+        "    + powerLevel:        %d\n"
         "",
         printJob->modelFileName.toUtf8( ).data( ),
         printJob->slicedSvgFileName.toUtf8( ).data( ),
@@ -553,7 +573,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
         printJob->layerCount,
         printJob->layerThickness,
         printJob->exposureTime,
-        printJob->brightness
+        printJob->powerLevel
     );
 
     PrintJob* newJob = new PrintJob;
@@ -563,6 +583,27 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = newJob;
+}
+
+void Window::stopButton_clicked( bool /*checked*/ ) {
+    printManager->abortJob( );
+}
+
+void Window::printManager_printStarting( ) {
+    jobStateDisplay->setText( "Print started" );
+}
+
+void Window::printManager_printingLayer( int const layer ) {
+    currentLayerDisplay->setText( QString( "%1" ).arg( layer ) );
+    currentLayerImageDisplay->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) ) );
+}
+
+void Window::printManager_lampStatusChange( bool const on ) {
+    projectorLampStateDisplay->setText( on ? QString( "On" ) : QString( "Off" ) );
+}
+
+void Window::printManager_printComplete( bool const success ) {
+    jobStateDisplay->setText( success ? "Print complete" : "Print failed" );
 }
 
 void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -598,6 +639,7 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
 
     if ( exitStatus == QProcess::CrashExit ) {
         fprintf( stderr, "  + slicer process crashed?\n" );
+        sliceProgress->setText( "Slicer crashed" );
         return;
     }
 
@@ -610,7 +652,14 @@ void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatu
 }
 
 void Window::svgRenderer_progress( int const currentLayer ) {
-    renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+    if ( 0 == ( currentLayer % 5 ) ) {
+        renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+        if ( currentLayer > 0 ) {
+            auto pngFileName = QString( "%1/%2.png" ).arg( printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
+            auto pixMap = QPixmap( pngFileName );
+            currentSliceDisplay->setPixmap( pixMap );
+        }
+    }
 }
 
 void Window::svgRenderer_done( int const totalLayers ) {
@@ -618,14 +667,19 @@ void Window::svgRenderer_done( int const totalLayers ) {
         renderProgress->setText( QString( "Rendering failed" ) );
     } else {
         renderProgress->setText( QString( "Rendering complete" ) );
-        tabs->setCurrentIndex( +TabIndex::Print );
         printJob->layerCount = totalLayers;
+        printButton->setEnabled( true );
     }
 
     QObject::disconnect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
     QObject::disconnect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
     delete svgRenderer;
     svgRenderer = nullptr;
+}
+
+void Window::signalHandler_quit( int signalNumber ) {
+    fprintf( stderr, "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
+    close( );
 }
 
 bool Window::load_stl( QString const& filename ) {
@@ -646,7 +700,6 @@ bool Window::load_stl( QString const& filename ) {
     connect(loader, &Loader::finished,           this,   &Window::loader_Finished);
 
     if (filename[0] != ':') {
-        connect(loader, &Loader::loaded_file,    this,   &Window::setWindowTitle);
         connect(loader, &Loader::loaded_file,    this,   &Window::loader_LoadedFile);
     }
 
