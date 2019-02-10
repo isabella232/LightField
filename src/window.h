@@ -51,10 +51,11 @@ private:
     QFormLayout*      sliceProgressLayout;
     QWidget*          sliceProgressContainer;
     QLabel*           layerThicknessLabel;
-    QStringListModel* layerThicknessStringListModel;
     QComboBox*        layerThicknessComboBox;
     QLabel*           exposureTimeLabel;
     QLineEdit*        exposureTime;
+    QLabel*           exposureScaleFactorLabel;
+    QComboBox*        exposureScaleFactorComboBox;
     QLabel*           powerLevelLabel;
     QLabel*           powerLevelValue;
     QHBoxLayout*      powerLevelValueLayout;
@@ -124,6 +125,7 @@ private slots:
 
     void layerThicknessComboBox_currentIndexChanged( int index );
     void exposureTime_editingFinished( );
+    void exposureScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelSlider_valueChanged( int value );
     void sliceButton_clicked( bool checked );
     void printButton_clicked( bool checked );

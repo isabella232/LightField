@@ -10,13 +10,11 @@ namespace {
 
     QString StlModelLibraryPath { "/home/lumen/Volumetric/model-library" };
 
-    QStringList LayerThicknessStringList {
-        "50 µm",
-        "100 µm",
-        "200 µm",
-    };
-
+    QStringList LayerThicknessStringList { "50 µm", "100 µm", "200 µm", };
     int LayerThicknessValues[] { 50, 100, 200 };
+
+    QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
+    int ExposureScaleFactorValues[] { 1, 2, 3, 4, 5 };
 
     class TabIndex {
     public:
@@ -134,12 +132,10 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     sliceProgressContainer->setLayout( sliceProgressLayout );
     sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
-    layerThicknessStringListModel = new QStringListModel( LayerThicknessStringList );
-
     layerThicknessComboBox = new QComboBox;
     layerThicknessComboBox->setEditable( false );
     layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
-    layerThicknessComboBox->setModel( layerThicknessStringListModel );
+    layerThicknessComboBox->addItems( LayerThicknessStringList );
     layerThicknessComboBox->setCurrentIndex( 1 );
     printJob->layerThickness = 100;
     QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::layerThicknessComboBox_currentIndexChanged );
@@ -155,6 +151,16 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     exposureTimeLabel = new QLabel( "Exposure time:" );
     exposureTimeLabel->setBuddy( exposureTime );
+
+    exposureScaleFactorComboBox = new QComboBox;
+    exposureScaleFactorComboBox->setEditable( false );
+    exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
+    exposureScaleFactorComboBox->addItems( ExposureScaleFactorStringList );
+    printJob->exposureTimeScaleFactor = 1;
+    QObject::connect( exposureScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::exposureScaleFactorComboBox_currentIndexChanged );
+
+    exposureScaleFactorLabel = new QLabel( "First layers time scale factor:" );
+    exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
 
     powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
@@ -199,6 +205,8 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     optionsLayout->addWidget( layerThicknessComboBox );
     optionsLayout->addWidget( exposureTimeLabel );
     optionsLayout->addWidget( exposureTime );
+    optionsLayout->addWidget( exposureScaleFactorLabel );
+    optionsLayout->addWidget( exposureScaleFactorComboBox );
     optionsLayout->addWidget( powerLevelValueContainer );
     optionsLayout->addWidget( powerLevelSlider );
     optionsLayout->addWidget( powerLevelSliderLabelsContainer );
@@ -547,6 +555,11 @@ void Window::exposureTime_editingFinished( ) {
     } else {
         fprintf( stderr, "+ Window::exposureTime_editingFinished: bad value\n" );
     }
+}
+
+void Window::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
+    fprintf( stderr, "+ Window::exposureScaleFactorComboBox_currentIndexChanged: new value: %d×\n", ExposureScaleFactorValues[index] );
+    printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
 }
 
 void Window::powerLevelSlider_valueChanged( int value ) {
