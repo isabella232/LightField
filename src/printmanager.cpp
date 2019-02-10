@@ -277,7 +277,11 @@ void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitSt
     emit lampStatusChange( true );
 
     _layerProjectionTimer = new QTimer( this );
-    _layerProjectionTimer->setInterval( _printJob->exposureTime * 1000.0 );
+    if ( _currentLayer < 2 ) {
+        _layerProjectionTimer->setInterval( _printJob->exposureTimeScaleFactor * _printJob->exposureTime * 1000.0 );
+    } else {
+        _layerProjectionTimer->setInterval( _printJob->exposureTime * 1000.0 );
+    }
     _layerProjectionTimer->setSingleShot( true );
     _layerProjectionTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _layerProjectionTimer, &QTimer::timeout, this, &PrintManager::step5_layerProjectionTimerExpired );
