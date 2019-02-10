@@ -87,9 +87,23 @@ private:
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
 
-    QWidget*          progressPlaceholder;
-    QWidget*          progressTab;
-    QGridLayout*      progressTabLayout;
+    QLabel*           printerStateLabel;
+    QLabel*           printerStateDisplay;
+    QLabel*           projectorLampStateLabel;
+    QLabel*           projectorLampStateDisplay;
+    QLabel*           jobStateLabel;
+    QLabel*           jobStateDisplay;
+    QLabel*           currentLayerLabel;
+    QLabel*           currentLayerDisplay;
+    QVBoxLayout*      progressControlsLayout;
+    QWidget*          progressControlsContainer;
+    QLabel*           currentLayerImageLabel;
+    QLabel*           currentLayerImageDisplay;
+    QVBoxLayout*      currentLayerImageLayout;
+    QWidget*          currentLayerImageContainer;
+    QPushButton*      stopButton;
+    QGridLayout*      statusTabLayout;
+    QWidget*          statusTab;
 
 signals:
 
@@ -126,8 +140,11 @@ private slots:
     void sliceButton_clicked( bool checked );
     void printButton_clicked( bool checked );
 
+    void stopButton_clicked( bool checked );
+
     void printManager_printStarting( );
     void printManager_printingLayer( int layer );
+    void printManager_lampStatusChange( bool const on );
     void printManager_printComplete( bool success );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
