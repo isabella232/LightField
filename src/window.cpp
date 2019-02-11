@@ -149,7 +149,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
     QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &Window::exposureTime_editingFinished );
 
-    exposureTimeLabel = new QLabel( "Exposure time:" );
+    exposureTimeLabel = new QLabel( "Exposure time (seconds):" );
     exposureTimeLabel->setBuddy( exposureTime );
 
     exposureScaleFactorComboBox = new QComboBox;
