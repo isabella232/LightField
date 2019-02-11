@@ -28,7 +28,6 @@ App::App( int& argc, char *argv[] ):
     g_signalHandler = new SignalHandler;
 
     window = new Window( fullScreen, debuggingPosition, nullptr );
-    window->load_stl( ":gl/BoundingBox.stl" );
     window->show( );
 }
 

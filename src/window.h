@@ -7,6 +7,10 @@
 #include "printmanager.h"
 #include "svgrenderer.h"
 #include "debug.h"
+#include "selecttab.h"
+#include "preparetab.h"
+#include "printtab.h"
+#include "statustab.h"
 
 class Window: public QMainWindow {
 
@@ -17,8 +21,6 @@ public:
     Window(bool fullScreen, bool debuggingPosition, QWidget* parent=0);
     virtual ~Window( ) override;
 
-    bool load_stl(const QString& filename);
-
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
@@ -26,7 +28,6 @@ protected:
 private:
 
     Shepherd*         shepherd      { nullptr };
-    Loader*           loader        { nullptr };
     PrintManager*     printManager  { nullptr };
     PrintJob*         printJob      { nullptr };
     QProcess*         slicerProcess { nullptr };
@@ -35,16 +36,10 @@ private:
     bool              isPrinterOnline { false };
 
     QTabWidget*       tabs;
-
-    Canvas*           canvas;
-    QLabel*           availableFilesLabel;
-    QFileSystemModel* fileSystemModel;
-    QListView*        availableFilesListView;
-    QGridLayout*      availableFilesLayout;
-    QWidget*          availableFilesContainer;
-    QPushButton*      selectButton;
-    QWidget*          selectTab;
-    QGridLayout*      selectTabLayout;
+    SelectTab*        selectTab;
+    //PrepareTab*     prepareTab;
+    //PrintTab*       printTab;
+    //StatusTab*      statusTab;
 
     QLabel*           sliceProgress;
     QLabel*           renderProgress;
@@ -109,19 +104,7 @@ private slots:
     void printer_Online( );
     void printer_Offline( );
 
-    void loader_ErrorBadStl();
-    void loader_ErrorEmptyMesh();
-    void loader_ErrorMissingFile();
-
-    void loader_Finished();
-    void loader_LoadedFile(QString const& filename);
-
-    void fileSystemModel_DirectoryLoaded( QString const& name );
-    void fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName );
-    void fileSystemModel_RootPathChanged( QString const& newPath );
-
-    void availableFilesListView_clicked( QModelIndex const& index );
-    void selectButton_clicked( bool checked );
+    void selectTab_modelLoadComplete( bool const success, QString const& fileName );
 
     void layerThicknessComboBox_currentIndexChanged( int index );
     void exposureTime_editingFinished( );

@@ -23,7 +23,11 @@ SOURCES += \
     ../src/pngdisplayer.cpp \
     ../src/svgrenderer.cpp \
     ../src/processrunner.cpp \
-    ../src/signalhandler.cpp
+    ../src/signalhandler.cpp \
+    ../src/selecttab.cpp \
+    ../src/preparetab.cpp \
+    ../src/printtab.cpp \
+    ../src/statustab.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -42,7 +46,11 @@ HEADERS  += \
     ../src/svgrenderer.h \
     ../src/processrunner.h \
     ../src/signalhandler.h \
-    ../src/debug.h
+    ../src/debug.h \
+    ../src/selecttab.h \
+    ../src/preparetab.h \
+    ../src/printtab.h \
+    ../src/statustab.h
 
 CONFIG += c++11
 CONFIG += precompile_header

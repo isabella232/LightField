@@ -20,8 +20,9 @@ namespace {
     public:
         enum {
             Select,
+            Prepare,
             Print,
-            Progress
+            Status,
         };
     };
 
@@ -39,13 +40,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         setFixedSize( 800, 480 );
     }
 
-    QSurfaceFormat format;
-    format.setDepthBufferSize( 24 );
-    format.setStencilBufferSize( 8 );
-    format.setVersion( 2, 1 );
-    format.setProfile( QSurfaceFormat::CoreProfile );
-    QSurfaceFormat::setDefaultFormat( format );
-
     printJob = new PrintJob;
 
     QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
@@ -54,67 +48,10 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Select" tab
     //
 
-    fileSystemModel = new QFileSystemModel;
-    fileSystemModel->setFilter( QDir::Files );
-    fileSystemModel->setNameFilterDisables( false );
-    fileSystemModel->setNameFilters( {
-        {
-            "*.stl",
-        }
-    } );
-    fileSystemModel->setRootPath( StlModelLibraryPath );
-    QObject::connect( fileSystemModel, &QFileSystemModel::directoryLoaded, this, &Window::fileSystemModel_DirectoryLoaded );
-    QObject::connect( fileSystemModel, &QFileSystemModel::fileRenamed,     this, &Window::fileSystemModel_FileRenamed     );
-    QObject::connect( fileSystemModel, &QFileSystemModel::rootPathChanged, this, &Window::fileSystemModel_RootPathChanged );
-
-    availableFilesListView = new QListView;
-    availableFilesListView->setFlow( QListView::TopToBottom );
-    availableFilesListView->setLayoutMode( QListView::SinglePass );
-    availableFilesListView->setMovement( QListView::Static );
-    availableFilesListView->setResizeMode( QListView::Fixed );
-    availableFilesListView->setViewMode( QListView::ListMode );
-    availableFilesListView->setWrapping( true );
-    availableFilesListView->setModel( fileSystemModel );
-    QObject::connect( availableFilesListView, &QListView::clicked, this, &Window::availableFilesListView_clicked );
-
-    availableFilesLabel = new QLabel( "Available files:" );
-    availableFilesLabel->setBuddy( availableFilesListView );
-
-    availableFilesLayout = new QGridLayout;
-    availableFilesLayout->setContentsMargins( emptyMargins );
-    availableFilesLayout->addWidget( availableFilesLabel,    0, 0 );
-    availableFilesLayout->addWidget( availableFilesListView, 1, 0 );
-
-    availableFilesContainer = new QWidget( );
-    availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    availableFilesContainer->setLayout( availableFilesLayout );
-
-    selectButton = new QPushButton( "Select" );
-    {
-        auto font { selectButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        selectButton->setFont( font );
-    }
-    selectButton->setEnabled( false );
-    selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    QObject::connect( selectButton, &QPushButton::clicked, this, &Window::selectButton_clicked );
-
-    canvas = new Canvas( format, this );
-    canvas->setMinimumSize( 600, 400 );
-    canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
-    selectTabLayout = new QGridLayout;
-    selectTabLayout->setContentsMargins( emptyMargins );
-    selectTabLayout->addWidget( availableFilesContainer, 0, 0, 1, 1 );
-    selectTabLayout->addWidget( selectButton,            1, 0, 1, 1 );
-    selectTabLayout->addWidget( canvas,                  0, 1, 2, 1 );
-    selectTabLayout->setRowStretch( 0, 4 );
-    selectTabLayout->setRowStretch( 1, 1 );
-
-    selectTab = new QWidget;
+    selectTab = new SelectTab;
     selectTab->setContentsMargins( emptyMargins );
-    selectTab->setLayout( selectTabLayout );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect( selectTab, &SelectTab::modelLoadComplete, this, &Window::selectTab_modelLoadComplete );
 
     //
     // "Print" tab
@@ -277,7 +214,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
-    // "Progress" tab
+    // "Status" tab
     //
 
     printerStateLabel   = new QLabel( "Printer status:" );
@@ -395,6 +332,15 @@ Window::~Window( ) {
     }
 }
 
+void Window::closeEvent( QCloseEvent* event ) {
+    fprintf( stderr, "+ Window::closeEvent\n" );
+    if ( printManager ) {
+        printManager->terminate( );
+    }
+    shepherd->doTerminate( );
+    event->accept( );
+}
+
 void Window::shepherd_Started( ) {
     fprintf( stderr, "+ Window::shepherd_Started\n" );
 }
@@ -419,84 +365,13 @@ void Window::printer_Offline( ) {
     printerStateDisplay->setText( "Offline" );
 }
 
-void Window::loader_ErrorBadStl()
-{
-    QMessageBox::critical(this, "Error",
-                          "<b>Error:</b><br>"
-                          "This <code>.stl</code> file is invalid or corrupted.<br>"
-                          "Please export it from the original source, verify, and retry.");
-    selectButton->setEnabled( false );
-    sliceButton->setEnabled( false );
-    printButton->setEnabled( false );
-}
-
-void Window::loader_ErrorEmptyMesh()
-{
-    QMessageBox::critical(this, "Error",
-                          "<b>Error:</b><br>"
-                          "This file is syntactically correct<br>but contains no triangles.");
-    selectButton->setEnabled( false );
-    sliceButton->setEnabled( false );
-    printButton->setEnabled( false );
-}
-
-void Window::loader_ErrorMissingFile()
-{
-    QMessageBox::critical(this, "Error",
-                          "<b>Error:</b><br>"
-                          "The target file is missing.<br>");
-    selectButton->setEnabled( false );
-    sliceButton->setEnabled( false );
-    printButton->setEnabled( false );
-}
-
-void Window::loader_Finished( ) {
-    loader = nullptr;
-}
-
-void Window::loader_LoadedFile(const QString& filename)
-{
-    fprintf( stderr, "+ Window::loader_LoadedFile: filename: '%s'\n", filename.toUtf8( ).data( ) );
-    printJob->modelFileName = filename;
-    selectButton->setEnabled( true );
-}
-
-void Window::closeEvent( QCloseEvent* event ) {
-    fprintf( stderr, "+ Window::closeEvent\n" );
-    if ( printManager ) {
-        printManager->terminate( );
+void Window::selectTab_modelLoadComplete( bool const success, QString const& fileName ) {
+    fprintf( stderr, "+ Window::selectTab_modelLoadComplete: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
+    sliceButton->setEnabled( success );
+    printButton->setEnabled( !success );
+    if ( success ) {
+        tabs->setCurrentIndex( TabIndex::Print );
     }
-    shepherd->doTerminate( );
-    event->accept( );
-}
-
-void Window::fileSystemModel_DirectoryLoaded( QString const& name ) {
-    fprintf( stderr, "+ Window::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
-    fileSystemModel->sort( 0, Qt::AscendingOrder );
-    availableFilesListView->setRootIndex( fileSystemModel->index( StlModelLibraryPath ) );
-}
-
-void Window::fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName ) {
-    fprintf( stderr, "+ Window::fileSystemModel_FileRenamed: path '%s', oldName '%s', newName '%s'\n", path.toUtf8( ).data( ), oldName.toUtf8( ).data( ), newName.toUtf8( ).data( ) );
-}
-
-void Window::fileSystemModel_RootPathChanged( QString const& newPath ) {
-    fprintf( stderr, "+ Window::fileSystemModel_RootPathChanged: newPath '%s'\n", newPath.toUtf8( ).data( ) );
-}
-
-void Window::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
-    fprintf( stderr, "+ Window::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), fileName.toUtf8( ).data( ) );
-    if ( !load_stl( fileName ) ) {
-        fprintf( stderr, "  + load_stl failed!\n" );
-    }
-}
-
-void Window::selectButton_clicked( bool /*checked*/ ) {
-    fprintf( stderr, "+ Window::selectButton_clicked\n" );
-    sliceButton->setEnabled( true );
-    printButton->setEnabled( false );
-    tabs->setCurrentIndex( TabIndex::Print );
 }
 
 void Window::layerThicknessComboBox_currentIndexChanged( int index ) {
@@ -572,7 +447,7 @@ void Window::powerLevelSlider_valueChanged( int value ) {
 
 void Window::printButton_clicked( bool /*checked*/ ) {
     fprintf( stderr, "+ Window::printButton_clicked\n" );
-    tabs->setCurrentIndex( TabIndex::Progress );
+    tabs->setCurrentIndex( TabIndex::Status );
 
     fprintf( stderr,
         "  + Print job:\n"
@@ -699,29 +574,4 @@ void Window::svgRenderer_done( int const totalLayers ) {
 void Window::signalHandler_quit( int signalNumber ) {
     fprintf( stderr, "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
     close( );
-}
-
-bool Window::load_stl( QString const& filename ) {
-    if (loader) {
-        fprintf( stderr, "+ Window::load_stl: loader object exists, not loading\n" );
-        return false;
-    }
-
-    canvas->set_status("Loading " + filename);
-
-    loader = new Loader(this, filename, false);
-    connect(loader, &Loader::got_mesh,           canvas, &Canvas::load_mesh);
-    connect(loader, &Loader::error_bad_stl,      this,   &Window::loader_ErrorBadStl);
-    connect(loader, &Loader::error_empty_mesh,   this,   &Window::loader_ErrorEmptyMesh);
-    connect(loader, &Loader::error_missing_file, this,   &Window::loader_ErrorMissingFile);
-    connect(loader, &Loader::finished,           loader, &Loader::deleteLater);
-    connect(loader, &Loader::finished,           canvas, &Canvas::clear_status);
-    connect(loader, &Loader::finished,           this,   &Window::loader_Finished);
-
-    if (filename[0] != ':') {
-        connect(loader, &Loader::loaded_file,    this,   &Window::loader_LoadedFile);
-    }
-
-    loader->start();
-    return true;
 }
