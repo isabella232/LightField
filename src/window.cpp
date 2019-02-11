@@ -175,6 +175,8 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     powerLevelValue = new QLabel( "50%" );
     powerLevelValue->setAlignment( Qt::AlignRight );
+    powerLevelValue->setFrameShadow( QFrame::Sunken );
+    powerLevelValue->setFrameStyle( QFrame::StyledPanel );
 
     powerLevelValueLayout = new QHBoxLayout( );
     powerLevelValueLayout->setContentsMargins( emptyMargins );
