@@ -37,4 +37,6 @@ private:
 
 };
 
+extern AppSettings g_settings;
+
 #endif // __APP_H__

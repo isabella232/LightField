@@ -9,11 +9,14 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <exception>
+#include <functional>
 #include <future>
+#include <map>
+#include <stdexcept>
 #include <vector>
 
 #include <QtCore>
-#include <QtDebug>
 #include <QtGui>
 #include <QtWidgets>
 #include <QtOpenGL>

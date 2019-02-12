@@ -16,7 +16,7 @@ class Window: public QMainWindow {
 
 public:
 
-    Window( AppSettings settings, QWidget* parent = nullptr );
+    Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
 
 protected:

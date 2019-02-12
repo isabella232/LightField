@@ -5,6 +5,15 @@
 #include "window.h"
 #include "signalhandler.h"
 
+AppSettings g_settings;
+
+std::map<std::string, std::function<void( )>> commandLineArgHandlers {
+    { std::string( "-f"      ), [] ( ) { g_settings.fullScreen        = false;        } },
+    { std::string( "-g"      ), [] ( ) { g_settings.debuggingPosition = true;         } },
+    { std::string( "--dark"  ), [] ( ) { g_settings.theme             = Theme::Dark;  } },
+    { std::string( "--light" ), [] ( ) { g_settings.theme             = Theme::Light; } },
+};
+
 App::App( int& argc, char *argv[] ):
     QApplication( argc, argv )
 {
@@ -12,27 +21,18 @@ App::App( int& argc, char *argv[] ):
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "fstl" );
 
-    AppSettings settings;
-    bool fullScreen = true;
-    bool debuggingPosition = false;
     for ( int n = 1; n < argc; ++n ) {
-        if ( 0 == strcmp( argv[n], "-f" ) ) {
-            settings.fullScreen = false;
-        } else if ( 0 == strcmp( argv[n], "-g" ) ) {
-            settings.debuggingPosition = true;
-        } else if ( 0 == strcmp( argv[n], "--dark" ) ) {
-            settings.theme = Theme::Dark;
-        } else if ( 0 == strcmp( argv[n], "--light" ) ) {
-            settings.theme = Theme::Light;
-        } else {
+        try {
+            commandLineArgHandlers.at( argv[n] )( );
+        }
+        catch ( std::out_of_range const& ) {
             fprintf( stderr, "ignoring unrecognized parameter '%s'\n", argv[n] );
         }
     }
 
-    qDebug( ).setVerbosity( 7 );
     g_signalHandler = new SignalHandler;
 
-    window = new Window( settings );
+    window = new Window( );
     window->show( );
 }
 

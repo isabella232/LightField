@@ -21,11 +21,11 @@ namespace {
 
 }
 
-Window::Window( AppSettings settings, QWidget *parent ): QMainWindow( parent ) {
+Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
-    move( { 0, settings.debuggingPosition ? 560 : 800 } );
-    if ( settings.fullScreen ) {
+    move( { 0, g_settings.debuggingPosition ? 560 : 800 } );
+    if ( g_settings.fullScreen ) {
         showFullScreen( );
     } else {
         setFixedSize( 800, 480 );
