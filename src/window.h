@@ -2,15 +2,15 @@
 #define WINDOW_H
 
 #include "shepherd.h"
-#include "canvas.h"
-#include "loader.h"
 #include "printmanager.h"
-#include "svgrenderer.h"
-#include "debug.h"
+#include "printjob.h"
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
 #include "statustab.h"
+#include "debug.h"
+#include "constants.h"
+#include "strings.h"
 
 class Window: public QMainWindow {
 
@@ -27,15 +27,15 @@ protected:
 
 private:
 
-    Shepherd*         shepherd     { nullptr };
-    PrintManager*     printManager { nullptr };
-    PrintJob*         printJob     { nullptr };
+    Shepherd*     shepherd     {                };
+    PrintManager* printManager {                };
+    PrintJob*     printJob     { new PrintJob   };
 
-    QTabWidget*       tabs;
-    SelectTab*        selectTab;
-    PrepareTab*       prepareTab;
-    PrintTab*         printTab;
-    StatusTab*        statusTab;
+    QTabWidget*   tabs         { new QTabWidget };
+    SelectTab*    selectTab    { new SelectTab  };
+    PrepareTab*   prepareTab   { new PrepareTab };
+    PrintTab*     printTab     { new PrintTab   };
+    StatusTab*    statusTab    { new StatusTab  };
 
 signals:
 

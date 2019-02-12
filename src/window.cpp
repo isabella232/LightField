@@ -22,7 +22,7 @@ namespace {
 }
 
 Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainWindow(parent) {
-    QMargins emptyMargins { };
+    QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
     move( { 0, debuggingPosition ? 560 : 800 } );
     if ( fullScreen ) {
@@ -31,16 +31,19 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
         setFixedSize( 800, 480 );
     }
 
-    printJob = new PrintJob;
-
-    QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
+    shepherd = new Shepherd( parent );
+    QObject::connect( shepherd, &Shepherd::shepherd_Started,      this,      &Window::shepherd_Started      );
+    QObject::connect( shepherd, &Shepherd::shepherd_Finished,     this,      &Window::shepherd_Finished     );
+    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError, this,      &Window::shepherd_ProcessError );
+    QObject::connect( shepherd, &Shepherd::printer_Online,        statusTab, &StatusTab::printer_Online     );
+    QObject::connect( shepherd, &Shepherd::printer_Offline,       statusTab, &StatusTab::printer_Offline    );
+    shepherd->start( );
 
     //
     // "Select" tab
     //
 
-    selectTab = new SelectTab;
-    selectTab->setContentsMargins( emptyMargins );
+    selectTab->setContentsMargins( { } );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     selectTab->setPrintJob( printJob );
     QObject::connect( selectTab, &SelectTab::modelSelected, this, &Window::selectTab_modelSelected );
@@ -50,8 +53,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Prepare" tab
     //
 
-    prepareTab = new PrepareTab;
-    prepareTab->setContentsMargins( emptyMargins );
+    prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     prepareTab->setPrintJob( printJob );
     QObject::connect( prepareTab, &PrepareTab::sliceStarting,  this, &Window::prepareTab_sliceStarting  );
@@ -64,8 +66,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Print" tab
     //
 
-    printTab = new PrintTab;
-    printTab->setContentsMargins( emptyMargins );
+    printTab->setContentsMargins( { } );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     printTab->setPrintJob( printJob );
     QObject::connect( printTab, &PrintTab::printButtonClicked, this, &Window::printTab_printButtonClicked );
@@ -75,17 +76,16 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Status" tab
     //
 
-    statusTab = new StatusTab;
-    statusTab->setContentsMargins( emptyMargins );
+    statusTab->setContentsMargins( { } );
     statusTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    statusTab->setPrintJob( printJob );
     QObject::connect( statusTab, &StatusTab::stopButtonClicked, this, &Window::statusTab_stopButtonClicked );
 
     //
     // Tab widget
     //
 
-    tabs = new QTabWidget;
-    tabs->setContentsMargins( emptyMargins );
+    tabs->setContentsMargins( { } );
     tabs->addTab( selectTab,  "Select"  );
     tabs->addTab( prepareTab, "Prepare" );
     tabs->addTab( printTab,   "Print"   );
@@ -93,14 +93,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
-
-    shepherd = new Shepherd( parent );
-    QObject::connect( shepherd, &Shepherd::shepherd_Started,      this,      &Window::shepherd_Started              );
-    QObject::connect( shepherd, &Shepherd::shepherd_Finished,     this,      &Window::shepherd_Finished             );
-    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError, this,      &Window::shepherd_ProcessError         );
-    QObject::connect( shepherd, &Shepherd::printer_Online,        statusTab, &StatusTab::printer_Online             );
-    QObject::connect( shepherd, &Shepherd::printer_Offline,       statusTab, &StatusTab::printer_Offline            );
-    shepherd->start( );
 }
 
 Window::~Window( ) {
@@ -134,12 +126,10 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     fprintf( stderr, "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
-        printTab->setPrintButtonEnabled( false );
         printJob->modelFileName = fileName;
         tabs->setCurrentIndex( TabIndex::Prepare );
     } else {
-        prepareTab->setSliceButtonEnabled( true );
-        printTab->setPrintButtonEnabled( false );
+        prepareTab->setSliceButtonEnabled( false );
     }
 }
 
@@ -150,7 +140,6 @@ void Window::prepareTab_sliceStarting( ) {
 void Window::prepareTab_sliceComplete( bool success ) {
     fprintf( stderr, "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
-        printTab->setPrintButtonEnabled( false );
         return;
     }
 }
@@ -162,7 +151,6 @@ void Window::prepareTab_renderStarting( ) {
 void Window::prepareTab_renderComplete( bool success ) {
     fprintf( stderr, "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
-        printTab->setPrintButtonEnabled( false );
         return;
     }
 

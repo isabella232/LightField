@@ -17,6 +17,15 @@ namespace {
 }
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
+    layerThicknessComboBox->setEditable( false );
+    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
+    layerThicknessComboBox->addItems( LayerThicknessStringList );
+    layerThicknessComboBox->setCurrentIndex( 1 );
+    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
+
+    layerThicknessLabel->setText( "Layer thickness:" );
+    layerThicknessLabel->setBuddy( layerThicknessComboBox );
+
     sliceProgressLabel->setText( "Slicer status:" );
     sliceProgress->setText( "Not slicing" );
     sliceProgress->setFrameShadow( QFrame::Sunken );
@@ -27,23 +36,14 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     renderProgress->setFrameShadow( QFrame::Sunken );
     renderProgress->setFrameStyle( QFrame::StyledPanel );
 
-    layerThicknessComboBox->setEditable( false );
-    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
-    layerThicknessComboBox->addItems( LayerThicknessStringList );
-    layerThicknessComboBox->setCurrentIndex( 1 );
-    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
-
-    layerThicknessLabel->setText( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessComboBox );
-
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
+    optionsLayout->addStretch( );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceProgress );
     optionsLayout->addWidget( renderProgressLabel );
     optionsLayout->addWidget( renderProgress );
-    optionsLayout->addStretch( );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
