@@ -141,10 +141,6 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
     slicerProcess->start( );
 }
 
-void PrepareTab::setPrintJob( PrintJob* printJob ) {
-    _printJob = printJob;
-}
-
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
     fprintf( stderr, "+ PrepareTab::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
@@ -220,4 +216,8 @@ void PrepareTab::svgRenderer_done( int const totalLayers ) {
     svgRenderer = nullptr;
 
     emit renderComplete( totalLayers != -1 );
+}
+
+void PrepareTab::setPrintJob( PrintJob* printJob ) {
+    _printJob = printJob;
 }

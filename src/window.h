@@ -27,36 +27,17 @@ protected:
 
 private:
 
-    Shepherd*         shepherd      { nullptr };
-    PrintManager*     printManager  { nullptr };
-    PrintJob*         printJob      { nullptr };
+    Shepherd*         shepherd        { nullptr };
+    PrintManager*     printManager    { nullptr };
+    PrintJob*         printJob        { nullptr };
 
-    bool              isPrinterOnline { false };
+    bool              isPrinterOnline { false   };
 
     QTabWidget*       tabs;
     SelectTab*        selectTab;
     PrepareTab*       prepareTab;
-    //PrintTab*       printTab;
+    PrintTab*         printTab;
     //StatusTab*      statusTab;
-
-    QLabel*           exposureTimeLabel;
-    QLineEdit*        exposureTime;
-    QLabel*           exposureScaleFactorLabel;
-    QComboBox*        exposureScaleFactorComboBox;
-    QLabel*           powerLevelLabel;
-    QLabel*           powerLevelValue;
-    QHBoxLayout*      powerLevelValueLayout;
-    QWidget*          powerLevelValueContainer;
-    QSlider*          powerLevelSlider;
-    QLabel*           powerLevelSliderLeftLabel;
-    QLabel*           powerLevelSliderRightLabel;
-    QHBoxLayout*      powerLevelSliderLabelsLayout;
-    QWidget*          powerLevelSliderLabelsContainer;
-    QVBoxLayout*      optionsLayout;
-    QWidget*          optionsContainer;
-    QPushButton*      printButton;
-    QWidget*          printTab;
-    QGridLayout*      printTabLayout;
 
     QLabel*           printerStateLabel;
     QLabel*           printerStateDisplay;
@@ -78,6 +59,8 @@ private:
 
 signals:
 
+    void printJobChanged( PrintJob* newJob );
+
 public slots:
 
 protected slots:
@@ -98,10 +81,7 @@ private slots:
     void prepareTab_renderStarting( );
     void prepareTab_renderComplete( bool success );
 
-    void exposureTime_editingFinished( );
-    void exposureScaleFactorComboBox_currentIndexChanged( int index );
-    void powerLevelSlider_valueChanged( int value );
-    void printButton_clicked( bool checked );
+    void printTab_printButtonClicked( );
 
     void stopButton_clicked( bool checked );
 

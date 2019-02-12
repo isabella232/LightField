@@ -9,9 +9,6 @@
 
 namespace {
 
-    QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
-    int ExposureScaleFactorValues[] { 1, 2, 3, 4, 5 };
-
     class TabIndex {
     public:
         enum {
@@ -47,6 +44,7 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     selectTab->setPrintJob( printJob );
     QObject::connect( selectTab, &SelectTab::modelSelected, this, &Window::selectTab_modelSelected );
+    QObject::connect( this, &Window::printJobChanged, selectTab, &SelectTab::setPrintJob );
 
     //
     // "Prepare" tab
@@ -60,105 +58,18 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this, &Window::prepareTab_sliceComplete  );
     QObject::connect( prepareTab, &PrepareTab::renderStarting, this, &Window::prepareTab_renderStarting );
     QObject::connect( prepareTab, &PrepareTab::renderComplete, this, &Window::prepareTab_renderComplete );
+    QObject::connect( this, &Window::printJobChanged, prepareTab, &PrepareTab::setPrintJob );
 
     //
     // "Print" tab
     //
 
-    exposureTime = new QLineEdit;
-    exposureTime->setAlignment( Qt::AlignRight );
-    exposureTime->setText( "1.0" );
-    exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
-    QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &Window::exposureTime_editingFinished );
-
-    exposureTimeLabel = new QLabel( "Exposure time (seconds):" );
-    exposureTimeLabel->setBuddy( exposureTime );
-
-    exposureScaleFactorComboBox = new QComboBox;
-    exposureScaleFactorComboBox->setEditable( false );
-    exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
-    exposureScaleFactorComboBox->addItems( ExposureScaleFactorStringList );
-    printJob->exposureTimeScaleFactor = 1;
-    QObject::connect( exposureScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::exposureScaleFactorComboBox_currentIndexChanged );
-
-    exposureScaleFactorLabel = new QLabel( "First layers time scale factor:" );
-    exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
-
-    powerLevelSlider = new QSlider( Qt::Orientation::Horizontal );
-    powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
-    powerLevelSlider->setMinimum( 20 );
-    powerLevelSlider->setMaximum( 100 );
-    powerLevelSlider->setValue( 50 );
-    printJob->powerLevel = 127;
-    QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &Window::powerLevelSlider_valueChanged );
-
-    powerLevelLabel = new QLabel( "Projector power level:" );
-    powerLevelLabel->setBuddy( powerLevelSlider );
-
-    powerLevelValue = new QLabel( "50%" );
-    powerLevelValue->setAlignment( Qt::AlignRight );
-    powerLevelValue->setFrameShadow( QFrame::Sunken );
-    powerLevelValue->setFrameStyle( QFrame::StyledPanel );
-
-    powerLevelValueLayout = new QHBoxLayout( );
-    powerLevelValueLayout->setContentsMargins( emptyMargins );
-    powerLevelValueLayout->addWidget( powerLevelLabel );
-    powerLevelValueLayout->addStretch( );
-    powerLevelValueLayout->addWidget( powerLevelValue );
-
-    powerLevelValueContainer = new QWidget( );
-    powerLevelValueContainer->setContentsMargins( emptyMargins );
-    powerLevelValueContainer->setLayout( powerLevelValueLayout );
-
-    powerLevelSliderLeftLabel = new QLabel( "20%" );
-    powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
-    powerLevelSliderRightLabel = new QLabel( "100%" );
-    powerLevelSliderRightLabel->setAlignment( Qt::AlignRight );
-
-    powerLevelSliderLabelsLayout = new QHBoxLayout( );
-    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderLeftLabel );
-    powerLevelSliderLabelsLayout->addStretch( );
-    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderRightLabel );
-
-    powerLevelSliderLabelsContainer = new QWidget( );
-    powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
-
-    optionsLayout = new QVBoxLayout;
-    optionsLayout->setContentsMargins( emptyMargins );
-    optionsLayout->addWidget( exposureTimeLabel );
-    optionsLayout->addWidget( exposureTime );
-    optionsLayout->addWidget( exposureScaleFactorLabel );
-    optionsLayout->addWidget( exposureScaleFactorComboBox );
-    optionsLayout->addWidget( powerLevelValueContainer );
-    optionsLayout->addWidget( powerLevelSlider );
-    optionsLayout->addWidget( powerLevelSliderLabelsContainer );
-    optionsLayout->addStretch( );
-
-    optionsContainer = new QWidget( );
-    optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    optionsContainer->setLayout( optionsLayout );
-
-    printButton = new QPushButton( "Print" );
-    {
-        auto font { printButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        printButton->setFont( font );
-    }
-    printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    printButton->setEnabled( false );
-    QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
-
-    printTabLayout = new QGridLayout;
-    printTabLayout->setContentsMargins( emptyMargins );
-    printTabLayout->addWidget( optionsContainer,      0, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,           1, 0, 1, 1 );
-    printTabLayout->setRowStretch( 0, 4 );
-    printTabLayout->setRowStretch( 1, 1 );
-
-    printTab = new QWidget;
+    printTab = new PrintTab;
     printTab->setContentsMargins( emptyMargins );
-    printTab->setLayout( printTabLayout );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    printTab->setPrintJob( printJob );
+    QObject::connect( printTab, &PrintTab::printButtonClicked, this, &Window::printTab_printButtonClicked );
+    QObject::connect( this, &Window::printJobChanged, printTab, &PrintTab::setPrintJob );
 
     //
     // "Status" tab
@@ -317,12 +228,12 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     fprintf( stderr, "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
-        printButton->setEnabled( false );
+        printTab->setPrintButtonEnabled( false );
         printJob->modelFileName = fileName;
         tabs->setCurrentIndex( TabIndex::Prepare );
     } else {
         prepareTab->setSliceButtonEnabled( true );
-        printButton->setEnabled( false );
+        printTab->setPrintButtonEnabled( false );
     }
 }
 
@@ -332,6 +243,10 @@ void Window::prepareTab_sliceStarting( ) {
 
 void Window::prepareTab_sliceComplete( bool success ) {
     fprintf( stderr, "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
+    if ( !success ) {
+        printTab->setPrintButtonEnabled( false );
+        return;
+    }
 }
 
 void Window::prepareTab_renderStarting( ) {
@@ -341,38 +256,16 @@ void Window::prepareTab_renderStarting( ) {
 void Window::prepareTab_renderComplete( bool success ) {
     fprintf( stderr, "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
-        printButton->setEnabled( false );
+        printTab->setPrintButtonEnabled( false );
         return;
     }
 
-    printButton->setEnabled( true );
+    printTab->setPrintButtonEnabled( true );
     tabs->setCurrentIndex( TabIndex::Print );
 }
 
-void Window::exposureTime_editingFinished( ) {
-    bool valueOk = false;
-    double value = exposureTime->validator( )->locale( ).toDouble( exposureTime->text( ), &valueOk );
-    if ( valueOk ) {
-        fprintf( stderr, "+ Window::exposureTime_editingFinished: new value %f\n", value );
-        printJob->exposureTime = value;
-    } else {
-        fprintf( stderr, "+ Window::exposureTime_editingFinished: bad value\n" );
-    }
-}
-
-void Window::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
-    fprintf( stderr, "+ Window::exposureScaleFactorComboBox_currentIndexChanged: new value: %d×\n", ExposureScaleFactorValues[index] );
-    printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
-}
-
-void Window::powerLevelSlider_valueChanged( int value ) {
-    int scaledValue = ( value / 100.0 * 255.0 ) + 0.5;
-    printJob->powerLevel = scaledValue;
-    powerLevelValue->setText( QString( "%1%" ).arg( value ) );
-}
-
-void Window::printButton_clicked( bool /*checked*/ ) {
-    fprintf( stderr, "+ Window::printButton_clicked\n" );
+void Window::printTab_printButtonClicked( ) {
+    fprintf( stderr, "+ PrintTab::printButton_clicked\n" );
     tabs->setCurrentIndex( TabIndex::Status );
 
     fprintf( stderr,
@@ -401,6 +294,7 @@ void Window::printButton_clicked( bool /*checked*/ ) {
     printManager->print( printJob );
 
     printJob = newJob;
+    emit printJobChanged( printJob );
 
     stopButton->setEnabled( true );
 }
