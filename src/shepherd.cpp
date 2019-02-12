@@ -208,13 +208,17 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
             emit printProcess_FinishedPrinting( );
         } else if ( pieces[0] == "ok" ) {
-            debug( "  + got ok from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "fail" ) {
-            debug( "  + got fail from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "warning" ) {
+            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         }
     }
 
-    debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
+    if ( !_buffer.isEmpty( ) ) {
+        debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
+    }
 }
 
 void Shepherd::start( ) {
