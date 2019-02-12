@@ -64,7 +64,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( format, this );
-    _canvas->setMinimumSize( 600, 400 );
+    _canvas->setMinimumSize( MaximalRightHandPaneSize );
     _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     _layout->setContentsMargins( { } );

@@ -92,7 +92,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
 
     _placeHolder->setContentsMargins( { } );
     _placeHolder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _placeHolder->setMinimumSize( 600, 400 );
+    _placeHolder->setMinimumSize( MaximalRightHandPaneSize );
 
     _layout = new QGridLayout;
     _layout->setContentsMargins( { } );

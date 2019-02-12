@@ -51,7 +51,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     currentLayerImageLabel->setBuddy( currentLayerImageDisplay );
 
     currentLayerImageDisplay->setAlignment( Qt::AlignCenter );
-    currentLayerImageDisplay->setMaximumSize( 600, 400 );
+    currentLayerImageDisplay->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     {
         auto pal = currentLayerImageDisplay->palette( );
         pal.setColor( QPalette::Background, Qt::black );
@@ -66,7 +66,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     currentLayerImageContainer->setContentsMargins( { } );
     currentLayerImageContainer->setLayout( currentLayerImageLayout );
     currentLayerImageContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentLayerImageContainer->setMinimumSize( 600, 400 );
+    currentLayerImageContainer->setMinimumSize( MaximalRightHandPaneSize );
 
     {
         auto font { stopButton->font( ) };

@@ -73,7 +73,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceContainer->setContentsMargins( { } );
     currentSliceContainer->setLayout( currentSliceLayout );
     currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceContainer->setMinimumSize( 600, 400 );
+    currentSliceContainer->setMinimumSize( MaximalRightHandPaneSize );
 
     _layout = new QGridLayout;
     _layout->setContentsMargins( { } );
