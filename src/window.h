@@ -30,23 +30,15 @@ private:
     Shepherd*         shepherd      { nullptr };
     PrintManager*     printManager  { nullptr };
     PrintJob*         printJob      { nullptr };
-    QProcess*         slicerProcess { nullptr };
-    SvgRenderer*      svgRenderer   { nullptr };
 
     bool              isPrinterOnline { false };
 
     QTabWidget*       tabs;
     SelectTab*        selectTab;
-    //PrepareTab*     prepareTab;
+    PrepareTab*       prepareTab;
     //PrintTab*       printTab;
     //StatusTab*      statusTab;
 
-    QLabel*           sliceProgress;
-    QLabel*           renderProgress;
-    QFormLayout*      sliceProgressLayout;
-    QWidget*          sliceProgressContainer;
-    QLabel*           layerThicknessLabel;
-    QComboBox*        layerThicknessComboBox;
     QLabel*           exposureTimeLabel;
     QLineEdit*        exposureTime;
     QLabel*           exposureScaleFactorLabel;
@@ -62,12 +54,7 @@ private:
     QWidget*          powerLevelSliderLabelsContainer;
     QVBoxLayout*      optionsLayout;
     QWidget*          optionsContainer;
-    QPushButton*      sliceButton;
     QPushButton*      printButton;
-    QLabel*           currentSliceLabel;
-    QLabel*           currentSliceDisplay;
-    QVBoxLayout*      currentSliceLayout;
-    QWidget*          currentSliceContainer;
     QWidget*          printTab;
     QGridLayout*      printTabLayout;
 
@@ -104,13 +91,16 @@ private slots:
     void printer_Online( );
     void printer_Offline( );
 
-    void selectTab_modelLoadComplete( bool const success, QString const& fileName );
+    void selectTab_modelSelected( bool success, QString const& fileName );
 
-    void layerThicknessComboBox_currentIndexChanged( int index );
+    void prepareTab_sliceStarting( );
+    void prepareTab_sliceComplete( bool success );
+    void prepareTab_renderStarting( );
+    void prepareTab_renderComplete( bool success );
+
     void exposureTime_editingFinished( );
     void exposureScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelSlider_valueChanged( int value );
-    void sliceButton_clicked( bool checked );
     void printButton_clicked( bool checked );
 
     void stopButton_clicked( bool checked );
@@ -119,14 +109,6 @@ private slots:
     void printManager_printingLayer( int layer );
     void printManager_lampStatusChange( bool const on );
     void printManager_printComplete( bool success );
-
-    void slicerProcessErrorOccurred( QProcess::ProcessError error );
-    void slicerProcessStarted( );
-    void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
-
-    void svgRenderer_progress( int const currentLayer );
-    void svgRenderer_done( int const totalLayers );
-
     void signalHandler_quit( int signalNumber );
 
 };

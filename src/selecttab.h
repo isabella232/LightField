@@ -3,6 +3,7 @@
 
 class Canvas;
 class Loader;
+class PrintJob;
 
 class SelectTab: public QWidget {
 
@@ -12,10 +13,6 @@ public:
 
     SelectTab( QWidget* parent = nullptr );
     virtual ~SelectTab( ) override;
-
-    QString fileName( ) {
-        return _fileName;
-    }
 
 protected:
 
@@ -30,15 +27,18 @@ private:
     Canvas*           _canvas                  {                      };
     Loader*           _loader                  {                      };
     QGridLayout*      _layout                  { new QGridLayout      };
+    PrintJob*         _printJob                {                      };
     QString           _fileName;
 
     bool _loadModel( QString const& filename );
 
 signals:
 
-    void modelLoadComplete( bool const success, QString const& fileName );
+    void modelSelected( bool success, QString const& fileName );
 
 public slots:
+
+    void setPrintJob( PrintJob* printJob );
 
 protected slots:
 

@@ -27,7 +27,8 @@ SOURCES += \
     ../src/selecttab.cpp \
     ../src/preparetab.cpp \
     ../src/printtab.cpp \
-    ../src/statustab.cpp
+    ../src/statustab.cpp \
+    ../src/constants.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -46,11 +47,12 @@ HEADERS  += \
     ../src/svgrenderer.h \
     ../src/processrunner.h \
     ../src/signalhandler.h \
-    ../src/debug.h \
     ../src/selecttab.h \
     ../src/preparetab.h \
     ../src/printtab.h \
-    ../src/statustab.h
+    ../src/statustab.h \
+    ../src/constants.h \
+    ../src/debug.h
 
 CONFIG += c++11
 CONFIG += precompile_header

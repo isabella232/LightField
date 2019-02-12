@@ -8,11 +8,11 @@ public:
     QString modelFileName;
     QString slicedSvgFileName;
     QString pngFilesPath;
-    int layerCount;
-    int layerThickness;             // µm
-    double exposureTime;            // s
-    double exposureTimeScaleFactor; // for first two layers
-    int powerLevel;                 // 0..255
+    int     layerCount              {     };
+    int     layerThickness          { 100 }; // µm
+    double  exposureTime            { 1.0 }; // s
+    double  exposureTimeScaleFactor { 1.0 }; // for first two layers
+    int     powerLevel              { 127 }; // 0..255
 
 };
 

@@ -4,12 +4,13 @@
 
 #include "canvas.h"
 #include "loader.h"
+#include "printjob.h"
+#include "constants.h"
 #include "debug.h"
 
 namespace {
 
-    QString StlModelLibraryPath  { "/home/lumen/Volumetric/model-library" };
-    QString DefaultModelFileName { ":gl/BoundingBox.stl"                  };
+    QString DefaultModelFileName { ":gl/BoundingBox.stl" };
 
 }
 
@@ -99,15 +100,17 @@ void SelectTab::fileSystemModel_RootPathChanged( QString const& newPath ) {
 }
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
-    QString fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
-    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), fileName.toUtf8( ).data( ) );
-    if ( !_loadModel( fileName ) ) {
+    _fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
+    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), _fileName.toUtf8( ).data( ) );
+    _selectButton->setEnabled( false );
+    if ( !_loadModel( _fileName ) ) {
         debug( "  + _loadModel failed!\n" );
     }
 }
 
 void SelectTab::selectButton_clicked( bool /*checked*/ ) {
     debug( "+ SelectTab::selectButton_clicked\n" );
+    emit modelSelected( true, _fileName );
 }
 
 void SelectTab::loader_ErrorBadStl( ) {
@@ -116,7 +119,7 @@ void SelectTab::loader_ErrorBadStl( ) {
         "This <code>.stl</code> file is invalid or corrupted.<br>"
         "Please export it from the original source, verify, and retry."
     );
-    emit modelLoadComplete( false, _fileName );
+    emit modelSelected( false, _fileName );
 }
 
 void SelectTab::loader_ErrorEmptyMesh( ) {
@@ -124,7 +127,7 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
         "<b>Error:</b><br>"
         "This file is syntactically correct<br>but contains no triangles."
     );
-    emit modelLoadComplete( false, _fileName );
+    emit modelSelected( false, _fileName );
 }
 
 void SelectTab::loader_ErrorMissingFile( ) {
@@ -132,27 +135,27 @@ void SelectTab::loader_ErrorMissingFile( ) {
         "<b>Error:</b><br>"
         "The target file is missing.<br>"
     );
-    emit modelLoadComplete( false, _fileName );
+    emit modelSelected( false, _fileName );
 }
 
 void SelectTab::loader_Finished( ) {
     _loader = nullptr;
 }
 
-void SelectTab::loader_LoadedFile( const QString& filename ) {
-    fprintf( stderr, "+ SelectTab::loader_LoadedFile: filename: '%s'\n", filename.toUtf8( ).data( ) );
-    emit modelLoadComplete( true, _fileName );
+void SelectTab::loader_LoadedFile( const QString& fileName ) {
+    fprintf( stderr, "+ SelectTab::loader_LoadedFile: filename: '%s'\n", fileName.toUtf8( ).data( ) );
+    _selectButton->setEnabled( true );
 }
 
-bool SelectTab::_loadModel( QString const& filename ) {
+bool SelectTab::_loadModel( QString const& fileName ) {
     if ( _loader ) {
         fprintf( stderr, "+ SelectTab::_loadModel: loader object exists, not loading\n" );
         return false;
     }
 
-    _canvas->set_status( "Loading " + filename );
+    _canvas->set_status( "Loading " + fileName );
 
-    _loader = new Loader( this, filename, false );
+    _loader = new Loader( this, fileName, false );
     connect( _loader, &Loader::got_mesh,           _canvas, &Canvas::load_mesh                  );
     connect( _loader, &Loader::error_bad_stl,      this,    &SelectTab::loader_ErrorBadStl      );
     connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );
@@ -161,10 +164,15 @@ bool SelectTab::_loadModel( QString const& filename ) {
     connect( _loader, &Loader::finished,           _canvas, &Canvas::clear_status               );
     connect( _loader, &Loader::finished,           this,    &SelectTab::loader_Finished         );
 
-    if ( filename[0] != ':' ) {
+    if ( fileName[0] != ':' ) {
         connect( _loader, &Loader::loaded_file,    this,    &SelectTab::loader_LoadedFile       );
     }
 
+    _selectButton->setEnabled( false );
     _loader->start( );
     return true;
+}
+
+void SelectTab::setPrintJob( PrintJob* printJob ) {
+    _printJob = printJob;
 }

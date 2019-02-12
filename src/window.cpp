@@ -5,13 +5,9 @@
 #include "printmanager.h"
 #include "signalhandler.h"
 #include "strings.h"
+#include "constants.h"
 
 namespace {
-
-    QString StlModelLibraryPath { "/home/lumen/Volumetric/model-library" };
-
-    QStringList LayerThicknessStringList { "50 µm", "100 µm", "200 µm", };
-    int LayerThicknessValues[] { 50, 100, 200 };
 
     QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
     int ExposureScaleFactorValues[] { 1, 2, 3, 4, 5 };
@@ -25,8 +21,6 @@ namespace {
             Status,
         };
     };
-
-    QString SlicerCommand { "slic3r" };
 
 }
 
@@ -51,34 +45,25 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     selectTab = new SelectTab;
     selectTab->setContentsMargins( emptyMargins );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( selectTab, &SelectTab::modelLoadComplete, this, &Window::selectTab_modelLoadComplete );
+    selectTab->setPrintJob( printJob );
+    QObject::connect( selectTab, &SelectTab::modelSelected, this, &Window::selectTab_modelSelected );
+
+    //
+    // "Prepare" tab
+    //
+
+    prepareTab = new PrepareTab;
+    prepareTab->setContentsMargins( emptyMargins );
+    prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    prepareTab->setPrintJob( printJob );
+    QObject::connect( prepareTab, &PrepareTab::sliceStarting,  this, &Window::prepareTab_sliceStarting  );
+    QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this, &Window::prepareTab_sliceComplete  );
+    QObject::connect( prepareTab, &PrepareTab::renderStarting, this, &Window::prepareTab_renderStarting );
+    QObject::connect( prepareTab, &PrepareTab::renderComplete, this, &Window::prepareTab_renderComplete );
 
     //
     // "Print" tab
     //
-
-    sliceProgress  = new QLabel( "Not slicing" );
-    renderProgress = new QLabel( "Not rendering" );
-
-    sliceProgressLayout = new QFormLayout;
-    sliceProgressLayout->setContentsMargins( emptyMargins );
-    sliceProgressLayout->addRow( "Slicer status:", sliceProgress  );
-    sliceProgressLayout->addRow( "Render status:", renderProgress );
-
-    sliceProgressContainer = new QWidget;
-    sliceProgressContainer->setLayout( sliceProgressLayout );
-    sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-
-    layerThicknessComboBox = new QComboBox;
-    layerThicknessComboBox->setEditable( false );
-    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
-    layerThicknessComboBox->addItems( LayerThicknessStringList );
-    layerThicknessComboBox->setCurrentIndex( 1 );
-    printJob->layerThickness = 100;
-    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &Window::layerThicknessComboBox_currentIndexChanged );
-
-    layerThicknessLabel = new QLabel( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessComboBox );
 
     exposureTime = new QLineEdit;
     exposureTime->setAlignment( Qt::AlignRight );
@@ -140,8 +125,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     optionsLayout = new QVBoxLayout;
     optionsLayout->setContentsMargins( emptyMargins );
-    optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addWidget( layerThicknessComboBox );
     optionsLayout->addWidget( exposureTimeLabel );
     optionsLayout->addWidget( exposureTime );
     optionsLayout->addWidget( exposureScaleFactorLabel );
@@ -155,16 +138,6 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
 
-    sliceButton = new QPushButton( "Slice" );
-    {
-        auto font { sliceButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        sliceButton->setFont( font );
-    }
-    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    sliceButton->setEnabled( false );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &Window::sliceButton_clicked );
-
     printButton = new QPushButton( "Print" );
     {
         auto font { printButton->font( ) };
@@ -175,38 +148,12 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &Window::printButton_clicked );
 
-    currentSliceLabel = new QLabel( "Current slice:" );
-    currentSliceDisplay = new QLabel;
-    currentSliceLabel->setBuddy( currentSliceDisplay );
-    currentSliceDisplay->setAlignment( Qt::AlignCenter );
-    {
-        auto pal = currentSliceDisplay->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
-        currentSliceDisplay->setPalette( pal );
-    }
-
-    currentSliceLayout = new QVBoxLayout;
-    currentSliceLayout->setContentsMargins( emptyMargins );
-    currentSliceLayout->addWidget( sliceProgressContainer );
-    currentSliceLayout->addWidget( currentSliceLabel );
-    currentSliceLayout->addWidget( currentSliceDisplay );
-    currentSliceLayout->addStretch( );
-
-    currentSliceContainer = new QWidget;
-    currentSliceContainer->setContentsMargins( emptyMargins );
-    currentSliceContainer->setLayout( currentSliceLayout );
-    currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceContainer->setMinimumSize( 600, 400 );
-
     printTabLayout = new QGridLayout;
     printTabLayout->setContentsMargins( emptyMargins );
     printTabLayout->addWidget( optionsContainer,      0, 0, 1, 1 );
-    printTabLayout->addWidget( sliceButton,           1, 0, 1, 1 );
-    printTabLayout->addWidget( printButton,           2, 0, 1, 1 );
-    printTabLayout->addWidget( currentSliceContainer, 0, 1, 3, 1 );
-    printTabLayout->setRowStretch( 0, 3 );
+    printTabLayout->addWidget( printButton,           1, 0, 1, 1 );
+    printTabLayout->setRowStretch( 0, 4 );
     printTabLayout->setRowStretch( 1, 1 );
-    printTabLayout->setRowStretch( 2, 1 );
 
     printTab = new QWidget;
     printTab->setContentsMargins( emptyMargins );
@@ -310,9 +257,10 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
 
     tabs = new QTabWidget;
     tabs->setContentsMargins( emptyMargins );
-    tabs->addTab( selectTab, "Select" );
-    tabs->addTab( printTab,  "Print"  );
-    tabs->addTab( statusTab, "Status" );
+    tabs->addTab( selectTab,  "Select"  );
+    tabs->addTab( prepareTab, "Prepare" );
+    tabs->addTab( printTab,   "Print"   );
+    tabs->addTab( statusTab,  "Status"  );
     tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
@@ -365,62 +313,40 @@ void Window::printer_Offline( ) {
     printerStateDisplay->setText( "Offline" );
 }
 
-void Window::selectTab_modelLoadComplete( bool const success, QString const& fileName ) {
-    fprintf( stderr, "+ Window::selectTab_modelLoadComplete: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
-    sliceButton->setEnabled( success );
-    printButton->setEnabled( !success );
+void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
+    fprintf( stderr, "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
-        tabs->setCurrentIndex( TabIndex::Print );
-    }
-}
-
-void Window::layerThicknessComboBox_currentIndexChanged( int index ) {
-    fprintf( stderr, "+ Window::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
-    printJob->layerThickness = LayerThicknessValues[index];
-}
-
-void Window::sliceButton_clicked( bool /*checked*/ ) {
-    fprintf( stderr, "+ Window::sliceButton_clicked\n" );
-    sliceButton->setEnabled( false );
-    printButton->setEnabled( false );
-
-    printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
-    mkdir( printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
-    QString baseName = printJob->modelFileName;
-    int index = baseName.lastIndexOf( "/" );
-    if ( index > -1 ) {
-        baseName = baseName.mid( index + 1 );
-    }
-    if ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ) {
-        printJob->slicedSvgFileName = printJob->pngFilesPath + QChar( '/' ) + baseName.left( baseName.length( ) - 4 ) + QString( ".svg" );
+        prepareTab->setSliceButtonEnabled( true );
+        printButton->setEnabled( false );
+        printJob->modelFileName = fileName;
+        tabs->setCurrentIndex( TabIndex::Prepare );
     } else {
-        printJob->slicedSvgFileName = printJob->pngFilesPath + QChar( '/' ) + baseName                                + QString( ".svg" );
+        prepareTab->setSliceButtonEnabled( true );
+        printButton->setEnabled( false );
     }
-    fprintf( stderr,
-        "  + model filename:      '%s'\n"
-        "  + sliced SVG filename: '%s'\n"
-        "  + PNG files path:      '%s'\n"
-        "",
-        printJob->modelFileName.toUtf8( ).data( ),
-        printJob->slicedSvgFileName.toUtf8( ).data( ),
-        printJob->pngFilesPath.toUtf8( ).data( )
-    );
+}
 
-    slicerProcess = new QProcess( this );
-    slicerProcess->setProgram( SlicerCommand );
-    slicerProcess->setArguments( QStringList {
-        printJob->modelFileName,
-        "--export-svg",
-        "--layer-height",
-        QString( "%1" ).arg( printJob->layerThickness / 1000.0 ),
-        "--output",
-        printJob->slicedSvgFileName
-    } );
-    fprintf( stderr, "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
-    QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
-    QObject::connect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
-    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
-    slicerProcess->start( );
+void Window::prepareTab_sliceStarting( ) {
+    fprintf( stderr, "+ Window::prepareTab_sliceStarting\n" );
+}
+
+void Window::prepareTab_sliceComplete( bool success ) {
+    fprintf( stderr, "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
+}
+
+void Window::prepareTab_renderStarting( ) {
+    fprintf( stderr, "+ Window::prepareTab_renderStarting\n" );
+}
+
+void Window::prepareTab_renderComplete( bool success ) {
+    fprintf( stderr, "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
+    if ( !success ) {
+        printButton->setEnabled( false );
+        return;
+    }
+
+    printButton->setEnabled( true );
+    tabs->setCurrentIndex( TabIndex::Print );
 }
 
 void Window::exposureTime_editingFinished( ) {
@@ -498,77 +424,6 @@ void Window::printManager_lampStatusChange( bool const on ) {
 
 void Window::printManager_printComplete( bool const success ) {
     jobStateDisplay->setText( success ? "Print complete" : "Print failed" );
-}
-
-void Window::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ Window::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
-
-    if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + slicer process failed to start\n" );
-        sliceProgress->setText( "Slicer failed to start" );
-    } else if ( QProcess::Crashed == error ) {
-        fprintf( stderr, "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
-        if ( slicerProcess->state( ) != QProcess::NotRunning ) {
-            slicerProcess->kill( );
-            fprintf( stderr, "  + slicer terminated\n" );
-        }
-        sliceProgress->setText( "Slicer crashed" );
-    }
-}
-
-void Window::slicerProcessStarted( ) {
-    fprintf( stderr, "+ Window::slicerProcessStarted\n" );
-    sliceProgress->setText( "Slicer started" );
-}
-
-void Window::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    QObject::disconnect( slicerProcess, &QProcess::errorOccurred, this, &Window::slicerProcessErrorOccurred );
-    QObject::disconnect( slicerProcess, &QProcess::started,       this, &Window::slicerProcessStarted       );
-    QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Window::slicerProcessFinished );
-
-    fprintf( stderr, "+ Window::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
-
-    delete slicerProcess;
-    slicerProcess = nullptr;
-
-    if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + slicer process crashed?\n" );
-        sliceProgress->setText( "Slicer crashed" );
-        return;
-    }
-
-    sliceProgress->setText( "Slicer finished" );
-
-    svgRenderer = new SvgRenderer;
-    QObject::connect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
-    QObject::connect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
-    svgRenderer->startRender( printJob->slicedSvgFileName, printJob->pngFilesPath );
-}
-
-void Window::svgRenderer_progress( int const currentLayer ) {
-    if ( 0 == ( currentLayer % 5 ) ) {
-        renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
-        if ( currentLayer > 0 ) {
-            auto pngFileName = QString( "%1/%2.png" ).arg( printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
-            auto pixMap = QPixmap( pngFileName );
-            currentSliceDisplay->setPixmap( pixMap );
-        }
-    }
-}
-
-void Window::svgRenderer_done( int const totalLayers ) {
-    if ( totalLayers == -1 ) {
-        renderProgress->setText( QString( "Rendering failed" ) );
-    } else {
-        renderProgress->setText( QString( "Rendering complete" ) );
-        printJob->layerCount = totalLayers;
-        printButton->setEnabled( true );
-    }
-
-    QObject::disconnect( svgRenderer, &SvgRenderer::nextLayer, this, &Window::svgRenderer_progress );
-    QObject::disconnect( svgRenderer, &SvgRenderer::done,      this, &Window::svgRenderer_done     );
-    delete svgRenderer;
-    svgRenderer = nullptr;
 }
 
 void Window::signalHandler_quit( int signalNumber ) {
