@@ -17,15 +17,15 @@ namespace {
 }
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
+    sliceProgressLabel->setText( "Slicer status:" );
     sliceProgress->setText( "Not slicing" );
+    sliceProgress->setFrameShadow( QFrame::Sunken );
+    sliceProgress->setFrameStyle( QFrame::StyledPanel );
+
+    renderProgressLabel->setText( "Render status:" );
     renderProgress->setText( "Not rendering" );
-
-    sliceProgressLayout->setContentsMargins( { } );
-    sliceProgressLayout->addRow( "Slicer status:", sliceProgress  );
-    sliceProgressLayout->addRow( "Render status:", renderProgress );
-
-    sliceProgressContainer->setLayout( sliceProgressLayout );
-    sliceProgressContainer->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    renderProgress->setFrameShadow( QFrame::Sunken );
+    renderProgress->setFrameStyle( QFrame::StyledPanel );
 
     layerThicknessComboBox->setEditable( false );
     layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
@@ -39,6 +39,10 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
+    optionsLayout->addWidget( sliceProgressLabel );
+    optionsLayout->addWidget( sliceProgress );
+    optionsLayout->addWidget( renderProgressLabel );
+    optionsLayout->addWidget( renderProgress );
     optionsLayout->addStretch( );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -64,7 +68,6 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     }
 
     currentSliceLayout->setContentsMargins( { } );
-    currentSliceLayout->addWidget( sliceProgressContainer );
     currentSliceLayout->addWidget( currentSliceLabel );
     currentSliceLayout->addWidget( currentSliceDisplay );
     currentSliceLayout->addStretch( );

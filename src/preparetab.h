@@ -33,9 +33,9 @@ private:
     QPushButton* sliceButton            { new QPushButton };
 
     QLabel*      sliceProgress          { new QLabel      };
+    QLabel*      sliceProgressLabel     { new QLabel      };
     QLabel*      renderProgress         { new QLabel      };
-    QFormLayout* sliceProgressLayout    { new QFormLayout };
-    QWidget*     sliceProgressContainer { new QWidget     };
+    QLabel*      renderProgressLabel    { new QLabel      };
     QLabel*      currentSliceLabel      { new QLabel      };
     QLabel*      currentSliceDisplay    { new QLabel      };
     QVBoxLayout* currentSliceLayout     { new QVBoxLayout };
