@@ -22,3 +22,6 @@
 #include <QtOpenGL>
 #include <QtOpenGL/QtOpenGL>
 #include <QtXml>
+
+#include "constants.h"
+#include "debug.h"

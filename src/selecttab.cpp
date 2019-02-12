@@ -5,8 +5,6 @@
 #include "canvas.h"
 #include "loader.h"
 #include "printjob.h"
-#include "constants.h"
-#include "debug.h"
 
 namespace {
 
@@ -143,13 +141,13 @@ void SelectTab::loader_Finished( ) {
 }
 
 void SelectTab::loader_LoadedFile( const QString& fileName ) {
-    fprintf( stderr, "+ SelectTab::loader_LoadedFile: filename: '%s'\n", fileName.toUtf8( ).data( ) );
+    debug( "+ SelectTab::loader_LoadedFile: filename: '%s'\n", fileName.toUtf8( ).data( ) );
     _selectButton->setEnabled( true );
 }
 
 bool SelectTab::_loadModel( QString const& fileName ) {
     if ( _loader ) {
-        fprintf( stderr, "+ SelectTab::_loadModel: loader object exists, not loading\n" );
+        debug( "+ SelectTab::_loadModel: loader object exists, not loading\n" );
         return false;
     }
 

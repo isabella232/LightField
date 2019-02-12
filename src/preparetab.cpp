@@ -5,8 +5,6 @@
 
 #include "printjob.h"
 #include "strings.h"
-#include "constants.h"
-#include "debug.h"
 
 namespace {
 
@@ -96,12 +94,12 @@ PrepareTab::~PrepareTab( ) {
 
 
 void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
-    fprintf( stderr, "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+    debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
     _printJob->layerThickness = LayerThicknessValues[index];
 }
 
 void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
-    fprintf( stderr, "+ PrepareTab::sliceButton_clicked\n" );
+    debug( "+ PrepareTab::sliceButton_clicked\n" );
 
     _printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
     mkdir( _printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
@@ -137,7 +135,7 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
         "--output",
         _printJob->slicedSvgFileName
     } );
-    fprintf( stderr, "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
+    debug( "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
     QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &PrepareTab::slicerProcessErrorOccurred );
     QObject::connect( slicerProcess, &QProcess::started,       this, &PrepareTab::slicerProcessStarted       );
     QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished );
@@ -145,23 +143,23 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ PrepareTab::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
+    debug( "+ PrepareTab::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + slicer process failed to start\n" );
+        debug( "  + slicer process failed to start\n" );
         sliceProgress->setText( "Slicer failed to start" );
     } else if ( QProcess::Crashed == error ) {
-        fprintf( stderr, "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
+        debug( "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
         if ( slicerProcess->state( ) != QProcess::NotRunning ) {
             slicerProcess->kill( );
-            fprintf( stderr, "  + slicer terminated\n" );
+            debug( "  + slicer terminated\n" );
         }
         sliceProgress->setText( "Slicer crashed" );
     }
 }
 
 void PrepareTab::slicerProcessStarted( ) {
-    fprintf( stderr, "+ PrepareTab::slicerProcessStarted\n" );
+    debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceProgress->setText( "Slicer started" );
     emit sliceStarting( );
 }
@@ -171,13 +169,13 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     QObject::disconnect( slicerProcess, &QProcess::started,       this, &PrepareTab::slicerProcessStarted       );
     QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished );
 
-    fprintf( stderr, "+ PrepareTab::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+    debug( "+ PrepareTab::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     delete slicerProcess;
     slicerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + slicer process crashed?\n" );
+        debug( "  + slicer process crashed?\n" );
         sliceProgress->setText( "Slicer crashed" );
         emit sliceComplete( false );
         return;

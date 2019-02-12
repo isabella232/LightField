@@ -4,8 +4,6 @@
 
 #include "signalhandler.h"
 #include "strings.h"
-#include "constants.h"
-#include "debug.h"
 
 namespace {
 
@@ -102,7 +100,7 @@ Window::~Window( ) {
 }
 
 void Window::closeEvent( QCloseEvent* event ) {
-    fprintf( stderr, "+ Window::closeEvent\n" );
+    debug( "+ Window::closeEvent\n" );
     if ( printManager ) {
         printManager->terminate( );
     }
@@ -111,19 +109,19 @@ void Window::closeEvent( QCloseEvent* event ) {
 }
 
 void Window::shepherd_Started( ) {
-    fprintf( stderr, "+ Window::shepherd_Started\n" );
+    debug( "+ Window::shepherd_Started\n" );
 }
 
 void Window::shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Window::shepherd_Finished: exitStatus %d, exitCode %d\n", exitStatus, exitCode );
+    debug( "+ Window::shepherd_Finished: exitStatus %d, exitCode %d\n", exitStatus, exitCode );
 }
 
 void Window::shepherd_ProcessError( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ Window::shepherd_ProcessError: %d\n", error );
+    debug( "+ Window::shepherd_ProcessError: %d\n", error );
 }
 
 void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
-    fprintf( stderr, "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
+    debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
@@ -134,22 +132,22 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
 }
 
 void Window::prepareTab_sliceStarting( ) {
-    fprintf( stderr, "+ Window::prepareTab_sliceStarting\n" );
+    debug( "+ Window::prepareTab_sliceStarting\n" );
 }
 
 void Window::prepareTab_sliceComplete( bool success ) {
-    fprintf( stderr, "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
+    debug( "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
     }
 }
 
 void Window::prepareTab_renderStarting( ) {
-    fprintf( stderr, "+ Window::prepareTab_renderStarting\n" );
+    debug( "+ Window::prepareTab_renderStarting\n" );
 }
 
 void Window::prepareTab_renderComplete( bool success ) {
-    fprintf( stderr, "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
+    debug( "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
     }
@@ -159,7 +157,7 @@ void Window::prepareTab_renderComplete( bool success ) {
 }
 
 void Window::printTab_printButtonClicked( ) {
-    fprintf( stderr, "+ PrintTab::printButton_clicked\n" );
+    debug( "+ PrintTab::printButton_clicked\n" );
     tabs->setCurrentIndex( TabIndex::Status );
 
     fprintf( stderr,
@@ -202,6 +200,6 @@ void Window::statusTab_stopButtonClicked( ) {
 }
 
 void Window::signalHandler_quit( int signalNumber ) {
-    fprintf( stderr, "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
+    debug( "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
     close( );
 }

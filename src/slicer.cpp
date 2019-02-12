@@ -10,7 +10,7 @@ namespace {
 }
 
 Slicer::Slicer( QString const& /*fileName*/, QString const& /*outputPath*/, float /*layerThickness*/, QObject* parent ): QObject( parent ) {
-    fprintf( stderr, "+ Slicer::`ctor: Slicer base directory: '%s'\n", BaseDirectory );
+    debug( "+ Slicer::`ctor: Slicer base directory: '%s'\n", BaseDirectory );
 
     _process = new QProcess( this );
     _process->setWorkingDirectory( BaseDirectory );
@@ -35,16 +35,16 @@ Slicer::~Slicer( ) {
 }
 
 void Slicer::processErrorOccurred( QProcess::ProcessError processError ) {
-    fprintf( stderr, "+ Slicer::processErrorOccurred: error %s [%d]\n", ToString( processError ), processError );
+    debug( "+ Slicer::processErrorOccurred: error %s [%d]\n", ToString( processError ), processError );
     emit error( );
 }
 
 void Slicer::processStarted( ) {
-    fprintf( stderr, "+ Slicer::processStarted\n" );
+    debug( "+ Slicer::processStarted\n" );
 }
 
 void Slicer::processStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ Slicer::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
+    debug( "+ Slicer::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
 void Slicer::processReadyRead( ) {
@@ -74,7 +74,7 @@ void Slicer::processReadyRead( ) {
 }
 
 void Slicer::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Slicer::processFinished: exitStatus: %s [%d], exitCode: %d\n", ToString( exitStatus ), exitStatus, exitCode );
+    debug( "+ Slicer::processFinished: exitStatus: %s [%d], exitCode: %d\n", ToString( exitStatus ), exitStatus, exitCode );
     emit finished( );
 }
 

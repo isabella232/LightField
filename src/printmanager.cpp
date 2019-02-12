@@ -60,11 +60,11 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
     _shepherd ( shepherd )
 {
-    fprintf( stderr, "+ construct PrintManager at %p\n", this );
+    debug( "+ construct PrintManager at %p\n", this );
 }
 
 PrintManager::~PrintManager( ) {
-    fprintf( stderr, "+ destruct PrintManager at %p\n", this );
+    debug( "+ destruct PrintManager at %p\n", this );
 }
 
 void PrintManager::_cleanUp( ) {
@@ -138,10 +138,10 @@ void PrintManager::_disconnectSetPowerProcess_step6( ) {
 
 void PrintManager::print( PrintJob* printJob ) {
     if ( _printJob ) {
-        fprintf( stderr, "+ PrintManager::print: Job submitted while we're busy\n" );
+        debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
     }
-    fprintf( stderr, "+ PrintManager::print: new job\n" );
+    debug( "+ PrintManager::print: new job\n" );
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
@@ -155,12 +155,12 @@ void PrintManager::print( PrintJob* printJob ) {
 }
 
 void PrintManager::terminate( ) {
-    fprintf( stderr, "+ PrintManager::terminate\n" );
+    debug( "+ PrintManager::terminate\n" );
     _cleanUp( );
 }
 
 void PrintManager::abortJob( ) {
-    fprintf( stderr, "+ PrintManager::abortJob\n" );
+    debug( "+ PrintManager::abortJob\n" );
     // TODO abort command if possible
     // TODO home printer
     _cleanUp( );
@@ -170,19 +170,19 @@ void PrintManager::initialHomeComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
 
     if ( !success ) {
-        fprintf( stderr, "+ PrintManager::initialHomeComplete: action failed\n" );
+        debug( "+ PrintManager::initialHomeComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-    fprintf( stderr, "+ PrintManager::initialHomeComplete: action succeeded\n" );
+    debug( "+ PrintManager::initialHomeComplete: action succeeded\n" );
 
     _startNextLayer( );
 }
 
 void PrintManager::_startNextLayer( ) {
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
-    fprintf( stderr, "+ PrintManager::_startNextLayer: moving %f\n", LiftDistance );
+    debug( "+ PrintManager::_startNextLayer: moving %f\n", LiftDistance );
     _shepherd->doMove( LiftDistance );
     emit startingLayer( _currentLayer );
 }
@@ -191,15 +191,15 @@ void PrintManager::step1_LiftUpComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
 
     if ( !success ) {
-        fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: action failed\n" );
+        debug( "+ PrintManager::step1_LiftUpComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-    fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
+    debug( "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
-    fprintf( stderr, "+ PrintManager::step1_LiftUpComplete: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
+    debug( "+ PrintManager::step1_LiftUpComplete: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
     _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
 }
 
@@ -207,16 +207,16 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
 
     if ( !success ) {
-        fprintf( stderr, "+ PrintManager::step2_LiftDownComplete: action failed\n" );
+        debug( "+ PrintManager::step2_LiftDownComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-    fprintf( stderr, "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
+    debug( "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
 
     QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 6, 10, QChar( '0' ) );
     if ( !_pngDisplayer->load( pngFileName ) ) {
-        fprintf( stderr, "+ PrintManager::step2_LiftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+        debug( "+ PrintManager::step2_LiftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
     }
 
     _preProjectionTimer = new QTimer( this );
@@ -230,7 +230,7 @@ void PrintManager::step2_LiftDownComplete( bool success ) {
 void PrintManager::step3_preProjectionTimerExpired( ) {
     QObject::disconnect( _preProjectionTimer, &QTimer::timeout, this, &PrintManager::step3_preProjectionTimerExpired );
 
-    fprintf( stderr, "+ PrintManager::step3_preProjectionTimerExpired\n" );
+    debug( "+ PrintManager::step3_preProjectionTimerExpired\n" );
 
     delete _preProjectionTimer;
     _preProjectionTimer = nullptr;
@@ -245,33 +245,33 @@ void PrintManager::step3_preProjectionTimerExpired( ) {
 }
 
 void PrintManager::step4_setPowerProcessErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ PrintManager::step4_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
+    debug( "+ PrintManager::step4_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + setpower process failed to start\n" );
+        debug( "  + setpower process failed to start\n" );
     } else if ( QProcess::Crashed == error ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
+        debug( "  + setpower process crashed?\n" );
         if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
             _setPowerProcess->kill( );
-            fprintf( stderr, "  + setpower terminated\n" );
+            debug( "  + setpower terminated\n" );
         }
     }
 }
 
 void PrintManager::step4_setPowerProcessStarted( ) {
-    fprintf( stderr, "+ PrintManager::step4_setPowerProcessStarted\n" );
+    debug( "+ PrintManager::step4_setPowerProcessStarted\n" );
 }
 
 void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     _disconnectSetPowerProcess_step4( );
 
-    fprintf( stderr, "+ PrintManager::step4_setPowerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+    debug( "+ PrintManager::step4_setPowerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     delete _setPowerProcess;
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
+        debug( "  + setpower process crashed, but that's okay, carrying on\n" );
     }
 
     emit lampStatusChange( true );
@@ -291,7 +291,7 @@ void PrintManager::step4_setPowerProcessFinished( int exitCode, QProcess::ExitSt
 void PrintManager::step5_layerProjectionTimerExpired( ) {
     QObject::disconnect( _layerProjectionTimer, &QTimer::timeout, this, &PrintManager::step5_layerProjectionTimerExpired );
 
-    fprintf( stderr, "+ PrintManager::step5_layerProjectionTimerExpired\n" );
+    debug( "+ PrintManager::step5_layerProjectionTimerExpired\n" );
 
     delete _layerProjectionTimer;
     _layerProjectionTimer = nullptr;
@@ -304,33 +304,33 @@ void PrintManager::step5_layerProjectionTimerExpired( ) {
 }
 
 void PrintManager::step6_setPowerProcessErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ PrintManager::step6_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
+    debug( "+ PrintManager::step6_setPowerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
-        fprintf( stderr, "  + setpower process failed to start\n" );
+        debug( "  + setpower process failed to start\n" );
     } else if ( QProcess::Crashed == error ) {
-        fprintf( stderr, "  + setpower process crashed?\n" );
+        debug( "  + setpower process crashed?\n" );
         if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
             _setPowerProcess->kill( );
-            fprintf( stderr, "  + setpower terminated\n" );
+            debug( "  + setpower terminated\n" );
         }
     }
 }
 
 void PrintManager::step6_setPowerProcessStarted( ) {
-    fprintf( stderr, "+ PrintManager::step6_setPowerProcessStarted\n" );
+    debug( "+ PrintManager::step6_setPowerProcessStarted\n" );
 }
 
 void PrintManager::step6_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     _disconnectSetPowerProcess_step6( );
 
-    fprintf( stderr, "+ PrintManager::step6_setPowerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+    debug( "+ PrintManager::step6_setPowerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     delete _setPowerProcess;
     _setPowerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
-        fprintf( stderr, "  + setpower process crashed, but that's okay, carrying on\n" );
+        debug( "  + setpower process crashed, but that's okay, carrying on\n" );
     }
 
     emit lampStatusChange( false );
@@ -352,7 +352,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
     ++_currentLayer;
     if ( _currentLayer == _printJob->layerCount ) {
         QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
-        fprintf( stderr, "+ PrintManager::step7_preLiftTimerExpired: moving %f\n", LiftDistance );
+        debug( "+ PrintManager::step7_preLiftTimerExpired: moving %f\n", LiftDistance );
         _shepherd->doMove( LiftDistance );
     } else {
         _startNextLayer( );
@@ -362,7 +362,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
 void PrintManager::step8_LiftUpComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
 
-    fprintf( stderr, "+ PrintManager::step8_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
+    debug( "+ PrintManager::step8_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
     _cleanUp( );
     emit printComplete( success );
 }

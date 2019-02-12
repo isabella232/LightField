@@ -3,8 +3,6 @@
 #include "printtab.h"
 
 #include "printjob.h"
-#include "constants.h"
-#include "debug.h"
 
 namespace {
 
@@ -115,15 +113,15 @@ void PrintTab::exposureTime_editingFinished( ) {
     bool valueOk = false;
     double value = exposureTime->validator( )->locale( ).toDouble( exposureTime->text( ), &valueOk );
     if ( valueOk ) {
-        fprintf( stderr, "+ PrintTab::exposureTime_editingFinished: new value %f\n", value );
+        debug( "+ PrintTab::exposureTime_editingFinished: new value %f\n", value );
         _printJob->exposureTime = value;
     } else {
-        fprintf( stderr, "+ PrintTab::exposureTime_editingFinished: bad value\n" );
+        debug( "+ PrintTab::exposureTime_editingFinished: bad value\n" );
     }
 }
 
 void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
-    fprintf( stderr, "+ PrintTab::exposureScaleFactorComboBox_currentIndexChanged: new value: %f×\n", ExposureScaleFactorValues[index] );
+    debug( "+ PrintTab::exposureScaleFactorComboBox_currentIndexChanged: new value: %f×\n", ExposureScaleFactorValues[index] );
     _printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
 }
 
@@ -134,7 +132,7 @@ void PrintTab::powerLevelSlider_valueChanged( int value ) {
 }
 
 void PrintTab::printButton_clicked( bool /*checked*/ ) {
-    fprintf( stderr, "+ PrintTab::printButton_clicked\n" );
+    debug( "+ PrintTab::printButton_clicked\n" );
     emit printButtonClicked( );
 }
 

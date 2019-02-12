@@ -2,8 +2,6 @@
 
 #include "svgrenderer.h"
 
-#include "debug.h"
-
 namespace {
 
     QDomDocument _CloneDocRoot( QDomDocument& doc ) {

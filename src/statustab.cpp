@@ -3,8 +3,6 @@
 #include "statustab.h"
 #include "printjob.h"
 #include "strings.h"
-#include "constants.h"
-#include "debug.h"
 
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     printerStateLabel->setText( "Printer status:" );
@@ -95,13 +93,13 @@ StatusTab::~StatusTab( ) {
 }
 
 void StatusTab::printer_Online( ) {
-    fprintf( stderr, "+ StatusTab::printer_Online\n" );
+    debug( "+ StatusTab::printer_Online\n" );
     _isPrinterOnline = true;
     printerStateDisplay->setText( "Online" );
 }
 
 void StatusTab::printer_Offline( ) {
-    fprintf( stderr, "+ StatusTab::printer_Offline\n" );
+    debug( "+ StatusTab::printer_Offline\n" );
     _isPrinterOnline = false;
     printerStateDisplay->setText( "Offline" );
 }
