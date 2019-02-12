@@ -53,15 +53,20 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelValueContainer->setContentsMargins( { } );
     powerLevelValueContainer->setLayout( powerLevelValueLayout );
 
+    powerLevelSliderLeftLabel->setContentsMargins( { } );
     powerLevelSliderLeftLabel->setText( "20%" );
     powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
+
+    powerLevelSliderRightLabel->setContentsMargins( { } );
     powerLevelSliderRightLabel->setText( "100%" );
     powerLevelSliderRightLabel->setAlignment( Qt::AlignRight );
 
+    powerLevelSliderLabelsLayout->setContentsMargins( { } );
     powerLevelSliderLabelsLayout->addWidget( powerLevelSliderLeftLabel );
     powerLevelSliderLabelsLayout->addStretch( );
     powerLevelSliderLabelsLayout->addWidget( powerLevelSliderRightLabel );
 
+    powerLevelSliderLabelsContainer->setContentsMargins( { } );
     powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
 
     optionsLayout->setContentsMargins( { } );
