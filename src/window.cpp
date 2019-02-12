@@ -75,92 +75,10 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     // "Status" tab
     //
 
-    printerStateLabel   = new QLabel( "Printer status:" );
-    printerStateDisplay = new QLabel( "Offline" );
-    printerStateLabel->setBuddy( printerStateDisplay );
-    printerStateDisplay->setFrameShadow( QFrame::Sunken );
-    printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
-
-    projectorLampStateLabel   = new QLabel( "Projector lamp status:" );
-    projectorLampStateDisplay = new QLabel( "Off" );
-    projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
-    projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
-    projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
-
-    jobStateLabel   = new QLabel( "Job status:" );
-    jobStateDisplay = new QLabel( "Not printing" );
-    jobStateLabel->setBuddy( jobStateDisplay );
-    jobStateDisplay->setFrameShadow( QFrame::Sunken );
-    jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
-
-    currentLayerLabel   = new QLabel( "Printer status:" );
-    currentLayerDisplay = new QLabel( "Offline" );
-    currentLayerLabel->setBuddy( currentLayerDisplay );
-    currentLayerDisplay->setFrameShadow( QFrame::Sunken );
-    currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
-
-    progressControlsLayout = new QVBoxLayout;
-    progressControlsLayout->setContentsMargins( emptyMargins );
-    progressControlsLayout->addWidget( printerStateLabel );
-    progressControlsLayout->addWidget( printerStateDisplay );
-    progressControlsLayout->addWidget( projectorLampStateLabel );
-    progressControlsLayout->addWidget( projectorLampStateDisplay );
-    progressControlsLayout->addWidget( jobStateLabel );
-    progressControlsLayout->addWidget( jobStateDisplay );
-    progressControlsLayout->addWidget( currentLayerLabel );
-    progressControlsLayout->addWidget( currentLayerDisplay );
-    progressControlsLayout->addStretch( );
-
-    progressControlsContainer = new QWidget;
-    progressControlsContainer->setContentsMargins( emptyMargins );
-    progressControlsContainer->setLayout( progressControlsLayout );
-    progressControlsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
-    currentLayerImageLabel = new QLabel( "Current layer:" );
-    currentLayerImageDisplay = new QLabel;
-    currentLayerImageLabel->setBuddy( currentLayerImageDisplay );
-    currentLayerImageDisplay->setAlignment( Qt::AlignCenter );
-    currentLayerImageDisplay->setMaximumSize( 600, 400 );
-    {
-        auto pal = currentLayerImageDisplay->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
-        currentLayerImageDisplay->setPalette( pal );
-    }
-
-    currentLayerImageLayout = new QVBoxLayout;
-    currentLayerImageLayout->setContentsMargins( emptyMargins );
-    currentLayerImageLayout->addWidget( currentLayerImageLabel );
-    currentLayerImageLayout->addWidget( currentLayerImageDisplay );
-    currentLayerImageLayout->addStretch( );
-
-    currentLayerImageContainer = new QWidget;
-    currentLayerImageContainer->setContentsMargins( emptyMargins );
-    currentLayerImageContainer->setLayout( currentLayerImageLayout );
-    currentLayerImageContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentLayerImageContainer->setMinimumSize( 600, 400 );
-
-    stopButton = new QPushButton( "STOP" );
-    {
-        auto font { stopButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        stopButton->setFont( font );
-    }
-    stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    stopButton->setEnabled( false );
-    QObject::connect( stopButton, &QPushButton::clicked, this, &Window::stopButton_clicked );
-
-    statusTabLayout = new QGridLayout;
-    statusTabLayout->setContentsMargins( emptyMargins );
-    statusTabLayout->addWidget( progressControlsContainer,  0, 0, 1, 1 );
-    statusTabLayout->addWidget( stopButton,                 1, 0, 1, 1 );
-    statusTabLayout->addWidget( currentLayerImageContainer, 0, 1, 2, 1 );
-    statusTabLayout->setRowStretch( 0, 4 );
-    statusTabLayout->setRowStretch( 1, 1 );
-
-    statusTab = new QWidget;
+    statusTab = new StatusTab;
     statusTab->setContentsMargins( emptyMargins );
-    statusTab->setLayout( statusTabLayout );
     statusTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect( statusTab, &StatusTab::stopButtonClicked, this, &Window::statusTab_stopButtonClicked );
 
     //
     // Tab widget
@@ -177,11 +95,11 @@ Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainW
     setCentralWidget( tabs );
 
     shepherd = new Shepherd( parent );
-    QObject::connect( shepherd, &Shepherd::shepherd_Started,              this, &Window::shepherd_Started              );
-    QObject::connect( shepherd, &Shepherd::shepherd_Finished,             this, &Window::shepherd_Finished             );
-    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError,         this, &Window::shepherd_ProcessError         );
-    QObject::connect( shepherd, &Shepherd::printer_Online,                this, &Window::printer_Online                );
-    QObject::connect( shepherd, &Shepherd::printer_Offline,               this, &Window::printer_Offline               );
+    QObject::connect( shepherd, &Shepherd::shepherd_Started,      this,      &Window::shepherd_Started              );
+    QObject::connect( shepherd, &Shepherd::shepherd_Finished,     this,      &Window::shepherd_Finished             );
+    QObject::connect( shepherd, &Shepherd::shepherd_ProcessError, this,      &Window::shepherd_ProcessError         );
+    QObject::connect( shepherd, &Shepherd::printer_Online,        statusTab, &StatusTab::printer_Online             );
+    QObject::connect( shepherd, &Shepherd::printer_Offline,       statusTab, &StatusTab::printer_Offline            );
     shepherd->start( );
 }
 
@@ -210,18 +128,6 @@ void Window::shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus ) 
 
 void Window::shepherd_ProcessError( QProcess::ProcessError error ) {
     fprintf( stderr, "+ Window::shepherd_ProcessError: %d\n", error );
-}
-
-void Window::printer_Online( ) {
-    fprintf( stderr, "+ Window::printer_Online\n" );
-    isPrinterOnline = true;
-    printerStateDisplay->setText( "Online" );
-}
-
-void Window::printer_Offline( ) {
-    fprintf( stderr, "+ Window::printer_Offline\n" );
-    isPrinterOnline = false;
-    printerStateDisplay->setText( "Offline" );
 }
 
 void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
@@ -291,33 +197,20 @@ void Window::printTab_printButtonClicked( ) {
     *newJob = *printJob;
 
     printManager = new PrintManager( shepherd, this );
+    QObject::connect( printManager, &PrintManager::printStarting,    statusTab, &StatusTab::printManager_printStarting    );
+    QObject::connect( printManager, &PrintManager::startingLayer,    statusTab, &StatusTab::printManager_startingLayer    );
+    QObject::connect( printManager, &PrintManager::lampStatusChange, statusTab, &StatusTab::printManager_lampStatusChange );
+    QObject::connect( printManager, &PrintManager::printComplete,    statusTab, &StatusTab::printManager_printComplete    );
     printManager->print( printJob );
 
     printJob = newJob;
     emit printJobChanged( printJob );
 
-    stopButton->setEnabled( true );
+    statusTab->setStopButtonEnabled( true );
 }
 
-void Window::stopButton_clicked( bool /*checked*/ ) {
+void Window::statusTab_stopButtonClicked( ) {
     printManager->abortJob( );
-}
-
-void Window::printManager_printStarting( ) {
-    jobStateDisplay->setText( "Print started" );
-}
-
-void Window::printManager_printingLayer( int const layer ) {
-    currentLayerDisplay->setText( QString( "%1" ).arg( layer ) );
-    currentLayerImageDisplay->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) ) );
-}
-
-void Window::printManager_lampStatusChange( bool const on ) {
-    projectorLampStateDisplay->setText( on ? QString( "On" ) : QString( "Off" ) );
-}
-
-void Window::printManager_printComplete( bool const success ) {
-    jobStateDisplay->setText( success ? "Print complete" : "Print failed" );
 }
 
 void Window::signalHandler_quit( int signalNumber ) {

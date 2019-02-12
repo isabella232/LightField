@@ -27,35 +27,15 @@ protected:
 
 private:
 
-    Shepherd*         shepherd        { nullptr };
-    PrintManager*     printManager    { nullptr };
-    PrintJob*         printJob        { nullptr };
-
-    bool              isPrinterOnline { false   };
+    Shepherd*         shepherd     { nullptr };
+    PrintManager*     printManager { nullptr };
+    PrintJob*         printJob     { nullptr };
 
     QTabWidget*       tabs;
     SelectTab*        selectTab;
     PrepareTab*       prepareTab;
     PrintTab*         printTab;
-    //StatusTab*      statusTab;
-
-    QLabel*           printerStateLabel;
-    QLabel*           printerStateDisplay;
-    QLabel*           projectorLampStateLabel;
-    QLabel*           projectorLampStateDisplay;
-    QLabel*           jobStateLabel;
-    QLabel*           jobStateDisplay;
-    QLabel*           currentLayerLabel;
-    QLabel*           currentLayerDisplay;
-    QVBoxLayout*      progressControlsLayout;
-    QWidget*          progressControlsContainer;
-    QLabel*           currentLayerImageLabel;
-    QLabel*           currentLayerImageDisplay;
-    QVBoxLayout*      currentLayerImageLayout;
-    QWidget*          currentLayerImageContainer;
-    QPushButton*      stopButton;
-    QGridLayout*      statusTabLayout;
-    QWidget*          statusTab;
+    StatusTab*        statusTab;
 
 signals:
 
@@ -71,9 +51,6 @@ private slots:
     void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
     void shepherd_ProcessError( QProcess::ProcessError error );
 
-    void printer_Online( );
-    void printer_Offline( );
-
     void selectTab_modelSelected( bool success, QString const& fileName );
 
     void prepareTab_sliceStarting( );
@@ -83,12 +60,8 @@ private slots:
 
     void printTab_printButtonClicked( );
 
-    void stopButton_clicked( bool checked );
+    void statusTab_stopButtonClicked( );
 
-    void printManager_printStarting( );
-    void printManager_printingLayer( int layer );
-    void printManager_lampStatusChange( bool const on );
-    void printManager_printComplete( bool success );
     void signalHandler_quit( int signalNumber );
 
 };
