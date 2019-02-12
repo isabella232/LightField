@@ -12,13 +12,18 @@ App::App( int& argc, char *argv[] ):
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "fstl" );
 
+    AppSettings settings;
     bool fullScreen = true;
     bool debuggingPosition = false;
     for ( int n = 1; n < argc; ++n ) {
         if ( 0 == strcmp( argv[n], "-f" ) ) {
-            fullScreen = false;
+            settings.fullScreen = false;
         } else if ( 0 == strcmp( argv[n], "-g" ) ) {
-            debuggingPosition = true;
+            settings.debuggingPosition = true;
+        } else if ( 0 == strcmp( argv[n], "--dark" ) ) {
+            settings.theme = Theme::Dark;
+        } else if ( 0 == strcmp( argv[n], "--light" ) ) {
+            settings.theme = Theme::Light;
         } else {
             fprintf( stderr, "ignoring unrecognized parameter '%s'\n", argv[n] );
         }
@@ -27,7 +32,7 @@ App::App( int& argc, char *argv[] ):
     qDebug( ).setVerbosity( 7 );
     g_signalHandler = new SignalHandler;
 
-    window = new Window( fullScreen, debuggingPosition, nullptr );
+    window = new Window( settings );
     window->show( );
 }
 

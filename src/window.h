@@ -1,6 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "app.h"
 #include "shepherd.h"
 #include "printmanager.h"
 #include "printjob.h"
@@ -8,9 +9,6 @@
 #include "preparetab.h"
 #include "printtab.h"
 #include "statustab.h"
-#include "debug.h"
-#include "constants.h"
-#include "strings.h"
 
 class Window: public QMainWindow {
 
@@ -18,7 +16,7 @@ class Window: public QMainWindow {
 
 public:
 
-    Window(bool fullScreen, bool debuggingPosition, QWidget* parent=0);
+    Window( AppSettings settings, QWidget* parent = nullptr );
     virtual ~Window( ) override;
 
 protected:

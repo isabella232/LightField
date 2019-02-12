@@ -2,10 +2,10 @@
 
 #include "window.h"
 
-#include "printmanager.h"
 #include "signalhandler.h"
 #include "strings.h"
 #include "constants.h"
+#include "debug.h"
 
 namespace {
 
@@ -21,11 +21,11 @@ namespace {
 
 }
 
-Window::Window(bool fullScreen, bool debuggingPosition, QWidget *parent): QMainWindow(parent) {
+Window::Window( AppSettings settings, QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
-    move( { 0, debuggingPosition ? 560 : 800 } );
-    if ( fullScreen ) {
+    move( { 0, settings.debuggingPosition ? 560 : 800 } );
+    if ( settings.fullScreen ) {
         showFullScreen( );
     } else {
         setFixedSize( 800, 480 );
