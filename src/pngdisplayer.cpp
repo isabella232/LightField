@@ -3,7 +3,7 @@
 #include "pngdisplayer.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
-    fprintf( stderr, "+ construct PngDisplayer at %p\n", this );
+    debug( "+ construct PngDisplayer at %p\n", this );
     _label = new QLabel( );
     _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );
@@ -14,7 +14,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
 }
 
 PngDisplayer::~PngDisplayer( ) {
-    fprintf( stderr, "+ destruct PngDisplayer at %p\n", this );
+    debug( "+ destruct PngDisplayer at %p\n", this );
 }
 
 bool PngDisplayer::load( QString const& fileName ) {

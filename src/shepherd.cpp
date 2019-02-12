@@ -11,7 +11,7 @@ namespace {
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
-    fprintf( stderr, "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
+    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
 
     _process = new QProcess( parent );
 
@@ -36,17 +36,17 @@ Shepherd::~Shepherd( ) {
 }
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
+    debug( "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
     emit shepherd_ProcessError( error );
 }
 
 void Shepherd::processStarted( ) {
-    fprintf( stderr, "+ Shepherd::processStarted\n" );
+    debug( "+ Shepherd::processStarted\n" );
     emit shepherd_Started( );
 }
 
 void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
+    debug( "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
 void Shepherd::processReadyReadStandardError( ) {
@@ -71,7 +71,7 @@ void Shepherd::processReadyReadStandardOutput( ) {
 }
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    fprintf( stderr, "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+    debug( "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
     emit shepherd_Finished( exitCode, exitStatus );
 }
 
@@ -122,7 +122,7 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handleFromPrinter( QString const& input ) {
-    fprintf( stderr, "+ Shepherd::handleFromPrinter: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
+    debug( "+ Shepherd::handleFromPrinter: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
     if ( input == "ok" ) {
         switch ( _pendingCommand ) {
             case PendingCommand::move:
@@ -152,11 +152,11 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                 break;
 
             case PendingCommand::none:
-                fprintf( stderr, "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
+                debug( "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
                 break;
 
             default:
-                fprintf( stderr, "+ Shepherd::handleFromPrinter: unknown pending command\n" );
+                debug( "+ Shepherd::handleFromPrinter: unknown pending command\n" );
                 break;
         }
     }
@@ -185,12 +185,12 @@ void Shepherd::handleInput( QString const& input ) {
         }
 
         auto pieces = splitLine( line );
-        fprintf( stderr, "+ Shepherd::handleInput:\n" );
+        debug( "+ Shepherd::handleInput:\n" );
         if ( pieces[0] == "from_printer" ) {
-            fprintf( stderr, "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
             handleFromPrinter( pieces[1] );
         } else if ( pieces[0] == "to_printer" ) {
-            fprintf( stderr, ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "printer_online" ) {
             emit printer_Online( );
         } else if ( pieces[0] == "printer_offline" ) {
@@ -208,13 +208,13 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
             emit printProcess_FinishedPrinting( );
         } else if ( pieces[0] == "ok" ) {
-            fprintf( stderr, "  + got ok from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( "  + got ok from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "fail" ) {
-            fprintf( stderr, "  + got fail from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
+            debug( "  + got fail from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
         }
     }
 
-    fprintf( stderr, "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
+    debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
 }
 
 void Shepherd::start( ) {
@@ -225,7 +225,7 @@ void Shepherd::start( ) {
 
 void Shepherd::doMove( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doMove: command already in progress" );
+        debug( "Shepherd::doMove: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::move;
@@ -235,7 +235,7 @@ void Shepherd::doMove( float arg ) {
 
 void Shepherd::doMoveTo( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doMoveTo: command already in progress" );
+        debug( "Shepherd::doMoveTo: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::moveTo;
@@ -245,7 +245,7 @@ void Shepherd::doMoveTo( float arg ) {
 
 void Shepherd::doHome( ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doHome: command already in progress" );
+        debug( "Shepherd::doHome: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::home;
@@ -255,7 +255,7 @@ void Shepherd::doHome( ) {
 
 void Shepherd::doLift( float arg1, float arg2 ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        fprintf( stderr, "Shepherd::doLift: command already in progress" );
+        debug( "Shepherd::doLift: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::lift;

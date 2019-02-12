@@ -2,8 +2,6 @@
 
 #include "processrunner.h"
 
-#include "debug.h"
-
 ProcessRunner::ProcessRunner( ) {
     QObject::connect( &_process, &QProcess::errorOccurred, this, &ProcessRunner::processErrorOccurred );
     QObject::connect( &_process, &QProcess::started,       this, &ProcessRunner::processStarted       );
@@ -28,16 +26,16 @@ void ProcessRunner::start( QProcess::OpenMode const mode ) {
 }
 
 void ProcessRunner::processErrorOccurred( QProcess::ProcessError error ) {
-    fprintf( stderr, "ProcessRunner::processErrorOccurred: %d\n", static_cast<int>( error ) );
+    debug( "ProcessRunner::processErrorOccurred: %d\n", static_cast<int>( error ) );
     emit failed( error );
 }
 
 void ProcessRunner::processStarted( ) {
-    fprintf( stderr, "ProcessRunner::processStarted\n" );
+    debug( "ProcessRunner::processStarted\n" );
 }
 
 void ProcessRunner::processStateChanged( QProcess::ProcessState newState ) {
-    fprintf( stderr, "ProcessRunner::processStateChanged: %d\n", static_cast<int>( newState ) );
+    debug( "ProcessRunner::processStateChanged: %d\n", static_cast<int>( newState ) );
 }
 
 void ProcessRunner::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {

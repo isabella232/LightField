@@ -3,7 +3,6 @@
 #include "signalhandler.h"
 
 #include "window.h"
-#include "debug.h"
 
 #define _countof(x) (sizeof(x) / sizeof(x[0]))
 
@@ -20,7 +19,7 @@ SignalHandler* g_signalHandler;
 SignalHandler::SignalHandler( QObject* parent ): QObject( parent ) {
     if ( ::socketpair( AF_UNIX, SOCK_STREAM, 0, signalFds ) ) {
         auto err = errno;
-        fprintf( stderr, "+ SignalHandler::`ctor: socketpair failed: %s [%d]", strerror( err ), err );
+        debug( "+ SignalHandler::`ctor: socketpair failed: %s [%d]", strerror( err ), err );
         return;
     }
 
@@ -36,7 +35,7 @@ SignalHandler::SignalHandler( QObject* parent ): QObject( parent ) {
     for ( int signalNumber : QuitSignalList ) {
         if ( sigaction( signalNumber, &sigact, nullptr ) ) {
             auto err = errno;
-            fprintf( stderr, "+ SignalHandler::`ctor: Signal %d: sigaction failed: %s [%d]", signalNumber, strerror( err ), err );
+            debug( "+ SignalHandler::`ctor: Signal %d: sigaction failed: %s [%d]", signalNumber, strerror( err ), err );
             failureCount++;
         }
     }

@@ -1,12 +1,14 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "app.h"
 #include "shepherd.h"
-#include "canvas.h"
-#include "loader.h"
 #include "printmanager.h"
-#include "svgrenderer.h"
-#include "debug.h"
+#include "printjob.h"
+#include "selecttab.h"
+#include "preparetab.h"
+#include "printtab.h"
+#include "statustab.h"
 
 class Window: public QMainWindow {
 
@@ -14,10 +16,8 @@ class Window: public QMainWindow {
 
 public:
 
-    Window(bool fullScreen, bool debuggingPosition, QWidget* parent=0);
+    Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
-
-    bool load_stl(const QString& filename);
 
 protected:
 
@@ -25,76 +25,19 @@ protected:
 
 private:
 
-    Shepherd*         shepherd      { nullptr };
-    Loader*           loader        { nullptr };
-    PrintManager*     printManager  { nullptr };
-    PrintJob*         printJob      { nullptr };
-    QProcess*         slicerProcess { nullptr };
-    SvgRenderer*      svgRenderer   { nullptr };
+    Shepherd*     shepherd     {                };
+    PrintManager* printManager {                };
+    PrintJob*     printJob     { new PrintJob   };
 
-    bool              isPrinterOnline { false };
-
-    QTabWidget*       tabs;
-
-    Canvas*           canvas;
-    QLabel*           availableFilesLabel;
-    QFileSystemModel* fileSystemModel;
-    QListView*        availableFilesListView;
-    QGridLayout*      availableFilesLayout;
-    QWidget*          availableFilesContainer;
-    QPushButton*      selectButton;
-    QWidget*          selectTab;
-    QGridLayout*      selectTabLayout;
-
-    QLabel*           sliceProgress;
-    QLabel*           renderProgress;
-    QFormLayout*      sliceProgressLayout;
-    QWidget*          sliceProgressContainer;
-    QLabel*           layerThicknessLabel;
-    QComboBox*        layerThicknessComboBox;
-    QLabel*           exposureTimeLabel;
-    QLineEdit*        exposureTime;
-    QLabel*           exposureScaleFactorLabel;
-    QComboBox*        exposureScaleFactorComboBox;
-    QLabel*           powerLevelLabel;
-    QLabel*           powerLevelValue;
-    QHBoxLayout*      powerLevelValueLayout;
-    QWidget*          powerLevelValueContainer;
-    QSlider*          powerLevelSlider;
-    QLabel*           powerLevelSliderLeftLabel;
-    QLabel*           powerLevelSliderRightLabel;
-    QHBoxLayout*      powerLevelSliderLabelsLayout;
-    QWidget*          powerLevelSliderLabelsContainer;
-    QVBoxLayout*      optionsLayout;
-    QWidget*          optionsContainer;
-    QPushButton*      sliceButton;
-    QPushButton*      printButton;
-    QLabel*           currentSliceLabel;
-    QLabel*           currentSliceDisplay;
-    QVBoxLayout*      currentSliceLayout;
-    QWidget*          currentSliceContainer;
-    QWidget*          printTab;
-    QGridLayout*      printTabLayout;
-
-    QLabel*           printerStateLabel;
-    QLabel*           printerStateDisplay;
-    QLabel*           projectorLampStateLabel;
-    QLabel*           projectorLampStateDisplay;
-    QLabel*           jobStateLabel;
-    QLabel*           jobStateDisplay;
-    QLabel*           currentLayerLabel;
-    QLabel*           currentLayerDisplay;
-    QVBoxLayout*      progressControlsLayout;
-    QWidget*          progressControlsContainer;
-    QLabel*           currentLayerImageLabel;
-    QLabel*           currentLayerImageDisplay;
-    QVBoxLayout*      currentLayerImageLayout;
-    QWidget*          currentLayerImageContainer;
-    QPushButton*      stopButton;
-    QGridLayout*      statusTabLayout;
-    QWidget*          statusTab;
+    QTabWidget*   tabs         { new QTabWidget };
+    SelectTab*    selectTab    { new SelectTab  };
+    PrepareTab*   prepareTab   { new PrepareTab };
+    PrintTab*     printTab     { new PrintTab   };
+    StatusTab*    statusTab    { new StatusTab  };
 
 signals:
+
+    void printJobChanged( PrintJob* newJob );
 
 public slots:
 
@@ -106,43 +49,16 @@ private slots:
     void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
     void shepherd_ProcessError( QProcess::ProcessError error );
 
-    void printer_Online( );
-    void printer_Offline( );
+    void selectTab_modelSelected( bool success, QString const& fileName );
 
-    void loader_ErrorBadStl();
-    void loader_ErrorEmptyMesh();
-    void loader_ErrorMissingFile();
+    void prepareTab_sliceStarting( );
+    void prepareTab_sliceComplete( bool success );
+    void prepareTab_renderStarting( );
+    void prepareTab_renderComplete( bool success );
 
-    void loader_Finished();
-    void loader_LoadedFile(QString const& filename);
+    void printTab_printButtonClicked( );
 
-    void fileSystemModel_DirectoryLoaded( QString const& name );
-    void fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName );
-    void fileSystemModel_RootPathChanged( QString const& newPath );
-
-    void availableFilesListView_clicked( QModelIndex const& index );
-    void selectButton_clicked( bool checked );
-
-    void layerThicknessComboBox_currentIndexChanged( int index );
-    void exposureTime_editingFinished( );
-    void exposureScaleFactorComboBox_currentIndexChanged( int index );
-    void powerLevelSlider_valueChanged( int value );
-    void sliceButton_clicked( bool checked );
-    void printButton_clicked( bool checked );
-
-    void stopButton_clicked( bool checked );
-
-    void printManager_printStarting( );
-    void printManager_printingLayer( int layer );
-    void printManager_lampStatusChange( bool const on );
-    void printManager_printComplete( bool success );
-
-    void slicerProcessErrorOccurred( QProcess::ProcessError error );
-    void slicerProcessStarted( );
-    void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
-
-    void svgRenderer_progress( int const currentLayer );
-    void svgRenderer_done( int const totalLayers );
+    void statusTab_stopButtonClicked( );
 
     void signalHandler_quit( int signalNumber );
 
