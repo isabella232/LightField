@@ -201,7 +201,8 @@ signal.signal( signal.SIGQUIT, signal.SIG_IGN )
 
 driver = StdioPrinterDriver( )
 if not driver.connect( ):
-    print( "warning \"Couldn't open any serial device\"", file = sys.stderr )
+    driver.writer.writerow( [ 'warning', 'Couldn\'t open any serial device' ] )
+    sys.stdout.flush( )
 
 try:
     driver.processInput( )
