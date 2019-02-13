@@ -54,7 +54,7 @@ HEADERS  += \
     ../src/constants.h \
     ../src/debug.h
 
-CONFIG += c++11
+CONFIG += c++17
 CONFIG += precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
