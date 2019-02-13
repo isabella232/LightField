@@ -13,12 +13,9 @@ class AppSettings {
 
 public:
 
-#if defined _DEBUG
-    bool debuggingPosition { false        };
-#endif // defined _DEBUG
-
-    bool  fullScreen       { true         };
-    Theme theme            { Theme::Light };
+    bool  debuggingPosition { false        };
+    bool  fullScreen        { true         };
+    Theme theme             { Theme::Light };
 
 };
 
