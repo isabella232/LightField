@@ -20,7 +20,6 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <QtOpenGL>
-#include <QtOpenGL/QtOpenGL>
 #include <QtXml>
 
 #include "constants.h"
