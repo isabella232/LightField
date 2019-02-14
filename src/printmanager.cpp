@@ -3,6 +3,7 @@
 #include "printmanager.h"
 
 #include "pngdisplayer.h"
+#include "printjob.h"
 #include "shepherd.h"
 #include "strings.h"
 
