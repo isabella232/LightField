@@ -5,6 +5,7 @@
 #include "canvas.h"
 #include "loader.h"
 #include "printjob.h"
+#include "strings.h"
 
 namespace {
 
@@ -112,6 +113,7 @@ void SelectTab::selectButton_clicked( bool /*checked*/ ) {
 }
 
 void SelectTab::loader_ErrorBadStl( ) {
+    debug( "+ SelectTab::loader_ErrorBadStl\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "This <code>.stl</code> file is invalid or corrupted.<br>"
@@ -121,6 +123,7 @@ void SelectTab::loader_ErrorBadStl( ) {
 }
 
 void SelectTab::loader_ErrorEmptyMesh( ) {
+    debug( "+ SelectTab::loader_ErrorEmptyMesh\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "This file is syntactically correct<br>but contains no triangles."
@@ -129,6 +132,7 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
 }
 
 void SelectTab::loader_ErrorMissingFile( ) {
+    debug( "+ SelectTab::loader_ErrorMissingFile\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "The target file is missing.<br>"
@@ -137,29 +141,31 @@ void SelectTab::loader_ErrorMissingFile( ) {
 }
 
 void SelectTab::loader_Finished( ) {
+    debug( "+ SelectTab::loader_Finished\n" );
+    _canvas->clear_status( );
+    _loader->deleteLater( );
     _loader = nullptr;
 }
 
 void SelectTab::loader_LoadedFile( const QString& fileName ) {
-    debug( "+ SelectTab::loader_LoadedFile: filename: '%s'\n", fileName.toUtf8( ).data( ) );
+    debug( "+ SelectTab::loader_LoadedFile: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     _selectButton->setEnabled( true );
 }
 
 bool SelectTab::_loadModel( QString const& fileName ) {
+    debug( "+ SelectTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     if ( _loader ) {
         debug( "+ SelectTab::_loadModel: loader object exists, not loading\n" );
         return false;
     }
 
-    _canvas->set_status( "Loading " + fileName );
+    _canvas->set_status( QString( "Loading " ) + getFileBaseName( fileName ) );
 
     _loader = new Loader( this, fileName, false );
     connect( _loader, &Loader::got_mesh,           _canvas, &Canvas::load_mesh                  );
     connect( _loader, &Loader::error_bad_stl,      this,    &SelectTab::loader_ErrorBadStl      );
     connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );
     connect( _loader, &Loader::error_missing_file, this,    &SelectTab::loader_ErrorMissingFile );
-    connect( _loader, &Loader::finished,           _loader, &Loader::deleteLater                );
-    connect( _loader, &Loader::finished,           _canvas, &Canvas::clear_status               );
     connect( _loader, &Loader::finished,           this,    &SelectTab::loader_Finished         );
 
     if ( fileName[0] != ':' ) {
@@ -172,5 +178,6 @@ bool SelectTab::_loadModel( QString const& fileName ) {
 }
 
 void SelectTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
 }
