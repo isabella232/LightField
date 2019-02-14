@@ -159,11 +159,12 @@ void PrintManager::terminate( ) {
     _cleanUp( );
 }
 
-void PrintManager::abortJob( ) {
-    debug( "+ PrintManager::abortJob\n" );
+void PrintManager::abort( ) {
+    debug( "+ PrintManager::abort\n" );
     // TODO abort command if possible
     // TODO home printer
     _cleanUp( );
+    emit printComplete( false );
 }
 
 void PrintManager::initialHomeComplete( bool success ) {

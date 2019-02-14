@@ -18,7 +18,7 @@ public:
     void print( PrintJob* printJob );
     void terminate( );
 
-    void abortJob( );
+    void abort( );
 
 protected:
 
