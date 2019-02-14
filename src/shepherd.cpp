@@ -187,7 +187,15 @@ void Shepherd::handleInput( QString const& input ) {
 
         auto pieces = splitLine( line );
         debug( "+ Shepherd::handleInput:\n" );
-        if ( pieces[0] == "from_printer" ) {
+        if ( pieces[0] == "ok" ) {
+            debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "fail" ) {
+            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "warning" ) {
+            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "warning" ) {
+            debug( "  + info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "from_printer" ) {
             debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
             handleFromPrinter( pieces[1] );
         } else if ( pieces[0] == "to_printer" ) {
@@ -197,7 +205,7 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "printer_offline" ) {
             emit printer_Offline( );
         } else if ( pieces[0] == "printer_position" ) {
-            emit printer_Position( QLocale( ).toDouble( pieces[1] ) );
+            emit printer_Position( pieces[1].toDouble( ) );
         } else if ( pieces[0] == "printer_temperature" ) {
             emit printer_Temperature( pieces[1] );
         } else if ( pieces[0] == "printProcess_showImage" ) {
@@ -208,12 +216,6 @@ void Shepherd::handleInput( QString const& input ) {
             emit printProcess_StartedPrinting( );
         } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
             emit printProcess_FinishedPrinting( );
-        } else if ( pieces[0] == "ok" ) {
-            debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
-        } else if ( pieces[0] == "fail" ) {
-            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
-        } else if ( pieces[0] == "warning" ) {
-            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         }
     }
 
@@ -225,6 +227,8 @@ void Shepherd::handleInput( QString const& input ) {
 void Shepherd::start( ) {
     if ( _process->state( ) == QProcess::NotRunning ) {
         _process->start( "./stdio-shepherd.py" );
+    } else {
+        debug( "+ Shepherd::start: already running\n" );
     }
 }
 

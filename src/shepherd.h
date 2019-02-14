@@ -72,4 +72,6 @@ signals:
 
 };
 
+char const* ToString( PendingCommand value );
+
 #endif // __SHEPHERD_H__
