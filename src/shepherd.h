@@ -6,7 +6,6 @@ enum class PendingCommand {
     move,
     moveTo,
     home,
-    lift,
 };
 
 class Shepherd: public QObject {
@@ -23,30 +22,21 @@ public:
     void doMove( float arg );
     void doMoveTo( float arg );
     void doHome( );
-    void doLift( float arg1, float arg2 );
-    void doAskTemp( );
     void doSend( char const* arg );
     void doTerminate( );
 
+protected:
+
 private:
 
-    QProcess* _process;
-    QString _buffer;
+    QProcess*      _process;
+    QString        _buffer;
     PendingCommand _pendingCommand { PendingCommand::none };
-    int _okCount { };
+    int            _okCount { };
 
     QStringList splitLine( QString const& line );
-    void handleFromPrinter( QString const& input );
-    void handleInput( QString const& input );
-
-private slots:
-
-    void processErrorOccurred( QProcess::ProcessError error );
-    void processStarted( );
-    void processStateChanged( QProcess::ProcessState newState );
-    void processReadyReadStandardError( );
-    void processReadyReadStandardOutput( );
-    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void        handleFromPrinter( QString const& input );
+    void        handleInput( QString const& input );
 
 signals:
 
@@ -68,7 +58,18 @@ signals:
     void action_moveComplete( bool successful );
     void action_moveToComplete( bool successful );
     void action_homeComplete( bool successful );
-    void action_liftComplete( bool successful );
+
+public slots:
+
+protected slots:
+
+private slots:
+
+    void processErrorOccurred( QProcess::ProcessError error );
+    void processStarted( );
+    void processReadyReadStandardError( );
+    void processReadyReadStandardOutput( );
+    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 };
 

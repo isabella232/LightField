@@ -26,7 +26,6 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
 
     QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred           );
     QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted                 );
-    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged            );
     QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyReadStandardError  );
     QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
@@ -44,10 +43,6 @@ void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
 void Shepherd::processStarted( ) {
     debug( "+ Shepherd::processStarted\n" );
     emit shepherd_Started( );
-}
-
-void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
-    debug( "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
 }
 
 void Shepherd::processReadyReadStandardError( ) {
@@ -147,11 +142,6 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                 }
                 break;
 
-            case PendingCommand::lift:
-                _pendingCommand = PendingCommand::none;
-                emit action_liftComplete( true );
-                break;
-
             case PendingCommand::none:
                 debug( "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
                 break;
@@ -234,7 +224,7 @@ void Shepherd::start( ) {
 
 void Shepherd::doMove( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doMove: command already in progress" );
+        debug( "+ Shepherd::doMove: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::move;
@@ -244,7 +234,7 @@ void Shepherd::doMove( float arg ) {
 
 void Shepherd::doMoveTo( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doMoveTo: command already in progress" );
+        debug( "+ Shepherd::doMoveTo: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::moveTo;
@@ -254,26 +244,12 @@ void Shepherd::doMoveTo( float arg ) {
 
 void Shepherd::doHome( ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doHome: command already in progress" );
+        debug( "+ Shepherd::doHome: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::home;
     _okCount = 0;
     _process->write( "home\n" );
-}
-
-void Shepherd::doLift( float arg1, float arg2 ) {
-    if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doLift: command already in progress" );
-        return;
-    }
-    _pendingCommand = PendingCommand::lift;
-    _okCount = 0;
-    _process->write( QString( "lift %1 %2\n" ).arg( arg1 ).arg( arg2 ).toUtf8( ) );
-}
-
-void Shepherd::doAskTemp( ) {
-    _process->write( "askTemp\n" );
 }
 
 void Shepherd::doSend( char const* arg ) {
