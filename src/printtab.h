@@ -24,15 +24,15 @@ protected:
 
 private:
 
-    enum class GewgawState {
+    enum class BuildPlatformState {
         Extended,
         Retracting,
         Retracted,
         Extending,
     };
 
-    PrintJob*    _printJob                       { };
-    GewgawState  _gewgawState                    { GewgawState::Extended };
+    PrintJob*          _printJob                 { };
+    BuildPlatformState _buildPlatformState       { BuildPlatformState::Extended };
 
     QLabel*      exposureTimeLabel               { new QLabel      };
     QLineEdit*   exposureTime                    { new QLineEdit   };
@@ -65,20 +65,20 @@ signals:
 
     void printButtonClicked( );
     void adjustBedHeight( double const newHeight );
-    void retractGewgaw( );
-    void extendGewgaw( );
-    void moveGewgawUp( );
-    void moveGewgawDown( );
+    void retractBuildPlatform( );
+    void extendBuildPlatform( );
+    void moveBuildPlatformUp( );
+    void moveBuildPlatformDown( );
 
 public slots:
 
     void setPrintJob( PrintJob* printJob );
     void setPrintButtonEnabled( bool const value );
 
-    void retractGewgawComplete( bool const success );
-    void extendGewgawComplete( bool const success );
-    void moveGewgawUpComplete( bool const success );
-    void moveGewgawDownComplete( bool const success );
+    void retractBuildPlatformComplete( bool const success );
+    void extendBuildPlatformComplete( bool const success );
+    void moveBuildPlatformUpComplete( bool const success );
+    void moveBuildPlatformDownComplete( bool const success );
 
 protected slots:
 

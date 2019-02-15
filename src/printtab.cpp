@@ -93,7 +93,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustBedHeightButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _adjustBedHeightButton, &QPushButton::clicked, this, &PrintTab::_adjustBedHeightButton_clicked );
 
-    _retractOrExtendButton->setText( "Retract\nGewgaw" );
+    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
     _retractOrExtendButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _retractOrExtendButton, &QPushButton::clicked, this, &PrintTab::_retractOrExtendButton_clicked );
 
@@ -174,15 +174,15 @@ void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
 
 void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
     _retractOrExtendButton->setEnabled( false );
-    switch ( _gewgawState ) {
-        case GewgawState::Extended:
-            _gewgawState = GewgawState::Retracting;
-            emit retractGewgaw( );
+    switch ( _buildPlatformState ) {
+        case BuildPlatformState::Extended:
+            _buildPlatformState = BuildPlatformState::Retracting;
+            emit retractBuildPlatform( );
             break;
 
-        case GewgawState::Retracted:
-            _gewgawState = GewgawState::Extending;
-            emit extendGewgaw( );
+        case BuildPlatformState::Retracted:
+            _buildPlatformState = BuildPlatformState::Extending;
+            emit extendBuildPlatform( );
             break;
 
         default:
@@ -192,12 +192,12 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
 
 void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
     _moveUpButton->setEnabled( false );
-    emit moveGewgawUp( );
+    emit moveBuildPlatformUp( );
 }
 
 void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
     _moveDownButton->setEnabled( false );
-    emit moveGewgawDown( );
+    emit moveBuildPlatformDown( );
 }
 
 void PrintTab::setPrintJob( PrintJob* printJob ) {
@@ -225,26 +225,26 @@ void PrintTab::setPrintButtonEnabled( bool const value ) {
     printButton->setEnabled( value );
 }
 
-void PrintTab::retractGewgawComplete( bool const success ) {
-    debug( "+ PrintTab::retractGewgawComplete: %s\n", success ? "succeeded" : "failed" );
-    _gewgawState = GewgawState::Retracted;
-    _retractOrExtendButton->setText( "Extend\nGewgaw" );
+void PrintTab::retractBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+    _buildPlatformState = BuildPlatformState::Retracted;
+    _retractOrExtendButton->setText( "Extend\nBuild Platform" );
     _retractOrExtendButton->setEnabled( true );
 }
 
-void PrintTab::extendGewgawComplete( bool const success ) {
-    debug( "+ PrintTab::extendGewgawComplete: %s\n", success ? "succeeded" : "failed" );
-    _gewgawState = GewgawState::Extended;
-    _retractOrExtendButton->setText( "Retract\nGewgaw" );
+void PrintTab::extendBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+    _buildPlatformState = BuildPlatformState::Extended;
+    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
     _retractOrExtendButton->setEnabled( true );
 }
 
-void PrintTab::moveGewgawUpComplete( bool const success ) {
-    debug( "+ PrintTab::moveGewgawUpComplete: %s\n", success ? "succeeded" : "failed" );
+void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
+    debug( "+ PrintTab::moveBuildPlatformUpComplete: %s\n", success ? "succeeded" : "failed" );
     _moveUpButton->setEnabled( true );
 }
 
-void PrintTab::moveGewgawDownComplete( bool const success ) {
-    debug( "+ PrintTab::moveGewgawDownComplete: %s\n", success ? "succeeded" : "failed" );
+void PrintTab::moveBuildPlatformDownComplete( bool const success ) {
+    debug( "+ PrintTab::moveBuildPlatformDownComplete: %s\n", success ? "succeeded" : "failed" );
     _moveDownButton->setEnabled( true );
 }

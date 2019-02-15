@@ -49,10 +49,10 @@ private slots:
     void shepherd_processError( QProcess::ProcessError error );
 
     void shepherd_adjustBedHeightMoveToComplete( bool success );
-    void shepherd_retractGewgawMoveToComplete( bool success );
-    void shepherd_extendGewgawMoveToComplete( bool success );
-    void shepherd_moveGewgawUpMoveComplete( bool success );
-    void shepherd_moveGewgawDownMoveComplete( bool success );
+    void shepherd_retractBuildPlatformMoveToComplete( bool success );
+    void shepherd_extendBuildPlatformMoveToComplete( bool success );
+    void shepherd_moveBuildPlatformUpMoveComplete( bool success );
+    void shepherd_moveBuildPlatformDownMoveComplete( bool success );
 
     void selectTab_modelSelected( bool success, QString const& fileName );
 
@@ -63,10 +63,10 @@ private slots:
 
     void printTab_printButtonClicked( );
     void printTab_adjustBedHeight( double const newHeight );
-    void printTab_retractGewgaw( );
-    void printTab_extendGewgaw( );
-    void printTab_moveGewgawUp( );
-    void printTab_moveGewgawDown( );
+    void printTab_retractBuildPlatform( );
+    void printTab_extendBuildPlatform( );
+    void printTab_moveBuildPlatformUp( );
+    void printTab_moveBuildPlatformDown( );
 
     void statusTab_stopButtonClicked( );
     void statusTab_cleanUpAfterPrint( );

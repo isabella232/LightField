@@ -151,64 +151,64 @@ void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
     shepherd->doSend( "G92 X0" );
 }
 
-void Window::shepherd_retractGewgawMoveToComplete( bool success ) {
-    debug( "+ Window::shepherd_retractGewgawMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractGewgawMoveToComplete );
+void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Retraction of gewgaw failed."
+            "Retraction of build platform failed."
         );
         return;
     }
 
-    printTab->retractGewgawComplete( success );
+    printTab->retractBuildPlatformComplete( success );
 }
 
-void Window::shepherd_extendGewgawMoveToComplete( bool success ) {
-    debug( "+ Window::shepherd_extendGewgawMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendGewgawMoveToComplete );
+void Window::shepherd_extendBuildPlatformMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Extension of gewgaw failed."
+            "Extension of build platform failed."
         );
         return;
     }
 
-    printTab->extendGewgawComplete( success );
+    printTab->extendBuildPlatformComplete( success );
 }
 
-void Window::shepherd_moveGewgawUpMoveComplete( bool success ) {
-    debug( "+ Window::shepherd_moveGewgawUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawUpMoveComplete );
+void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Moving gewgaw up failed."
+            "Moving build platform up failed."
         );
         return;
     }
 
-    printTab->moveGewgawUpComplete( success );
+    printTab->moveBuildPlatformUpComplete( success );
 }
 
-void Window::shepherd_moveGewgawDownMoveComplete( bool success ) {
-    debug( "+ Window::shepherd_moveGewgawDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawDownMoveComplete );
+void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Moving gewgaw down failed."
+            "Moving build platform down failed."
         );
         return;
     }
 
-    printTab->moveGewgawUpComplete( success );
+    printTab->moveBuildPlatformUpComplete( success );
 }
 
 void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
@@ -294,31 +294,31 @@ void Window::printTab_adjustBedHeight( double const newHeight ) {
     shepherd->doMoveTo( newHeight );
 }
 
-void Window::printTab_retractGewgaw( ) {
-    debug( "+ Window::printTab_retractGewgaw\n" );
+void Window::printTab_retractBuildPlatform( ) {
+    debug( "+ Window::printTab_retractBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractGewgawMoveToComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
     shepherd->doMoveTo( 50.0 );
 }
 
-void Window::printTab_extendGewgaw( ) {
-    debug( "+ Window::printTab_extendGewgaw\n" );
+void Window::printTab_extendBuildPlatform( ) {
+    debug( "+ Window::printTab_extendBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendGewgawMoveToComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
     shepherd->doMoveTo( 0.1 );
 }
 
-void Window::printTab_moveGewgawUp( ) {
-    debug( "+ Window::printTab_moveGewgawUp\n" );
+void Window::printTab_moveBuildPlatformUp( ) {
+    debug( "+ Window::printTab_moveBuildPlatformUp\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawUpMoveComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
     shepherd->doMove( 0.1 );
 }
 
-void Window::printTab_moveGewgawDown( ) {
-    debug( "+ Window::printTab_moveGewgawDown\n" );
+void Window::printTab_moveBuildPlatformDown( ) {
+    debug( "+ Window::printTab_moveBuildPlatformDown\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawDownMoveComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
     shepherd->doMove( -0.1 );
 }
 
