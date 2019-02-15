@@ -31,35 +31,42 @@ protected:
 
 private:
 
-    PrintJob*          _printJob                     { };
-    BuildPlatformState _buildPlatformState           { BuildPlatformState::Extended };
+    PrintJob*          _printJob                       { };
+    BuildPlatformState _buildPlatformState             { BuildPlatformState::Extended };
 
-    QLabel*            exposureTimeLabel             { new QLabel      };
-    QLineEdit*         exposureTime                  { new QLineEdit   };
-    QLabel*            exposureScaleFactorLabel      { new QLabel      };
-    QComboBox*         exposureScaleFactorComboBox   { new QComboBox   };
-    QLabel*            powerLevelLabel               { new QLabel      };
-    QLabel*            powerLevelValue               { new QLabel      };
-    QHBoxLayout*       powerLevelValueLayout         { new QHBoxLayout };
-    QWidget*           powerLevelValueContainer      { new QWidget     };
-    QDial*             powerLevelDial                { new QDial       };
-    QLabel*            powerLevelDialLeftLabel       { new QLabel      };
-    QLabel*            powerLevelDialRightLabel      { new QLabel      };
-    QHBoxLayout*       powerLevelDialLabelsLayout    { new QHBoxLayout };
-    QWidget*           powerLevelDialLabelsContainer { new QWidget     };
-    QVBoxLayout*       optionsLayout                 { new QVBoxLayout };
-    QWidget*           optionsContainer              { new QWidget     };
-    QPushButton*       printButton                   { new QPushButton };
+    QLabel*            exposureTimeLabel               { new QLabel      };
+    QLabel*            exposureTimeValue               { new QLabel      };
+    QHBoxLayout*       exposureTimeValueLayout         { new QHBoxLayout };
+    QWidget*           exposureTimeValueContainer      { new QWidget     };
+    QDial*             exposureTimeDial                { new QDial       };
+    QLabel*            exposureTimeDialLeftLabel       { new QLabel      };
+    QLabel*            exposureTimeDialRightLabel      { new QLabel      };
+    QHBoxLayout*       exposureTimeDialLabelsLayout    { new QHBoxLayout };
+    QWidget*           exposureTimeDialLabelsContainer { new QWidget     };
+    QLabel*            exposureScaleFactorLabel        { new QLabel      };
+    QComboBox*         exposureScaleFactorComboBox     { new QComboBox   };
+    QLabel*            powerLevelLabel                 { new QLabel      };
+    QLabel*            powerLevelValue                 { new QLabel      };
+    QHBoxLayout*       powerLevelValueLayout           { new QHBoxLayout };
+    QWidget*           powerLevelValueContainer        { new QWidget     };
+    QDial*             powerLevelDial                  { new QDial       };
+    QLabel*            powerLevelDialLeftLabel         { new QLabel      };
+    QLabel*            powerLevelDialRightLabel        { new QLabel      };
+    QHBoxLayout*       powerLevelDialLabelsLayout      { new QHBoxLayout };
+    QWidget*           powerLevelDialLabelsContainer   { new QWidget     };
+    QVBoxLayout*       optionsLayout                   { new QVBoxLayout };
+    QWidget*           optionsContainer                { new QWidget     };
+    QPushButton*       printButton                     { new QPushButton };
 
-    QPushButton*       _adjustBedHeightButton        { new QPushButton };
-    QPushButton*       _retractOrExtendButton        { new QPushButton };
-    QPushButton*       _moveUpButton                 { new QPushButton };
-    QPushButton*       _moveDownButton               { new QPushButton };
-    QHBoxLayout*       _adjustmentsHBox              { new QHBoxLayout };
-    QVBoxLayout*       _adjustmentsVBox              { new QVBoxLayout };
-    QGroupBox*         _adjustmentsGroup             { new QGroupBox   };
+    QPushButton*       _adjustBedHeightButton          { new QPushButton };
+    QPushButton*       _retractOrExtendButton          { new QPushButton };
+    QPushButton*       _moveUpButton                   { new QPushButton };
+    QPushButton*       _moveDownButton                 { new QPushButton };
+    QHBoxLayout*       _adjustmentsHBox                { new QHBoxLayout };
+    QVBoxLayout*       _adjustmentsVBox                { new QVBoxLayout };
+    QGroupBox*         _adjustmentsGroup               { new QGroupBox   };
 
-    QGridLayout*       _layout                       { new QGridLayout };
+    QGridLayout*       _layout                         { new QGridLayout };
 
 signals:
 
@@ -84,7 +91,7 @@ protected slots:
 
 private slots:
 
-    void exposureTime_editingFinished( );
+    void exposureTimeDial_valueChanged( int value );
     void exposureScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelDial_valueChanged( int value );
     void printButton_clicked( bool checked );

@@ -28,12 +28,44 @@ namespace {
 }
 
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
-    exposureTime->setAlignment( Qt::AlignRight );
-    exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
-    QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &PrintTab::exposureTime_editingFinished );
+    exposureTimeDial->setMinimum(  1 );
+    exposureTimeDial->setMaximum( 40 );
+    exposureTimeDial->setNotchesVisible( true );
+    exposureTimeDial->setWrapping( false );
+    QObject::connect( exposureTimeDial, &QDial::valueChanged, this, &PrintTab::exposureTimeDial_valueChanged );
 
     exposureTimeLabel->setText( "Exposure time (seconds):" );
-    exposureTimeLabel->setBuddy( exposureTime );
+    exposureTimeLabel->setBuddy( exposureTimeDial );
+
+    exposureTimeValue->setAlignment( Qt::AlignRight );
+    exposureTimeValue->setFrameShadow( QFrame::Sunken );
+    exposureTimeValue->setFrameStyle( QFrame::StyledPanel );
+
+    exposureTimeValueLayout->setContentsMargins( { } );
+    exposureTimeValueLayout->addWidget( exposureTimeLabel );
+    exposureTimeValueLayout->addStretch( );
+    exposureTimeValueLayout->addWidget( exposureTimeValue );
+
+    exposureTimeValueContainer->setContentsMargins( { } );
+    exposureTimeValueContainer->setLayout( exposureTimeValueLayout );
+
+    exposureTimeDialLeftLabel->setContentsMargins( { } );
+    exposureTimeDialLeftLabel->setText( "0.5 s" );
+    exposureTimeDialLeftLabel->setAlignment( Qt::AlignLeft );
+
+    exposureTimeDialRightLabel->setContentsMargins( { } );
+    exposureTimeDialRightLabel->setText( "20 s" );
+    exposureTimeDialRightLabel->setAlignment( Qt::AlignRight );
+
+    exposureTimeDialLabelsLayout->setContentsMargins( { } );
+    exposureTimeDialLabelsLayout->addStretch( );
+    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialLeftLabel );
+    exposureTimeDialLabelsLayout->addStretch( );
+    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialRightLabel );
+    exposureTimeDialLabelsLayout->addStretch( );
+
+    exposureTimeDialLabelsContainer->setContentsMargins( { } );
+    exposureTimeDialLabelsContainer->setLayout( exposureTimeDialLabelsLayout );
 
     exposureScaleFactorComboBox->setEditable( false );
     exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
@@ -43,7 +75,6 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureScaleFactorLabel->setText( "First layers time scale factor:" );
     exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
 
-    powerLevelDial->setOrientation( Qt::Orientation::Horizontal );
     powerLevelDial->setMinimum( 20 );
     powerLevelDial->setMaximum( 100 );
     powerLevelDial->setNotchesVisible( true );
@@ -84,8 +115,9 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelDialLabelsContainer->setLayout( powerLevelDialLabelsLayout );
 
     optionsLayout->setContentsMargins( { } );
-    optionsLayout->addWidget( exposureTimeLabel );
-    optionsLayout->addWidget( exposureTime );
+    optionsLayout->addWidget( exposureTimeValueContainer );
+    optionsLayout->addWidget( exposureTimeDial );
+    optionsLayout->addWidget( exposureTimeDialLabelsContainer );
     optionsLayout->addWidget( exposureScaleFactorLabel );
     optionsLayout->addWidget( exposureScaleFactorComboBox );
     optionsLayout->addWidget( powerLevelValueContainer );
@@ -151,14 +183,9 @@ PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::exposureTime_editingFinished( ) {
-    bool valueOk = false;
-    double value = exposureTime->text( ).toDouble( &valueOk );
-    if ( valueOk ) {
-        _printJob->exposureTime = value;
-    } else {
-        debug( "+ PrintTab::exposureTime_editingFinished: bad value\n" );
-    }
+void PrintTab::exposureTimeDial_valueChanged( int value ) {
+    _printJob->exposureTime = value / 2.0;
+    exposureTimeValue->setText( QString( "%1" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 }
 
 void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
@@ -222,7 +249,9 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
 
-    exposureTime->setText( FormatDouble( _printJob->exposureTime ) );
+    int value = _printJob->exposureTime / 0.5;
+    _printJob->exposureTime = value / 2.0;
+    exposureTimeDial->setValue( value );
 
     auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
     int index = exposureScaleFactorComboBox->findText( exposureTimeScaleFactorText );
@@ -232,10 +261,7 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
         exposureScaleFactorComboBox->setCurrentIndex( index );
     }
 
-    int scaledValue = ( _printJob->powerLevel / 255.0 * 100.0 ) + 0.5;
-    debug( "  + power level: %d => %d\n", _printJob->powerLevel, scaledValue );
-    powerLevelDial->setValue( scaledValue );
-    powerLevelValue->setText( QString( "%1%" ).arg( scaledValue ) );
+    powerLevelDial->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
 }
 
 void PrintTab::setPrintButtonEnabled( bool const value ) {
