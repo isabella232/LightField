@@ -1,8 +1,8 @@
 #include "pch.h"
 
 #include "statustab.h"
+
 #include "printjob.h"
-#include "strings.h"
 
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     printerStateLabel->setText( "Printer status:" );
@@ -71,7 +71,13 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     {
         auto font { stopButton->font( ) };
         font.setPointSizeF( 22.25 );
+        font.setWeight( QFont::Bold );
         stopButton->setFont( font );
+
+        auto palette { stopButton->palette( ) };
+        palette.setColor( QPalette::Button,     Qt::red    );
+        palette.setColor( QPalette::ButtonText, Qt::yellow );
+        stopButton->setPalette( palette );
     }
     stopButton->setText( "STOP" );
     stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
@@ -105,26 +111,33 @@ void StatusTab::printer_Offline( ) {
 }
 
 void StatusTab::stopButton_clicked( bool /*checked*/ ) {
+    debug( "+ StatusTab::stopButton_clicked\n" );
     emit stopButtonClicked( );
 }
 
 void StatusTab::printManager_printStarting( ) {
+    debug( "+ StatusTab::printManager_printStarting\n" );
     jobStateDisplay->setText( "Print started" );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
     currentLayerImageDisplay->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) ) );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
+    debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
     projectorLampStateDisplay->setText( QString( on ? "ON" : "off" ) );
 }
 
 void StatusTab::printManager_printComplete( bool const success ) {
+    debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "Print complete" : "Print failed" );
     jobStateDisplay->setText( QString( success ? "Print complete" : "Print failed" ) );
+    emit printComplete( );
 }
 
 void StatusTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
 }

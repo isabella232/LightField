@@ -46,6 +46,7 @@ private:
 signals:
 
     void stopButtonClicked( );
+    void printComplete( );
 
 public slots:
 
