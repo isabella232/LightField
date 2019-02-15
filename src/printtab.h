@@ -43,8 +43,8 @@ private:
     QLabel*            exposureTimeDialRightLabel      { new QLabel      };
     QHBoxLayout*       exposureTimeDialLabelsLayout    { new QHBoxLayout };
     QWidget*           exposureTimeDialLabelsContainer { new QWidget     };
-    QLabel*            exposureScaleFactorLabel        { new QLabel      };
-    QComboBox*         exposureScaleFactorComboBox     { new QComboBox   };
+    QLabel*            exposureTimeScaleFactorLabel    { new QLabel      };
+    QComboBox*         exposureTimeScaleFactorComboBox { new QComboBox   };
     QLabel*            powerLevelLabel                 { new QLabel      };
     QLabel*            powerLevelValue                 { new QLabel      };
     QHBoxLayout*       powerLevelValueLayout           { new QHBoxLayout };
@@ -92,7 +92,7 @@ protected slots:
 private slots:
 
     void exposureTimeDial_valueChanged( int value );
-    void exposureScaleFactorComboBox_currentIndexChanged( int index );
+    void exposureTimeScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelDial_valueChanged( int value );
     void printButton_clicked( bool checked );
     void _adjustBedHeightButton_clicked( bool checked );

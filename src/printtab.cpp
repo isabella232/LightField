@@ -8,8 +8,8 @@
 
 namespace {
 
-    QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
-    double      ExposureScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
+    QStringList ExposureTimeScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
+    double      ExposureTimeScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
 
     char const* BuildPlatformStateStrings[] { "Extended", "Retracting", "Retracted", "Extending" };
 
@@ -67,13 +67,13 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureTimeDialLabelsContainer->setContentsMargins( { } );
     exposureTimeDialLabelsContainer->setLayout( exposureTimeDialLabelsLayout );
 
-    exposureScaleFactorComboBox->setEditable( false );
-    exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
-    exposureScaleFactorComboBox->addItems( ExposureScaleFactorStringList );
-    QObject::connect( exposureScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrintTab::exposureScaleFactorComboBox_currentIndexChanged );
+    exposureTimeScaleFactorComboBox->setEditable( false );
+    exposureTimeScaleFactorComboBox->setMaxVisibleItems( ExposureTimeScaleFactorStringList.count( ) );
+    exposureTimeScaleFactorComboBox->addItems( ExposureTimeScaleFactorStringList );
+    QObject::connect( exposureTimeScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged );
 
-    exposureScaleFactorLabel->setText( "First layers time scale factor:" );
-    exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
+    exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
+    exposureTimeScaleFactorLabel->setBuddy( exposureTimeScaleFactorComboBox );
 
     powerLevelDial->setMinimum( 20 );
     powerLevelDial->setMaximum( 100 );
@@ -118,8 +118,8 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     optionsLayout->addWidget( exposureTimeValueContainer );
     optionsLayout->addWidget( exposureTimeDial );
     optionsLayout->addWidget( exposureTimeDialLabelsContainer );
-    optionsLayout->addWidget( exposureScaleFactorLabel );
-    optionsLayout->addWidget( exposureScaleFactorComboBox );
+    optionsLayout->addWidget( exposureTimeScaleFactorLabel );
+    optionsLayout->addWidget( exposureTimeScaleFactorComboBox );
     optionsLayout->addWidget( powerLevelValueContainer );
     optionsLayout->addWidget( powerLevelDial );
     optionsLayout->addWidget( powerLevelDialLabelsContainer );
@@ -188,8 +188,8 @@ void PrintTab::exposureTimeDial_valueChanged( int value ) {
     exposureTimeValue->setText( QString( "%1" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 }
 
-void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
-    _printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
+void PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged( int index ) {
+    _printJob->exposureTimeScaleFactor = ExposureTimeScaleFactorValues[index];
 }
 
 void PrintTab::powerLevelDial_valueChanged( int value ) {
@@ -254,11 +254,11 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
     exposureTimeDial->setValue( value );
 
     auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
-    int index = exposureScaleFactorComboBox->findText( exposureTimeScaleFactorText );
+    int index = exposureTimeScaleFactorComboBox->findText( exposureTimeScaleFactorText );
     if ( -1 == index ) {
-        debug( "  + couldn't find exposureScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
+        debug( "  + couldn't find exposureTimeScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
     } else {
-        exposureScaleFactorComboBox->setCurrentIndex( index );
+        exposureTimeScaleFactorComboBox->setCurrentIndex( index );
     }
 
     powerLevelDial->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
