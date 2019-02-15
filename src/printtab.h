@@ -12,17 +12,19 @@ public:
     PrintTab( QWidget* parent = nullptr );
     virtual ~PrintTab( ) override;
 
-    bool isPrintButtonEnabled( ) {
-        return printButton->isEnabled( );
+    PrintJob* printJob( ) const {
+        return _printJob;
     }
 
-    void setPrintButtonEnabled( bool value ) {
-        printButton->setEnabled( value );
+    bool isPrintButtonEnabled( ) const {
+        return printButton->isEnabled( );
     }
 
 protected:
 
 private:
+
+    PrintJob*    _printJob                       {                 };
 
     QLabel*      exposureTimeLabel               { new QLabel      };
     QLineEdit*   exposureTime                    { new QLineEdit   };
@@ -40,17 +42,23 @@ private:
     QVBoxLayout* optionsLayout                   { new QVBoxLayout };
     QWidget*     optionsContainer                { new QWidget     };
     QPushButton* printButton                     { new QPushButton };
-    QWidget*     _placeHolder                    { new QWidget     };
+
+    QPushButton* _adjustBedHeightButton          { new QPushButton };
+    QHBoxLayout* _adjustmentsHBox                { new QHBoxLayout };
+    QVBoxLayout* _adjustmentsVBox                { new QVBoxLayout };
+    QGroupBox*   _adjustmentsGroup               { new QGroupBox   };
+
     QGridLayout* _layout                         { new QGridLayout };
-    PrintJob*    _printJob                       {                 };
 
 signals:
 
     void printButtonClicked( );
+    void adjustBedHeight( double const newHeight );
 
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setPrintButtonEnabled( bool const value );
 
 protected slots:
 
@@ -60,6 +68,7 @@ private slots:
     void exposureScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
+    void _adjustBedHeightButton_clicked( bool checked );
 
 };
 
