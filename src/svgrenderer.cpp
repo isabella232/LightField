@@ -2,6 +2,7 @@
 
 #include "svgrenderer.h"
 
+#include "processrunner.h"
 #include "strings.h"
 
 namespace {
@@ -16,8 +17,8 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
-    QObject::connect( &pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
-    QObject::connect( &pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
+    QObject::connect( pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
+    QObject::connect( pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -106,7 +107,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 void SvgRenderer::renderLayer( ) {
     debug( "+ SvgRenderer::renderLayer: currentLayer: %d\n", currentLayer );
     emit nextLayer( currentLayer );
-    pr.start(
+    pr->start(
         QString     { "gm" },
         QStringList {
             QString( "convert"     ),

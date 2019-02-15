@@ -1,7 +1,7 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
-#include "processrunner.h"
+class ProcessRunner;
 
 class SvgRenderer: public QObject {
 
@@ -18,9 +18,9 @@ protected:
 
 private:
 
-    QString outputDirectory;
-    QDomDocument doc;
-    ProcessRunner pr;
+    QString        outputDirectory;
+    QDomDocument   doc;
+    ProcessRunner* pr;
 
     int currentLayer;
     int layerCount { 0 };
