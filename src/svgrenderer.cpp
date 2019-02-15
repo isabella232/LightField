@@ -17,6 +17,7 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
+    pr = new ProcessRunner;
     QObject::connect( pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
     QObject::connect( pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
 }
