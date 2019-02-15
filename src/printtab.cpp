@@ -93,8 +93,24 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustBedHeightButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _adjustBedHeightButton, &QPushButton::clicked, this, &PrintTab::_adjustBedHeightButton_clicked );
 
+    _retractOrExtendButton->setText( "Retract\nGewgaw" );
+    _retractOrExtendButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _retractOrExtendButton, &QPushButton::clicked, this, &PrintTab::_retractOrExtendButton_clicked );
+
+    _moveUpButton->setText( "Move Up\n100 µm" );
+    _moveUpButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _moveUpButton, &QPushButton::clicked, this, &PrintTab::_moveUpButton_clicked );
+
+    _moveDownButton->setText( "Move Down\n100 µm" );
+    _moveDownButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _moveDownButton, &QPushButton::clicked, this, &PrintTab::_moveDownButton_clicked );
+
     _adjustmentsHBox->addWidget( _adjustBedHeightButton );
     _adjustmentsHBox->addStretch( );
+    _adjustmentsHBox->addWidget( _retractOrExtendButton );
+    _adjustmentsHBox->addStretch( );
+    _adjustmentsHBox->addWidget( _moveUpButton );
+    _adjustmentsHBox->addWidget( _moveDownButton );
 
     _adjustmentsVBox->addLayout( _adjustmentsHBox );
     _adjustmentsVBox->addStretch( );
@@ -156,6 +172,34 @@ void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
     emit adjustBedHeight( newBedHeight );
 }
 
+void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
+    _retractOrExtendButton->setEnabled( false );
+    switch ( _gewgawState ) {
+        case GewgawState::Extended:
+            _gewgawState = GewgawState::Retracting;
+            emit retractGewgaw( );
+            break;
+
+        case GewgawState::Retracted:
+            _gewgawState = GewgawState::Extending;
+            emit extendGewgaw( );
+            break;
+
+        default:
+            return;
+    }
+}
+
+void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+    _moveUpButton->setEnabled( false );
+    emit moveGewgawUp( );
+}
+
+void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+    _moveDownButton->setEnabled( false );
+    emit moveGewgawDown( );
+}
+
 void PrintTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
@@ -179,4 +223,28 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
 void PrintTab::setPrintButtonEnabled( bool const value ) {
     debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
     printButton->setEnabled( value );
+}
+
+void PrintTab::retractGewgawComplete( bool const success ) {
+    debug( "+ PrintTab::retractGewgawComplete: %s\n", success ? "succeeded" : "failed" );
+    _gewgawState = GewgawState::Retracted;
+    _retractOrExtendButton->setText( "Extend\nGewgaw" );
+    _retractOrExtendButton->setEnabled( true );
+}
+
+void PrintTab::extendGewgawComplete( bool const success ) {
+    debug( "+ PrintTab::extendGewgawComplete: %s\n", success ? "succeeded" : "failed" );
+    _gewgawState = GewgawState::Extended;
+    _retractOrExtendButton->setText( "Retract\nGewgaw" );
+    _retractOrExtendButton->setEnabled( true );
+}
+
+void PrintTab::moveGewgawUpComplete( bool const success ) {
+    debug( "+ PrintTab::moveGewgawUpComplete: %s\n", success ? "succeeded" : "failed" );
+    _moveUpButton->setEnabled( true );
+}
+
+void PrintTab::moveGewgawDownComplete( bool const success ) {
+    debug( "+ PrintTab::moveGewgawDownComplete: %s\n", success ? "succeeded" : "failed" );
+    _moveDownButton->setEnabled( true );
 }

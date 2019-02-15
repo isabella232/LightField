@@ -24,7 +24,15 @@ protected:
 
 private:
 
-    PrintJob*    _printJob                       {                 };
+    enum class GewgawState {
+        Extended,
+        Retracting,
+        Retracted,
+        Extending,
+    };
+
+    PrintJob*    _printJob                       { };
+    GewgawState  _gewgawState                    { GewgawState::Extended };
 
     QLabel*      exposureTimeLabel               { new QLabel      };
     QLineEdit*   exposureTime                    { new QLineEdit   };
@@ -44,6 +52,9 @@ private:
     QPushButton* printButton                     { new QPushButton };
 
     QPushButton* _adjustBedHeightButton          { new QPushButton };
+    QPushButton* _retractOrExtendButton          { new QPushButton };
+    QPushButton* _moveUpButton                   { new QPushButton };
+    QPushButton* _moveDownButton                 { new QPushButton };
     QHBoxLayout* _adjustmentsHBox                { new QHBoxLayout };
     QVBoxLayout* _adjustmentsVBox                { new QVBoxLayout };
     QGroupBox*   _adjustmentsGroup               { new QGroupBox   };
@@ -54,11 +65,20 @@ signals:
 
     void printButtonClicked( );
     void adjustBedHeight( double const newHeight );
+    void retractGewgaw( );
+    void extendGewgaw( );
+    void moveGewgawUp( );
+    void moveGewgawDown( );
 
 public slots:
 
     void setPrintJob( PrintJob* printJob );
     void setPrintButtonEnabled( bool const value );
+
+    void retractGewgawComplete( bool const success );
+    void extendGewgawComplete( bool const success );
+    void moveGewgawUpComplete( bool const success );
+    void moveGewgawDownComplete( bool const success );
 
 protected slots:
 
@@ -69,6 +89,9 @@ private slots:
     void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool checked );
     void _adjustBedHeightButton_clicked( bool checked );
+    void _retractOrExtendButton_clicked( bool checked );
+    void _moveUpButton_clicked( bool checked );
+    void _moveDownButton_clicked( bool checked );
 
 };
 
