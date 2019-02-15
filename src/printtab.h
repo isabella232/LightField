@@ -31,35 +31,35 @@ private:
         Extending,
     };
 
-    PrintJob*          _printJob                 { };
-    BuildPlatformState _buildPlatformState       { BuildPlatformState::Extended };
+    PrintJob*          _printJob                     { };
+    BuildPlatformState _buildPlatformState           { BuildPlatformState::Extended };
 
-    QLabel*      exposureTimeLabel               { new QLabel      };
-    QLineEdit*   exposureTime                    { new QLineEdit   };
-    QLabel*      exposureScaleFactorLabel        { new QLabel      };
-    QComboBox*   exposureScaleFactorComboBox     { new QComboBox   };
-    QLabel*      powerLevelLabel                 { new QLabel      };
-    QLabel*      powerLevelValue                 { new QLabel      };
-    QHBoxLayout* powerLevelValueLayout           { new QHBoxLayout };
-    QWidget*     powerLevelValueContainer        { new QWidget     };
-    QSlider*     powerLevelSlider                { new QSlider     };
-    QLabel*      powerLevelSliderLeftLabel       { new QLabel      };
-    QLabel*      powerLevelSliderRightLabel      { new QLabel      };
-    QHBoxLayout* powerLevelSliderLabelsLayout    { new QHBoxLayout };
-    QWidget*     powerLevelSliderLabelsContainer { new QWidget     };
-    QVBoxLayout* optionsLayout                   { new QVBoxLayout };
-    QWidget*     optionsContainer                { new QWidget     };
-    QPushButton* printButton                     { new QPushButton };
+    QLabel*            exposureTimeLabel             { new QLabel      };
+    QLineEdit*         exposureTime                  { new QLineEdit   };
+    QLabel*            exposureScaleFactorLabel      { new QLabel      };
+    QComboBox*         exposureScaleFactorComboBox   { new QComboBox   };
+    QLabel*            powerLevelLabel               { new QLabel      };
+    QLabel*            powerLevelValue               { new QLabel      };
+    QHBoxLayout*       powerLevelValueLayout         { new QHBoxLayout };
+    QWidget*           powerLevelValueContainer      { new QWidget     };
+    QDial*             powerLevelDial                { new QDial       };
+    QLabel*            powerLevelDialLeftLabel       { new QLabel      };
+    QLabel*            powerLevelDialRightLabel      { new QLabel      };
+    QHBoxLayout*       powerLevelDialLabelsLayout    { new QHBoxLayout };
+    QWidget*           powerLevelDialLabelsContainer { new QWidget     };
+    QVBoxLayout*       optionsLayout                 { new QVBoxLayout };
+    QWidget*           optionsContainer              { new QWidget     };
+    QPushButton*       printButton                   { new QPushButton };
 
-    QPushButton* _adjustBedHeightButton          { new QPushButton };
-    QPushButton* _retractOrExtendButton          { new QPushButton };
-    QPushButton* _moveUpButton                   { new QPushButton };
-    QPushButton* _moveDownButton                 { new QPushButton };
-    QHBoxLayout* _adjustmentsHBox                { new QHBoxLayout };
-    QVBoxLayout* _adjustmentsVBox                { new QVBoxLayout };
-    QGroupBox*   _adjustmentsGroup               { new QGroupBox   };
+    QPushButton*       _adjustBedHeightButton        { new QPushButton };
+    QPushButton*       _retractOrExtendButton        { new QPushButton };
+    QPushButton*       _moveUpButton                 { new QPushButton };
+    QPushButton*       _moveDownButton               { new QPushButton };
+    QHBoxLayout*       _adjustmentsHBox              { new QHBoxLayout };
+    QVBoxLayout*       _adjustmentsVBox              { new QVBoxLayout };
+    QGroupBox*         _adjustmentsGroup             { new QGroupBox   };
 
-    QGridLayout* _layout                         { new QGridLayout };
+    QGridLayout*       _layout                       { new QGridLayout };
 
 signals:
 
@@ -86,7 +86,7 @@ private slots:
 
     void exposureTime_editingFinished( );
     void exposureScaleFactorComboBox_currentIndexChanged( int index );
-    void powerLevelSlider_valueChanged( int value );
+    void powerLevelDial_valueChanged( int value );
     void printButton_clicked( bool checked );
     void _adjustBedHeightButton_clicked( bool checked );
     void _retractOrExtendButton_clicked( bool checked );

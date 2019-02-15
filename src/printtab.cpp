@@ -29,14 +29,15 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureScaleFactorLabel->setText( "First layers time scale factor:" );
     exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
 
-    powerLevelSlider->setOrientation( Qt::Orientation::Horizontal );
-    powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
-    powerLevelSlider->setMinimum( 20 );
-    powerLevelSlider->setMaximum( 100 );
-    QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
+    powerLevelDial->setOrientation( Qt::Orientation::Horizontal );
+    powerLevelDial->setMinimum( 20 );
+    powerLevelDial->setMaximum( 100 );
+    powerLevelDial->setNotchesVisible( true );
+    powerLevelDial->setWrapping( false );
+    QObject::connect( powerLevelDial, &QDial::valueChanged, this, &PrintTab::powerLevelDial_valueChanged );
 
     powerLevelLabel->setText( "Projector power level:" );
-    powerLevelLabel->setBuddy( powerLevelSlider );
+    powerLevelLabel->setBuddy( powerLevelDial );
 
     powerLevelValue->setAlignment( Qt::AlignRight );
     powerLevelValue->setFrameShadow( QFrame::Sunken );
@@ -50,21 +51,23 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelValueContainer->setContentsMargins( { } );
     powerLevelValueContainer->setLayout( powerLevelValueLayout );
 
-    powerLevelSliderLeftLabel->setContentsMargins( { } );
-    powerLevelSliderLeftLabel->setText( "20%" );
-    powerLevelSliderLeftLabel->setAlignment( Qt::AlignLeft );
+    powerLevelDialLeftLabel->setContentsMargins( { } );
+    powerLevelDialLeftLabel->setText( "20%" );
+    powerLevelDialLeftLabel->setAlignment( Qt::AlignLeft );
 
-    powerLevelSliderRightLabel->setContentsMargins( { } );
-    powerLevelSliderRightLabel->setText( "100%" );
-    powerLevelSliderRightLabel->setAlignment( Qt::AlignRight );
+    powerLevelDialRightLabel->setContentsMargins( { } );
+    powerLevelDialRightLabel->setText( "100%" );
+    powerLevelDialRightLabel->setAlignment( Qt::AlignRight );
 
-    powerLevelSliderLabelsLayout->setContentsMargins( { } );
-    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderLeftLabel );
-    powerLevelSliderLabelsLayout->addStretch( );
-    powerLevelSliderLabelsLayout->addWidget( powerLevelSliderRightLabel );
+    powerLevelDialLabelsLayout->setContentsMargins( { } );
+    powerLevelDialLabelsLayout->addStretch( );
+    powerLevelDialLabelsLayout->addWidget( powerLevelDialLeftLabel );
+    powerLevelDialLabelsLayout->addStretch( );
+    powerLevelDialLabelsLayout->addWidget( powerLevelDialRightLabel );
+    powerLevelDialLabelsLayout->addStretch( );
 
-    powerLevelSliderLabelsContainer->setContentsMargins( { } );
-    powerLevelSliderLabelsContainer->setLayout( powerLevelSliderLabelsLayout );
+    powerLevelDialLabelsContainer->setContentsMargins( { } );
+    powerLevelDialLabelsContainer->setLayout( powerLevelDialLabelsLayout );
 
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( exposureTimeLabel );
@@ -72,8 +75,8 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     optionsLayout->addWidget( exposureScaleFactorLabel );
     optionsLayout->addWidget( exposureScaleFactorComboBox );
     optionsLayout->addWidget( powerLevelValueContainer );
-    optionsLayout->addWidget( powerLevelSlider );
-    optionsLayout->addWidget( powerLevelSliderLabelsContainer );
+    optionsLayout->addWidget( powerLevelDial );
+    optionsLayout->addWidget( powerLevelDialLabelsContainer );
     optionsLayout->addStretch( );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -148,7 +151,7 @@ void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
     _printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
 }
 
-void PrintTab::powerLevelSlider_valueChanged( int value ) {
+void PrintTab::powerLevelDial_valueChanged( int value ) {
     int scaledValue = ( value / 100.0 * 255.0 ) + 0.5;
     _printJob->powerLevel = scaledValue;
     powerLevelValue->setText( QString( "%1%" ).arg( value ) );
@@ -216,7 +219,7 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
 
     int scaledValue = ( _printJob->powerLevel / 255.0 * 100.0 ) + 0.5;
     debug( "  + power level: %d => %d\n", _printJob->powerLevel, scaledValue );
-    powerLevelSlider->setValue( scaledValue );
+    powerLevelDial->setValue( scaledValue );
     powerLevelValue->setText( QString( "%1%" ).arg( scaledValue ) );
 }
 
