@@ -98,14 +98,14 @@ StatusTab::~StatusTab( ) {
     /*empty*/
 }
 
-void StatusTab::printer_Online( ) {
-    debug( "+ StatusTab::printer_Online\n" );
+void StatusTab::printer_online( ) {
+    debug( "+ StatusTab::printer_online\n" );
     _isPrinterOnline = true;
     printerStateDisplay->setText( "Online" );
 }
 
-void StatusTab::printer_Offline( ) {
-    debug( "+ StatusTab::printer_Offline\n" );
+void StatusTab::printer_offline( ) {
+    debug( "+ StatusTab::printer_offline\n" );
     _isPrinterOnline = false;
     printerStateDisplay->setText( "Offline" );
 }

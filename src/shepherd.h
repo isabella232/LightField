@@ -40,20 +40,13 @@ private:
 
 signals:
 
-    void shepherd_Started( );
-    void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
-    void shepherd_ProcessError( QProcess::ProcessError error );
+    void shepherd_started( );
+    void shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void shepherd_processError( QProcess::ProcessError error );
 
-    void printer_Online( );
-    void printer_Offline( );
-    void printer_Position( double position );
-    void printer_Temperature( QString const& temperatureInfo );
-    void printer_Output( QString const& output );
-
-    void printProcess_ShowImage( QString const& fileName, QString const& brightness, QString const& index, QString const& total );
-    void printProcess_HideImage( );
-    void printProcess_StartedPrinting( );
-    void printProcess_FinishedPrinting( );
+    void printer_online( );
+    void printer_offline( );
+    void printer_output( QString const& output );
 
     void action_moveComplete( bool successful );
     void action_moveToComplete( bool successful );

@@ -37,12 +37,12 @@ Shepherd::~Shepherd( ) {
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
     debug( "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
-    emit shepherd_ProcessError( error );
+    emit shepherd_processError( error );
 }
 
 void Shepherd::processStarted( ) {
     debug( "+ Shepherd::processStarted\n" );
-    emit shepherd_Started( );
+    emit shepherd_started( );
 }
 
 void Shepherd::processReadyReadStandardError( ) {
@@ -68,7 +68,7 @@ void Shepherd::processReadyReadStandardOutput( ) {
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     debug( "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
-    emit shepherd_Finished( exitCode, exitStatus );
+    emit shepherd_finished( exitCode, exitStatus );
 }
 
 QStringList Shepherd::splitLine( QString const& line ) {
@@ -191,21 +191,9 @@ void Shepherd::handleInput( QString const& input ) {
         } else if ( pieces[0] == "to_printer" ) {
             debug( ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "printer_online" ) {
-            emit printer_Online( );
+            emit printer_online( );
         } else if ( pieces[0] == "printer_offline" ) {
-            emit printer_Offline( );
-        } else if ( pieces[0] == "printer_position" ) {
-            emit printer_Position( pieces[1].toDouble( ) );
-        } else if ( pieces[0] == "printer_temperature" ) {
-            emit printer_Temperature( pieces[1] );
-        } else if ( pieces[0] == "printProcess_showImage" ) {
-            emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
-        } else if ( pieces[0] == "printProcess_hideImage" ) {
-            emit printProcess_HideImage( );
-        } else if ( pieces[0] == "printProcess_startedPrinting" ) {
-            emit printProcess_StartedPrinting( );
-        } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
-            emit printProcess_FinishedPrinting( );
+            emit printer_offline( );
         }
     }
 
