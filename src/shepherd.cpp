@@ -2,6 +2,7 @@
 
 #include "shepherd.h"
 #include "window.h"
+
 #include "strings.h"
 
 namespace {
@@ -25,7 +26,6 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
 
     QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred           );
     QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted                 );
-    QObject::connect( _process, &QProcess::stateChanged,            this, &Shepherd::processStateChanged            );
     QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyReadStandardError  );
     QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
@@ -37,16 +37,12 @@ Shepherd::~Shepherd( ) {
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
     debug( "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
-    emit shepherd_ProcessError( error );
+    emit shepherd_processError( error );
 }
 
 void Shepherd::processStarted( ) {
     debug( "+ Shepherd::processStarted\n" );
-    emit shepherd_Started( );
-}
-
-void Shepherd::processStateChanged( QProcess::ProcessState newState ) {
-    debug( "+ Shepherd::processStateChanged: new state %s [%d]\n", ToString( newState ), newState );
+    emit shepherd_started( );
 }
 
 void Shepherd::processReadyReadStandardError( ) {
@@ -72,7 +68,7 @@ void Shepherd::processReadyReadStandardOutput( ) {
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     debug( "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
-    emit shepherd_Finished( exitCode, exitStatus );
+    emit shepherd_finished( exitCode, exitStatus );
 }
 
 QStringList Shepherd::splitLine( QString const& line ) {
@@ -146,11 +142,6 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                 }
                 break;
 
-            case PendingCommand::lift:
-                _pendingCommand = PendingCommand::none;
-                emit action_liftComplete( true );
-                break;
-
             case PendingCommand::none:
                 debug( "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
                 break;
@@ -186,46 +177,42 @@ void Shepherd::handleInput( QString const& input ) {
 
         auto pieces = splitLine( line );
         debug( "+ Shepherd::handleInput:\n" );
-        if ( pieces[0] == "from_printer" ) {
+        if ( pieces[0] == "ok" ) {
+            debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "fail" ) {
+            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "warning" ) {
+            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "warning" ) {
+            debug( "  + info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
+        } else if ( pieces[0] == "from_printer" ) {
             debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
             handleFromPrinter( pieces[1] );
         } else if ( pieces[0] == "to_printer" ) {
             debug( ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "printer_online" ) {
-            emit printer_Online( );
+            emit printer_online( );
         } else if ( pieces[0] == "printer_offline" ) {
-            emit printer_Offline( );
-        } else if ( pieces[0] == "printer_position" ) {
-            emit printer_Position( QLocale( ).toDouble( pieces[1] ) );
-        } else if ( pieces[0] == "printer_temperature" ) {
-            emit printer_Temperature( pieces[1] );
-        } else if ( pieces[0] == "printProcess_showImage" ) {
-            emit printProcess_ShowImage( pieces[1], pieces[2], pieces[3], pieces[4] );
-        } else if ( pieces[0] == "printProcess_hideImage" ) {
-            emit printProcess_HideImage( );
-        } else if ( pieces[0] == "printProcess_startedPrinting" ) {
-            emit printProcess_StartedPrinting( );
-        } else if ( pieces[0] == "printProcess_finishedPrinting" ) {
-            emit printProcess_FinishedPrinting( );
-        } else if ( pieces[0] == "ok" ) {
-            debug( "  + got ok from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
-        } else if ( pieces[0] == "fail" ) {
-            debug( "  + got fail from shepherd for '%s'\n", pieces[1].toUtf8( ).data( ) );
+            emit printer_offline( );
         }
     }
 
-    debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
+    if ( !_buffer.isEmpty( ) ) {
+        debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
+    }
 }
 
 void Shepherd::start( ) {
     if ( _process->state( ) == QProcess::NotRunning ) {
         _process->start( "./stdio-shepherd.py" );
+    } else {
+        debug( "+ Shepherd::start: already running\n" );
     }
 }
 
 void Shepherd::doMove( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doMove: command already in progress" );
+        debug( "+ Shepherd::doMove: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::move;
@@ -235,7 +222,7 @@ void Shepherd::doMove( float arg ) {
 
 void Shepherd::doMoveTo( float arg ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doMoveTo: command already in progress" );
+        debug( "+ Shepherd::doMoveTo: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::moveTo;
@@ -245,26 +232,12 @@ void Shepherd::doMoveTo( float arg ) {
 
 void Shepherd::doHome( ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doHome: command already in progress" );
+        debug( "+ Shepherd::doHome: command already in progress" );
         return;
     }
     _pendingCommand = PendingCommand::home;
     _okCount = 0;
     _process->write( "home\n" );
-}
-
-void Shepherd::doLift( float arg1, float arg2 ) {
-    if ( _pendingCommand != PendingCommand::none ) {
-        debug( "Shepherd::doLift: command already in progress" );
-        return;
-    }
-    _pendingCommand = PendingCommand::lift;
-    _okCount = 0;
-    _process->write( QString( "lift %1 %2\n" ).arg( arg1 ).arg( arg2 ).toUtf8( ) );
-}
-
-void Shepherd::doAskTemp( ) {
-    _process->write( "askTemp\n" );
 }
 
 void Shepherd::doSend( char const* arg ) {

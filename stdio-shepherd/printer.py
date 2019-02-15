@@ -92,6 +92,7 @@ class printer(PrinterEventHandler):
         self.receivecb=receivecb
         self.sendcb=sendcb
         self.liftdone=None
+        self.port=None
 
     def on_disconnect(self):
         if(self.offlinecb):
@@ -122,6 +123,7 @@ class printer(PrinterEventHandler):
             p=baselist[0]
         if p is None:
             return False
+        self.port=p
         self.p.connect(p,baud)
         return True
 

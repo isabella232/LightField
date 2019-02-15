@@ -1,9 +1,8 @@
 #ifndef __PRINT_MANAGER_H__
 #define __PRINT_MANAGER_H__
 
-#include "printjob.h"
-
 class PngDisplayer;
+class PrintJob;
 class Shepherd;
 
 class PrintManager: public QObject {
@@ -18,7 +17,7 @@ public:
     void print( PrintJob* printJob );
     void terminate( );
 
-    void abortJob( );
+    void abort( );
 
 protected:
 

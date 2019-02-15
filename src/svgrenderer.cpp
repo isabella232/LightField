@@ -2,6 +2,9 @@
 
 #include "svgrenderer.h"
 
+#include "processrunner.h"
+#include "strings.h"
+
 namespace {
 
     QDomDocument _CloneDocRoot( QDomDocument& doc ) {
@@ -14,8 +17,8 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
-    QObject::connect( &pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
-    QObject::connect( &pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
+    QObject::connect( pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
+    QObject::connect( pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -66,7 +69,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
         QDomElement* element = reinterpret_cast<QDomElement*>( &node );
         QString nodeName = element->nodeName( );
-        debug( "  + childNodes[%d].nodeName: %s\n", childIndex, nodeName.toUtf8( ).data( ) );
         if ( nodeName != "g" ) {
             debug( "  + skipping element because it's not <g>\n" );
             continue;
@@ -77,7 +79,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
 
         QString idValue = element->attribute( "id" );
-        debug( "    + childNodes[%d:'%s'].attributes['id']: id=\"%s\"\n", childIndex, nodeName.toUtf8( ).data( ), idValue.toUtf8( ).data( ) );
         if ( !idValue.startsWith( "layer" ) ) {
             debug( "  + skipping element because its id attribute does not start with 'layer'\n" );
             continue;
@@ -106,25 +107,24 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 void SvgRenderer::renderLayer( ) {
     debug( "+ SvgRenderer::renderLayer: currentLayer: %d\n", currentLayer );
     emit nextLayer( currentLayer );
-    pr.setProgram( "gm" );
-    pr.setArguments( {
-        QString( "convert"     ),
-        QString( "-antialias"  ),
-        QString( "-density"    ), QString( "400" ),
-        QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
-        QString( "-background" ), QString( "#000000" ),
-        QString( "%1/%2.svg"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) ),
-        QString( "%1/%2.png"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) )
-        } );
-    debug( "  + command line:        '%s %s'\n", pr.program( ).toUtf8( ).data( ), pr.arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
-    pr.start( );
+    pr->start(
+        QString     { "gm" },
+        QStringList {
+            QString( "convert"     ),
+            QString( "-antialias"  ),
+            QString( "-density"    ), QString( "400" ),
+            QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
+            QString( "-background" ), QString( "#000000" ),
+            QString( "%1/%2.svg"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) ),
+            QString( "%1/%2.png"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) )
+        }
+    );
 }
 
 void SvgRenderer::programSucceeded( ) {
-    debug( "+ SvgRenderer::programSucceeded\n" );
     ++currentLayer;
     if ( currentLayer == layerCount ) {
-        debug( "  + finished!!\n" );
+        debug( "+ SvgRenderer::programSucceeded: finished\n" );
         emit done( layerCount );
     } else {
         renderLayer( );
@@ -132,6 +132,6 @@ void SvgRenderer::programSucceeded( ) {
 }
 
 void SvgRenderer::programFailed( QProcess::ProcessError const error ) {
-    debug( "+ SvgRenderer::programFailed: error=%d\n", static_cast<int>( error ) );
+    debug( "+ SvgRenderer::programFailed: error: %s [%d]\n", ToString( error ), static_cast<int>( error ) );
     emit done( -1 );
 }

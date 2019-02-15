@@ -1,14 +1,13 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include "app.h"
-#include "shepherd.h"
-#include "printmanager.h"
-#include "printjob.h"
-#include "selecttab.h"
-#include "preparetab.h"
-#include "printtab.h"
-#include "statustab.h"
+class Shepherd;
+class PrintManager;
+class PrintJob;
+class SelectTab;
+class PrepareTab;
+class PrintTab;
+class StatusTab;
 
 class Window: public QMainWindow {
 
@@ -25,15 +24,15 @@ protected:
 
 private:
 
-    Shepherd*     shepherd     {                };
-    PrintManager* printManager {                };
-    PrintJob*     printJob     { new PrintJob   };
+    Shepherd*     shepherd;
+    PrintManager* printManager { };
+    PrintJob*     printJob;
 
     QTabWidget*   tabs         { new QTabWidget };
-    SelectTab*    selectTab    { new SelectTab  };
-    PrepareTab*   prepareTab   { new PrepareTab };
-    PrintTab*     printTab     { new PrintTab   };
-    StatusTab*    statusTab    { new StatusTab  };
+    SelectTab*    selectTab;
+    PrepareTab*   prepareTab;
+    PrintTab*     printTab;
+    StatusTab*    statusTab;
 
 signals:
 
@@ -45,9 +44,15 @@ protected slots:
 
 private slots:
 
-    void shepherd_Started( );
-    void shepherd_Finished( int exitCode, QProcess::ExitStatus exitStatus );
-    void shepherd_ProcessError( QProcess::ProcessError error );
+    void shepherd_started( );
+    void shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void shepherd_processError( QProcess::ProcessError error );
+
+    void shepherd_adjustBedHeightMoveToComplete( bool success );
+    void shepherd_retractBuildPlatformMoveToComplete( bool success );
+    void shepherd_extendBuildPlatformMoveToComplete( bool success );
+    void shepherd_moveBuildPlatformUpMoveComplete( bool success );
+    void shepherd_moveBuildPlatformDownMoveComplete( bool success );
 
     void selectTab_modelSelected( bool success, QString const& fileName );
 
@@ -57,8 +62,14 @@ private slots:
     void prepareTab_renderComplete( bool success );
 
     void printTab_printButtonClicked( );
+    void printTab_adjustBedHeight( double const newHeight );
+    void printTab_retractBuildPlatform( );
+    void printTab_extendBuildPlatform( );
+    void printTab_moveBuildPlatformUp( );
+    void printTab_moveBuildPlatformDown( );
 
     void statusTab_stopButtonClicked( );
+    void statusTab_cleanUpAfterPrint( );
 
     void signalHandler_quit( int signalNumber );
 

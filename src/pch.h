@@ -20,8 +20,7 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <QtOpenGL>
-#include <QtOpenGL/QtOpenGL>
-#include <QtXml>
+#include <QtXml/QtXml>
 
 #include "constants.h"
 #include "debug.h"

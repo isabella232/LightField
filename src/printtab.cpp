@@ -3,6 +3,8 @@
 #include "printtab.h"
 
 #include "printjob.h"
+#include "bedheightadjustment.h"
+#include "strings.h"
 
 namespace {
 
@@ -13,7 +15,6 @@ namespace {
 
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureTime->setAlignment( Qt::AlignRight );
-    exposureTime->setText( "1.0" );
     exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
     QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &PrintTab::exposureTime_editingFinished );
 
@@ -32,13 +33,11 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelSlider->setTickPosition( QSlider::TickPosition::TicksBelow );
     powerLevelSlider->setMinimum( 20 );
     powerLevelSlider->setMaximum( 100 );
-    powerLevelSlider->setValue( 50 );
     QObject::connect( powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
     powerLevelLabel->setText( "Projector power level:" );
     powerLevelLabel->setBuddy( powerLevelSlider );
 
-    powerLevelValue->setText( "50%" );
     powerLevelValue->setAlignment( Qt::AlignRight );
     powerLevelValue->setFrameShadow( QFrame::Sunken );
     powerLevelValue->setFrameStyle( QFrame::StyledPanel );
@@ -90,15 +89,41 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
-    _placeHolder->setContentsMargins( { } );
-    _placeHolder->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _placeHolder->setMinimumSize( MaximalRightHandPaneSize );
+    _adjustBedHeightButton->setText( "Adjust\nBed Height" );
+    _adjustBedHeightButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _adjustBedHeightButton, &QPushButton::clicked, this, &PrintTab::_adjustBedHeightButton_clicked );
 
-    _layout = new QGridLayout;
+    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    _retractOrExtendButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _retractOrExtendButton, &QPushButton::clicked, this, &PrintTab::_retractOrExtendButton_clicked );
+
+    _moveUpButton->setText( "Move Up\n100 µm" );
+    _moveUpButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _moveUpButton, &QPushButton::clicked, this, &PrintTab::_moveUpButton_clicked );
+
+    _moveDownButton->setText( "Move Down\n100 µm" );
+    _moveDownButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _moveDownButton, &QPushButton::clicked, this, &PrintTab::_moveDownButton_clicked );
+
+    _adjustmentsHBox->addWidget( _adjustBedHeightButton );
+    _adjustmentsHBox->addStretch( );
+    _adjustmentsHBox->addWidget( _retractOrExtendButton );
+    _adjustmentsHBox->addStretch( );
+    _adjustmentsHBox->addWidget( _moveUpButton );
+    _adjustmentsHBox->addWidget( _moveDownButton );
+
+    _adjustmentsVBox->addLayout( _adjustmentsHBox );
+    _adjustmentsVBox->addStretch( );
+
+    _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
+    _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _adjustmentsGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _adjustmentsGroup->setLayout( _adjustmentsVBox );
+
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer, 0, 0, 1, 1 );
-    _layout->addWidget( printButton,      1, 0, 1, 1 );
-    _layout->addWidget( _placeHolder,     0, 1, 2, 1 );
+    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( printButton,       1, 0, 1, 1 );
+    _layout->addWidget( _adjustmentsGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -111,9 +136,8 @@ PrintTab::~PrintTab( ) {
 
 void PrintTab::exposureTime_editingFinished( ) {
     bool valueOk = false;
-    double value = exposureTime->validator( )->locale( ).toDouble( exposureTime->text( ), &valueOk );
+    double value = exposureTime->text( ).toDouble( &valueOk );
     if ( valueOk ) {
-        debug( "+ PrintTab::exposureTime_editingFinished: new value %f\n", value );
         _printJob->exposureTime = value;
     } else {
         debug( "+ PrintTab::exposureTime_editingFinished: bad value\n" );
@@ -121,7 +145,6 @@ void PrintTab::exposureTime_editingFinished( ) {
 }
 
 void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
-    debug( "+ PrintTab::exposureScaleFactorComboBox_currentIndexChanged: new value: %f×\n", ExposureScaleFactorValues[index] );
     _printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
 }
 
@@ -136,6 +159,92 @@ void PrintTab::printButton_clicked( bool /*checked*/ ) {
     emit printButtonClicked( );
 }
 
+void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_adjustBedHeightButton_clicked\n" );
+
+    BedHeightAdjustmentDialog adjustDialog { this };
+    int rc = adjustDialog.exec( );
+    debug( "  + adjustDialog->exec returned %s [%d]\n", ToString( static_cast<QDialog::DialogCode>( rc ) ), rc );
+
+    double newBedHeight = adjustDialog.newBedHeight( );
+    debug( "  + new bed height: %f\n", newBedHeight );
+
+    emit adjustBedHeight( newBedHeight );
+}
+
+void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
+    _retractOrExtendButton->setEnabled( false );
+    switch ( _buildPlatformState ) {
+        case BuildPlatformState::Extended:
+            _buildPlatformState = BuildPlatformState::Retracting;
+            emit retractBuildPlatform( );
+            break;
+
+        case BuildPlatformState::Retracted:
+            _buildPlatformState = BuildPlatformState::Extending;
+            emit extendBuildPlatform( );
+            break;
+
+        default:
+            return;
+    }
+}
+
+void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+    _moveUpButton->setEnabled( false );
+    emit moveBuildPlatformUp( );
+}
+
+void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+    _moveDownButton->setEnabled( false );
+    emit moveBuildPlatformDown( );
+}
+
 void PrintTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+
+    exposureTime->setText( FormatDouble( _printJob->exposureTime ) );
+
+    auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
+    int index = exposureScaleFactorComboBox->findText( exposureTimeScaleFactorText );
+    if ( -1 == index ) {
+        debug( "  + couldn't find exposureScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
+    } else {
+        exposureScaleFactorComboBox->setCurrentIndex( index );
+    }
+
+    int scaledValue = ( _printJob->powerLevel / 255.0 * 100.0 ) + 0.5;
+    debug( "  + power level: %d => %d\n", _printJob->powerLevel, scaledValue );
+    powerLevelSlider->setValue( scaledValue );
+    powerLevelValue->setText( QString( "%1%" ).arg( scaledValue ) );
+}
+
+void PrintTab::setPrintButtonEnabled( bool const value ) {
+    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
+    printButton->setEnabled( value );
+}
+
+void PrintTab::retractBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+    _buildPlatformState = BuildPlatformState::Retracted;
+    _retractOrExtendButton->setText( "Extend\nBuild Platform" );
+    _retractOrExtendButton->setEnabled( true );
+}
+
+void PrintTab::extendBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+    _buildPlatformState = BuildPlatformState::Extended;
+    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    _retractOrExtendButton->setEnabled( true );
+}
+
+void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
+    debug( "+ PrintTab::moveBuildPlatformUpComplete: %s\n", success ? "succeeded" : "failed" );
+    _moveUpButton->setEnabled( true );
+}
+
+void PrintTab::moveBuildPlatformDownComplete( bool const success ) {
+    debug( "+ PrintTab::moveBuildPlatformDownComplete: %s\n", success ? "succeeded" : "failed" );
+    _moveDownButton->setEnabled( true );
 }

@@ -13,6 +13,7 @@ public:
     void setProgram( QString const& program );
     void setArguments( QStringList const& arguments );
     void start( QProcess::OpenMode const mode = QProcess::ReadWrite );
+    void start( QString const& program, QStringList const& arguments, QProcess::OpenMode const mode = QProcess::ReadWrite );
 
     QString program( ) const {
         return _process.program( );
@@ -40,8 +41,6 @@ protected slots:
 private slots:
 
     void processErrorOccurred( QProcess::ProcessError error );
-    void processStarted( );
-    void processStateChanged( QProcess::ProcessState newState );
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 };

@@ -1,23 +1,23 @@
 #include "pch.h"
 
 #include "preparetab.h"
-#include "svgrenderer.h"
 
+#include "svgrenderer.h"
 #include "printjob.h"
 #include "strings.h"
 
 namespace {
 
-    QStringList LayerThicknessStringList { "50 µm", "100 µm", "200 µm" };
-    int         LayerThicknessValues[]   { 50, 100, 200                };
-    QString     SlicerCommand            { "slic3r"                    };
+    std::vector<int> LayerThicknessValues { 50, 100, 200 };
 
 }
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessComboBox->setEditable( false );
-    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessStringList.count( ) );
-    layerThicknessComboBox->addItems( LayerThicknessStringList );
+    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessValues.size( ) );
+    for ( auto value : LayerThicknessValues ) {
+        layerThicknessComboBox->addItem( QString( "%1 µm" ).arg( value ) );
+    }
     layerThicknessComboBox->setCurrentIndex( 1 );
     QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
 
@@ -92,7 +92,6 @@ PrepareTab::~PrepareTab( ) {
     /*empty*/
 }
 
-
 void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
     debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
     _printJob->layerThickness = LayerThicknessValues[index];
@@ -104,18 +103,14 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
     _printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
     mkdir( _printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
 
-    QString baseName = _printJob->modelFileName;
-    int index = baseName.lastIndexOf( "/" );
-    if ( index > -1 ) {
-        baseName = baseName.mid( index + 1 );
-    }
-    if ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ) {
-        _printJob->slicedSvgFileName = _printJob->pngFilesPath + QChar( '/' ) + baseName.left( baseName.length( ) - 4 ) + QString( ".svg" );
-    } else {
-        _printJob->slicedSvgFileName = _printJob->pngFilesPath + QChar( '/' ) + baseName                                + QString( ".svg" );
-    }
+    QString baseName = getFileBaseName( _printJob->modelFileName );
+    _printJob->slicedSvgFileName =
+        _printJob->pngFilesPath +
+        QChar( '/' ) +
+        baseName.left( baseName.length( ) - ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ? 4 : 0 ) ) +
+        QString( ".svg" );
 
-    fprintf( stderr,
+    debug(
         "  + model filename:      '%s'\n"
         "  + sliced SVG filename: '%s'\n"
         "  + PNG files path:      '%s'\n"
@@ -126,20 +121,20 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
     );
 
     slicerProcess = new QProcess( this );
-    slicerProcess->setProgram( SlicerCommand );
-    slicerProcess->setArguments( QStringList {
-        _printJob->modelFileName,
-        "--export-svg",
-        "--layer-height",
-        QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
-        "--output",
-        _printJob->slicedSvgFileName
-    } );
-    debug( "  + command line:        '%s %s'\n", slicerProcess->program( ).toUtf8( ).data( ), slicerProcess->arguments( ).join( QChar( ' ' ) ).toUtf8( ).data( ) );
     QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &PrepareTab::slicerProcessErrorOccurred );
     QObject::connect( slicerProcess, &QProcess::started,       this, &PrepareTab::slicerProcessStarted       );
     QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished );
-    slicerProcess->start( );
+    slicerProcess->start(
+        QString     { "slic3r" },
+        QStringList {
+            _printJob->modelFileName,
+            QString( "--export-svg" ),
+            QString( "--layer-height" ),
+            QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
+            QString( "--output" ),
+            _printJob->slicedSvgFileName
+        }
+    );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -220,5 +215,6 @@ void PrepareTab::svgRenderer_done( int const totalLayers ) {
 }
 
 void PrepareTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ PrepareTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
 }

@@ -22,7 +22,12 @@ namespace {
 
     char const* ExitStatusStrings[] {
         "NormalExit",
-        "CrashExit"
+        "CrashExit",
+    };
+
+    char const* DialogCodeStrings[] {
+        "Rejected",
+        "Accepted",
     };
 
     char const* PendingCommandStrings[] {
@@ -30,7 +35,6 @@ namespace {
         "move",
         "moveTo",
         "home",
-        "lift",
     };
 
 }
@@ -71,9 +75,21 @@ char const* ToString( QProcess::ExitStatus value ) {
 #endif
 }
 
+char const* ToString( QDialog::DialogCode value ) {
+#if defined _DEBUG
+    if ( ( value >= QDialog::Rejected ) && ( value <= QDialog::Accepted ) ) {
+#endif
+        return DialogCodeStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
 char const* ToString( PendingCommand value ) {
 #if defined _DEBUG
-    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::lift ) ) {
+    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::home ) ) {
 #endif
         return PendingCommandStrings[static_cast<int>( value )];
 #if defined _DEBUG
@@ -81,4 +97,17 @@ char const* ToString( PendingCommand value ) {
         return nullptr;
     }
 #endif
+}
+
+QString FormatDouble( double a, int prec ) {
+    QString str = QString( "%1" ).arg( a, 0, 'f', prec );
+    int index = str.length( ) - 1;
+    while ( ( index > -1 ) && ( str[index].unicode( ) == L'0' ) ) {
+        --index;
+    }
+    if ( str[index].unicode( ) == L'.' ) {
+        --index;
+    }
+    str.resize( index + 1 );
+    return str;
 }

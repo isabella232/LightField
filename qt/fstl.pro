@@ -28,7 +28,8 @@ SOURCES += \
     ../src/preparetab.cpp \
     ../src/printtab.cpp \
     ../src/statustab.cpp \
-    ../src/constants.cpp
+    ../src/constants.cpp \
+    ../src/bedheightadjustment.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -52,9 +53,10 @@ HEADERS  += \
     ../src/printtab.h \
     ../src/statustab.h \
     ../src/constants.h \
+    ../src/bedheightadjustment.h \
     ../src/debug.h
 
-CONFIG += c++11
+CONFIG += c++17
 CONFIG += precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 

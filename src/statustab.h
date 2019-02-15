@@ -46,13 +46,14 @@ private:
 signals:
 
     void stopButtonClicked( );
+    void printComplete( );
 
 public slots:
 
     void setPrintJob( PrintJob* printJob );
 
-    void printer_Online( );
-    void printer_Offline( );
+    void printer_online( );
+    void printer_offline( );
 
     void printManager_printStarting( );
     void printManager_startingLayer( int const layer );
