@@ -9,8 +9,8 @@ char const* ToString( QProcess::ProcessError value );
 char const* ToString( QProcess::ProcessState value );
 char const* ToString( QProcess::ExitStatus   value );
 
-#if defined __SHEPHERD_H__
-char const* ToString( PendingCommand         value );
-#endif // __SHEPHERD_H__
+char const* ToString( QDialog::DialogCode    value );
+
+QString FormatDouble( double const a, int prec = -1 );
 
 #endif // __STRINGS_H__
