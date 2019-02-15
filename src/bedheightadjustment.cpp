@@ -10,7 +10,7 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
 
     _bedHeightLineEdit->setAlignment( Qt::AlignRight );
     _bedHeightLineEdit->setText( "0.0" );
-    _bedHeightLineEdit->setValidator( new QDoubleValidator( 0.0, 100.0, 5 ) );
+    _bedHeightLineEdit->setValidator( new QDoubleValidator( -100.0, 100.0, 5 ) );
     QObject::connect( _bedHeightLineEdit, &QLineEdit::editingFinished, this, &BedHeightAdjustmentDialog::_bedHeightLineEdit_editingFinished );
 
     _bedHeightHBox->addWidget( _bedHeightLabel    );
