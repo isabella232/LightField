@@ -11,6 +11,20 @@ namespace {
     QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
     double      ExposureScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
 
+    char const* BuildPlatformStateStrings[] { "Extended", "Retracting", "Retracted", "Extending" };
+
+    char const* ToString( BuildPlatformState const value ) {
+#if defined _DEBUG
+        if ( ( value >= BuildPlatformState::Extended ) && ( value <= BuildPlatformState::Extending ) ) {
+#endif
+            return BuildPlatformStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+        } else {
+            return nullptr;
+        }
+#endif
+    }
+
 }
 
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
@@ -176,6 +190,7 @@ void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
 }
 
 void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_retractOrExtendButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
     _retractOrExtendButton->setEnabled( false );
     switch ( _buildPlatformState ) {
         case BuildPlatformState::Extended:

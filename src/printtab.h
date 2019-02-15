@@ -1,6 +1,13 @@
 #ifndef __PRINTTAB_H__
 #define __PRINTTAB_H__
 
+enum class BuildPlatformState {
+    Extended,
+    Retracting,
+    Retracted,
+    Extending,
+};
+
 class PrintJob;
 
 class PrintTab: public QWidget {
@@ -23,13 +30,6 @@ public:
 protected:
 
 private:
-
-    enum class BuildPlatformState {
-        Extended,
-        Retracting,
-        Retracted,
-        Extending,
-    };
 
     PrintJob*          _printJob                     { };
     BuildPlatformState _buildPlatformState           { BuildPlatformState::Extended };

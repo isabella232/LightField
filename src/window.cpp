@@ -284,6 +284,7 @@ void Window::printTab_printButtonClicked( ) {
     printJob = newJob;
     emit printJobChanged( printJob );
 
+    printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( true );
 }
 
@@ -323,12 +324,19 @@ void Window::printTab_moveBuildPlatformDown( ) {
 }
 
 void Window::statusTab_stopButtonClicked( ) {
-    printManager->abort( );
+    debug( "+ Window::statusTab_stopButtonClicked\n" );
+    statusTab->setStopButtonEnabled( false );
+    if ( printManager ) {
+        printManager->abort( );
+    }
 }
 
 void Window::statusTab_cleanUpAfterPrint( ) {
-    delete printManager;
-    printManager = nullptr;
+    debug( "+ Window::statusTab_cleanUpAfterPrint\n" );
+    if ( printManager ) {
+        delete printManager;
+        printManager = nullptr;
+    }
 }
 
 void Window::signalHandler_quit( int signalNumber ) {
