@@ -151,6 +151,66 @@ void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
     shepherd->doSend( "G92 X0" );
 }
 
+void Window::shepherd_retractGewgawMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_retractGewgawMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractGewgawMoveToComplete );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Retraction of gewgaw failed."
+        );
+        return;
+    }
+
+    printTab->retractGewgawComplete( success );
+}
+
+void Window::shepherd_extendGewgawMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_extendGewgawMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendGewgawMoveToComplete );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Extension of gewgaw failed."
+        );
+        return;
+    }
+
+    printTab->extendGewgawComplete( success );
+}
+
+void Window::shepherd_moveGewgawUpMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveGewgawUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawUpMoveComplete );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Moving gewgaw up failed."
+        );
+        return;
+    }
+
+    printTab->moveGewgawUpComplete( success );
+}
+
+void Window::shepherd_moveGewgawDownMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveGewgawDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawDownMoveComplete );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Moving gewgaw down failed."
+        );
+        return;
+    }
+
+    printTab->moveGewgawUpComplete( success );
+}
+
 void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
@@ -230,9 +290,36 @@ void Window::printTab_printButtonClicked( ) {
 void Window::printTab_adjustBedHeight( double const newHeight ) {
     debug( "+ Window::printTab_adjustBedHeight: new bed height %f\n", newHeight );
 
-    // TODO moveTo, then send 'G92 X0'
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_adjustBedHeightMoveToComplete );
     shepherd->doMoveTo( newHeight );
+}
+
+void Window::printTab_retractGewgaw( ) {
+    debug( "+ Window::printTab_retractGewgaw\n" );
+
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractGewgawMoveToComplete );
+    shepherd->doMoveTo( 50.0 );
+}
+
+void Window::printTab_extendGewgaw( ) {
+    debug( "+ Window::printTab_extendGewgaw\n" );
+
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendGewgawMoveToComplete );
+    shepherd->doMoveTo( 0.1 );
+}
+
+void Window::printTab_moveGewgawUp( ) {
+    debug( "+ Window::printTab_moveGewgawUp\n" );
+
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawUpMoveComplete );
+    shepherd->doMove( 0.1 );
+}
+
+void Window::printTab_moveGewgawDown( ) {
+    debug( "+ Window::printTab_moveGewgawDown\n" );
+
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveGewgawDownMoveComplete );
+    shepherd->doMove( -0.1 );
 }
 
 void Window::statusTab_stopButtonClicked( ) {
