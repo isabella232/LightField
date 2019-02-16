@@ -36,10 +36,9 @@ private:
     QLabel*            sliceProgressLabel     { new QLabel      };
     QLabel*            renderProgress         { new QLabel      };
     QLabel*            renderProgressLabel    { new QLabel      };
-    QLabel*            currentSliceLabel      { new QLabel      };
-    QLabel*            currentSliceDisplay    { new QLabel      };
+    QLabel*            currentSliceImage      { new QLabel      };
     QVBoxLayout*       currentSliceLayout     { new QVBoxLayout };
-    QWidget*           currentSliceContainer  { new QWidget     };
+    QGroupBox*         currentSliceGroup      { new QGroupBox   };
     QGridLayout*       _layout                { new QGridLayout };
     PrintJob*          _printJob              { };
 

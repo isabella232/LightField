@@ -56,36 +56,33 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    currentSliceLabel->setText( "Current slice:" );
-    currentSliceLabel->setBuddy( currentSliceDisplay );
-    currentSliceDisplay->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setContentsMargins( { } );
+    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     {
-        auto pal = currentSliceDisplay->palette( );
+        auto pal = currentSliceImage->palette( );
         pal.setColor( QPalette::Background, Qt::black );
-        currentSliceDisplay->setPalette( pal );
+        currentSliceImage->setPalette( pal );
     }
 
-    currentSliceLayout->setContentsMargins( { } );
-    currentSliceLayout->addWidget( currentSliceLabel );
-    currentSliceLayout->addWidget( currentSliceDisplay );
-    currentSliceLayout->addStretch( );
+    currentSliceLayout->addWidget( currentSliceImage );
 
-    currentSliceContainer->setContentsMargins( { } );
-    currentSliceContainer->setLayout( currentSliceLayout );
-    currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceContainer->setMinimumSize( MaximalRightHandPaneSize );
+    currentSliceGroup->setTitle( QString( "Current slice" ) );
+    currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
+    currentSliceGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceGroup->setLayout( currentSliceLayout );
 
     _layout = new QGridLayout;
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,      0, 0, 1, 1 );
-    _layout->addWidget( sliceButton,           1, 0, 1, 1 );
-    _layout->addWidget( currentSliceContainer, 0, 1, 2, 1 );
+    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( currentSliceGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
     setContentsMargins( { } );
-    setLayout( _layout );
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    setLayout( _layout );
 }
 
 PrepareTab::~PrepareTab( ) {
@@ -191,7 +188,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
         if ( currentLayer > 0 ) {
             auto pngFileName = QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
             auto pixMap = QPixmap( pngFileName );
-            currentSliceDisplay->setPixmap( pixMap );
+            currentSliceImage->setPixmap( pixMap );
         }
     }
 }
