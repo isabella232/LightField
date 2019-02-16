@@ -153,7 +153,9 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
-        tabs->setCurrentIndex( TabIndex::Prepare );
+        if ( tabs->currentIndex( ) == TabIndex::Select ) {
+            tabs->setCurrentIndex( TabIndex::Prepare );
+        }
     } else {
         prepareTab->setSliceButtonEnabled( false );
     }
@@ -184,7 +186,9 @@ void Window::prepareTab_renderComplete( bool success ) {
 
     prepareTab->setSliceButtonEnabled( true );
     printTab->setPrintButtonEnabled( true );
-    tabs->setCurrentIndex( TabIndex::Print );
+    if ( tabs->currentIndex( ) == TabIndex::Prepare ) {
+        tabs->setCurrentIndex( TabIndex::Print );
+    }
 }
 
 void Window::printTab_printButtonClicked( ) {
