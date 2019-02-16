@@ -1,6 +1,4 @@
-#include <QMouseEvent>
-
-#include <cmath>
+#include "pch.h"
 
 #include "canvas.h"
 #include "backdrop.h"
@@ -54,22 +52,19 @@ void Canvas::draw_wireframe()
     set_drawMode(1);
 }
 
-void Canvas::load_mesh(Mesh* m, bool is_reload)
+void Canvas::load_mesh(Mesh* m)
 {
     mesh = new GLMesh(m);
 
-    if (!is_reload)
-    {
-        QVector3D lower(m->xmin(), m->ymin(), m->zmin());
-        QVector3D upper(m->xmax(), m->ymax(), m->zmax());
-        center = (lower + upper) / 2;
-        scale = 2 / (upper - lower).length();
+    QVector3D lower(m->xmin(), m->ymin(), m->zmin());
+    QVector3D upper(m->xmax(), m->ymax(), m->zmax());
+    center = (lower + upper) / 2;
+    scale = 2 / (upper - lower).length();
 
-        // Reset other camera parameters
-        zoom = 1;
-        yaw = 0;
-        tilt = 90;
-    }
+    // Reset other camera parameters
+    zoom = 1;
+    yaw = 0;
+    tilt = 90;
 
     update();
 
