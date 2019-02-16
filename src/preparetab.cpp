@@ -160,13 +160,11 @@ void PrepareTab::slicerProcessStarted( ) {
 }
 
 void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    QObject::disconnect( slicerProcess, &QProcess::errorOccurred, this, &PrepareTab::slicerProcessErrorOccurred );
-    QObject::disconnect( slicerProcess, &QProcess::started,       this, &PrepareTab::slicerProcessStarted       );
-    QObject::disconnect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished );
+    QObject::disconnect( slicerProcess, nullptr, this, nullptr );
 
     debug( "+ PrepareTab::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
-    delete slicerProcess;
+    slicerProcess->deleteLater( );
     slicerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
@@ -206,9 +204,7 @@ void PrepareTab::svgRenderer_done( int const totalLayers ) {
         _printJob->layerCount = totalLayers;
     }
 
-    QObject::disconnect( svgRenderer, &SvgRenderer::nextLayer, this, &PrepareTab::svgRenderer_progress );
-    QObject::disconnect( svgRenderer, &SvgRenderer::done,      this, &PrepareTab::svgRenderer_done     );
-    delete svgRenderer;
+    svgRenderer->deleteLater( );
     svgRenderer = nullptr;
 
     emit renderComplete( totalLayers != -1 );
