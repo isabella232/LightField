@@ -31,7 +31,6 @@ private:
     QVBoxLayout*       optionsLayout          { new QVBoxLayout };
     QWidget*           optionsContainer       { new QWidget     };
     QPushButton*       sliceButton            { new QPushButton };
-    QPushButton*       calibrateButton        { new QPushButton };
 
     QLabel*            sliceProgress          { new QLabel      };
     QLabel*            sliceProgressLabel     { new QLabel      };
@@ -61,7 +60,6 @@ private slots:
 
     void layerThicknessComboBox_currentIndexChanged( int index );
     void sliceButton_clicked( bool );
-    void calibrateButton_clicked( bool );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );

@@ -2,7 +2,6 @@
 
 #include "preparetab.h"
 
-#include "calibration.h"
 #include "printjob.h"
 #include "strings.h"
 #include "svgrenderer.h"
@@ -35,20 +34,9 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     renderProgress->setFrameShadow( QFrame::Sunken );
     renderProgress->setFrameStyle( QFrame::StyledPanel );
 
-    {
-        auto font { calibrateButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        calibrateButton->setFont( font );
-    }
-    calibrateButton->setText( "Calibrate" );
-    calibrateButton->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-    calibrateButton->setEnabled( false );
-    QObject::connect( calibrateButton, &QPushButton::clicked, this, &PrepareTab::calibrateButton_clicked );
-
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
-    optionsLayout->addWidget( calibrateButton );
     optionsLayout->addStretch( );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceProgress );
@@ -147,11 +135,6 @@ void PrepareTab::sliceButton_clicked( bool ) {
             _printJob->slicedSvgFileName
         }
     );
-}
-
-void PrepareTab::calibrateButton_clicked( bool ) {
-    CalibrationDialog calibrationDialog( this );
-    calibrationDialog.exec( );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
