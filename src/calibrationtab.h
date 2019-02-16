@@ -14,7 +14,15 @@ protected:
 
 private:
 
-    QHBoxLayout* _layout { new QHBoxLayout };
+    std::vector<QLabel*> _stepsStatus;
+
+    QVBoxLayout*         _leftColumnLayout  { new QVBoxLayout };
+    QPushButton*         _calibrateButton   { new QPushButton };
+
+    QVBoxLayout*         _rightColumnLayout { new QVBoxLayout };
+    QGroupBox*           _rightColumn       { new QGroupBox   };
+
+    QGridLayout*         _layout            { new QGridLayout };
 
 signals:
 
@@ -23,6 +31,8 @@ public slots:
 protected slots:
 
 private slots:
+
+    void _calibrateButton_clicked( bool );
 
 };
 
