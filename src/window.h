@@ -1,11 +1,13 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef __WINDOW_H__
+#define __WINDOW_H__
 
 class Shepherd;
 class PrintManager;
 class PrintJob;
+
 class SelectTab;
 class PrepareTab;
+class CalibrationTab;
 class PrintTab;
 class StatusTab;
 
@@ -24,15 +26,16 @@ protected:
 
 private:
 
-    Shepherd*     shepherd;
-    PrintManager* printManager { };
-    PrintJob*     printJob;
+    Shepherd*       shepherd;
+    PrintManager*   printManager   { };
+    PrintJob*       printJob;
 
-    QTabWidget*   tabs         { new QTabWidget };
-    SelectTab*    selectTab;
-    PrepareTab*   prepareTab;
-    PrintTab*     printTab;
-    StatusTab*    statusTab;
+    QTabWidget*     tabs           { new QTabWidget };
+    SelectTab*      selectTab;
+    PrepareTab*     prepareTab;
+    CalibrationTab* calibrationTab;
+    PrintTab*       printTab;
+    StatusTab*      statusTab;
 
 signals:
 
@@ -75,4 +78,4 @@ private slots:
 
 };
 
-#endif // WINDOW_H
+#endif // __WINDOW_H__

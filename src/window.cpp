@@ -9,6 +9,7 @@
 #include "printjob.h"
 #include "selecttab.h"
 #include "preparetab.h"
+#include "calibrationtab.h"
 #include "printtab.h"
 #include "statustab.h"
 
@@ -19,6 +20,7 @@ namespace {
         enum {
             Select,
             Prepare,
+            Calibrate,
             Print,
             Status,
         };
@@ -29,11 +31,13 @@ namespace {
 Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
 
-    printJob   = new PrintJob;
-    selectTab  = new SelectTab;
-    prepareTab = new PrepareTab;
-    printTab   = new PrintTab;
-    statusTab  = new StatusTab;
+    printJob       = new PrintJob;
+
+    selectTab      = new SelectTab;
+    prepareTab     = new PrepareTab;
+    calibrationTab = new CalibrationTab;
+    printTab       = new PrintTab;
+    statusTab      = new StatusTab;
 
     setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
     setFixedSize( 800, 480 );
@@ -97,10 +101,11 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     tabs->setContentsMargins( { } );
-    tabs->addTab( selectTab,  "Select"  );
-    tabs->addTab( prepareTab, "Prepare" );
-    tabs->addTab( printTab,   "Print"   );
-    tabs->addTab( statusTab,  "Status"  );
+    tabs->addTab( selectTab,      "Select"    );
+    tabs->addTab( prepareTab,     "Prepare"   );
+    tabs->addTab( calibrationTab, "Calibrate" );
+    tabs->addTab( printTab,       "Print"     );
+    tabs->addTab( statusTab,      "Status"    );
     tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
