@@ -7,20 +7,13 @@ class ProcessRunner: public QObject {
 
 public:
 
-    ProcessRunner( );
+    ProcessRunner( QObject* parent = nullptr );
     virtual ~ProcessRunner( ) override;
 
-    void setProgram( QString const& program );
-    void setArguments( QStringList const& arguments );
-    void start( QProcess::OpenMode const mode = QProcess::ReadWrite );
     void start( QString const& program, QStringList const& arguments, QProcess::OpenMode const mode = QProcess::ReadWrite );
 
-    QString program( ) const {
-        return _process.program( );
-    }
-
-    QStringList arguments( ) const {
-        return _process.arguments( );
+    QProcess::ProcessState state( ) const {
+        return _process.state( );
     }
 
 protected:
@@ -35,6 +28,10 @@ signals:
     void failed( QProcess::ProcessError const error );
 
 public slots:
+
+    void kill( ) {
+        _process.kill( );
+    }
 
 protected slots:
 
