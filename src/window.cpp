@@ -334,7 +334,7 @@ void Window::statusTab_stopButtonClicked( ) {
 void Window::statusTab_cleanUpAfterPrint( ) {
     debug( "+ Window::statusTab_cleanUpAfterPrint\n" );
     if ( printManager ) {
-        delete printManager;
+        printManager->deleteLater( );
         printManager = nullptr;
     }
 }
