@@ -72,7 +72,6 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     currentSliceGroup->setLayout( currentSliceLayout );
 
-    _layout = new QGridLayout;
     _layout->setContentsMargins( { } );
     _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
     _layout->addWidget( sliceButton,       1, 0, 1, 1 );
