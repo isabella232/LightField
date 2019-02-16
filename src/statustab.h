@@ -16,10 +16,6 @@ public:
         return stopButton->isEnabled( );
     }
 
-    void setStopButtonEnabled( bool value ) {
-        stopButton->setEnabled( value );
-    }
-
 protected:
 
 private:
@@ -40,8 +36,11 @@ private:
     QWidget*     currentLayerImageContainer { new QWidget     };
     QPushButton* stopButton                 { new QPushButton };
     QGridLayout* _layout                    { new QGridLayout };
-    PrintJob*    _printJob                  {                 };
-    bool         _isPrinterOnline           {                 };
+    PrintJob*    _printJob                  { };
+    bool         _isPrinterOnline           { };
+
+    QPalette     _stopButtonEnabledPalette  { };
+    QPalette     _stopButtonDisabledPalette { };
 
 signals:
 
@@ -51,6 +50,7 @@ signals:
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setStopButtonEnabled( bool value );
 
     void printer_online( );
     void printer_offline( );
