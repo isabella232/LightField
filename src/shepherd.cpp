@@ -153,6 +153,33 @@ void Shepherd::handleFromPrinter( QString const& input ) {
     }
 }
 
+void Shepherd::handleCommandFail( QStringList const& input ) {
+    debug( "+ Shepherd::handleCommandFail: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
+    auto pending = _pendingCommand;
+    _pendingCommand = PendingCommand::none;
+    switch ( pending ) {
+        case PendingCommand::move:
+            emit action_moveComplete( false );
+            break;
+
+        case PendingCommand::moveTo:
+            emit action_moveToComplete( false );
+            break;
+
+        case PendingCommand::home:
+            emit action_homeComplete( false );
+            break;
+
+        case PendingCommand::none:
+            debug( "+ Shepherd::handleCommandFail: *no* pending command??\n" );
+            break;
+
+        default:
+            debug( "+ Shepherd::handleCommandFail: unknown pending command\n" );
+            break;
+    }
+}
+
 void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
@@ -176,11 +203,12 @@ void Shepherd::handleInput( QString const& input ) {
         }
 
         auto pieces = splitLine( line );
-        debug( "+ Shepherd::handleInput:\n" );
+        debug( "+ Shepherd::handleInput: '%s'\n", pieces[0].toUtf8( ).data( ) );
         if ( pieces[0] == "ok" ) {
             debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "fail" ) {
             debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+            handleCommandFail( pieces );
         } else if ( pieces[0] == "warning" ) {
             debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "warning" ) {

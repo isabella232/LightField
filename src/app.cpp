@@ -8,10 +8,11 @@
 AppSettings g_settings;
 
 std::map<std::string, std::function<void( )>> commandLineArgHandlers {
-    { std::string( "-f"      ), [] ( ) { g_settings.fullScreen        = false;        } },
-    { std::string( "-g"      ), [] ( ) { g_settings.debuggingPosition = true;         } },
-    { std::string( "--dark"  ), [] ( ) { g_settings.theme             = Theme::Dark;  } },
-    { std::string( "--light" ), [] ( ) { g_settings.theme             = Theme::Light; } },
+    { std::string( "-f"      ), [] ( ) {                                   } },
+    { std::string( "-g"      ), [] ( ) { g_settings.startY = 560;          } },
+    { std::string( "-h"      ), [] ( ) { g_settings.startY = 0;            } },
+    { std::string( "--dark"  ), [] ( ) { g_settings.theme  = Theme::Dark;  } },
+    { std::string( "--light" ), [] ( ) { g_settings.theme  = Theme::Light; } },
 };
 
 App::App( int& argc, char *argv[] ):

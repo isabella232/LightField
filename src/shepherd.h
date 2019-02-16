@@ -36,6 +36,7 @@ private:
 
     QStringList splitLine( QString const& line );
     void        handleFromPrinter( QString const& input );
+    void        handleCommandFail( QStringList const& input );
     void        handleInput( QString const& input );
 
 signals:

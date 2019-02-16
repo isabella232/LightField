@@ -13,9 +13,8 @@ class AppSettings {
 
 public:
 
-    bool  debuggingPosition { false        };
-    bool  fullScreen        { true         };
-    Theme theme             { Theme::Light };
+    int   startY { 800          };
+    Theme theme  { Theme::Light };
 
 };
 

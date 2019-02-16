@@ -4,6 +4,7 @@
 
 #include "canvas.h"
 #include "loader.h"
+#include "mesh.h"
 #include "printjob.h"
 #include "strings.h"
 
@@ -112,6 +113,33 @@ void SelectTab::selectButton_clicked( bool /*checked*/ ) {
     emit modelSelected( true, _fileName );
 }
 
+void SelectTab::loader_gotMesh( Mesh* m ) {
+    debug( "+ SelectTab::loader_gotMesh: mesh %p: size %zu\n", m, m->count( ) );
+
+    float minX, minY, minZ, maxX, maxY, maxZ;
+    size_t count;
+
+    m->bounds( count, minX, minY, minZ, maxX, maxY, maxZ );
+    float sizeX  = maxX - minX;
+    float sizeY  = maxY - minY;
+    float sizeZ  = maxZ - minZ;
+    debug(
+        "+ SelectTab::loader_gotMesh:\n"
+        "  + count of vertices: %5zu\n"
+        "  + X range:           %12.6f .. %12.6f, %12.6f\n"
+        "  + Y range:           %12.6f .. %12.6f, %12.6f\n"
+        "  + Z range:           %12.6f .. %12.6f, %12.6f\n"
+        "",
+        count,
+        minX, maxX, sizeX,
+        minY, maxY, sizeY,
+        minZ, maxZ, sizeZ
+    );
+    debug( "+ SelectTab::loader_gotMesh: done\n" );
+
+    _canvas->load_mesh( m );
+}
+
 void SelectTab::loader_ErrorBadStl( ) {
     debug( "+ SelectTab::loader_ErrorBadStl\n" );
     QMessageBox::critical( this, "Error",
@@ -161,8 +189,8 @@ bool SelectTab::_loadModel( QString const& fileName ) {
 
     _canvas->set_status( QString( "Loading " ) + getFileBaseName( fileName ) );
 
-    _loader = new Loader( this, fileName, false );
-    connect( _loader, &Loader::got_mesh,           _canvas, &Canvas::load_mesh                  );
+    _loader = new Loader( this, fileName );
+    connect( _loader, &Loader::got_mesh,           this,    &SelectTab::loader_gotMesh          );
     connect( _loader, &Loader::error_bad_stl,      this,    &SelectTab::loader_ErrorBadStl      );
     connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );
     connect( _loader, &Loader::error_missing_file, this,    &SelectTab::loader_ErrorMissingFile );

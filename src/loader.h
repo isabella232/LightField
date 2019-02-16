@@ -1,15 +1,13 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include <QThread>
-
 #include "mesh.h"
 
 class Loader : public QThread
 {
     Q_OBJECT
 public:
-    Loader(QObject* parent, const QString& filename, bool is_reload);
+    Loader(QObject* parent, const QString& filename);
     void run();
 
 protected:
@@ -22,7 +20,7 @@ protected:
 
 signals:
     void loaded_file(QString filename);
-    void got_mesh(Mesh* m, bool is_reload);
+    void got_mesh(Mesh* m);
 
     void error_bad_stl();
     void error_empty_mesh();
@@ -31,7 +29,6 @@ signals:
 
 private:
     const QString filename;
-    bool is_reload;
 
     /*  Used to warn on binary STLs that begin with the word 'solid'" */
     bool confusing_stl;

@@ -3,6 +3,7 @@
 
 class PngDisplayer;
 class PrintJob;
+class ProcessRunner;
 class Shepherd;
 
 class PrintManager: public QObject {
@@ -15,35 +16,24 @@ public:
     virtual ~PrintManager( ) override;
 
     void print( PrintJob* printJob );
-    void terminate( );
-
-    void abort( );
 
 protected:
 
 private:
 
-    Shepherd*              _shepherd                       { };
-    PrintJob*              _printJob                       { };
-    PngDisplayer*          _pngDisplayer                   { };
+    bool           _lampOn               { };
+    Shepherd*      _shepherd             { };
+    PrintJob*      _printJob             { };
+    PngDisplayer*  _pngDisplayer         { };
+    ProcessRunner* _setPowerProcess      { };
 
-    int                    _currentLayer                   { };
+    int            _currentLayer         { };
 
-    QProcess*              _setPowerProcess                { };
-    bool                   _setPowerProcessConnected_step4 { false };
-    bool                   _setPowerProcessConnected_step6 { false };
-
-    QTimer*                _preProjectionTimer             { };
-    QTimer*                _layerProjectionTimer           { };
-    QTimer*                _preLiftTimer                   { };
+    QTimer*        _preProjectionTimer   { };
+    QTimer*        _layerProjectionTimer { };
+    QTimer*        _preLiftTimer         { };
 
     void _cleanUp( );
-
-    void _connectSetPowerProcess_step4( );
-    void _disconnectSetPowerProcess_step4( );
-
-    void _connectSetPowerProcess_step6( );
-    void _disconnectSetPowerProcess_step6( );
 
     void _startNextLayer( );
 
@@ -55,6 +45,9 @@ signals:
     void printComplete( bool const success );
 
 public slots:
+
+    void terminate( );
+    void abort( );
 
 protected slots:
 
@@ -68,15 +61,13 @@ private slots:
 
     void step3_preProjectionTimerExpired( );
 
-    void step4_setPowerProcessErrorOccurred( QProcess::ProcessError error );
-    void step4_setPowerProcessStarted( );
-    void step4_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void step4_setPowerCompleted( );
+    void step4_setPowerFailed( QProcess::ProcessError const error );
 
     void step5_layerProjectionTimerExpired( );
 
-    void step6_setPowerProcessErrorOccurred( QProcess::ProcessError error );
-    void step6_setPowerProcessStarted( );
-    void step6_setPowerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void step6_setPowerCompleted( );
+    void step6_setPowerFailed( QProcess::ProcessError const error );
 
     void step7_preLiftTimerExpired( );
 

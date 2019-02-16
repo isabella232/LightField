@@ -8,28 +8,73 @@
 
 namespace {
 
-    QStringList ExposureScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
-    double      ExposureScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
+    QStringList ExposureTimeScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
+    double      ExposureTimeScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
+
+    char const* BuildPlatformStateStrings[] { "Extended", "Retracting", "Retracted", "Extending" };
+
+    char const* ToString( BuildPlatformState const value ) {
+#if defined _DEBUG
+        if ( ( value >= BuildPlatformState::Extended ) && ( value <= BuildPlatformState::Extending ) ) {
+#endif
+            return BuildPlatformStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+        } else {
+            return nullptr;
+        }
+#endif
+    }
 
 }
 
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
-    exposureTime->setAlignment( Qt::AlignRight );
-    exposureTime->setValidator( new QDoubleValidator( 0.0, 1.0E10, 10 ) );
-    QObject::connect( exposureTime, &QLineEdit::editingFinished, this, &PrintTab::exposureTime_editingFinished );
+    exposureTimeDial->setMinimum(  1 );
+    exposureTimeDial->setMaximum( 40 );
+    exposureTimeDial->setNotchesVisible( true );
+    exposureTimeDial->setWrapping( false );
+    QObject::connect( exposureTimeDial, &QDial::valueChanged, this, &PrintTab::exposureTimeDial_valueChanged );
 
     exposureTimeLabel->setText( "Exposure time (seconds):" );
-    exposureTimeLabel->setBuddy( exposureTime );
+    exposureTimeLabel->setBuddy( exposureTimeDial );
 
-    exposureScaleFactorComboBox->setEditable( false );
-    exposureScaleFactorComboBox->setMaxVisibleItems( ExposureScaleFactorStringList.count( ) );
-    exposureScaleFactorComboBox->addItems( ExposureScaleFactorStringList );
-    QObject::connect( exposureScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrintTab::exposureScaleFactorComboBox_currentIndexChanged );
+    exposureTimeValue->setAlignment( Qt::AlignRight );
+    exposureTimeValue->setFrameShadow( QFrame::Sunken );
+    exposureTimeValue->setFrameStyle( QFrame::StyledPanel );
 
-    exposureScaleFactorLabel->setText( "First layers time scale factor:" );
-    exposureScaleFactorLabel->setBuddy( exposureScaleFactorComboBox );
+    exposureTimeValueLayout->setContentsMargins( { } );
+    exposureTimeValueLayout->addWidget( exposureTimeLabel );
+    exposureTimeValueLayout->addStretch( );
+    exposureTimeValueLayout->addWidget( exposureTimeValue );
 
-    powerLevelDial->setOrientation( Qt::Orientation::Horizontal );
+    exposureTimeValueContainer->setContentsMargins( { } );
+    exposureTimeValueContainer->setLayout( exposureTimeValueLayout );
+
+    exposureTimeDialLeftLabel->setContentsMargins( { } );
+    exposureTimeDialLeftLabel->setText( "0.5 s" );
+    exposureTimeDialLeftLabel->setAlignment( Qt::AlignLeft );
+
+    exposureTimeDialRightLabel->setContentsMargins( { } );
+    exposureTimeDialRightLabel->setText( "20 s" );
+    exposureTimeDialRightLabel->setAlignment( Qt::AlignRight );
+
+    exposureTimeDialLabelsLayout->setContentsMargins( { } );
+    exposureTimeDialLabelsLayout->addStretch( );
+    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialLeftLabel );
+    exposureTimeDialLabelsLayout->addStretch( );
+    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialRightLabel );
+    exposureTimeDialLabelsLayout->addStretch( );
+
+    exposureTimeDialLabelsContainer->setContentsMargins( { } );
+    exposureTimeDialLabelsContainer->setLayout( exposureTimeDialLabelsLayout );
+
+    exposureTimeScaleFactorComboBox->setEditable( false );
+    exposureTimeScaleFactorComboBox->setMaxVisibleItems( ExposureTimeScaleFactorStringList.count( ) );
+    exposureTimeScaleFactorComboBox->addItems( ExposureTimeScaleFactorStringList );
+    QObject::connect( exposureTimeScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged );
+
+    exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
+    exposureTimeScaleFactorLabel->setBuddy( exposureTimeScaleFactorComboBox );
+
     powerLevelDial->setMinimum( 20 );
     powerLevelDial->setMaximum( 100 );
     powerLevelDial->setNotchesVisible( true );
@@ -70,10 +115,11 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelDialLabelsContainer->setLayout( powerLevelDialLabelsLayout );
 
     optionsLayout->setContentsMargins( { } );
-    optionsLayout->addWidget( exposureTimeLabel );
-    optionsLayout->addWidget( exposureTime );
-    optionsLayout->addWidget( exposureScaleFactorLabel );
-    optionsLayout->addWidget( exposureScaleFactorComboBox );
+    optionsLayout->addWidget( exposureTimeValueContainer );
+    optionsLayout->addWidget( exposureTimeDial );
+    optionsLayout->addWidget( exposureTimeDialLabelsContainer );
+    optionsLayout->addWidget( exposureTimeScaleFactorLabel );
+    optionsLayout->addWidget( exposureTimeScaleFactorComboBox );
     optionsLayout->addWidget( powerLevelValueContainer );
     optionsLayout->addWidget( powerLevelDial );
     optionsLayout->addWidget( powerLevelDialLabelsContainer );
@@ -137,18 +183,13 @@ PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::exposureTime_editingFinished( ) {
-    bool valueOk = false;
-    double value = exposureTime->text( ).toDouble( &valueOk );
-    if ( valueOk ) {
-        _printJob->exposureTime = value;
-    } else {
-        debug( "+ PrintTab::exposureTime_editingFinished: bad value\n" );
-    }
+void PrintTab::exposureTimeDial_valueChanged( int value ) {
+    _printJob->exposureTime = value / 2.0;
+    exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 }
 
-void PrintTab::exposureScaleFactorComboBox_currentIndexChanged( int index ) {
-    _printJob->exposureTimeScaleFactor = ExposureScaleFactorValues[index];
+void PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged( int index ) {
+    _printJob->exposureTimeScaleFactor = ExposureTimeScaleFactorValues[index];
 }
 
 void PrintTab::powerLevelDial_valueChanged( int value ) {
@@ -164,6 +205,7 @@ void PrintTab::printButton_clicked( bool /*checked*/ ) {
 
 void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
     debug( "+ PrintTab::_adjustBedHeightButton_clicked\n" );
+    setAdjustmentButtonsEnabled( false );
 
     BedHeightAdjustmentDialog adjustDialog { this };
     int rc = adjustDialog.exec( );
@@ -175,8 +217,15 @@ void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
     emit adjustBedHeight( newBedHeight );
 }
 
+void PrintTab::adjustBedHeightComplete( bool const success ) {
+    debug( "+ PrintTab::adjustBedHeightComplete: %s\n", success ? "succeeded" : "failed" );
+    setAdjustmentButtonsEnabled( true );
+}
+
 void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
-    _retractOrExtendButton->setEnabled( false );
+    debug( "+ PrintTab::_retractOrExtendButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
+    setAdjustmentButtonsEnabled( false );
+
     switch ( _buildPlatformState ) {
         case BuildPlatformState::Extended:
             _buildPlatformState = BuildPlatformState::Retracting;
@@ -193,41 +242,6 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
     }
 }
 
-void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
-    _moveUpButton->setEnabled( false );
-    emit moveBuildPlatformUp( );
-}
-
-void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
-    _moveDownButton->setEnabled( false );
-    emit moveBuildPlatformDown( );
-}
-
-void PrintTab::setPrintJob( PrintJob* printJob ) {
-    debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
-    _printJob = printJob;
-
-    exposureTime->setText( FormatDouble( _printJob->exposureTime ) );
-
-    auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
-    int index = exposureScaleFactorComboBox->findText( exposureTimeScaleFactorText );
-    if ( -1 == index ) {
-        debug( "  + couldn't find exposureScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
-    } else {
-        exposureScaleFactorComboBox->setCurrentIndex( index );
-    }
-
-    int scaledValue = ( _printJob->powerLevel / 255.0 * 100.0 ) + 0.5;
-    debug( "  + power level: %d => %d\n", _printJob->powerLevel, scaledValue );
-    powerLevelDial->setValue( scaledValue );
-    powerLevelValue->setText( QString( "%1%" ).arg( scaledValue ) );
-}
-
-void PrintTab::setPrintButtonEnabled( bool const value ) {
-    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
-    printButton->setEnabled( value );
-}
-
 void PrintTab::retractBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     _buildPlatformState = BuildPlatformState::Retracted;
@@ -239,15 +253,57 @@ void PrintTab::extendBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     _buildPlatformState = BuildPlatformState::Extended;
     _retractOrExtendButton->setText( "Retract\nBuild Platform" );
-    _retractOrExtendButton->setEnabled( true );
+    setAdjustmentButtonsEnabled( true );
+}
+
+void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+    setAdjustmentButtonsEnabled( false );
+    emit moveBuildPlatformUp( );
 }
 
 void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
     debug( "+ PrintTab::moveBuildPlatformUpComplete: %s\n", success ? "succeeded" : "failed" );
-    _moveUpButton->setEnabled( true );
+    setAdjustmentButtonsEnabled( true );
+}
+
+void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+    setAdjustmentButtonsEnabled( false );
+    emit moveBuildPlatformDown( );
 }
 
 void PrintTab::moveBuildPlatformDownComplete( bool const success ) {
     debug( "+ PrintTab::moveBuildPlatformDownComplete: %s\n", success ? "succeeded" : "failed" );
-    _moveDownButton->setEnabled( true );
+    setAdjustmentButtonsEnabled( true );
+}
+
+void PrintTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
+    _printJob = printJob;
+
+    int value = _printJob->exposureTime / 0.5;
+    _printJob->exposureTime = value / 2.0;
+    exposureTimeDial->setValue( value );
+
+    auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
+    int index = exposureTimeScaleFactorComboBox->findText( exposureTimeScaleFactorText );
+    if ( -1 == index ) {
+        debug( "  + couldn't find exposureTimeScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
+    } else {
+        exposureTimeScaleFactorComboBox->setCurrentIndex( index );
+    }
+
+    powerLevelDial->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
+}
+
+void PrintTab::setPrintButtonEnabled( bool const value ) {
+    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
+    printButton->setEnabled( value );
+}
+
+void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
+    debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
+    _adjustBedHeightButton->setEnabled( value );
+    _retractOrExtendButton->setEnabled( value );
+    _moveUpButton         ->setEnabled( value );
+    _moveDownButton       ->setEnabled( value );
 }

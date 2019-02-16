@@ -1,11 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <QString>
-#include <QtOpenGL/QtOpenGL>
-
-#include <vector>
-
 class Mesh
 {
 public:
@@ -20,6 +15,10 @@ public:
     float xmax() const { return max(0); }
     float ymax() const { return max(1); }
     float zmax() const { return max(2); }
+
+    void bounds( size_t& count, float& minX, float& minY, float& minZ, float& maxX, float& maxY, float& maxZ );
+
+    size_t count( ) const { return vertices.size( ); }
 
     bool empty() const;
 

@@ -25,7 +25,7 @@ public:
 public slots:
     void set_status(const QString& s);
     void clear_status();
-    void load_mesh(Mesh* m, bool is_reload);
+    void load_mesh(Mesh* m);
 
 protected:
 	void paintGL() override;

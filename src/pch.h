@@ -5,14 +5,17 @@
 #include <sys/socket.h>
 
 #include <cerrno>
+#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 
+#include <algorithm>
 #include <exception>
 #include <functional>
 #include <future>
 #include <map>
+#include <numeric>
 #include <stdexcept>
 #include <vector>
 

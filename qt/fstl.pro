@@ -29,7 +29,8 @@ SOURCES += \
     ../src/printtab.cpp \
     ../src/statustab.cpp \
     ../src/constants.cpp \
-    ../src/bedheightadjustment.cpp
+    ../src/bedheightadjustment.cpp \
+    ../src/calibration.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -54,6 +55,7 @@ HEADERS  += \
     ../src/statustab.h \
     ../src/constants.h \
     ../src/bedheightadjustment.h \
+    ../src/calibration.h \
     ../src/debug.h
 
 CONFIG += c++17
@@ -91,5 +93,5 @@ release {
 }
 
 warn_on {
-    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess -Wno-unused-parameter
 }

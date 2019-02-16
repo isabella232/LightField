@@ -35,12 +35,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab   = new PrintTab;
     statusTab  = new StatusTab;
 
-    move( { 0, g_settings.debuggingPosition ? 560 : 800 } );
-    if ( g_settings.fullScreen ) {
-        showFullScreen( );
-    } else {
-        setFixedSize( 800, 480 );
-    }
+    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setFixedSize( 800, 480 );
+    move( { 0, g_settings.startY } );
 
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
@@ -136,81 +133,6 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
     debug( "+ Window::shepherd_processError: %d\n", error );
 }
 
-void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
-    debug( "+ Window::shepherd_adjustBedHeightMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_adjustBedHeightMoveToComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Move to new bed height position failed."
-        );
-        return;
-    }
-
-    shepherd->doSend( "G92 X0" );
-}
-
-void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
-    debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Retraction of build platform failed."
-        );
-        return;
-    }
-
-    printTab->retractBuildPlatformComplete( success );
-}
-
-void Window::shepherd_extendBuildPlatformMoveToComplete( bool success ) {
-    debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Extension of build platform failed."
-        );
-        return;
-    }
-
-    printTab->extendBuildPlatformComplete( success );
-}
-
-void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
-    debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Moving build platform up failed."
-        );
-        return;
-    }
-
-    printTab->moveBuildPlatformUpComplete( success );
-}
-
-void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
-    debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Moving build platform down failed."
-        );
-        return;
-    }
-
-    printTab->moveBuildPlatformUpComplete( success );
-}
-
 void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
@@ -224,6 +146,7 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
 
 void Window::prepareTab_sliceStarting( ) {
     debug( "+ Window::prepareTab_sliceStarting\n" );
+    prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
 }
 
@@ -244,6 +167,7 @@ void Window::prepareTab_renderComplete( bool success ) {
         return;
     }
 
+    prepareTab->setSliceButtonEnabled( true );
     printTab->setPrintButtonEnabled( true );
     tabs->setCurrentIndex( TabIndex::Print );
 }
@@ -284,6 +208,7 @@ void Window::printTab_printButtonClicked( ) {
     printJob = newJob;
     emit printJobChanged( printJob );
 
+    printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( true );
 }
 
@@ -294,11 +219,42 @@ void Window::printTab_adjustBedHeight( double const newHeight ) {
     shepherd->doMoveTo( newHeight );
 }
 
+void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_adjustBedHeightMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_adjustBedHeightMoveToComplete );
+
+    printTab->adjustBedHeightComplete( success );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Move to new bed height position failed."
+        );
+        return;
+    }
+
+    shepherd->doSend( "G92 X0" );
+}
+
 void Window::printTab_retractBuildPlatform( ) {
     debug( "+ Window::printTab_retractBuildPlatform\n" );
 
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
     shepherd->doMoveTo( 50.0 );
+}
+
+void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
+
+    printTab->retractBuildPlatformComplete( success );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Retraction of build platform failed."
+        );
+    }
 }
 
 void Window::printTab_extendBuildPlatform( ) {
@@ -308,11 +264,40 @@ void Window::printTab_extendBuildPlatform( ) {
     shepherd->doMoveTo( 0.1 );
 }
 
+void Window::shepherd_extendBuildPlatformMoveToComplete( bool success ) {
+    debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
+
+    printTab->extendBuildPlatformComplete( success );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Extension of build platform failed."
+        );
+        return;
+    }
+}
+
 void Window::printTab_moveBuildPlatformUp( ) {
     debug( "+ Window::printTab_moveBuildPlatformUp\n" );
 
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
     shepherd->doMove( 0.1 );
+}
+
+void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
+
+    printTab->moveBuildPlatformUpComplete( success );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Moving build platform up failed."
+        );
+    }
 }
 
 void Window::printTab_moveBuildPlatformDown( ) {
@@ -322,13 +307,35 @@ void Window::printTab_moveBuildPlatformDown( ) {
     shepherd->doMove( -0.1 );
 }
 
+void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
+    debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
+
+    printTab->moveBuildPlatformUpComplete( success );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Moving build platform down failed."
+        );
+    }
+}
+
 void Window::statusTab_stopButtonClicked( ) {
-    printManager->abort( );
+    debug( "+ Window::statusTab_stopButtonClicked\n" );
+    statusTab->setStopButtonEnabled( false );
+    if ( printManager ) {
+        printManager->abort( );
+    }
 }
 
 void Window::statusTab_cleanUpAfterPrint( ) {
-    delete printManager;
-    printManager = nullptr;
+    debug( "+ Window::statusTab_cleanUpAfterPrint\n" );
+    if ( printManager ) {
+        printManager->deleteLater( );
+        printManager = nullptr;
+    }
+    statusTab->setStopButtonEnabled( false );
 }
 
 void Window::signalHandler_quit( int signalNumber ) {

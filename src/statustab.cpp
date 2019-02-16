@@ -74,10 +74,10 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
         font.setWeight( QFont::Bold );
         stopButton->setFont( font );
 
-        auto palette { stopButton->palette( ) };
-        palette.setColor( QPalette::Button,     Qt::red    );
-        palette.setColor( QPalette::ButtonText, Qt::yellow );
-        stopButton->setPalette( palette );
+        _stopButtonEnabledPalette  = stopButton->palette( );
+        _stopButtonDisabledPalette = _stopButtonEnabledPalette;
+        _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
+        _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
     }
     stopButton->setText( "STOP" );
     stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
@@ -140,4 +140,9 @@ void StatusTab::printManager_printComplete( bool const success ) {
 void StatusTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+}
+
+void StatusTab::setStopButtonEnabled( bool value ) {
+    stopButton->setEnabled( value );
+    stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );
 }

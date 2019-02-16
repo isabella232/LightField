@@ -29,11 +29,11 @@ SignalHandler::SignalHandler( QObject* parent ): QObject( parent ) {
     struct sigaction sigact { };
     sigact.sa_handler = &SignalHandler::signalHandler;
     sigact.sa_flags   = SA_RESTART;
-    sigemptyset( &sigact.sa_mask );
+    ::sigemptyset( &sigact.sa_mask );
 
     int failureCount { };
     for ( int signalNumber : QuitSignalList ) {
-        if ( sigaction( signalNumber, &sigact, nullptr ) ) {
+        if ( ::sigaction( signalNumber, &sigact, nullptr ) ) {
             auto err = errno;
             debug( "+ SignalHandler::`ctor: Signal %d: sigaction failed: %s [%d]", signalNumber, strerror( err ), err );
             failureCount++;
@@ -55,12 +55,12 @@ void SignalHandler::cleanUp( ) {
         signal( signum, SIG_DFL );
     }
 
-    QObject::disconnect( signalNotifier, &QSocketNotifier::activated, this, &SignalHandler::dispatchSignal );
-    delete signalNotifier;
+    QObject::disconnect( signalNotifier, nullptr, this, nullptr );
+    signalNotifier->deleteLater( );
     signalNotifier = nullptr;
 
-    close( signalFds[0] );
-    close( signalFds[1] );
+    ::close( signalFds[0] );
+    ::close( signalFds[1] );
 }
 
 void SignalHandler::signalHandler( int signum ) {
