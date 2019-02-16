@@ -82,6 +82,9 @@ public slots:
     void setPrintJob( PrintJob* printJob );
     void setPrintButtonEnabled( bool const value );
 
+    void setAdjustmentButtonsEnabled( bool const value );
+
+    void adjustBedHeightComplete( bool const success );
     void retractBuildPlatformComplete( bool const success );
     void extendBuildPlatformComplete( bool const success );
     void moveBuildPlatformUpComplete( bool const success );
