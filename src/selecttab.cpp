@@ -189,7 +189,7 @@ bool SelectTab::_loadModel( QString const& fileName ) {
 
     _canvas->set_status( QString( "Loading " ) + getFileBaseName( fileName ) );
 
-    _loader = new Loader( this, fileName );
+    _loader = new Loader( fileName, this );
     connect( _loader, &Loader::got_mesh,           this,    &SelectTab::loader_gotMesh          );
     connect( _loader, &Loader::error_bad_stl,      this,    &SelectTab::loader_ErrorBadStl      );
     connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );

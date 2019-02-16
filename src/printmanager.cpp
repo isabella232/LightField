@@ -99,6 +99,7 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer->setWindowFlags( _pngDisplayer->windowFlags( ) | Qt::BypassWindowManagerHint );
     _pngDisplayer->setFixedSize( 1280, 800 );
     _pngDisplayer->move( { 0, g_settings.startY ? 0 : 480 } );
+    _pngDisplayer->show( );
 
     emit printStarting( );
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );

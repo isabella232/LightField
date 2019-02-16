@@ -197,6 +197,7 @@ class StdioPrinterDriver( ):
 ##
 
 signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+signal.signal( signal.SIGINT,  signal.SIG_IGN )
 signal.signal( signal.SIGQUIT, signal.SIG_IGN )
 
 driver = StdioPrinterDriver( )
@@ -206,9 +207,6 @@ else:
     driver.writer.writerow( [ 'info', 'port', driver.printer.port ] )
 sys.stdout.flush( )
 
-try:
-    driver.processInput( )
-except KeyboardInterrupt:
-    pass
+driver.processInput( )
 
 driver.disconnect( )

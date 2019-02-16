@@ -9,6 +9,7 @@
 #include "printjob.h"
 #include "selecttab.h"
 #include "preparetab.h"
+#include "calibrationtab.h"
 #include "printtab.h"
 #include "statustab.h"
 
@@ -19,21 +20,35 @@ namespace {
         enum {
             Select,
             Prepare,
+            Calibrate,
             Print,
             Status,
         };
     };
 
+    std::initializer_list<int> signalList {
+        SIGHUP,
+        SIGINT,
+        SIGQUIT,
+        SIGTERM,
+#if defined _DEBUG
+        SIGUSR1,
+#endif // defined _DEBUG
+    };
+
 }
 
 Window::Window( QWidget *parent ): QMainWindow( parent ) {
-    QObject::connect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
+    QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
+    g_signalHandler->subscribe( signalList );
 
-    printJob   = new PrintJob;
-    selectTab  = new SelectTab;
-    prepareTab = new PrepareTab;
-    printTab   = new PrintTab;
-    statusTab  = new StatusTab;
+    printJob       = new PrintJob;
+
+    selectTab      = new SelectTab;
+    prepareTab     = new PrepareTab;
+    calibrationTab = new CalibrationTab;
+    printTab       = new PrintTab;
+    statusTab      = new StatusTab;
 
     setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
     setFixedSize( 800, 480 );
@@ -97,19 +112,19 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     tabs->setContentsMargins( { } );
-    tabs->addTab( selectTab,  "Select"  );
-    tabs->addTab( prepareTab, "Prepare" );
-    tabs->addTab( printTab,   "Print"   );
-    tabs->addTab( statusTab,  "Status"  );
+    tabs->addTab( selectTab,      "Select"    );
+    tabs->addTab( prepareTab,     "Prepare"   );
+    tabs->addTab( calibrationTab, "Calibrate" );
+    tabs->addTab( printTab,       "Print"     );
+    tabs->addTab( statusTab,      "Status"    );
     tabs->setCurrentIndex( TabIndex::Select );
 
     setCentralWidget( tabs );
 }
 
 Window::~Window( ) {
-    if ( g_signalHandler ) {
-        QObject::disconnect( g_signalHandler, &SignalHandler::quit, this, &Window::signalHandler_quit );
-    }
+    QObject::disconnect( g_signalHandler, nullptr, this, nullptr );
+    g_signalHandler->unsubscribe( signalList );
 }
 
 void Window::closeEvent( QCloseEvent* event ) {
@@ -338,7 +353,21 @@ void Window::statusTab_cleanUpAfterPrint( ) {
     statusTab->setStopButtonEnabled( false );
 }
 
-void Window::signalHandler_quit( int signalNumber ) {
-    debug( "+ Window::signalHandler_quit: received signal %d\n", signalNumber );
+#if defined _DEBUG
+void Window::signalHandler_signalReceived( int const signalNumber ) {
+    debug( "+ Window::signalHandler_signalReceived: received signal %s [%d]\n", strsignal( signalNumber ), signalNumber );
+
+    if ( SIGUSR1 == signalNumber ) {
+        debug( "+ Window::signalHandler_signalReceived: object information dump:\n" );
+        dumpObjectInfo( );
+        debug( "+ Window::signalHandler_signalReceived: object tree dump:\n" );
+        dumpObjectTree( );
+    } else {
+        close( );
+    }
+}
+#else
+void Window::signalHandler_signalReceived( int const signalNumber ) {
     close( );
 }
+#endif // defined _DEBUG

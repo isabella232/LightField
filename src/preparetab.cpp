@@ -2,7 +2,6 @@
 
 #include "preparetab.h"
 
-#include "calibration.h"
 #include "printjob.h"
 #include "strings.h"
 #include "svgrenderer.h"
@@ -35,20 +34,9 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     renderProgress->setFrameShadow( QFrame::Sunken );
     renderProgress->setFrameStyle( QFrame::StyledPanel );
 
-    {
-        auto font { calibrateButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        calibrateButton->setFont( font );
-    }
-    calibrateButton->setText( "Calibrate" );
-    calibrateButton->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-    calibrateButton->setEnabled( false );
-    QObject::connect( calibrateButton, &QPushButton::clicked, this, &PrepareTab::calibrateButton_clicked );
-
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
-    optionsLayout->addWidget( calibrateButton );
     optionsLayout->addStretch( );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceProgress );
@@ -68,36 +56,32 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    currentSliceLabel->setText( "Current slice:" );
-    currentSliceLabel->setBuddy( currentSliceDisplay );
-    currentSliceDisplay->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setContentsMargins( { } );
+    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     {
-        auto pal = currentSliceDisplay->palette( );
+        auto pal = currentSliceImage->palette( );
         pal.setColor( QPalette::Background, Qt::black );
-        currentSliceDisplay->setPalette( pal );
+        currentSliceImage->setPalette( pal );
     }
 
-    currentSliceLayout->setContentsMargins( { } );
-    currentSliceLayout->addWidget( currentSliceLabel );
-    currentSliceLayout->addWidget( currentSliceDisplay );
-    currentSliceLayout->addStretch( );
+    currentSliceLayout->addWidget( currentSliceImage );
 
-    currentSliceContainer->setContentsMargins( { } );
-    currentSliceContainer->setLayout( currentSliceLayout );
-    currentSliceContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceContainer->setMinimumSize( MaximalRightHandPaneSize );
+    currentSliceGroup->setTitle( QString( "Current slice" ) );
+    currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
+    currentSliceGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceGroup->setLayout( currentSliceLayout );
 
-    _layout = new QGridLayout;
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,      0, 0, 1, 1 );
-    _layout->addWidget( sliceButton,           1, 0, 1, 1 );
-    _layout->addWidget( currentSliceContainer, 0, 1, 2, 1 );
+    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( currentSliceGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
     setContentsMargins( { } );
-    setLayout( _layout );
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    setLayout( _layout );
 }
 
 PrepareTab::~PrepareTab( ) {
@@ -147,11 +131,6 @@ void PrepareTab::sliceButton_clicked( bool ) {
             _printJob->slicedSvgFileName
         }
     );
-}
-
-void PrepareTab::calibrateButton_clicked( bool ) {
-    CalibrationDialog calibrationDialog( this );
-    calibrationDialog.exec( );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -208,7 +187,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
         if ( currentLayer > 0 ) {
             auto pngFileName = QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
             auto pixMap = QPixmap( pngFileName );
-            currentSliceDisplay->setPixmap( pixMap );
+            currentSliceImage->setPixmap( pixMap );
         }
     }
 }

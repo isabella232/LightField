@@ -7,7 +7,7 @@ class Loader : public QThread
 {
     Q_OBJECT
 public:
-    Loader(QObject* parent, const QString& filename);
+    Loader(QString const& filename, QObject* parent = nullptr);
     void run();
 
 protected:

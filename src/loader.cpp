@@ -3,7 +3,7 @@
 #include "loader.h"
 #include "vertex.h"
 
-Loader::Loader(QObject* parent, const QString& filename)
+Loader::Loader(const QString& filename, QObject* parent)
     : QThread(parent), filename(filename)
 {
     // Nothing to do here
