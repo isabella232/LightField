@@ -10,6 +10,12 @@ public:
     SignalHandler( QObject* parent = nullptr );
     virtual ~SignalHandler( ) override;
 
+    void subscribe( int const signum );
+    void subscribe( std::initializer_list<int> signums );
+
+    void unsubscribe( int const signum );
+    void unsubscribe( std::initializer_list<int> signums );
+
 protected:
 
 private:
@@ -22,7 +28,7 @@ private:
 
 signals:
 
-    void quit( int signalNumber );
+    void signalReceived( int const signalNumber );
 
 public slots:
 

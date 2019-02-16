@@ -74,7 +74,7 @@ private slots:
     void statusTab_stopButtonClicked( );
     void statusTab_cleanUpAfterPrint( );
 
-    void signalHandler_quit( int signalNumber );
+    void signalHandler_signalReceived( int const signalNumber );
 
 };
 
