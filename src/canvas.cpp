@@ -21,7 +21,10 @@ Canvas::Canvas(const QSurfaceFormat& format, QWidget *parent)
 Canvas::~Canvas()
 {
 	makeCurrent();
-	delete mesh;
+	if (mesh)
+	{
+		delete mesh;
+	}
 	doneCurrent();
 }
 
