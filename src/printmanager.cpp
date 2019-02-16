@@ -2,13 +2,12 @@
 
 #include "printmanager.h"
 
+#include "app.h"
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
 #include "strings.h"
-
-#define ROSE_COLORED_GLASSES
 
 //
 // Before printing:
@@ -97,9 +96,9 @@ void PrintManager::print( PrintJob* printJob ) {
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
-    _pngDisplayer->move( { 0, 0 } );
-    _pngDisplayer->resize( { 1280, 800 } );
-    _pngDisplayer->showFullScreen( );
+    _pngDisplayer->setWindowFlags( _pngDisplayer->windowFlags( ) | Qt::BypassWindowManagerHint );
+    _pngDisplayer->setFixedSize( 1280, 800 );
+    _pngDisplayer->move( { 0, g_settings.startY ? 0 : 480 } );
 
     emit printStarting( );
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
@@ -125,14 +124,12 @@ void PrintManager::abort( ) {
 void PrintManager::initialHomeComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
 
-#if !defined ROSE_COLORED_GLASSES
     if ( !success ) {
         debug( "+ PrintManager::initialHomeComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-#endif // !defined ROSE_COLORED_GLASSES
     debug( "+ PrintManager::initialHomeComplete: action succeeded\n" );
 
     _startNextLayer( );
@@ -148,14 +145,12 @@ void PrintManager::_startNextLayer( ) {
 void PrintManager::step1_LiftUpComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
 
-#if !defined ROSE_COLORED_GLASSES
     if ( !success ) {
         debug( "+ PrintManager::step1_LiftUpComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-#endif // !defined ROSE_COLORED_GLASSES
     debug( "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
@@ -166,14 +161,12 @@ void PrintManager::step1_LiftUpComplete( bool success ) {
 void PrintManager::step2_LiftDownComplete( bool success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
 
-#if !defined ROSE_COLORED_GLASSES
     if ( !success ) {
         debug( "+ PrintManager::step2_LiftDownComplete: action failed\n" );
         _cleanUp( );
         emit printComplete( false );
         return;
     }
-#endif // !defined ROSE_COLORED_GLASSES
     debug( "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
 
     QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 6, 10, QChar( '0' ) );
