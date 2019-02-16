@@ -3,6 +3,7 @@
 
 class Canvas;
 class Loader;
+class Mesh;
 class PrintJob;
 
 class SelectTab: public QWidget {
@@ -44,6 +45,7 @@ protected slots:
 
 private slots:
 
+    void                 loader_gotMesh          ( Mesh* m );
     void                 loader_ErrorBadStl      ( );
     void                 loader_ErrorEmptyMesh   ( );
     void                 loader_ErrorMissingFile ( );
