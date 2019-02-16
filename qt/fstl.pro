@@ -91,5 +91,5 @@ release {
 }
 
 warn_on {
-    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess -Wno-unused-parameter
 }
