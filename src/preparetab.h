@@ -23,25 +23,26 @@ protected:
 
 private:
 
-    QProcess*    slicerProcess          {                 };
-    SvgRenderer* svgRenderer            {                 };
+    QProcess*          slicerProcess          { };
+    SvgRenderer*       svgRenderer            { };
 
-    QLabel*      layerThicknessLabel    { new QLabel      };
-    QComboBox*   layerThicknessComboBox { new QComboBox   };
-    QVBoxLayout* optionsLayout          { new QVBoxLayout };
-    QWidget*     optionsContainer       { new QWidget     };
-    QPushButton* sliceButton            { new QPushButton };
+    QLabel*            layerThicknessLabel    { new QLabel      };
+    QComboBox*         layerThicknessComboBox { new QComboBox   };
+    QVBoxLayout*       optionsLayout          { new QVBoxLayout };
+    QWidget*           optionsContainer       { new QWidget     };
+    QPushButton*       sliceButton            { new QPushButton };
+    QPushButton*       calibrateButton        { new QPushButton };
 
-    QLabel*      sliceProgress          { new QLabel      };
-    QLabel*      sliceProgressLabel     { new QLabel      };
-    QLabel*      renderProgress         { new QLabel      };
-    QLabel*      renderProgressLabel    { new QLabel      };
-    QLabel*      currentSliceLabel      { new QLabel      };
-    QLabel*      currentSliceDisplay    { new QLabel      };
-    QVBoxLayout* currentSliceLayout     { new QVBoxLayout };
-    QWidget*     currentSliceContainer  { new QWidget     };
-    QGridLayout* _layout                { new QGridLayout };
-    PrintJob*    _printJob              {                 };
+    QLabel*            sliceProgress          { new QLabel      };
+    QLabel*            sliceProgressLabel     { new QLabel      };
+    QLabel*            renderProgress         { new QLabel      };
+    QLabel*            renderProgressLabel    { new QLabel      };
+    QLabel*            currentSliceLabel      { new QLabel      };
+    QLabel*            currentSliceDisplay    { new QLabel      };
+    QVBoxLayout*       currentSliceLayout     { new QVBoxLayout };
+    QWidget*           currentSliceContainer  { new QWidget     };
+    QGridLayout*       _layout                { new QGridLayout };
+    PrintJob*          _printJob              { };
 
 signals:
 
@@ -59,7 +60,8 @@ protected slots:
 private slots:
 
     void layerThicknessComboBox_currentIndexChanged( int index );
-    void sliceButton_clicked( bool checked );
+    void sliceButton_clicked( bool );
+    void calibrateButton_clicked( bool );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );

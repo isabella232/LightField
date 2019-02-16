@@ -2,9 +2,10 @@
 
 #include "preparetab.h"
 
-#include "svgrenderer.h"
+#include "calibration.h"
 #include "printjob.h"
 #include "strings.h"
+#include "svgrenderer.h"
 
 namespace {
 
@@ -34,9 +35,20 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     renderProgress->setFrameShadow( QFrame::Sunken );
     renderProgress->setFrameStyle( QFrame::StyledPanel );
 
+    {
+        auto font { calibrateButton->font( ) };
+        font.setPointSizeF( 22.25 );
+        calibrateButton->setFont( font );
+    }
+    calibrateButton->setText( "Calibrate" );
+    calibrateButton->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
+    calibrateButton->setEnabled( false );
+    QObject::connect( calibrateButton, &QPushButton::clicked, this, &PrepareTab::calibrateButton_clicked );
+
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
+    optionsLayout->addWidget( calibrateButton );
     optionsLayout->addStretch( );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceProgress );
@@ -97,7 +109,7 @@ void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
     _printJob->layerThickness = LayerThicknessValues[index];
 }
 
-void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
+void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
 
     _printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
@@ -135,6 +147,11 @@ void PrepareTab::sliceButton_clicked( bool /*checked*/ ) {
             _printJob->slicedSvgFileName
         }
     );
+}
+
+void PrepareTab::calibrateButton_clicked( bool ) {
+    CalibrationDialog calibrationDialog( this );
+    calibrationDialog.exec( );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
