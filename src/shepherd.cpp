@@ -151,12 +151,12 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                     break;
 
                 case PendingCommand::send:
-                    emit action_sendComplete( true );
                     if ( 0 == --_sendCount ) {
                         _pendingCommand = PendingCommand::none;
                     } else {
                         debug( "+ Shepherd::handleFromPrinter: still %d sends to go\n", _sendCount );
                     }
+                    emit action_sendComplete( true );
                     break;
 
                 case PendingCommand::none:
@@ -167,7 +167,6 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                     debug( "+ Shepherd::handleFromPrinter: unknown pending command\n" );
                     break;
             }
-            _pendingCommand = PendingCommand::none;
         }
     }
 }
@@ -195,6 +194,8 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
         case PendingCommand::send:
             if ( 0 == --_sendCount ) {
                 _pendingCommand = PendingCommand::none;
+            } else {
+                debug( "+ Shepherd::handleCommandFail: still %d sends to go\n", _sendCount );
             }
             emit action_sendComplete( false );
             break;
