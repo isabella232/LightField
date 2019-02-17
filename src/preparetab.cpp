@@ -152,7 +152,7 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceProgress->setText( "Slicer started" );
-    emit sliceStarting( );
+    emit sliceStarted( );
 }
 
 void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
@@ -178,7 +178,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     QObject::connect( svgRenderer, &SvgRenderer::done,      this, &PrepareTab::svgRenderer_done     );
     svgRenderer->startRender( _printJob->slicedSvgFileName, _printJob->pngFilesPath );
 
-    emit renderStarting( );
+    emit renderStarted( );
 }
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {

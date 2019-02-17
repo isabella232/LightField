@@ -54,10 +54,10 @@ signals:
     void printer_offline( );
     void printer_output( QString const& output );
 
-    void action_moveComplete( bool successful );
-    void action_moveToComplete( bool successful );
-    void action_homeComplete( bool successful );
-    void action_sendComplete( bool successful );
+    void action_moveComplete( bool const successful );
+    void action_moveToComplete( bool const successful );
+    void action_homeComplete( bool const successful );
+    void action_sendComplete( bool const successful );
 
 public slots:
 

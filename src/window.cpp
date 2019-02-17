@@ -50,17 +50,18 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab       = new PrintTab;
     statusTab      = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
-    setFixedSize( 800, 480 );
-    move( { 0, g_settings.startY } );
-
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
     QObject::connect( shepherd, &Shepherd::shepherd_finished,     this,      &Window::shepherd_finished     );
     QObject::connect( shepherd, &Shepherd::shepherd_processError, this,      &Window::shepherd_processError );
     QObject::connect( shepherd, &Shepherd::printer_online,        statusTab, &StatusTab::printer_online     );
     QObject::connect( shepherd, &Shepherd::printer_offline,       statusTab, &StatusTab::printer_offline    );
+    calibrationTab->setShepherd( shepherd );
     shepherd->start( );
+
+    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setFixedSize( 800, 480 );
+    move( { 0, g_settings.startY } );
 
     //
     // "Select" tab
@@ -79,9 +80,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     prepareTab->setPrintJob( printJob );
-    QObject::connect( prepareTab, &PrepareTab::sliceStarting,  this,       &Window::prepareTab_sliceStarting  );
+    QObject::connect( prepareTab, &PrepareTab::sliceStarted,   this,       &Window::prepareTab_sliceStarted   );
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this,       &Window::prepareTab_sliceComplete  );
-    QObject::connect( prepareTab, &PrepareTab::renderStarting, this,       &Window::prepareTab_renderStarting );
+    QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
     QObject::connect( prepareTab, &PrepareTab::renderComplete, this,       &Window::prepareTab_renderComplete );
     QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
 
@@ -165,8 +166,8 @@ void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
     }
 }
 
-void Window::prepareTab_sliceStarting( ) {
-    debug( "+ Window::prepareTab_sliceStarting\n" );
+void Window::prepareTab_sliceStarted( ) {
+    debug( "+ Window::prepareTab_sliceStarted\n" );
     prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
 }
@@ -178,8 +179,8 @@ void Window::prepareTab_sliceComplete( bool success ) {
     }
 }
 
-void Window::prepareTab_renderStarting( ) {
-    debug( "+ Window::prepareTab_renderStarting\n" );
+void Window::prepareTab_renderStarted( ) {
+    debug( "+ Window::prepareTab_renderStarted\n" );
 }
 
 void Window::prepareTab_renderComplete( bool success ) {
@@ -195,8 +196,18 @@ void Window::prepareTab_renderComplete( bool success ) {
     }
 }
 
+void Window::calibrationTab_calibrationStarted( ) {
+    debug( "+ Window::calibrationTab_calibrationStarted\n" );
+    printTab->setPrintButtonEnabled( false );
+}
+
+void Window::calibrationTab_calibrationComplete( bool const success ) {
+    debug( "+ Window::calibrationTab_calibrationComplete: success: %s\n", success ? "true" : "false" );
+    printTab->setPrintButtonEnabled( success );
+}
+
 void Window::printTab_printButtonClicked( ) {
-    debug( "+ PrintTab::printButton_clicked\n" );
+    debug( "+ Window::printTab_printButtonClicked\n" );
     tabs->setCurrentIndex( TabIndex::Status );
 
     fprintf( stderr,

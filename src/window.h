@@ -59,12 +59,16 @@ private slots:
 
     void selectTab_modelSelected( bool success, QString const& fileName );
 
-    void prepareTab_sliceStarting( );
+    void prepareTab_sliceStarted( );
     void prepareTab_sliceComplete( bool success );
-    void prepareTab_renderStarting( );
+    void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool success );
 
+    void calibrationTab_calibrationStarted( );
+    void calibrationTab_calibrationComplete( bool const success );
+
     void printTab_printButtonClicked( );
+
     void printTab_adjustBedHeight( double const newHeight );
     void printTab_retractBuildPlatform( );
     void printTab_extendBuildPlatform( );

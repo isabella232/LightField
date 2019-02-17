@@ -286,7 +286,7 @@ void Shepherd::doHome( ) {
 }
 
 void Shepherd::doSend( QString arg ) {
-    doSend( { arg } );
+    doSend( QStringList { arg } );
 }
 
 void Shepherd::doSend( QStringList args ) {

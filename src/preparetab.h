@@ -44,9 +44,9 @@ private:
 
 signals:
 
-    void sliceStarting( );
+    void sliceStarted( );
     void sliceComplete( bool success );
-    void renderStarting( );
+    void renderStarted( );
     void renderComplete( bool success );
 
 public slots:
