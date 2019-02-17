@@ -130,7 +130,14 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handleFromPrinter( QString const& input ) {
-    debug( "+ Shepherd::handleFromPrinter: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
+    debug(
+        "+ Shepherd::handleFromPrinter: input: '%s'; pendingCommand: %s [%d]; expectedOkCount: %d; okCount: %d; sendCount: %d\n",
+        input.toUtf8( ).data( ),
+        ToString( _pendingCommand ), static_cast<int>( _pendingCommand ),
+        _expectedOkCount,
+        _okCount,
+        _sendCount
+    );
     if ( input == "ok" ) {
         if ( ++_okCount == _expectedOkCount ) {
             auto pending = _pendingCommand;
