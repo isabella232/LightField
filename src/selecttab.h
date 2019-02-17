@@ -35,7 +35,7 @@ private:
 
 signals:
 
-    void modelSelected( bool success, QString const& fileName );
+    void modelSelected( bool const success, QString const& fileName );
 
 public slots:
 

@@ -153,7 +153,7 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
     debug( "+ Window::shepherd_processError: %d\n", error );
 }
 
-void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
+void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
@@ -172,7 +172,7 @@ void Window::prepareTab_sliceStarted( ) {
     printTab->setPrintButtonEnabled( false );
 }
 
-void Window::prepareTab_sliceComplete( bool success ) {
+void Window::prepareTab_sliceComplete( bool const success ) {
     debug( "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
@@ -183,7 +183,7 @@ void Window::prepareTab_renderStarted( ) {
     debug( "+ Window::prepareTab_renderStarted\n" );
 }
 
-void Window::prepareTab_renderComplete( bool success ) {
+void Window::prepareTab_renderComplete( bool const success ) {
     debug( "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
@@ -253,7 +253,7 @@ void Window::printTab_adjustBedHeight( double const newHeight ) {
     shepherd->doMoveTo( newHeight );
 }
 
-void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
+void Window::shepherd_adjustBedHeightMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_adjustBedHeightMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_adjustBedHeightMoveToComplete );
 
@@ -276,7 +276,7 @@ void Window::printTab_retractBuildPlatform( ) {
     shepherd->doMoveTo( 50.0 );
 }
 
-void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
+void Window::shepherd_retractBuildPlatformMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
 
@@ -297,7 +297,7 @@ void Window::printTab_extendBuildPlatform( ) {
     shepherd->doMoveTo( 0.1 );
 }
 
-void Window::shepherd_extendBuildPlatformMoveToComplete( bool success ) {
+void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
 
@@ -318,7 +318,7 @@ void Window::printTab_moveBuildPlatformUp( ) {
     shepherd->doMove( 0.1 );
 }
 
-void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
+void Window::shepherd_moveBuildPlatformUpMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
 
@@ -339,7 +339,7 @@ void Window::printTab_moveBuildPlatformDown( ) {
     shepherd->doMove( -0.1 );
 }
 
-void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
+void Window::shepherd_moveBuildPlatformDownMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
 
