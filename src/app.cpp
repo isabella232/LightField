@@ -27,7 +27,7 @@ App::App( int& argc, char *argv[] ):
             commandLineArgHandlers.at( argv[n] )( );
         }
         catch ( std::out_of_range const& ) {
-            debug( "ignoring unrecognized parameter '%s'\n", argv[n] );
+            debug( "+ App::`ctor: ignoring unrecognized parameter #%d: '%s'\n", n, argv[n] );
         }
     }
 

@@ -15,7 +15,7 @@ namespace {
 }
 
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
-    debug( "SelectTab::`ctor: creating SelectTab instance at %p; parent: %p\n", this, parent );
+    debug( "+ SelectTab::`ctor: creating SelectTab instance at %p; parent: %p\n", this, parent );
 
     _fileSystemModel->setFilter( QDir::Files );
     _fileSystemModel->setNameFilterDisables( false );
@@ -82,7 +82,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 }
 
 SelectTab::~SelectTab( ) {
-    debug( "SelectTab::`dtor: destroying SelectTab instance at %p\n", this );
+    debug( "+ SelectTab::`dtor: destroying SelectTab instance at %p\n", this );
 }
 
 void SelectTab::fileSystemModel_DirectoryLoaded( QString const& name ) {
