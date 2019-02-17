@@ -131,19 +131,17 @@ QStringList Shepherd::splitLine( QString const& line ) {
 
 void Shepherd::handleFromPrinter( QString const& input ) {
     debug(
-        "+ Shepherd::handleFromPrinter: input: '%s'; pendingCommand: %s [%d]; expectedOkCount: %d; okCount: %d; sendCount: %d\n",
+        "+ Shepherd::handleFromPrinter: input: '%s'; pendingCommand: %s [%d]; expectedOkCount: %d; okCount: %d\n",
         input.toUtf8( ).data( ),
         ToString( _pendingCommand ), static_cast<int>( _pendingCommand ),
         _expectedOkCount,
-        _okCount,
-        _sendCount
+        _okCount
     );
     if ( input == "ok" ) {
         if ( ++_okCount == _expectedOkCount ) {
+            debug( "+ Shepherd::handleFromPrinter: got last ok, dispatching completion notification\n" );
             auto pending = _pendingCommand;
-            if ( _pendingCommand != PendingCommand::send ) {
-                _pendingCommand = PendingCommand::none;
-            }
+            _pendingCommand = PendingCommand::none;
             switch ( pending ) {
                 case PendingCommand::move:
                     emit action_moveComplete( true );
@@ -158,11 +156,6 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                     break;
 
                 case PendingCommand::send:
-                    if ( 0 == --_sendCount ) {
-                        _pendingCommand = PendingCommand::none;
-                    } else {
-                        debug( "+ Shepherd::handleFromPrinter: still %d sends to go\n", _sendCount );
-                    }
                     emit action_sendComplete( true );
                     break;
 
@@ -182,9 +175,7 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
     debug( "+ Shepherd::handleCommandFail: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
 
     auto pending = _pendingCommand;
-    if ( _pendingCommand != PendingCommand::send ) {
-        _pendingCommand = PendingCommand::none;
-    }
+    _pendingCommand = PendingCommand::none;
     switch ( pending ) {
         case PendingCommand::move:
             emit action_moveComplete( false );
@@ -199,11 +190,6 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
             break;
 
         case PendingCommand::send:
-            if ( 0 == --_sendCount ) {
-                _pendingCommand = PendingCommand::none;
-            } else {
-                debug( "+ Shepherd::handleCommandFail: still %d sends to go\n", _sendCount );
-            }
             emit action_sendComplete( false );
             break;
 
@@ -299,8 +285,7 @@ void Shepherd::doSend( QString arg ) {
 
 void Shepherd::doSend( QStringList args ) {
     if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
-        _sendCount       = args.count( );
-        _expectedOkCount = _sendCount;
+        _expectedOkCount = args.count( );
 
         QString output;
         for ( auto& arg : args ) {
