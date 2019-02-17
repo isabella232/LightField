@@ -284,9 +284,7 @@ void Shepherd::doSend( QString arg ) {
 }
 
 void Shepherd::doSend( QStringList args ) {
-    if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
-        _expectedOkCount = args.count( );
-
+    if ( getReady( "doSend", PendingCommand::send, args.count( ) ) ) {
         QString output;
         for ( auto& arg : args ) {
             output += QString( "send \"%1\"\n" ).arg( arg.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) );
