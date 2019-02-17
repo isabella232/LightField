@@ -36,7 +36,6 @@ private:
     PendingCommand _pendingCommand  { PendingCommand::none };
     int            _okCount         { };
     int            _expectedOkCount { };
-    int            _sendCount       { };
 
     bool           getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
     QStringList    splitLine( QString const& line );
