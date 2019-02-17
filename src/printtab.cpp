@@ -257,6 +257,7 @@ void PrintTab::extendBuildPlatformComplete( bool const success ) {
 }
 
 void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_moveUpButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformUp( );
 }
@@ -267,6 +268,7 @@ void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
 }
 
 void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_moveDownButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformDown( );
 }
