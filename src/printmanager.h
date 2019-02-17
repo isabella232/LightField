@@ -53,11 +53,11 @@ protected slots:
 
 private slots:
 
-    void initialHomeComplete( bool success );
+    void initialHomeComplete( bool const success );
 
-    void step1_LiftUpComplete( bool success );
+    void step1_LiftUpComplete( bool const success );
 
-    void step2_LiftDownComplete( bool success );
+    void step2_LiftDownComplete( bool const success );
 
     void step3_preProjectionTimerExpired( );
 
@@ -71,7 +71,7 @@ private slots:
 
     void step7_preLiftTimerExpired( );
 
-    void step8_LiftUpComplete( bool success );
+    void step8_LiftUpComplete( bool const success );
 
 };
 

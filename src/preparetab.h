@@ -44,10 +44,10 @@ private:
 
 signals:
 
-    void sliceStarting( );
-    void sliceComplete( bool success );
-    void renderStarting( );
-    void renderComplete( bool success );
+    void sliceStarted( );
+    void sliceComplete( bool const success );
+    void renderStarted( );
+    void renderComplete( bool const success );
 
 public slots:
 

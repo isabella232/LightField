@@ -122,7 +122,7 @@ void PrintManager::abort( ) {
     emit printComplete( false );
 }
 
-void PrintManager::initialHomeComplete( bool success ) {
+void PrintManager::initialHomeComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
 
     if ( !success ) {
@@ -143,7 +143,7 @@ void PrintManager::_startNextLayer( ) {
     emit startingLayer( _currentLayer );
 }
 
-void PrintManager::step1_LiftUpComplete( bool success ) {
+void PrintManager::step1_LiftUpComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
 
     if ( !success ) {
@@ -159,7 +159,7 @@ void PrintManager::step1_LiftUpComplete( bool success ) {
     _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
 }
 
-void PrintManager::step2_LiftDownComplete( bool success ) {
+void PrintManager::step2_LiftDownComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
 
     if ( !success ) {
@@ -281,7 +281,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
     }
 }
 
-void PrintManager::step8_LiftUpComplete( bool success ) {
+void PrintManager::step8_LiftUpComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
 
     debug( "+ PrintManager::step8_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );

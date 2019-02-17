@@ -35,6 +35,7 @@ namespace {
         "move",
         "moveTo",
         "home",
+        "send",
     };
 
 }
@@ -89,7 +90,7 @@ char const* ToString( QDialog::DialogCode value ) {
 
 char const* ToString( PendingCommand value ) {
 #if defined _DEBUG
-    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::home ) ) {
+    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::send ) ) {
 #endif
         return PendingCommandStrings[static_cast<int>( value )];
 #if defined _DEBUG

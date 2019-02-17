@@ -244,19 +244,26 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
 
 void PrintTab::retractBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
-    _buildPlatformState = BuildPlatformState::Retracted;
-    _retractOrExtendButton->setText( "Extend\nBuild Platform" );
-    _retractOrExtendButton->setEnabled( true );
+    if ( success ) {
+        _buildPlatformState = BuildPlatformState::Retracted;
+        _retractOrExtendButton->setText( "Extend\nBuild Platform" );
+        _retractOrExtendButton->setEnabled( true );
+    } else {
+        setAdjustmentButtonsEnabled( true );
+    }
 }
 
 void PrintTab::extendBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
-    _buildPlatformState = BuildPlatformState::Extended;
-    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    if ( success ) {
+        _buildPlatformState = BuildPlatformState::Extended;
+        _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    }
     setAdjustmentButtonsEnabled( true );
 }
 
 void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_moveUpButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformUp( );
 }
@@ -267,6 +274,7 @@ void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
 }
 
 void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+    debug( "+ PrintTab::_moveDownButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformDown( );
 }

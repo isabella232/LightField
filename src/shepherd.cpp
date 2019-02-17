@@ -71,6 +71,18 @@ void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) 
     emit shepherd_finished( exitCode, exitStatus );
 }
 
+bool Shepherd::getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount ) {
+    if ( _pendingCommand != PendingCommand::none ) {
+        debug( "+ Shepherd::%s: command already in progress\n", functionName );
+        return false;
+    }
+
+    _pendingCommand  = pendingCommand;
+    _expectedOkCount = expectedOkCount;
+    _okCount         = 0;
+    return true;
+}
+
 QStringList Shepherd::splitLine( QString const& line ) {
     QStringList pieces;
     QString piece;
@@ -120,43 +132,53 @@ QStringList Shepherd::splitLine( QString const& line ) {
 void Shepherd::handleFromPrinter( QString const& input ) {
     debug( "+ Shepherd::handleFromPrinter: input='%s' pendingCommand=%s [%d]\n", input.toUtf8( ).data( ), ToString( _pendingCommand ), static_cast<int>( _pendingCommand ) );
     if ( input == "ok" ) {
-        switch ( _pendingCommand ) {
-            case PendingCommand::move:
-                ++_okCount;
-                if ( 5 == _okCount ) {
-                    _pendingCommand = PendingCommand::none;
-                    emit action_moveComplete( true );
-                }
-                break;
-
-            case PendingCommand::moveTo:
+        if ( ++_okCount == _expectedOkCount ) {
+            auto pending = _pendingCommand;
+            if ( _pendingCommand != PendingCommand::send ) {
                 _pendingCommand = PendingCommand::none;
-                emit action_moveToComplete( true );
-                break;
+            }
+            switch ( pending ) {
+                case PendingCommand::move:
+                    emit action_moveComplete( true );
+                    break;
 
-            case PendingCommand::home:
-                ++_okCount;
-                if ( 1 == _okCount ) {
-                    _pendingCommand = PendingCommand::none;
+                case PendingCommand::moveTo:
+                    emit action_moveToComplete( true );
+                    break;
+
+                case PendingCommand::home:
                     emit action_homeComplete( true );
-                }
-                break;
+                    break;
 
-            case PendingCommand::none:
-                debug( "+ Shepherd::handleFromPrinter: *no* pending command??\n" );
-                break;
+                case PendingCommand::send:
+                    emit action_sendComplete( true );
+                    if ( 0 == --_sendCount ) {
+                        _pendingCommand = PendingCommand::none;
+                    } else {
+                        debug( "+ Shepherd::handleFromPrinter: still %d sends to go\n", _sendCount );
+                    }
+                    break;
 
-            default:
-                debug( "+ Shepherd::handleFromPrinter: unknown pending command\n" );
-                break;
+                case PendingCommand::none:
+                    debug( "+ Shepherd::handleFromPrinter: no pending command\n" );
+                    break;
+
+                default:
+                    debug( "+ Shepherd::handleFromPrinter: unknown pending command\n" );
+                    break;
+            }
+            _pendingCommand = PendingCommand::none;
         }
     }
 }
 
 void Shepherd::handleCommandFail( QStringList const& input ) {
     debug( "+ Shepherd::handleCommandFail: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
+
     auto pending = _pendingCommand;
-    _pendingCommand = PendingCommand::none;
+    if ( _pendingCommand != PendingCommand::send ) {
+        _pendingCommand = PendingCommand::none;
+    }
     switch ( pending ) {
         case PendingCommand::move:
             emit action_moveComplete( false );
@@ -170,8 +192,15 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
             emit action_homeComplete( false );
             break;
 
+        case PendingCommand::send:
+            if ( 0 == --_sendCount ) {
+                _pendingCommand = PendingCommand::none;
+            }
+            emit action_sendComplete( false );
+            break;
+
         case PendingCommand::none:
-            debug( "+ Shepherd::handleCommandFail: *no* pending command??\n" );
+            debug( "+ Shepherd::handleCommandFail: no pending command\n" );
             break;
 
         default:
@@ -234,42 +263,43 @@ void Shepherd::start( ) {
     if ( _process->state( ) == QProcess::NotRunning ) {
         _process->start( "./stdio-shepherd.py" );
     } else {
-        debug( "+ Shepherd::start: already running\n" );
+        debug( "+ Shepherd::start: already running?\n" );
     }
 }
 
 void Shepherd::doMove( float arg ) {
-    if ( _pendingCommand != PendingCommand::none ) {
-        debug( "+ Shepherd::doMove: command already in progress" );
-        return;
+    if ( getReady( "doMove", PendingCommand::move, 5 ) ) {
+        _process->write( QString( "move %1\n" ).arg( arg ).toUtf8( ) );
     }
-    _pendingCommand = PendingCommand::move;
-    _okCount = 0;
-    _process->write( QString( "move %1\n" ).arg( arg ).toUtf8( ) );
 }
 
 void Shepherd::doMoveTo( float arg ) {
-    if ( _pendingCommand != PendingCommand::none ) {
-        debug( "+ Shepherd::doMoveTo: command already in progress" );
-        return;
+    if ( getReady( "doMoveTo", PendingCommand::moveTo, 4 ) ) {
+        _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
     }
-    _pendingCommand = PendingCommand::moveTo;
-    _okCount = 0;
-    _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
 }
 
 void Shepherd::doHome( ) {
-    if ( _pendingCommand != PendingCommand::none ) {
-        debug( "+ Shepherd::doHome: command already in progress" );
-        return;
+    if ( getReady( "doHome", PendingCommand::home, 1 ) ) {
+        _process->write( "home\n" );
     }
-    _pendingCommand = PendingCommand::home;
-    _okCount = 0;
-    _process->write( "home\n" );
 }
 
-void Shepherd::doSend( char const* arg ) {
-    _process->write( QString( "send \"%1\"\n" ).arg( QString( arg ).replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) ).toUtf8( ) );
+void Shepherd::doSend( QString arg ) {
+    doSend( QStringList { arg } );
+}
+
+void Shepherd::doSend( QStringList args ) {
+    if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
+        _sendCount       = args.count( );
+        _expectedOkCount = _sendCount;
+
+        QString output;
+        for ( auto& arg : args ) {
+            output += QString( "send \"%1\"\n" ).arg( arg.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) );
+        }
+        _process->write( output.toUtf8( ) );
+    }
 }
 
 void Shepherd::doTerminate( ) {

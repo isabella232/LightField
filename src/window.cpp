@@ -60,6 +60,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( shepherd, &Shepherd::shepherd_processError, this,      &Window::shepherd_processError );
     QObject::connect( shepherd, &Shepherd::printer_online,        statusTab, &StatusTab::printer_online     );
     QObject::connect( shepherd, &Shepherd::printer_offline,       statusTab, &StatusTab::printer_offline    );
+    calibrationTab->setShepherd( shepherd );
     shepherd->start( );
 
     //
@@ -79,9 +80,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     prepareTab->setPrintJob( printJob );
-    QObject::connect( prepareTab, &PrepareTab::sliceStarting,  this,       &Window::prepareTab_sliceStarting  );
+    QObject::connect( prepareTab, &PrepareTab::sliceStarted,   this,       &Window::prepareTab_sliceStarted   );
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this,       &Window::prepareTab_sliceComplete  );
-    QObject::connect( prepareTab, &PrepareTab::renderStarting, this,       &Window::prepareTab_renderStarting );
+    QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
     QObject::connect( prepareTab, &PrepareTab::renderComplete, this,       &Window::prepareTab_renderComplete );
     QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
 
@@ -92,9 +93,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab->setContentsMargins( { } );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     printTab->setPrintJob( printJob );
-    QObject::connect( printTab, &PrintTab::printButtonClicked, this,     &Window::printTab_printButtonClicked );
-    QObject::connect( printTab, &PrintTab::adjustBedHeight,    this,     &Window::printTab_adjustBedHeight    );
-    QObject::connect( this,     &Window::printJobChanged,      printTab, &PrintTab::setPrintJob               );
+    QObject::connect( printTab, &PrintTab::printButtonClicked,    this,     &Window::printTab_printButtonClicked    );
+    QObject::connect( printTab, &PrintTab::adjustBedHeight,       this,     &Window::printTab_adjustBedHeight       );
+    QObject::connect( printTab, &PrintTab::retractBuildPlatform,  this,     &Window::printTab_retractBuildPlatform  );
+    QObject::connect( printTab, &PrintTab::extendBuildPlatform,   this,     &Window::printTab_extendBuildPlatform   );
+    QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this,     &Window::printTab_moveBuildPlatformUp   );
+    QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this,     &Window::printTab_moveBuildPlatformDown );
+    QObject::connect( this,     &Window::printJobChanged,         printTab, &PrintTab::setPrintJob                  );
 
     //
     // "Status" tab
@@ -148,35 +153,37 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
     debug( "+ Window::shepherd_processError: %d\n", error );
 }
 
-void Window::selectTab_modelSelected( bool success, QString const& fileName ) {
+void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
-        tabs->setCurrentIndex( TabIndex::Prepare );
+        if ( tabs->currentIndex( ) == TabIndex::Select ) {
+            tabs->setCurrentIndex( TabIndex::Prepare );
+        }
     } else {
         prepareTab->setSliceButtonEnabled( false );
     }
 }
 
-void Window::prepareTab_sliceStarting( ) {
-    debug( "+ Window::prepareTab_sliceStarting\n" );
+void Window::prepareTab_sliceStarted( ) {
+    debug( "+ Window::prepareTab_sliceStarted\n" );
     prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
 }
 
-void Window::prepareTab_sliceComplete( bool success ) {
+void Window::prepareTab_sliceComplete( bool const success ) {
     debug( "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
     }
 }
 
-void Window::prepareTab_renderStarting( ) {
-    debug( "+ Window::prepareTab_renderStarting\n" );
+void Window::prepareTab_renderStarted( ) {
+    debug( "+ Window::prepareTab_renderStarted\n" );
 }
 
-void Window::prepareTab_renderComplete( bool success ) {
+void Window::prepareTab_renderComplete( bool const success ) {
     debug( "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
     if ( !success ) {
         return;
@@ -184,11 +191,23 @@ void Window::prepareTab_renderComplete( bool success ) {
 
     prepareTab->setSliceButtonEnabled( true );
     printTab->setPrintButtonEnabled( true );
-    tabs->setCurrentIndex( TabIndex::Print );
+    if ( tabs->currentIndex( ) == TabIndex::Prepare ) {
+        tabs->setCurrentIndex( TabIndex::Print );
+    }
+}
+
+void Window::calibrationTab_calibrationStarted( ) {
+    debug( "+ Window::calibrationTab_calibrationStarted\n" );
+    printTab->setPrintButtonEnabled( false );
+}
+
+void Window::calibrationTab_calibrationComplete( bool const success ) {
+    debug( "+ Window::calibrationTab_calibrationComplete: success: %s\n", success ? "true" : "false" );
+    printTab->setPrintButtonEnabled( success );
 }
 
 void Window::printTab_printButtonClicked( ) {
-    debug( "+ PrintTab::printButton_clicked\n" );
+    debug( "+ Window::printTab_printButtonClicked\n" );
     tabs->setCurrentIndex( TabIndex::Status );
 
     fprintf( stderr,
@@ -234,21 +253,20 @@ void Window::printTab_adjustBedHeight( double const newHeight ) {
     shepherd->doMoveTo( newHeight );
 }
 
-void Window::shepherd_adjustBedHeightMoveToComplete( bool success ) {
+void Window::shepherd_adjustBedHeightMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_adjustBedHeightMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_adjustBedHeightMoveToComplete );
-
-    printTab->adjustBedHeightComplete( success );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
             "Move to new bed height position failed."
         );
-        return;
+    } else {
+        shepherd->doSend( "G92 X0" );
     }
 
-    shepherd->doSend( "G92 X0" );
+    printTab->adjustBedHeightComplete( success );
 }
 
 void Window::printTab_retractBuildPlatform( ) {
@@ -258,11 +276,9 @@ void Window::printTab_retractBuildPlatform( ) {
     shepherd->doMoveTo( 50.0 );
 }
 
-void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
+void Window::shepherd_retractBuildPlatformMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
-
-    printTab->retractBuildPlatformComplete( success );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -270,6 +286,8 @@ void Window::shepherd_retractBuildPlatformMoveToComplete( bool success ) {
             "Retraction of build platform failed."
         );
     }
+
+    printTab->retractBuildPlatformComplete( success );
 }
 
 void Window::printTab_extendBuildPlatform( ) {
@@ -279,33 +297,30 @@ void Window::printTab_extendBuildPlatform( ) {
     shepherd->doMoveTo( 0.1 );
 }
 
-void Window::shepherd_extendBuildPlatformMoveToComplete( bool success ) {
+void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
     debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
-
-    printTab->extendBuildPlatformComplete( success );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
             "Extension of build platform failed."
         );
-        return;
     }
+
+    printTab->extendBuildPlatformComplete( success );
 }
 
 void Window::printTab_moveBuildPlatformUp( ) {
     debug( "+ Window::printTab_moveBuildPlatformUp\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
     shepherd->doMove( 0.1 );
 }
 
-void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
+void Window::shepherd_moveBuildPlatformUpMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
-
-    printTab->moveBuildPlatformUpComplete( success );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -313,20 +328,20 @@ void Window::shepherd_moveBuildPlatformUpMoveComplete( bool success ) {
             "Moving build platform up failed."
         );
     }
+
+    printTab->moveBuildPlatformUpComplete( success );
 }
 
 void Window::printTab_moveBuildPlatformDown( ) {
     debug( "+ Window::printTab_moveBuildPlatformDown\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
     shepherd->doMove( -0.1 );
 }
 
-void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
+void Window::shepherd_moveBuildPlatformDownMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
     QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
-
-    printTab->moveBuildPlatformUpComplete( success );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -334,6 +349,8 @@ void Window::shepherd_moveBuildPlatformDownMoveComplete( bool success ) {
             "Moving build platform down failed."
         );
     }
+
+    printTab->moveBuildPlatformUpComplete( success );
 }
 
 void Window::statusTab_stopButtonClicked( ) {

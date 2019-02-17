@@ -51,20 +51,24 @@ private slots:
     void shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus );
     void shepherd_processError( QProcess::ProcessError error );
 
-    void shepherd_adjustBedHeightMoveToComplete( bool success );
-    void shepherd_retractBuildPlatformMoveToComplete( bool success );
-    void shepherd_extendBuildPlatformMoveToComplete( bool success );
-    void shepherd_moveBuildPlatformUpMoveComplete( bool success );
-    void shepherd_moveBuildPlatformDownMoveComplete( bool success );
+    void shepherd_adjustBedHeightMoveToComplete( bool const success );
+    void shepherd_retractBuildPlatformMoveToComplete( bool const success );
+    void shepherd_extendBuildPlatformMoveToComplete( bool const success );
+    void shepherd_moveBuildPlatformUpMoveComplete( bool const success );
+    void shepherd_moveBuildPlatformDownMoveComplete( bool const success );
 
-    void selectTab_modelSelected( bool success, QString const& fileName );
+    void selectTab_modelSelected( bool const success, QString const& fileName );
 
-    void prepareTab_sliceStarting( );
-    void prepareTab_sliceComplete( bool success );
-    void prepareTab_renderStarting( );
-    void prepareTab_renderComplete( bool success );
+    void prepareTab_sliceStarted( );
+    void prepareTab_sliceComplete( bool const success );
+    void prepareTab_renderStarted( );
+    void prepareTab_renderComplete( bool const success );
+
+    void calibrationTab_calibrationStarted( );
+    void calibrationTab_calibrationComplete( bool const success );
 
     void printTab_printButtonClicked( );
+
     void printTab_adjustBedHeight( double const newHeight );
     void printTab_retractBuildPlatform( );
     void printTab_extendBuildPlatform( );

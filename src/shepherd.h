@@ -6,6 +6,7 @@ enum class PendingCommand {
     move,
     moveTo,
     home,
+    send,
 };
 
 class Shepherd: public QObject {
@@ -22,7 +23,8 @@ public:
     void doMove( float arg );
     void doMoveTo( float arg );
     void doHome( );
-    void doSend( char const* arg );
+    void doSend( QString arg );
+    void doSend( QStringList args );
     void doTerminate( );
 
 protected:
@@ -31,13 +33,16 @@ private:
 
     QProcess*      _process;
     QString        _buffer;
-    PendingCommand _pendingCommand { PendingCommand::none };
-    int            _okCount { };
+    PendingCommand _pendingCommand  { PendingCommand::none };
+    int            _okCount         { };
+    int            _expectedOkCount { };
+    int            _sendCount       { };
 
-    QStringList splitLine( QString const& line );
-    void        handleFromPrinter( QString const& input );
-    void        handleCommandFail( QStringList const& input );
-    void        handleInput( QString const& input );
+    bool           getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
+    QStringList    splitLine( QString const& line );
+    void           handleFromPrinter( QString const& input );
+    void           handleCommandFail( QStringList const& input );
+    void           handleInput( QString const& input );
 
 signals:
 
@@ -49,9 +54,10 @@ signals:
     void printer_offline( );
     void printer_output( QString const& output );
 
-    void action_moveComplete( bool successful );
-    void action_moveToComplete( bool successful );
-    void action_homeComplete( bool successful );
+    void action_moveComplete( bool const successful );
+    void action_moveToComplete( bool const successful );
+    void action_homeComplete( bool const successful );
+    void action_sendComplete( bool const successful );
 
 public slots:
 
