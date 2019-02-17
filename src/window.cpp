@@ -320,7 +320,7 @@ void Window::printTab_moveBuildPlatformUp( ) {
 
 void Window::shepherd_moveBuildPlatformUpMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformUpMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
+    QObject::disconnect( shepherd, &Shepherd::action_moveComplete, this, &Window::shepherd_moveBuildPlatformUpMoveComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -341,7 +341,7 @@ void Window::printTab_moveBuildPlatformDown( ) {
 
 void Window::shepherd_moveBuildPlatformDownMoveComplete( bool const success ) {
     debug( "+ Window::shepherd_moveBuildPlatformDownMoveComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
+    QObject::disconnect( shepherd, &Shepherd::action_moveComplete, this, &Window::shepherd_moveBuildPlatformDownMoveComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
