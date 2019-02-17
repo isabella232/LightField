@@ -244,15 +244,21 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
 
 void PrintTab::retractBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
-    _buildPlatformState = BuildPlatformState::Retracted;
-    _retractOrExtendButton->setText( "Extend\nBuild Platform" );
-    _retractOrExtendButton->setEnabled( true );
+    if ( success ) {
+        _buildPlatformState = BuildPlatformState::Retracted;
+        _retractOrExtendButton->setText( "Extend\nBuild Platform" );
+        _retractOrExtendButton->setEnabled( true );
+    } else {
+        setAdjustmentButtonsEnabled( true );
+    }
 }
 
 void PrintTab::extendBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
-    _buildPlatformState = BuildPlatformState::Extended;
-    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    if ( success ) {
+        _buildPlatformState = BuildPlatformState::Extended;
+        _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    }
     setAdjustmentButtonsEnabled( true );
 }
 
