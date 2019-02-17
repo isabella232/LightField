@@ -50,6 +50,10 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab       = new PrintTab;
     statusTab      = new StatusTab;
 
+    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setFixedSize( 800, 480 );
+    move( { 0, g_settings.startY } );
+
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
     QObject::connect( shepherd, &Shepherd::shepherd_finished,     this,      &Window::shepherd_finished     );
@@ -58,10 +62,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( shepherd, &Shepherd::printer_offline,       statusTab, &StatusTab::printer_offline    );
     calibrationTab->setShepherd( shepherd );
     shepherd->start( );
-
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
-    setFixedSize( 800, 480 );
-    move( { 0, g_settings.startY } );
 
     //
     // "Select" tab
