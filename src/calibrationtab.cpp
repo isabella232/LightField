@@ -154,7 +154,7 @@ void CalibrationTab::_adjustBuildPlatform_complete( bool ) {
     _calibrationProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &CalibrationTab::_sendResinLoadMove_complete );
-    _shepherd->doSend( QStringList { "G92 X0", "G0 X50" }  );
+    _shepherd->doSend( QStringList { "G90", "G0 X50" }  );
 }
 
 void CalibrationTab::_sendResinLoadMove_complete( bool const success ) {
@@ -187,7 +187,7 @@ void CalibrationTab::_loadPrintSolution_complete( bool ) {
     _calibrationProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &CalibrationTab::_sendExtend_complete );
-    _shepherd->doSend( QStringList { "G90", "G0 X0.1" }  );
+    _shepherd->doSend( "G0 X0.1" );
 }
 
 void CalibrationTab::_sendExtend_complete( bool const success ) {
