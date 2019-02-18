@@ -11,6 +11,18 @@ class CalibrationTab;
 class PrintTab;
 class StatusTab;
 
+enum class TabIndex {
+    Select,
+    Prepare,
+    Calibrate,
+    Print,
+    Status,
+};
+
+inline int operator+( TabIndex value ) {
+    return static_cast<int>( value );
+}
+
 class Window: public QMainWindow {
 
     Q_OBJECT
@@ -57,6 +69,8 @@ private slots:
     void shepherd_moveBuildPlatformUpMoveComplete( bool const success );
     void shepherd_moveBuildPlatformDownMoveComplete( bool const success );
 
+    void tabs_currentChanged( int index );
+
     void selectTab_modelSelected( bool const success, QString const& fileName );
 
     void prepareTab_sliceStarted( );
@@ -81,5 +95,7 @@ private slots:
     void signalHandler_signalReceived( int const signalNumber );
 
 };
+
+char const* ToString( TabIndex const index );
 
 #endif // __WINDOW_H__
