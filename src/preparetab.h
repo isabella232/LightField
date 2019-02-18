@@ -21,26 +21,34 @@ public:
 
 protected:
 
+    virtual void showEvent( QShowEvent* ev ) override;
+
 private:
 
-    QProcess*          slicerProcess          { };
-    SvgRenderer*       svgRenderer            { };
+    QProcess*              slicerProcess          { };
+    SvgRenderer*           svgRenderer            { };
+    PrintJob*              _printJob              { };
 
-    QLabel*            layerThicknessLabel    { new QLabel      };
-    QComboBox*         layerThicknessComboBox { new QComboBox   };
-    QVBoxLayout*       optionsLayout          { new QVBoxLayout };
-    QWidget*           optionsContainer       { new QWidget     };
-    QPushButton*       sliceButton            { new QPushButton };
+    QLabel*                layerThicknessLabel    { new QLabel      };
+    QComboBox*             layerThicknessComboBox { new QComboBox   };
 
-    QLabel*            sliceProgress          { new QLabel      };
-    QLabel*            sliceProgressLabel     { new QLabel      };
-    QLabel*            renderProgress         { new QLabel      };
-    QLabel*            renderProgressLabel    { new QLabel      };
-    QLabel*            currentSliceImage      { new QLabel      };
-    QVBoxLayout*       currentSliceLayout     { new QVBoxLayout };
-    QGroupBox*         currentSliceGroup      { new QGroupBox   };
-    QGridLayout*       _layout                { new QGridLayout };
-    PrintJob*          _printJob              { };
+    QLabel*                sliceProgressLabel     { new QLabel      };
+    QLabel*                sliceStatus            { new QLabel      };
+    QLabel*                renderProgressLabel    { new QLabel      };
+    QLabel*                renderStatus           { new QLabel      };
+    QLabel*                currentSliceLabel      { new QLabel      };
+    QLabel*                currentSliceImage      { new QLabel      };
+    QVBoxLayout*           currentSliceLayout     { new QVBoxLayout };
+
+    QVBoxLayout*           optionsLayout          { new QVBoxLayout };
+    QWidget*               optionsContainer       { new QWidget     };
+    QPushButton*           sliceButton            { new QPushButton };
+
+    QGroupBox*             _prepareGroup          { new QGroupBox   };
+
+    QGridLayout*           _layout                { new QGridLayout };
+
+    std::function<void( )> _initialShowEventFunc;
 
 signals:
 

@@ -13,6 +13,23 @@ namespace {
 }
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
+    _initialShowEventFunc = [this] ( ) {
+        sliceButton->setFixedSize( sliceButton->size( ) );
+
+        debug( "+ _initialShowEventFunc lambda:\n" );
+        debug( "  + sliceStatus->width():        %d\n", sliceStatus->width( ) );
+        debug( "  + currentSliceImage->width():  %d\n", currentSliceImage->width( ) );
+        debug( "  + currentSliceImage->height(): %d\n", currentSliceImage->height( ) );
+        auto maxCoord = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
+        currentSliceImage->setMaximumSize( maxCoord, maxCoord );
+        currentSliceImage->setScaledContents( true );
+        debug( "  + currentSliceImage->width():  %d\n", currentSliceImage->width( ) );
+        debug( "  + currentSliceImage->height(): %d\n", currentSliceImage->height( ) );
+    };
+
+    layerThicknessLabel->setText( "Layer thickness:" );
+    layerThicknessLabel->setBuddy( layerThicknessComboBox );
+
     layerThicknessComboBox->setEditable( false );
     layerThicknessComboBox->setMaxVisibleItems( LayerThicknessValues.size( ) );
     for ( auto value : LayerThicknessValues ) {
@@ -21,27 +38,45 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessComboBox->setCurrentIndex( 1 );
     QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
 
-    layerThicknessLabel->setText( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessComboBox );
-
     sliceProgressLabel->setText( "Slicer status:" );
-    sliceProgress->setText( "Not slicing" );
-    sliceProgress->setFrameShadow( QFrame::Sunken );
-    sliceProgress->setFrameStyle( QFrame::StyledPanel );
+    sliceProgressLabel->setBuddy( sliceStatus );
+
+    sliceStatus->setText( "Not slicing" );
+    sliceStatus->setFrameShadow( QFrame::Sunken );
+    sliceStatus->setFrameStyle( QFrame::StyledPanel );
 
     renderProgressLabel->setText( "Render status:" );
-    renderProgress->setText( "Not rendering" );
-    renderProgress->setFrameShadow( QFrame::Sunken );
-    renderProgress->setFrameStyle( QFrame::StyledPanel );
+    renderProgressLabel->setBuddy( renderStatus );
+
+    renderStatus->setText( "Not rendering" );
+    renderStatus->setFrameShadow( QFrame::Sunken );
+    renderStatus->setFrameStyle( QFrame::StyledPanel );
+
+    currentSliceLabel->setText( "Current slice:" );
+    currentSliceLabel->setBuddy( currentSliceImage );
+
+    currentSliceImage->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setContentsMargins( { } );
+    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    {
+        auto pal = currentSliceImage->palette( );
+        pal.setColor( QPalette::Background, Qt::black );
+        currentSliceImage->setPalette( pal );
+    }
+
+    currentSliceLayout->setContentsMargins( { } );
+    currentSliceLayout->setAlignment( Qt::AlignHCenter );
+    currentSliceLayout->addWidget( currentSliceImage );
 
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addWidget( layerThicknessComboBox );
-    optionsLayout->addStretch( );
     optionsLayout->addWidget( sliceProgressLabel );
-    optionsLayout->addWidget( sliceProgress );
+    optionsLayout->addWidget( sliceStatus );
     optionsLayout->addWidget( renderProgressLabel );
-    optionsLayout->addWidget( renderProgress );
+    optionsLayout->addWidget( renderStatus );
+    optionsLayout->addWidget( currentSliceLabel );
+    optionsLayout->addLayout( currentSliceLayout );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
@@ -56,26 +91,12 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    currentSliceImage->setAlignment( Qt::AlignCenter );
-    currentSliceImage->setContentsMargins( { } );
-    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    {
-        auto pal = currentSliceImage->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
-        currentSliceImage->setPalette( pal );
-    }
-
-    currentSliceLayout->addWidget( currentSliceImage );
-
-    currentSliceGroup->setTitle( QString( "Current slice" ) );
-    currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
-    currentSliceGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceGroup->setLayout( currentSliceLayout );
+    _prepareGroup->setMinimumSize( MaximalRightHandPaneSize );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( sliceButton,       1, 0, 1, 1 );
-    _layout->addWidget( currentSliceGroup, 0, 1, 2, 1 );
+    _layout->addWidget( optionsContainer, 0, 0, 1, 1 );
+    _layout->addWidget( sliceButton,      1, 0, 1, 1 );
+    _layout->addWidget( _prepareGroup,    0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -88,8 +109,17 @@ PrepareTab::~PrepareTab( ) {
     /*empty*/
 }
 
+void PrepareTab::showEvent( QShowEvent* ev ) {
+    if ( _initialShowEventFunc ) {
+        _initialShowEventFunc( );
+        _initialShowEventFunc = nullptr;
+    }
+    ev->ignore( );
+}
+
 void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
     debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+
     _printJob->layerThickness = LayerThicknessValues[index];
 }
 
@@ -138,20 +168,20 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 
     if ( QProcess::FailedToStart == error ) {
         debug( "  + slicer process failed to start\n" );
-        sliceProgress->setText( "Slicer failed to start" );
+        sliceStatus->setText( "Slicer failed to start" );
     } else if ( QProcess::Crashed == error ) {
         debug( "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
         if ( slicerProcess->state( ) != QProcess::NotRunning ) {
             slicerProcess->kill( );
             debug( "  + slicer terminated\n" );
         }
-        sliceProgress->setText( "Slicer crashed" );
+        sliceStatus->setText( "Slicer crashed" );
     }
 }
 
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
-    sliceProgress->setText( "Slicer started" );
+    sliceStatus->setText( "Slicer started" );
     emit sliceStarted( );
 }
 
@@ -165,12 +195,12 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
     if ( exitStatus == QProcess::CrashExit ) {
         debug( "  + slicer process crashed?\n" );
-        sliceProgress->setText( "Slicer crashed" );
+        sliceStatus->setText( "Slicer crashed" );
         emit sliceComplete( false );
         return;
     }
 
-    sliceProgress->setText( "Slicer finished" );
+    sliceStatus->setText( "Slicer finished" );
     emit sliceComplete( true );
 
     svgRenderer = new SvgRenderer;
@@ -183,20 +213,32 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
-        renderProgress->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+        renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
             auto pngFileName = QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
             auto pixMap = QPixmap( pngFileName );
             currentSliceImage->setPixmap( pixMap );
+            debug(
+                "+ PrepareTab::svgRenderer_progress:\n"
+                "  + current layer:          %d\n"
+                "  + pngFileName:            %s\n"
+                "  + PNG size:               %d×%d\n"
+                "  + currentSliceImage size: %d×%d\n"
+                "",
+                currentLayer,
+                pngFileName.toUtf8( ).data( ),
+                pixMap.width( ), pixMap.height( ),
+                currentSliceImage->width( ), currentSliceImage->height( )
+            );
         }
     }
 }
 
 void PrepareTab::svgRenderer_done( int const totalLayers ) {
     if ( totalLayers == -1 ) {
-        renderProgress->setText( QString( "Rendering failed" ) );
+        renderStatus->setText( QString( "Rendering failed" ) );
     } else {
-        renderProgress->setText( QString( "Rendering complete" ) );
+        renderStatus->setText( QString( "Rendering complete" ) );
         _printJob->layerCount = totalLayers;
     }
 
