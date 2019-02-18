@@ -20,13 +20,13 @@ namespace {
     0. "Calibrate" button.
 
     1. G28 X -- home on X axis
-    2. wait for i) to complete
+    2. wait for 1) to complete
     3. "Adjust the build platform position now."
     4. G90, G0 X50 -- get out of the way for resin load
-    5. wait for iv) to complete
+    5. wait for 4) to complete
     6. "Load print solution now."
     7. G0 X0.1
-    8. wait for vii) to complete
+    8. wait for 7) to complete
 
     9. enable Print button
 */
