@@ -14,17 +14,26 @@ public:
 
 protected:
 
+    virtual void resizeEvent( QResizeEvent* event ) override;
+
 private:
 
-    QLabel*      _bedHeightLabel    { new QLabel      };
-    QLineEdit*   _bedHeightLineEdit { new QLineEdit   };
-    QHBoxLayout* _bedHeightHBox     { new QHBoxLayout };
-    QPushButton* _okButton          { new QPushButton };
-    QPushButton* _cancelButton      { new QPushButton };
-    QHBoxLayout* _buttonsHBox       { new QHBoxLayout };
-    QVBoxLayout* _layout            { new QVBoxLayout };
+    QLabel*      _bedHeightLabel                 { new QLabel      };
+    QLabel*      _bedHeightValue                 { new QLabel      };
+    QHBoxLayout* _bedHeightLabelLayout           { new QHBoxLayout };
+    QDial*       _bedHeightDial                  { new QDial       };
+    QLabel*      _bedHeightDialTopLabel          { new QLabel      };
+    QLabel*      _bedHeightDialLeftLabel         { new QLabel      };
+    QLabel*      _bedHeightDialRightLabel        { new QLabel      };
+    QHBoxLayout* _bedHeightDialLowerLabelsLayout { new QHBoxLayout };
+    QPushButton* _okButton                       { new QPushButton };
+    QPushButton* _cancelButton                   { new QPushButton };
+    QHBoxLayout* _buttonsHBox                    { new QHBoxLayout };
+    QFrame*      _frame                          { new QFrame      };
+    QVBoxLayout* _layout                         { new QVBoxLayout };
+    QGridLayout* _dialogLayout                   { new QGridLayout };
 
-    double       _newBedHeight      {                 };
+    double       _newBedHeight                   {                 };
 
 signals:
 
@@ -34,9 +43,7 @@ protected slots:
 
 private slots:
 
-    void _bedHeightLineEdit_editingFinished( );
-    void _okButton_clicked( bool checked );
-    void _cancelButton_clicked( bool checked );
+    void _bedHeightDial_valueChanged( int value );
 
 };
 

@@ -15,17 +15,6 @@
 
 namespace {
 
-    class TabIndex {
-    public:
-        enum {
-            Select,
-            Prepare,
-            Calibrate,
-            Print,
-            Status,
-        };
-    };
-
     std::initializer_list<int> signalList {
         SIGHUP,
         SIGINT,
@@ -50,7 +39,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab       = new PrintTab;
     statusTab      = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | Qt::FramelessWindowHint );
+    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
     setFixedSize( 800, 480 );
     move( { 0, g_settings.startY } );
 
@@ -60,7 +49,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( shepherd, &Shepherd::shepherd_processError, this,      &Window::shepherd_processError );
     QObject::connect( shepherd, &Shepherd::printer_online,        statusTab, &StatusTab::printer_online     );
     QObject::connect( shepherd, &Shepherd::printer_offline,       statusTab, &StatusTab::printer_offline    );
-    calibrationTab->setShepherd( shepherd );
     shepherd->start( );
 
     //
@@ -85,6 +73,16 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
     QObject::connect( prepareTab, &PrepareTab::renderComplete, this,       &Window::prepareTab_renderComplete );
     QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
+
+    //
+    // "Calibrate" tab
+    //
+
+    calibrationTab->setContentsMargins( { } );
+    calibrationTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    calibrationTab->setPrintJob( printJob );
+    calibrationTab->setShepherd( shepherd );
+    QObject::connect( this, &Window::printJobChanged, calibrationTab, &CalibrationTab::setPrintJob );
 
     //
     // "Print" tab
@@ -116,13 +114,14 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     // Tab widget
     //
 
+    QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
     tabs->setContentsMargins( { } );
     tabs->addTab( selectTab,      "Select"    );
     tabs->addTab( prepareTab,     "Prepare"   );
     tabs->addTab( calibrationTab, "Calibrate" );
     tabs->addTab( printTab,       "Print"     );
     tabs->addTab( statusTab,      "Status"    );
-    tabs->setCurrentIndex( TabIndex::Select );
+    tabs->setCurrentIndex( +TabIndex::Select );
 
     setCentralWidget( tabs );
 }
@@ -158,8 +157,8 @@ void Window::selectTab_modelSelected( bool const success, QString const& fileNam
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
-        if ( tabs->currentIndex( ) == TabIndex::Select ) {
-            tabs->setCurrentIndex( TabIndex::Prepare );
+        if ( tabs->currentIndex( ) == +TabIndex::Select ) {
+            tabs->setCurrentIndex( +TabIndex::Prepare );
         }
     } else {
         prepareTab->setSliceButtonEnabled( false );
@@ -191,8 +190,8 @@ void Window::prepareTab_renderComplete( bool const success ) {
 
     prepareTab->setSliceButtonEnabled( true );
     printTab->setPrintButtonEnabled( true );
-    if ( tabs->currentIndex( ) == TabIndex::Prepare ) {
-        tabs->setCurrentIndex( TabIndex::Print );
+    if ( tabs->currentIndex( ) == +TabIndex::Prepare ) {
+        tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
 
@@ -208,7 +207,7 @@ void Window::calibrationTab_calibrationComplete( bool const success ) {
 
 void Window::printTab_printButtonClicked( ) {
     debug( "+ Window::printTab_printButtonClicked\n" );
-    tabs->setCurrentIndex( TabIndex::Status );
+    tabs->setCurrentIndex( +TabIndex::Status );
 
     fprintf( stderr,
         "  + Print job:\n"
@@ -351,6 +350,10 @@ void Window::shepherd_moveBuildPlatformDownMoveComplete( bool const success ) {
     }
 
     printTab->moveBuildPlatformUpComplete( success );
+}
+
+void Window::tabs_currentChanged( int index ) {
+    debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
 }
 
 void Window::statusTab_stopButtonClicked( ) {
