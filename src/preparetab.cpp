@@ -15,16 +15,9 @@ namespace {
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = [this] ( ) {
         sliceButton->setFixedSize( sliceButton->size( ) );
-
-        debug( "+ _initialShowEventFunc lambda:\n" );
-        debug( "  + sliceStatus->width():        %d\n", sliceStatus->width( ) );
-        debug( "  + currentSliceImage->width():  %d\n", currentSliceImage->width( ) );
-        debug( "  + currentSliceImage->height(): %d\n", currentSliceImage->height( ) );
         auto maxCoord = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
         currentSliceImage->setMaximumSize( maxCoord, maxCoord );
         currentSliceImage->setScaledContents( true );
-        debug( "  + currentSliceImage->width():  %d\n", currentSliceImage->width( ) );
-        debug( "  + currentSliceImage->height(): %d\n", currentSliceImage->height( ) );
     };
 
     layerThicknessLabel->setText( "Layer thickness:" );
