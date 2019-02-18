@@ -96,7 +96,6 @@ void PrintManager::print( PrintJob* printJob ) {
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
-    _pngDisplayer->setWindowFlags( _pngDisplayer->windowFlags( ) | Qt::BypassWindowManagerHint );
     _pngDisplayer->setFixedSize( 1280, 800 );
     _pngDisplayer->move( { 0, g_settings.startY ? 0 : 480 } );
     _pngDisplayer->show( );

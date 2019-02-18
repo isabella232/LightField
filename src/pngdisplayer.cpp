@@ -11,6 +11,8 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     auto pal = palette( );
     pal.setColor( QPalette::Background, Qt::black );
     setPalette( pal );
+
+    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
 }
 
 PngDisplayer::~PngDisplayer( ) {
