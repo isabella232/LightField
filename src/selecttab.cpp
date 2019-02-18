@@ -101,10 +101,15 @@ void SelectTab::fileSystemModel_RootPathChanged( QString const& newPath ) {
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
     _fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
-    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), _fileName.toUtf8( ).data( ) );
-    _selectButton->setEnabled( false );
-    if ( !_loadModel( _fileName ) ) {
-        debug( "  + _loadModel failed!\n" );
+    int indexRow = index.row( );
+    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, _fileName.toUtf8( ).data( ) );
+    if ( _selectedRow != indexRow ) {
+        _selectedRow = indexRow;
+        _selectButton->setEnabled( false );
+        _availableFilesListView->setEnabled( false );
+        if ( !_loadModel( _fileName ) ) {
+            debug( "  + _loadModel failed!\n" );
+        }
     }
 }
 
@@ -170,6 +175,7 @@ void SelectTab::loader_ErrorMissingFile( ) {
 
 void SelectTab::loader_Finished( ) {
     debug( "+ SelectTab::loader_Finished\n" );
+    _availableFilesListView->setEnabled( true );
     _canvas->clear_status( );
     _loader->deleteLater( );
     _loader = nullptr;

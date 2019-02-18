@@ -29,6 +29,7 @@ private:
     Loader*           _loader                  {                      };
     QGridLayout*      _layout                  { new QGridLayout      };
     PrintJob*         _printJob                {                      };
+    int               _selectedRow             { -1                   };
     QString           _fileName;
 
     bool _loadModel( QString const& filename );
