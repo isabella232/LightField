@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "shepherd.h"
+#include "window.h"
+
 #include "strings.h"
 
 namespace {
@@ -38,9 +40,22 @@ namespace {
         "send",
     };
 
+    char const* boolStrings[] {
+        "false",
+        "true",
+    };
+
+    char const* TabIndexStrings[] {
+        "Select",
+        "Prepare",
+        "Calibrate",
+        "Print",
+        "Status",
+    };
+
 }
 
-char const* ToString( QProcess::ProcessError value ) {
+char const* ToString( QProcess::ProcessError const value ) {
 #if defined _DEBUG
     if ( ( value >= QProcess::FailedToStart ) && ( value <= QProcess::UnknownError ) ) {
 #endif
@@ -52,7 +67,7 @@ char const* ToString( QProcess::ProcessError value ) {
 #endif
 }
 
-char const* ToString( QProcess::ProcessState value ) {
+char const* ToString( QProcess::ProcessState const value ) {
 #if defined _DEBUG
     if ( ( value >= QProcess::NotRunning ) && ( value <= QProcess::Running ) ) {
 #endif
@@ -64,7 +79,7 @@ char const* ToString( QProcess::ProcessState value ) {
 #endif
 }
 
-char const* ToString( QProcess::ExitStatus value ) {
+char const* ToString( QProcess::ExitStatus const value ) {
 #if defined _DEBUG
     if ( ( value >= QProcess::NormalExit ) && ( value <= QProcess::CrashExit ) ) {
 #endif
@@ -76,7 +91,7 @@ char const* ToString( QProcess::ExitStatus value ) {
 #endif
 }
 
-char const* ToString( QDialog::DialogCode value ) {
+char const* ToString( QDialog::DialogCode const value ) {
 #if defined _DEBUG
     if ( ( value >= QDialog::Rejected ) && ( value <= QDialog::Accepted ) ) {
 #endif
@@ -88,7 +103,11 @@ char const* ToString( QDialog::DialogCode value ) {
 #endif
 }
 
-char const* ToString( PendingCommand value ) {
+char const * ToString( bool const value ) {
+    return boolStrings[!!value];
+}
+
+char const* ToString( PendingCommand const value ) {
 #if defined _DEBUG
     if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::send ) ) {
 #endif
@@ -100,8 +119,20 @@ char const* ToString( PendingCommand value ) {
 #endif
 }
 
-QString FormatDouble( double a, int prec ) {
-    QString str = QString( "%1" ).arg( a, 0, 'f', prec );
+char const* ToString( TabIndex const value ) {
+#if defined _DEBUG
+    if ( ( value >= TabIndex::Select ) && ( value <= TabIndex::Status ) ) {
+#endif
+        return TabIndexStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+QString FormatDouble( double const value, int precision ) {
+    QString str = QString( "%1" ).arg( value, 0, 'f', precision );
     int index = str.length( ) - 1;
     while ( ( index > -1 ) && ( str[index].unicode( ) == L'0' ) ) {
         --index;
