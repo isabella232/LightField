@@ -1,6 +1,7 @@
 #ifndef __CALIBRATION_H__
 #define __CALIBRATION_H__
 
+class PrintJob;
 class Shepherd;
 
 class CalibrationTab: public QWidget {
@@ -20,6 +21,7 @@ private:
 
     std::vector<QLabel*> _stepsStatus;
 
+    PrintJob*            _printJob;
     Shepherd*            _shepherd;
 
     //
@@ -50,6 +52,7 @@ signals:
 
 public slots:
 
+    void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
 
 protected slots:

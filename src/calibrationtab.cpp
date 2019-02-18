@@ -2,7 +2,9 @@
 
 #include "calibrationtab.h"
 
+#include "printjob.h"
 #include "shepherd.h"
+#include "strings.h"
 
 namespace {
 
@@ -20,10 +22,10 @@ namespace {
     1. G28 X -- home on X axis
     2. wait for i) to complete
     3. "Adjust the build platform position now."
-    4. G92 X0, G0 X50 -- get out of the way for resin load
+    4. G90, G0 X50 -- get out of the way for resin load
     5. wait for iv) to complete
     6. "Load print solution now."
-    7. G90, G0 X0.1
+    7. G0 X0.1
     8. wait for vii) to complete
 
     9. enable Print button
@@ -187,7 +189,7 @@ void CalibrationTab::_loadPrintSolution_complete( bool ) {
     _calibrationProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &CalibrationTab::_sendExtend_complete );
-    _shepherd->doSend( "G0 X0.1" );
+    _shepherd->doSend( QString( "G0 X%1" ).arg( std::max( 100, _printJob->layerThickness ) / 1000.0, 0, 'f', 3 ) );
 }
 
 void CalibrationTab::_sendExtend_complete( bool const success ) {
@@ -207,6 +209,11 @@ void CalibrationTab::_sendExtend_complete( bool const success ) {
     _calibrationProgress->hide( );
 
     emit calibrationComplete( true );
+}
+
+void CalibrationTab::setPrintJob( PrintJob* printJob ) {
+    debug( "+ CalibrationTab::setPrintJob: printJob %p\n", printJob );
+    _printJob = printJob;
 }
 
 void CalibrationTab::setShepherd( Shepherd* shepherd ) {
