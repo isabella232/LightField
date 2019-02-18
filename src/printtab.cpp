@@ -208,8 +208,13 @@ void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
     setAdjustmentButtonsEnabled( false );
 
     BedHeightAdjustmentDialog adjustDialog { this };
-    int rc = adjustDialog.exec( );
-    debug( "  + adjustDialog->exec returned %s [%d]\n", ToString( static_cast<QDialog::DialogCode>( rc ) ), rc );
+    auto rc = static_cast<QDialog::DialogCode>( adjustDialog.exec( ) );
+    debug( "  + adjustDialog->exec returned %s [%d]\n", ToString( rc ), rc );
+    if ( rc != QDialog::Accepted ) {
+        debug( "    + cancelled by the user\n" );
+        setAdjustmentButtonsEnabled( true );
+        return;
+    }
 
     double newBedHeight = adjustDialog.newBedHeight( );
     debug( "  + new bed height: %f\n", newBedHeight );

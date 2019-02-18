@@ -50,7 +50,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab       = new PrintTab;
     statusTab      = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setWindowFlags( windowFlags( ) | Qt::FramelessWindowHint );
     setFixedSize( 800, 480 );
     move( { 0, g_settings.startY } );
 
