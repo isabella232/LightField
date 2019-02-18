@@ -53,8 +53,6 @@ protected slots:
 
 private slots:
 
-    void initialHomeComplete( bool const success );
-
     void step1_LiftUpComplete( bool const success );
 
     void step2_LiftDownComplete( bool const success );

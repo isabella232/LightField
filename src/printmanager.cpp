@@ -102,8 +102,7 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer->show( );
 
     emit printStarting( );
-    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
-    _shepherd->doHome( );
+    _startNextLayer( );
 }
 
 void PrintManager::terminate( ) {
@@ -120,20 +119,6 @@ void PrintManager::abort( ) {
         _lampOn = false;
     }
     emit printComplete( false );
-}
-
-void PrintManager::initialHomeComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_homeComplete, this, &PrintManager::initialHomeComplete );
-
-    if ( !success ) {
-        debug( "+ PrintManager::initialHomeComplete: action failed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
-    }
-    debug( "+ PrintManager::initialHomeComplete: action succeeded\n" );
-
-    _startNextLayer( );
 }
 
 void PrintManager::_startNextLayer( ) {
@@ -154,8 +139,8 @@ void PrintManager::step1_LiftUpComplete( bool const success ) {
     }
     debug( "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
     debug( "+ PrintManager::step1_LiftUpComplete: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
+    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
     _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
 }
 

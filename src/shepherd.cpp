@@ -234,7 +234,7 @@ void Shepherd::handleInput( QString const& input ) {
             handleCommandFail( pieces );
         } else if ( pieces[0] == "warning" ) {
             debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
-        } else if ( pieces[0] == "warning" ) {
+        } else if ( pieces[0] == "info" ) {
             debug( "  + info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
         } else if ( pieces[0] == "from_printer" ) {
             debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
@@ -284,9 +284,7 @@ void Shepherd::doSend( QString arg ) {
 }
 
 void Shepherd::doSend( QStringList args ) {
-    if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
-        _expectedOkCount = args.count( );
-
+    if ( getReady( "doSend", PendingCommand::send, args.count( ) ) ) {
         QString output;
         for ( auto& arg : args ) {
             output += QString( "send \"%1\"\n" ).arg( arg.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) );
