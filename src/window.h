@@ -62,6 +62,7 @@ private slots:
 
     void shepherd_adjustBedHeightMoveToComplete( bool const success );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
+    void shepherd_homeComplete( bool const success );
     void shepherd_lowerBuildPlatformMoveToComplete( bool const success );
     void shepherd_moveBuildPlatformUpMoveComplete( bool const success );
     void shepherd_moveBuildPlatformDownMoveComplete( bool const success );
@@ -79,6 +80,7 @@ private slots:
 
     void printTab_adjustBedHeight( double const newHeight );
     void printTab_raiseBuildPlatform( );
+    void printTab_homePrinter( );
     void printTab_lowerBuildPlatform( );
     void printTab_moveBuildPlatformUp( );
     void printTab_moveBuildPlatformDown( );
