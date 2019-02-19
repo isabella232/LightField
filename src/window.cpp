@@ -348,6 +348,7 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager->deleteLater( );
         printManager = nullptr;
     }
+    printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( false );
 }
 
