@@ -7,14 +7,12 @@ class PrintJob;
 
 class SelectTab;
 class PrepareTab;
-class CalibrationTab;
 class PrintTab;
 class StatusTab;
 
 enum class TabIndex {
     Select,
     Prepare,
-    Calibrate,
     Print,
     Status,
 };
@@ -38,16 +36,15 @@ protected:
 
 private:
 
-    Shepherd*       shepherd;
-    PrintManager*   printManager   { };
-    PrintJob*       printJob;
+    Shepherd*     shepherd;
+    PrintManager* printManager { };
+    PrintJob*     printJob;
 
-    QTabWidget*     tabs           { new QTabWidget };
-    SelectTab*      selectTab;
-    PrepareTab*     prepareTab;
-    CalibrationTab* calibrationTab;
-    PrintTab*       printTab;
-    StatusTab*      statusTab;
+    QTabWidget*   tabs         { new QTabWidget };
+    SelectTab*    selectTab;
+    PrepareTab*   prepareTab;
+    PrintTab*     printTab;
+    StatusTab*    statusTab;
 
 signals:
 
@@ -77,9 +74,6 @@ private slots:
     void prepareTab_sliceComplete( bool const success );
     void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool const success );
-
-    void calibrationTab_calibrationStarted( );
-    void calibrationTab_calibrationComplete( bool const success );
 
     void printTab_printButtonClicked( );
 

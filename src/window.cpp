@@ -9,7 +9,6 @@
 #include "printjob.h"
 #include "selecttab.h"
 #include "preparetab.h"
-#include "calibrationtab.h"
 #include "printtab.h"
 #include "statustab.h"
 
@@ -31,13 +30,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
-    printJob       = new PrintJob;
+    printJob   = new PrintJob;
 
-    selectTab      = new SelectTab;
-    prepareTab     = new PrepareTab;
-    calibrationTab = new CalibrationTab;
-    printTab       = new PrintTab;
-    statusTab      = new StatusTab;
+    selectTab  = new SelectTab;
+    prepareTab = new PrepareTab;
+    printTab   = new PrintTab;
+    statusTab  = new StatusTab;
 
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
     setFixedSize( MainWindowSize );
@@ -76,16 +74,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
 
     //
-    // "Calibrate" tab
-    //
-
-    calibrationTab->setContentsMargins( { } );
-    calibrationTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    calibrationTab->setPrintJob( printJob );
-    calibrationTab->setShepherd( shepherd );
-    QObject::connect( this, &Window::printJobChanged, calibrationTab, &CalibrationTab::setPrintJob );
-
-    //
     // "Print" tab
     //
 
@@ -119,7 +107,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     tabs->setContentsMargins( { } );
     tabs->addTab( selectTab,      "Select"    );
     tabs->addTab( prepareTab,     "Prepare"   );
-    tabs->addTab( calibrationTab, "Calibrate" );
     tabs->addTab( printTab,       "Print"     );
     tabs->addTab( statusTab,      "Status"    );
     tabs->setCurrentIndex( +TabIndex::Select );
@@ -194,16 +181,6 @@ void Window::prepareTab_renderComplete( bool const success ) {
     if ( tabs->currentIndex( ) == +TabIndex::Prepare ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
-}
-
-void Window::calibrationTab_calibrationStarted( ) {
-    debug( "+ Window::calibrationTab_calibrationStarted\n" );
-    printTab->setPrintButtonEnabled( false );
-}
-
-void Window::calibrationTab_calibrationComplete( bool const success ) {
-    debug( "+ Window::calibrationTab_calibrationComplete: success: %s\n", success ? "true" : "false" );
-    printTab->setPrintButtonEnabled( success );
 }
 
 void Window::printTab_printButtonClicked( ) {

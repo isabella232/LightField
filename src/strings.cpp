@@ -48,7 +48,6 @@ namespace {
     char const* TabIndexStrings[] {
         "Select",
         "Prepare",
-        "Calibrate",
         "Print",
         "Status",
     };

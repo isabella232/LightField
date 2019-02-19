@@ -119,7 +119,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareLayout->addStretch( ); _prepareLayout->addWidget( _continueButton,  0, Qt::AlignCenter );
     _prepareLayout->addStretch( );
 
-    _prepareGroup->setTitle( "Printer Preparation" );
+    _prepareGroup->setTitle( "Printer preparation" );
     _prepareGroup->setMinimumSize( MaximalRightHandPaneSize );
     _prepareGroup->setLayout( _prepareLayout );
 

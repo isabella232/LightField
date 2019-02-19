@@ -29,8 +29,7 @@ SOURCES += \
     ../src/printtab.cpp \
     ../src/statustab.cpp \
     ../src/constants.cpp \
-    ../src/bedheightadjustment.cpp \
-    ../src/calibrationtab.cpp
+    ../src/bedheightadjustment.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -55,7 +54,6 @@ HEADERS  += \
     ../src/statustab.h \
     ../src/constants.h \
     ../src/bedheightadjustment.h \
-    ../src/calibrationtab.h \
     ../src/debug.h
 
 CONFIG += c++17
