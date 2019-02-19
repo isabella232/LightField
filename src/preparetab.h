@@ -52,7 +52,11 @@ private:
 
     QGridLayout*           _layout                { new QGridLayout  };
 
+    int                    _maxSliceImageWidth    { -1               };
+
     std::function<void( )> _initialShowEventFunc;
+
+    void _initialShowEvent( );
 
 signals:
 
