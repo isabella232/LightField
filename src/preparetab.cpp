@@ -14,17 +14,7 @@ namespace {
 }
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
-    _initialShowEventFunc = [this] ( ) {
-        sliceButton->setFixedSize( sliceButton->size( ) );
-        auto maxCoord = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
-        currentSliceImage->setMaximumSize( maxCoord, maxCoord );
-        currentSliceImage->setScaledContents( true );
-
-        QFontMetrics fontMetrics( _continueButton->font( ) );
-        auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
-        auto bboxStart    = fontMetrics.size( 0, QString( "Start"    ) );
-        _continueButton->setMinimumWidth( _continueButton->width( ) + bboxContinue.width( ) - bboxStart.width( ) );
-    };
+    _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
     layerThicknessLabel->setText( "Layer thickness:" );
     layerThicknessLabel->setBuddy( layerThicknessComboBox );
@@ -147,6 +137,21 @@ void PrepareTab::showEvent( QShowEvent* ev ) {
     ev->ignore( );
 }
 
+void PrepareTab::_initialShowEvent( ) {
+    sliceButton->setFixedSize( sliceButton->size( ) );
+
+    _maxSliceImageWidth = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
+    debug( "+ PrepareTab::_initialShowEvent: maximum slice image width is %d\n", _maxSliceImageWidth );
+    currentSliceImage->setMaximumSize( _maxSliceImageWidth, _maxSliceImageWidth );
+    //currentSliceImage->setScaledContents( true );
+
+    QFontMetrics fontMetrics( _continueButton->font( ) );
+    auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
+    auto bboxStart    = fontMetrics.size( 0, QString( "Start"    ) );
+    auto bboxRetry    = fontMetrics.size( 0, QString( "Retry"    ) );
+    _continueButton->setMinimumWidth( _continueButton->width( ) + std::max( { bboxContinue.width( ), bboxStart.width( ), bboxRetry.width( ) } ) - bboxStart.width( ) );
+}
+
 void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
     debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
 
@@ -245,21 +250,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
         renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
-            auto pngFileName = QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) );
-            auto pixMap = QPixmap( pngFileName );
-            currentSliceImage->setPixmap( pixMap );
-            debug(
-                "+ PrepareTab::svgRenderer_progress:\n"
-                "  + current layer:          %d\n"
-                "  + pngFileName:            %s\n"
-                "  + PNG size:               %d×%d\n"
-                "  + currentSliceImage size: %d×%d\n"
-                "",
-                currentLayer,
-                pngFileName.toUtf8( ).data( ),
-                pixMap.width( ), pixMap.height( ),
-                currentSliceImage->width( ), currentSliceImage->height( )
-            );
+            currentSliceImage->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) ) .scaledToWidth( _maxSliceImageWidth, Qt::SmoothTransformation ) );
         }
     }
 }

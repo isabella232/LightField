@@ -52,8 +52,12 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         emit done( -1 );
         return;
     }
-    pxWidth  = svgElement.attribute( "width"  ).toDouble( ) * 20 + 0.5;
-    pxHeight = svgElement.attribute( "height" ).toDouble( ) * 20 + 0.5;
+
+    auto mmWidth  = svgElement.attribute( "width" ).toDouble( );
+    auto mmHeight = svgElement.attribute( "height" ).toDouble( );
+    pxWidth  = mmWidth  * 20.0 + 0.5;
+    pxHeight = mmHeight * 20.0 + 0.5;
+    debug( " SvgRenderer::startRender: mm %f×%f; px %d×%d\n", mmWidth, mmHeight, pxWidth, pxHeight );
 
     QDomNodeList childNodes = svgElement.childNodes( );
     int limit = childNodes.length( );
