@@ -13,6 +13,10 @@ char const* ToString( QDialog::DialogCode    const value );
 
 char const* ToString( bool                   const value );
 
+QString     ToString( QPoint                 const value );
+QString     ToString( QRect                  const value );
+QString     ToString( QSize                  const value );
+
 QString FormatDouble( double const value, int precision = -1 );
 
 #endif // __STRINGS_H__

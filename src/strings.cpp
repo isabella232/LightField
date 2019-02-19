@@ -103,8 +103,20 @@ char const* ToString( QDialog::DialogCode const value ) {
 #endif
 }
 
-char const * ToString( bool const value ) {
+char const* ToString( bool const value ) {
     return boolStrings[!!value];
+}
+
+QString ToString( QPoint const value ) {
+    return QString( "(%1,%2)" ).arg( value.x( ) ).arg( value.y( ) );
+}
+
+QString ToString( QSize const value ) {
+    return QString( "%1×%2" ).arg( value.width( ) ).arg( value.height( ) );
+}
+
+QString ToString( QRect const value ) {
+    return QString( "%1-%2 [%3]" ).arg( ToString( value.topLeft( ) ) ).arg( ToString( value.bottomRight( ) ) ).arg( ToString( value.size( ) ) );
 }
 
 char const* ToString( PendingCommand const value ) {

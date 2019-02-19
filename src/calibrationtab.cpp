@@ -22,7 +22,7 @@ namespace {
     1. G28 X -- home on X axis
     2. wait for 1) to complete
     3. "Adjust the build platform position now."
-    4. G90, G0 X50 -- get out of the way for resin load
+    4. G90, G0 X<max> -- get out of the way for resin load
     5. wait for 4) to complete
     6. "Load print solution now."
     7. G0 X0.1
@@ -32,7 +32,7 @@ namespace {
 */
 
 CalibrationTab::CalibrationTab( QWidget* parent ): QWidget( parent ) {
-    debug( "+ CalibrationTab::`ctor: constructing instance at %p\n", this );
+    debug( "+ CalibrationTab::`ctor: construct at %p\n", this );
 
     //
     // Left column
@@ -112,7 +112,7 @@ CalibrationTab::CalibrationTab( QWidget* parent ): QWidget( parent ) {
 }
 
 CalibrationTab::~CalibrationTab( ) {
-    debug( "+ CalibrationTab::`dtor: destroying instance at %p\n", this );
+    debug( "+ CalibrationTab::`dtor: destruct at %p\n", this );
 }
 
 void CalibrationTab::_calibrateButton_clicked( bool ) {
@@ -156,7 +156,10 @@ void CalibrationTab::_adjustBuildPlatform_complete( bool ) {
     _calibrationProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &CalibrationTab::_sendResinLoadMove_complete );
-    _shepherd->doSend( QStringList { "G90", "G0 X50" }  );
+    _shepherd->doSend( QStringList {
+        QString( "G90" ),
+        QString( "G0 X" ) + FormatDouble( PrinterMaximumHeight )
+    } );
 }
 
 void CalibrationTab::_sendResinLoadMove_complete( bool const success ) {

@@ -142,7 +142,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustBedHeightButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _adjustBedHeightButton, &QPushButton::clicked, this, &PrintTab::_adjustBedHeightButton_clicked );
 
-    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+    _retractOrExtendButton->setText( "Raise\nBuild Platform" );
     _retractOrExtendButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _retractOrExtendButton, &QPushButton::clicked, this, &PrintTab::_retractOrExtendButton_clicked );
 
@@ -251,7 +251,7 @@ void PrintTab::retractBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Retracted;
-        _retractOrExtendButton->setText( "Extend\nBuild Platform" );
+        _retractOrExtendButton->setText( "Lower\nBuild Platform" );
         _retractOrExtendButton->setEnabled( true );
     } else {
         setAdjustmentButtonsEnabled( true );
@@ -262,7 +262,7 @@ void PrintTab::extendBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Extended;
-        _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+        _retractOrExtendButton->setText( "Raise\nBuild Platform" );
     }
     setAdjustmentButtonsEnabled( true );
 }

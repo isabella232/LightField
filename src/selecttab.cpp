@@ -15,15 +15,11 @@ namespace {
 }
 
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
-    debug( "+ SelectTab::`ctor: creating SelectTab instance at %p; parent: %p\n", this, parent );
+    debug( "+ SelectTab::`ctor: construct at %p\n", this );
 
     _fileSystemModel->setFilter( QDir::Files );
     _fileSystemModel->setNameFilterDisables( false );
-    _fileSystemModel->setNameFilters( {
-        {
-            "*.stl",
-        }
-    } );
+    _fileSystemModel->setNameFilters( { { "*.stl" } } );
     _fileSystemModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _fileSystemModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::fileSystemModel_DirectoryLoaded );
     QObject::connect( _fileSystemModel, &QFileSystemModel::fileRenamed,     this, &SelectTab::fileSystemModel_FileRenamed     );
@@ -82,7 +78,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 }
 
 SelectTab::~SelectTab( ) {
-    debug( "+ SelectTab::`dtor: destroying SelectTab instance at %p\n", this );
+    debug( "+ SelectTab::`dtor: destruct at %p\n", this );
 }
 
 void SelectTab::fileSystemModel_DirectoryLoaded( QString const& name ) {

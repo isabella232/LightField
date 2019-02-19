@@ -3,6 +3,7 @@
 #include "preparetab.h"
 
 #include "printjob.h"
+#include "shepherd.h"
 #include "strings.h"
 #include "svgrenderer.h"
 
@@ -18,6 +19,11 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
         auto maxCoord = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
         currentSliceImage->setMaximumSize( maxCoord, maxCoord );
         currentSliceImage->setScaledContents( true );
+
+        QFontMetrics fontMetrics( _continueButton->font( ) );
+        auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
+        auto bboxStart    = fontMetrics.size( 0, QString( "Start"    ) );
+        _continueButton->setMinimumWidth( _continueButton->width( ) + bboxContinue.width( ) - bboxStart.width( ) );
     };
 
     layerThicknessLabel->setText( "Layer thickness:" );
@@ -84,7 +90,38 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
+    {
+        auto font { _prepareMessage->font( ) };
+        font.setPointSizeF( 16.25 );
+        _prepareMessage->setFont( font );
+    }
+    _prepareMessage->setTextFormat( Qt::RichText );
+    _prepareMessage->setText( QString( "Tap the <b>Start</b> button below<br>to prepare the printer." ) );
+    _prepareMessage->setAlignment( Qt::AlignCenter );
+    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 3 / 4 );
+    _prepareMessage->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+    _prepareProgress->setRange( 0, 0 );
+    _prepareProgress->hide( );
+
+    {
+        auto font { _continueButton->font( ) };
+        font.setPointSizeF( 16.25 );
+        _continueButton->setFont( font );
+    }
+    _continueButton->setText( QString( "Start" ) );
+    _continueButton->setEnabled( true );
+    QObject::connect( _continueButton, &QPushButton::clicked, this, &PrepareTab::_continueButton_clicked );
+
+    _prepareLayout->setContentsMargins( { } );
+    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _prepareMessage,  0, Qt::AlignCenter );
+    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _prepareProgress, 0, Qt::AlignCenter );
+    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _continueButton,  0, Qt::AlignCenter );
+    _prepareLayout->addStretch( );
+
+    _prepareGroup->setTitle( "Printer Preparation" );
     _prepareGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _prepareGroup->setLayout( _prepareLayout );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( optionsContainer, 0, 0, 1, 1 );
@@ -241,7 +278,122 @@ void PrepareTab::svgRenderer_done( int const totalLayers ) {
     emit renderComplete( totalLayers != -1 );
 }
 
+void PrepareTab::_continueButton_clicked( bool ) {
+    debug( "+ PrepareTab::_continueButton_clicked\n" );
+
+    _prepareMessage->setText( QString( "Moving the printer to its home location..." ) );
+    _prepareProgress->show( );
+
+    _continueButton->setText( QString( "Continue" ) );
+    _continueButton->setEnabled( false );
+
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendHome_complete );
+    _shepherd->doSend( "G28 X" );
+}
+
+void PrepareTab::_sendHome_complete( bool const success ) {
+    debug( "+ PrepareTab::_sendHome_complete: success: %s\n", success ? "true" : "false" );
+
+    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    _prepareProgress->hide( );
+
+    if ( !success ) {
+        _prepareMessage->setText( QString( "Preparation failed." ) );
+
+        _continueButton->setText( QString( "Retry" ) );
+        _continueButton->setEnabled( true );
+
+        emit prepareComplete( false );
+        return;
+    }
+
+    _prepareMessage->setText( QString( "<div style='text-align: center;'>Adjust the build platform position,<br>then tap <b>Continue</b>.</div>" ) );
+
+    QObject::connect( _continueButton, &QPushButton::clicked, this, &PrepareTab::_adjustBuildPlatform_complete );
+    _continueButton->setEnabled( true );
+}
+
+void PrepareTab::_adjustBuildPlatform_complete( bool ) {
+    debug( "+ PrepareTab::_adjustBuildPlatform_complete\n" );
+
+    QObject::disconnect( _continueButton, nullptr, this, nullptr );
+    _continueButton->setEnabled( false );
+
+    _prepareMessage->setText( QString( "<div style='text-align: center;'>Raising the build platform<br>out of the way...</div>" ) );
+    _prepareProgress->show( );
+
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendResinLoadMove_complete );
+    _shepherd->doSend( QStringList {
+        QString( "G90" ),
+        QString( "G0 X%1" ).arg( PrinterMaximumHeight, 0, 'f', 3 )
+    } );
+}
+
+void PrepareTab::_sendResinLoadMove_complete( bool const success ) {
+    debug( "+ PrepareTab::_sendResinLoadMove_complete: success: %s\n", success ? "true" : "false" );
+
+    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    _prepareProgress->hide( );
+
+    if ( !success ) {
+        _prepareMessage->setText( QString( "Preparation failed." ) );
+
+        _continueButton->setText( QString( "Retry" ) );
+        _continueButton->setEnabled( true );
+
+        emit prepareComplete( false );
+        return;
+    }
+
+    _prepareMessage->setText( QString( "<div style='text-align: center;'>Load the print solution,<br>then tap <b>Continue</b>.</div>" ) );
+
+    QObject::connect( _continueButton, &QPushButton::clicked, this, &PrepareTab::_loadPrintSolution_complete );
+    _continueButton->setEnabled( true );
+}
+
+void PrepareTab::_loadPrintSolution_complete( bool ) {
+    debug( "+ PrepareTab::_loadPrintSolution_complete\n" );
+
+    QObject::disconnect( _continueButton, nullptr, this, nullptr );
+    _continueButton->setEnabled( false );
+
+    _prepareMessage->setText( QString( "Lowering the build platform..." ) );
+    _prepareProgress->show( );
+
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendExtend_complete );
+    _shepherd->doSend( QString( "G0 X%1" ).arg( std::max( 100, _printJob->layerThickness ) / 1000.0, 0, 'f', 3 ) );
+}
+
+void PrepareTab::_sendExtend_complete( bool const success ) {
+    debug( "+ PrepareTab::_sendExtend_complete: success: %s\n", success ? "true" : "false" );
+
+    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    _prepareProgress->hide( );
+
+    if ( !success ) {
+        _prepareMessage->setText( QString( "Preparation failed." ) );
+
+        _continueButton->setText( QString( "Retry" ) );
+        _continueButton->setEnabled( true );
+
+        emit prepareComplete( false );
+        return;
+    }
+
+    _prepareMessage->setText( QString( "Preparation completed." ) );
+
+    emit prepareComplete( true );
+}
+
 void PrepareTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ PrepareTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+}
+
+void PrepareTab::setShepherd( Shepherd* shepherd ) {
+    _shepherd = shepherd;
+}
+
+void PrepareTab::setSliceButtonEnabled( bool const value ) {
+    sliceButton->setEnabled( value );
 }

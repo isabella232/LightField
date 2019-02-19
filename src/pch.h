@@ -14,7 +14,6 @@
 #include <exception>
 #include <functional>
 #include <future>
-#include <map>
 #include <numeric>
 #include <stdexcept>
 #include <vector>

@@ -39,9 +39,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab       = new PrintTab;
     statusTab      = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
-    setFixedSize( 800, 480 );
-    move( { 0, g_settings.startY } );
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
+    setFixedSize( MainWindowSize );
+    move( g_settings.mainWindowPosition );
 
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
@@ -68,6 +68,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     prepareTab->setPrintJob( printJob );
+    prepareTab->setShepherd( shepherd );
     QObject::connect( prepareTab, &PrepareTab::sliceStarted,   this,       &Window::prepareTab_sliceStarted   );
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this,       &Window::prepareTab_sliceComplete  );
     QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
@@ -272,7 +273,7 @@ void Window::printTab_retractBuildPlatform( ) {
     debug( "+ Window::printTab_retractBuildPlatform\n" );
 
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( 50.0 );
+    shepherd->doMoveTo( PrinterMaximumHeight );
 }
 
 void Window::shepherd_retractBuildPlatformMoveToComplete( bool const success ) {
@@ -293,7 +294,7 @@ void Window::printTab_extendBuildPlatform( ) {
     debug( "+ Window::printTab_extendBuildPlatform\n" );
 
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( 0.1 );
+    shepherd->doMoveTo( std::max( 100, printJob->layerThickness ) / 1000.0 );
 }
 
 void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
