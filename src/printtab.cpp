@@ -233,11 +233,13 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
 
     switch ( _buildPlatformState ) {
         case BuildPlatformState::Extended:
+        case BuildPlatformState::Retracting:
             _buildPlatformState = BuildPlatformState::Retracting;
             emit retractBuildPlatform( );
             break;
 
         case BuildPlatformState::Retracted:
+        case BuildPlatformState::Extending:
             _buildPlatformState = BuildPlatformState::Extending;
             emit extendBuildPlatform( );
             break;
@@ -254,6 +256,7 @@ void PrintTab::retractBuildPlatformComplete( bool const success ) {
         _retractOrExtendButton->setText( "Lower\nBuild Platform" );
         _retractOrExtendButton->setEnabled( true );
     } else {
+        _buildPlatformState = BuildPlatformState::Extended;
         setAdjustmentButtonsEnabled( true );
     }
 }
@@ -263,6 +266,8 @@ void PrintTab::extendBuildPlatformComplete( bool const success ) {
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Extended;
         _retractOrExtendButton->setText( "Raise\nBuild Platform" );
+    } else {
+        _buildPlatformState = BuildPlatformState::Retracted;
     }
     setAdjustmentButtonsEnabled( true );
 }
