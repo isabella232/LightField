@@ -82,8 +82,8 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab->setPrintJob( printJob );
     QObject::connect( printTab, &PrintTab::printButtonClicked,    this,     &Window::printTab_printButtonClicked    );
     QObject::connect( printTab, &PrintTab::adjustBedHeight,       this,     &Window::printTab_adjustBedHeight       );
-    QObject::connect( printTab, &PrintTab::retractBuildPlatform,  this,     &Window::printTab_retractBuildPlatform  );
-    QObject::connect( printTab, &PrintTab::extendBuildPlatform,   this,     &Window::printTab_extendBuildPlatform   );
+    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,  this,     &Window::printTab_raiseBuildPlatform  );
+    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,   this,     &Window::printTab_lowerBuildPlatform   );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this,     &Window::printTab_moveBuildPlatformUp   );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this,     &Window::printTab_moveBuildPlatformDown );
     QObject::connect( this,     &Window::printJobChanged,         printTab, &PrintTab::setPrintJob                  );
@@ -246,37 +246,37 @@ void Window::shepherd_adjustBedHeightMoveToComplete( bool const success ) {
     printTab->adjustBedHeightComplete( success );
 }
 
-void Window::printTab_retractBuildPlatform( ) {
-    debug( "+ Window::printTab_retractBuildPlatform\n" );
+void Window::printTab_raiseBuildPlatform( ) {
+    debug( "+ Window::printTab_raiseBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
     shepherd->doMoveTo( PrinterMaximumHeight );
 }
 
-void Window::shepherd_retractBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
+void Window::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
+    debug( "+ Window::shepherd_raiseBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Retraction of build platform failed."
+            "Raiseion of build platform failed."
         );
     }
 
-    printTab->retractBuildPlatformComplete( success );
+    printTab->raiseBuildPlatformComplete( success );
 }
 
-void Window::printTab_extendBuildPlatform( ) {
-    debug( "+ Window::printTab_extendBuildPlatform\n" );
+void Window::printTab_lowerBuildPlatform( ) {
+    debug( "+ Window::printTab_lowerBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
     shepherd->doMoveTo( std::max( 100, printJob->layerThickness ) / 1000.0 );
 }
 
-void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
+void Window::shepherd_lowerBuildPlatformMoveToComplete( bool const success ) {
+    debug( "+ Window::shepherd_lowerBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -285,7 +285,7 @@ void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
         );
     }
 
-    printTab->extendBuildPlatformComplete( success );
+    printTab->lowerBuildPlatformComplete( success );
 }
 
 void Window::printTab_moveBuildPlatformUp( ) {
