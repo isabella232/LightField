@@ -56,7 +56,7 @@ private slots:
     void        fileSystemModel_FileRenamed      ( QString const& path, QString const& oldName, QString const& newName );
     void        fileSystemModel_RootPathChanged  ( QString const& newPath );
     void availableFilesListView_clicked          ( QModelIndex const& index );
-    void           selectButton_clicked          ( bool checked );
+    void           selectButton_clicked          ( bool );
 
 };
 

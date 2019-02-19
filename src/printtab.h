@@ -97,11 +97,11 @@ private slots:
     void exposureTimeDial_valueChanged( int value );
     void exposureTimeScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelDial_valueChanged( int value );
-    void printButton_clicked( bool checked );
-    void _adjustBedHeightButton_clicked( bool checked );
-    void _raiseOrLowerButton_clicked( bool checked );
-    void _moveUpButton_clicked( bool checked );
-    void _moveDownButton_clicked( bool checked );
+    void printButton_clicked( bool );
+    void _adjustBedHeightButton_clicked( bool );
+    void _raiseOrLowerButton_clicked( bool );
+    void _moveUpButton_clicked( bool );
+    void _moveDownButton_clicked( bool );
 
 };
 

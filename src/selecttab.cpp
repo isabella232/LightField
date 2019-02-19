@@ -109,7 +109,7 @@ void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
     }
 }
 
-void SelectTab::selectButton_clicked( bool /*checked*/ ) {
+void SelectTab::selectButton_clicked( bool ) {
     debug( "+ SelectTab::selectButton_clicked\n" );
     emit modelSelected( true, _fileName );
 }

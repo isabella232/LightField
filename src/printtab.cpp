@@ -198,12 +198,12 @@ void PrintTab::powerLevelDial_valueChanged( int value ) {
     powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
-void PrintTab::printButton_clicked( bool /*checked*/ ) {
+void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
     emit printButtonClicked( );
 }
 
-void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
+void PrintTab::_adjustBedHeightButton_clicked( bool ) {
     debug( "+ PrintTab::_adjustBedHeightButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
 
@@ -227,7 +227,7 @@ void PrintTab::adjustBedHeightComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_raiseOrLowerButton_clicked( bool /*checked*/ ) {
+void PrintTab::_raiseOrLowerButton_clicked( bool ) {
     debug( "+ PrintTab::_raiseOrLowerButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
     setAdjustmentButtonsEnabled( false );
 
@@ -272,7 +272,7 @@ void PrintTab::lowerBuildPlatformComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+void PrintTab::_moveUpButton_clicked( bool ) {
     debug( "+ PrintTab::_moveUpButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformUp( );
@@ -283,7 +283,7 @@ void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+void PrintTab::_moveDownButton_clicked( bool ) {
     debug( "+ PrintTab::_moveDownButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformDown( );
