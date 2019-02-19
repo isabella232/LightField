@@ -9,7 +9,6 @@
 #include "printjob.h"
 #include "selecttab.h"
 #include "preparetab.h"
-#include "calibrationtab.h"
 #include "printtab.h"
 #include "statustab.h"
 
@@ -31,17 +30,16 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
-    printJob       = new PrintJob;
+    printJob   = new PrintJob;
 
-    selectTab      = new SelectTab;
-    prepareTab     = new PrepareTab;
-    calibrationTab = new CalibrationTab;
-    printTab       = new PrintTab;
-    statusTab      = new StatusTab;
+    selectTab  = new SelectTab;
+    prepareTab = new PrepareTab;
+    printTab   = new PrintTab;
+    statusTab  = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
-    setFixedSize( 800, 480 );
-    move( { 0, g_settings.startY } );
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
+    setFixedSize( MainWindowSize );
+    move( g_settings.mainWindowPosition );
 
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
@@ -68,21 +66,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     prepareTab->setPrintJob( printJob );
+    prepareTab->setShepherd( shepherd );
     QObject::connect( prepareTab, &PrepareTab::sliceStarted,   this,       &Window::prepareTab_sliceStarted   );
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this,       &Window::prepareTab_sliceComplete  );
     QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
     QObject::connect( prepareTab, &PrepareTab::renderComplete, this,       &Window::prepareTab_renderComplete );
     QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
-
-    //
-    // "Calibrate" tab
-    //
-
-    calibrationTab->setContentsMargins( { } );
-    calibrationTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    calibrationTab->setPrintJob( printJob );
-    calibrationTab->setShepherd( shepherd );
-    QObject::connect( this, &Window::printJobChanged, calibrationTab, &CalibrationTab::setPrintJob );
 
     //
     // "Print" tab
@@ -93,8 +82,8 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab->setPrintJob( printJob );
     QObject::connect( printTab, &PrintTab::printButtonClicked,    this,     &Window::printTab_printButtonClicked    );
     QObject::connect( printTab, &PrintTab::adjustBedHeight,       this,     &Window::printTab_adjustBedHeight       );
-    QObject::connect( printTab, &PrintTab::retractBuildPlatform,  this,     &Window::printTab_retractBuildPlatform  );
-    QObject::connect( printTab, &PrintTab::extendBuildPlatform,   this,     &Window::printTab_extendBuildPlatform   );
+    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,  this,     &Window::printTab_raiseBuildPlatform  );
+    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,   this,     &Window::printTab_lowerBuildPlatform   );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this,     &Window::printTab_moveBuildPlatformUp   );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this,     &Window::printTab_moveBuildPlatformDown );
     QObject::connect( this,     &Window::printJobChanged,         printTab, &PrintTab::setPrintJob                  );
@@ -118,7 +107,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     tabs->setContentsMargins( { } );
     tabs->addTab( selectTab,      "Select"    );
     tabs->addTab( prepareTab,     "Prepare"   );
-    tabs->addTab( calibrationTab, "Calibrate" );
     tabs->addTab( printTab,       "Print"     );
     tabs->addTab( statusTab,      "Status"    );
     tabs->setCurrentIndex( +TabIndex::Select );
@@ -195,16 +183,6 @@ void Window::prepareTab_renderComplete( bool const success ) {
     }
 }
 
-void Window::calibrationTab_calibrationStarted( ) {
-    debug( "+ Window::calibrationTab_calibrationStarted\n" );
-    printTab->setPrintButtonEnabled( false );
-}
-
-void Window::calibrationTab_calibrationComplete( bool const success ) {
-    debug( "+ Window::calibrationTab_calibrationComplete: success: %s\n", success ? "true" : "false" );
-    printTab->setPrintButtonEnabled( success );
-}
-
 void Window::printTab_printButtonClicked( ) {
     debug( "+ Window::printTab_printButtonClicked\n" );
     tabs->setCurrentIndex( +TabIndex::Status );
@@ -268,37 +246,37 @@ void Window::shepherd_adjustBedHeightMoveToComplete( bool const success ) {
     printTab->adjustBedHeightComplete( success );
 }
 
-void Window::printTab_retractBuildPlatform( ) {
-    debug( "+ Window::printTab_retractBuildPlatform\n" );
+void Window::printTab_raiseBuildPlatform( ) {
+    debug( "+ Window::printTab_raiseBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( 50.0 );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
+    shepherd->doMoveTo( PrinterMaximumHeight );
 }
 
-void Window::shepherd_retractBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_retractBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_retractBuildPlatformMoveToComplete );
+void Window::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
+    debug( "+ Window::shepherd_raiseBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Retraction of build platform failed."
+            "Raiseion of build platform failed."
         );
     }
 
-    printTab->retractBuildPlatformComplete( success );
+    printTab->raiseBuildPlatformComplete( success );
 }
 
-void Window::printTab_extendBuildPlatform( ) {
-    debug( "+ Window::printTab_extendBuildPlatform\n" );
+void Window::printTab_lowerBuildPlatform( ) {
+    debug( "+ Window::printTab_lowerBuildPlatform\n" );
 
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( 0.1 );
+    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
+    shepherd->doMoveTo( std::max( 100, printJob->layerThickness ) / 1000.0 );
 }
 
-void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_extendBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_extendBuildPlatformMoveToComplete );
+void Window::shepherd_lowerBuildPlatformMoveToComplete( bool const success ) {
+    debug( "+ Window::shepherd_lowerBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
 
     if ( !success ) {
         QMessageBox::critical( this, "Error",
@@ -307,7 +285,7 @@ void Window::shepherd_extendBuildPlatformMoveToComplete( bool const success ) {
         );
     }
 
-    printTab->extendBuildPlatformComplete( success );
+    printTab->lowerBuildPlatformComplete( success );
 }
 
 void Window::printTab_moveBuildPlatformUp( ) {
@@ -370,6 +348,7 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager->deleteLater( );
         printManager = nullptr;
     }
+    printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( false );
 }
 

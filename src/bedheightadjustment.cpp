@@ -2,10 +2,11 @@
 
 #include "bedheightadjustment.h"
 
+#include "app.h"
 #include "strings.h"
 
 BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::WindowFlags f ): QDialog( parent, f ) {
-    debug( "+ BedHeightAdjustmentDialog::`ctor: constructing instance at %p\n", this );
+    debug( "+ BedHeightAdjustmentDialog::`ctor: construct at %p\n", this );
 
     _bedHeightLabel->setText( "Bed height:" );
     _bedHeightLabel->setBuddy( _bedHeightDial );
@@ -18,10 +19,11 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
     _bedHeightLabelLayout->addWidget( _bedHeightLabel );
     _bedHeightLabelLayout->addWidget( _bedHeightValue );
 
-    _bedHeightDial->setMinimum( -50000 );
-    _bedHeightDial->setMaximum(  50000 );
+    _bedHeightDial->setMinimum( -1000 * PrinterMaximumHeight );
+    _bedHeightDial->setMaximum(  1000 * PrinterMaximumHeight );
     _bedHeightDial->setNotchesVisible( true );
-    _bedHeightDial->setSingleStep( 50 );
+    _bedHeightDial->setSingleStep( 100 );
+    _bedHeightDial->setPageStep( 1000 );
     _bedHeightDial->setNotchTarget( 1 );
     _bedHeightDial->setWrapping( false );
     _bedHeightDial->setValue( 0 );
@@ -31,9 +33,9 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
     _bedHeightDialLeftLabel ->setAlignment( Qt::AlignLeft    );
     _bedHeightDialRightLabel->setAlignment( Qt::AlignRight   );
 
-    _bedHeightDialTopLabel  ->setText(   "0.000 mm" );
-    _bedHeightDialLeftLabel ->setText( "-50.000 mm" );
-    _bedHeightDialRightLabel->setText(  "50.000 mm" );
+    _bedHeightDialTopLabel  ->setText( QString( "0.000" ) );
+    _bedHeightDialLeftLabel ->setText( QString(    "%1" ).arg( -PrinterMaximumHeight, 0, 'f', 3 ) );
+    _bedHeightDialRightLabel->setText( QString(    "%1" ).arg(  PrinterMaximumHeight, 0, 'f', 3 ) );
 
     _bedHeightDialLowerLabelsLayout->addStretch( );
     _bedHeightDialLowerLabelsLayout->addWidget( _bedHeightDialLeftLabel );
@@ -68,11 +70,11 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
     setLayout( _dialogLayout );
 
     setSizeGripEnabled( false );
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
 }
 
 BedHeightAdjustmentDialog::~BedHeightAdjustmentDialog( ) {
-    debug( "+ BedHeightAdjustmentDialog::`dtor: destroying instance at %p\n", this );
+    debug( "+ BedHeightAdjustmentDialog::`dtor: destruct at %p\n", this );
 }
 
 void BedHeightAdjustmentDialog::resizeEvent( QResizeEvent* event ) {

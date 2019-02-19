@@ -2,10 +2,10 @@
 #define __PRINTTAB_H__
 
 enum class BuildPlatformState {
-    Extended,
-    Retracting,
-    Retracted,
-    Extending,
+    Lowered,
+    Raising,
+    Raised,
+    Lowering,
 };
 
 class PrintJob;
@@ -32,7 +32,7 @@ protected:
 private:
 
     PrintJob*          _printJob                       { };
-    BuildPlatformState _buildPlatformState             { BuildPlatformState::Extended };
+    BuildPlatformState _buildPlatformState             { BuildPlatformState::Lowered };
 
     QLabel*            exposureTimeLabel               { new QLabel      };
     QLabel*            exposureTimeValue               { new QLabel      };
@@ -59,7 +59,7 @@ private:
     QPushButton*       printButton                     { new QPushButton };
 
     QPushButton*       _adjustBedHeightButton          { new QPushButton };
-    QPushButton*       _retractOrExtendButton          { new QPushButton };
+    QPushButton*       _raiseOrLowerButton          { new QPushButton };
     QPushButton*       _moveUpButton                   { new QPushButton };
     QPushButton*       _moveDownButton                 { new QPushButton };
     QHBoxLayout*       _adjustmentsHBox                { new QHBoxLayout };
@@ -72,8 +72,8 @@ signals:
 
     void printButtonClicked( );
     void adjustBedHeight( double const newHeight );
-    void retractBuildPlatform( );
-    void extendBuildPlatform( );
+    void raiseBuildPlatform( );
+    void lowerBuildPlatform( );
     void moveBuildPlatformUp( );
     void moveBuildPlatformDown( );
 
@@ -85,8 +85,8 @@ public slots:
     void setAdjustmentButtonsEnabled( bool const value );
 
     void adjustBedHeightComplete( bool const success );
-    void retractBuildPlatformComplete( bool const success );
-    void extendBuildPlatformComplete( bool const success );
+    void raiseBuildPlatformComplete( bool const success );
+    void lowerBuildPlatformComplete( bool const success );
     void moveBuildPlatformUpComplete( bool const success );
     void moveBuildPlatformDownComplete( bool const success );
 
@@ -97,11 +97,11 @@ private slots:
     void exposureTimeDial_valueChanged( int value );
     void exposureTimeScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelDial_valueChanged( int value );
-    void printButton_clicked( bool checked );
-    void _adjustBedHeightButton_clicked( bool checked );
-    void _retractOrExtendButton_clicked( bool checked );
-    void _moveUpButton_clicked( bool checked );
-    void _moveDownButton_clicked( bool checked );
+    void printButton_clicked( bool );
+    void _adjustBedHeightButton_clicked( bool );
+    void _raiseOrLowerButton_clicked( bool );
+    void _moveUpButton_clicked( bool );
+    void _moveDownButton_clicked( bool );
 
 };
 

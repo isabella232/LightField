@@ -11,11 +11,11 @@ namespace {
     QStringList ExposureTimeScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
     double      ExposureTimeScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
 
-    char const* BuildPlatformStateStrings[] { "Extended", "Retracting", "Retracted", "Extending" };
+    char const* BuildPlatformStateStrings[] { "Lowered", "Raising", "Raised", "Lowering" };
 
     char const* ToString( BuildPlatformState const value ) {
 #if defined _DEBUG
-        if ( ( value >= BuildPlatformState::Extended ) && ( value <= BuildPlatformState::Extending ) ) {
+        if ( ( value >= BuildPlatformState::Lowered ) && ( value <= BuildPlatformState::Lowering ) ) {
 #endif
             return BuildPlatformStateStrings[static_cast<int>( value )];
 #if defined _DEBUG
@@ -142,9 +142,9 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustBedHeightButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _adjustBedHeightButton, &QPushButton::clicked, this, &PrintTab::_adjustBedHeightButton_clicked );
 
-    _retractOrExtendButton->setText( "Retract\nBuild Platform" );
-    _retractOrExtendButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-    QObject::connect( _retractOrExtendButton, &QPushButton::clicked, this, &PrintTab::_retractOrExtendButton_clicked );
+    _raiseOrLowerButton->setText( "Raise\nBuild Platform" );
+    _raiseOrLowerButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::_raiseOrLowerButton_clicked );
 
     _moveUpButton->setText( "Move Up\n100 µm" );
     _moveUpButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
@@ -156,7 +156,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
 
     _adjustmentsHBox->addWidget( _adjustBedHeightButton );
     _adjustmentsHBox->addStretch( );
-    _adjustmentsHBox->addWidget( _retractOrExtendButton );
+    _adjustmentsHBox->addWidget( _raiseOrLowerButton );
     _adjustmentsHBox->addStretch( );
     _adjustmentsHBox->addWidget( _moveUpButton );
     _adjustmentsHBox->addWidget( _moveDownButton );
@@ -198,12 +198,12 @@ void PrintTab::powerLevelDial_valueChanged( int value ) {
     powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
-void PrintTab::printButton_clicked( bool /*checked*/ ) {
+void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
     emit printButtonClicked( );
 }
 
-void PrintTab::_adjustBedHeightButton_clicked( bool /*checked*/ ) {
+void PrintTab::_adjustBedHeightButton_clicked( bool ) {
     debug( "+ PrintTab::_adjustBedHeightButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
 
@@ -227,19 +227,21 @@ void PrintTab::adjustBedHeightComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
-    debug( "+ PrintTab::_retractOrExtendButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
+void PrintTab::_raiseOrLowerButton_clicked( bool ) {
+    debug( "+ PrintTab::_raiseOrLowerButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
     setAdjustmentButtonsEnabled( false );
 
     switch ( _buildPlatformState ) {
-        case BuildPlatformState::Extended:
-            _buildPlatformState = BuildPlatformState::Retracting;
-            emit retractBuildPlatform( );
+        case BuildPlatformState::Lowered:
+        case BuildPlatformState::Raising:
+            _buildPlatformState = BuildPlatformState::Raising;
+            emit raiseBuildPlatform( );
             break;
 
-        case BuildPlatformState::Retracted:
-            _buildPlatformState = BuildPlatformState::Extending;
-            emit extendBuildPlatform( );
+        case BuildPlatformState::Raised:
+        case BuildPlatformState::Lowering:
+            _buildPlatformState = BuildPlatformState::Lowering;
+            emit lowerBuildPlatform( );
             break;
 
         default:
@@ -247,27 +249,30 @@ void PrintTab::_retractOrExtendButton_clicked( bool /*checked*/ ) {
     }
 }
 
-void PrintTab::retractBuildPlatformComplete( bool const success ) {
-    debug( "+ PrintTab::retractBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+void PrintTab::raiseBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::raiseBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
-        _buildPlatformState = BuildPlatformState::Retracted;
-        _retractOrExtendButton->setText( "Extend\nBuild Platform" );
-        _retractOrExtendButton->setEnabled( true );
+        _buildPlatformState = BuildPlatformState::Raised;
+        _raiseOrLowerButton->setText( "Lower\nBuild Platform" );
+        _raiseOrLowerButton->setEnabled( true );
     } else {
+        _buildPlatformState = BuildPlatformState::Lowered;
         setAdjustmentButtonsEnabled( true );
     }
 }
 
-void PrintTab::extendBuildPlatformComplete( bool const success ) {
-    debug( "+ PrintTab::extendBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+void PrintTab::lowerBuildPlatformComplete( bool const success ) {
+    debug( "+ PrintTab::lowerBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
-        _buildPlatformState = BuildPlatformState::Extended;
-        _retractOrExtendButton->setText( "Retract\nBuild Platform" );
+        _buildPlatformState = BuildPlatformState::Lowered;
+        _raiseOrLowerButton->setText( "Raise\nBuild Platform" );
+    } else {
+        _buildPlatformState = BuildPlatformState::Raised;
     }
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_moveUpButton_clicked( bool /*checked*/ ) {
+void PrintTab::_moveUpButton_clicked( bool ) {
     debug( "+ PrintTab::_moveUpButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformUp( );
@@ -278,7 +283,7 @@ void PrintTab::moveBuildPlatformUpComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_moveDownButton_clicked( bool /*checked*/ ) {
+void PrintTab::_moveDownButton_clicked( bool ) {
     debug( "+ PrintTab::_moveDownButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
     emit moveBuildPlatformDown( );
@@ -316,7 +321,7 @@ void PrintTab::setPrintButtonEnabled( bool const value ) {
 void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
     debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
     _adjustBedHeightButton->setEnabled( value );
-    _retractOrExtendButton->setEnabled( value );
+    _raiseOrLowerButton->setEnabled( value );
     _moveUpButton         ->setEnabled( value );
     _moveDownButton       ->setEnabled( value );
 }

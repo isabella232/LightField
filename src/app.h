@@ -13,8 +13,11 @@ class AppSettings {
 
 public:
 
-    int   startY { 800          };
-    Theme theme  { Theme::Light };
+    QPoint pngDisplayWindowPosition { 0,   0 };
+    QPoint mainWindowPosition       { 0, 800 };
+
+    Theme  theme                    { Theme::Light };
+    bool   frameless                { false        };
 
 };
 
@@ -30,6 +33,8 @@ public:
 private:
 
     Window* window;
+
+    void parseCommandLine( );
 
 };
 

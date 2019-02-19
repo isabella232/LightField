@@ -7,14 +7,12 @@ class PrintJob;
 
 class SelectTab;
 class PrepareTab;
-class CalibrationTab;
 class PrintTab;
 class StatusTab;
 
 enum class TabIndex {
     Select,
     Prepare,
-    Calibrate,
     Print,
     Status,
 };
@@ -38,16 +36,15 @@ protected:
 
 private:
 
-    Shepherd*       shepherd;
-    PrintManager*   printManager   { };
-    PrintJob*       printJob;
+    Shepherd*     shepherd;
+    PrintManager* printManager { };
+    PrintJob*     printJob;
 
-    QTabWidget*     tabs           { new QTabWidget };
-    SelectTab*      selectTab;
-    PrepareTab*     prepareTab;
-    CalibrationTab* calibrationTab;
-    PrintTab*       printTab;
-    StatusTab*      statusTab;
+    QTabWidget*   tabs         { new QTabWidget };
+    SelectTab*    selectTab;
+    PrepareTab*   prepareTab;
+    PrintTab*     printTab;
+    StatusTab*    statusTab;
 
 signals:
 
@@ -64,8 +61,8 @@ private slots:
     void shepherd_processError( QProcess::ProcessError error );
 
     void shepherd_adjustBedHeightMoveToComplete( bool const success );
-    void shepherd_retractBuildPlatformMoveToComplete( bool const success );
-    void shepherd_extendBuildPlatformMoveToComplete( bool const success );
+    void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
+    void shepherd_lowerBuildPlatformMoveToComplete( bool const success );
     void shepherd_moveBuildPlatformUpMoveComplete( bool const success );
     void shepherd_moveBuildPlatformDownMoveComplete( bool const success );
 
@@ -78,14 +75,11 @@ private slots:
     void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool const success );
 
-    void calibrationTab_calibrationStarted( );
-    void calibrationTab_calibrationComplete( bool const success );
-
     void printTab_printButtonClicked( );
 
     void printTab_adjustBedHeight( double const newHeight );
-    void printTab_retractBuildPlatform( );
-    void printTab_extendBuildPlatform( );
+    void printTab_raiseBuildPlatform( );
+    void printTab_lowerBuildPlatform( );
     void printTab_moveBuildPlatformUp( );
     void printTab_moveBuildPlatformDown( );
 

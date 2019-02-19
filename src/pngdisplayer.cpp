@@ -2,6 +2,8 @@
 
 #include "pngdisplayer.h"
 
+#include "app.h"
+
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     debug( "+ construct PngDisplayer at %p\n", this );
     _label = new QLabel( );
@@ -12,7 +14,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     pal.setColor( QPalette::Background, Qt::black );
     setPalette( pal );
 
-    setWindowFlags( windowFlags( ) | Qt::BypassWindowManagerHint );
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
 }
 
 PngDisplayer::~PngDisplayer( ) {

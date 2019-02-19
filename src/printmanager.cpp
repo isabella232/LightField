@@ -96,8 +96,8 @@ void PrintManager::print( PrintJob* printJob ) {
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
-    _pngDisplayer->setFixedSize( 1280, 800 );
-    _pngDisplayer->move( { 0, g_settings.startY ? 0 : 480 } );
+    _pngDisplayer->setFixedSize( PngDisplayWindowSize );
+    _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
     _pngDisplayer->show( );
 
     emit printStarting( );

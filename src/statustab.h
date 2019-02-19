@@ -64,7 +64,7 @@ protected slots:
 
 private slots:
 
-    void stopButton_clicked( bool checked );
+    void stopButton_clicked( bool );
 
 };
 

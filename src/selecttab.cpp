@@ -15,15 +15,11 @@ namespace {
 }
 
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
-    debug( "+ SelectTab::`ctor: creating SelectTab instance at %p; parent: %p\n", this, parent );
+    debug( "+ SelectTab::`ctor: construct at %p\n", this );
 
     _fileSystemModel->setFilter( QDir::Files );
     _fileSystemModel->setNameFilterDisables( false );
-    _fileSystemModel->setNameFilters( {
-        {
-            "*.stl",
-        }
-    } );
+    _fileSystemModel->setNameFilters( { { "*.stl" } } );
     _fileSystemModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _fileSystemModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::fileSystemModel_DirectoryLoaded );
     QObject::connect( _fileSystemModel, &QFileSystemModel::fileRenamed,     this, &SelectTab::fileSystemModel_FileRenamed     );
@@ -82,7 +78,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 }
 
 SelectTab::~SelectTab( ) {
-    debug( "+ SelectTab::`dtor: destroying SelectTab instance at %p\n", this );
+    debug( "+ SelectTab::`dtor: destruct at %p\n", this );
 }
 
 void SelectTab::fileSystemModel_DirectoryLoaded( QString const& name ) {
@@ -101,14 +97,19 @@ void SelectTab::fileSystemModel_RootPathChanged( QString const& newPath ) {
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
     _fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
-    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", index.row( ), _fileName.toUtf8( ).data( ) );
-    _selectButton->setEnabled( false );
-    if ( !_loadModel( _fileName ) ) {
-        debug( "  + _loadModel failed!\n" );
+    int indexRow = index.row( );
+    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, _fileName.toUtf8( ).data( ) );
+    if ( _selectedRow != indexRow ) {
+        _selectedRow = indexRow;
+        _selectButton->setEnabled( false );
+        _availableFilesListView->setEnabled( false );
+        if ( !_loadModel( _fileName ) ) {
+            debug( "  + _loadModel failed!\n" );
+        }
     }
 }
 
-void SelectTab::selectButton_clicked( bool /*checked*/ ) {
+void SelectTab::selectButton_clicked( bool ) {
     debug( "+ SelectTab::selectButton_clicked\n" );
     emit modelSelected( true, _fileName );
 }
@@ -170,6 +171,7 @@ void SelectTab::loader_ErrorMissingFile( ) {
 
 void SelectTab::loader_Finished( ) {
     debug( "+ SelectTab::loader_Finished\n" );
+    _availableFilesListView->setEnabled( true );
     _canvas->clear_status( );
     _loader->deleteLater( );
     _loader = nullptr;

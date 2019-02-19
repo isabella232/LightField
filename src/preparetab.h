@@ -2,6 +2,7 @@
 #define __PREPARETAB_H__
 
 class PrintJob;
+class Shepherd;
 class SvgRenderer;
 
 class PrepareTab: public QWidget {
@@ -13,11 +14,9 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    bool isSliceButtonEnabled( ) const { return sliceButton->isEnabled( ); }
+    Shepherd* shepherd( ) const { return _shepherd; }
 
-    void setSliceButtonEnabled( bool value ) {
-        sliceButton->setEnabled( value );
-    }
+    bool isSliceButtonEnabled( ) const { return sliceButton->isEnabled( ); }
 
 protected:
 
@@ -25,28 +24,33 @@ protected:
 
 private:
 
+    PrintJob*              _printJob              { };
+    Shepherd*              _shepherd              { };
     QProcess*              slicerProcess          { };
     SvgRenderer*           svgRenderer            { };
-    PrintJob*              _printJob              { };
 
-    QLabel*                layerThicknessLabel    { new QLabel      };
-    QComboBox*             layerThicknessComboBox { new QComboBox   };
+    QLabel*                layerThicknessLabel    { new QLabel       };
+    QComboBox*             layerThicknessComboBox { new QComboBox    };
 
-    QLabel*                sliceProgressLabel     { new QLabel      };
-    QLabel*                sliceStatus            { new QLabel      };
-    QLabel*                renderProgressLabel    { new QLabel      };
-    QLabel*                renderStatus           { new QLabel      };
-    QLabel*                currentSliceLabel      { new QLabel      };
-    QLabel*                currentSliceImage      { new QLabel      };
-    QVBoxLayout*           currentSliceLayout     { new QVBoxLayout };
+    QLabel*                sliceProgressLabel     { new QLabel       };
+    QLabel*                sliceStatus            { new QLabel       };
+    QLabel*                renderProgressLabel    { new QLabel       };
+    QLabel*                renderStatus           { new QLabel       };
+    QLabel*                currentSliceLabel      { new QLabel       };
+    QLabel*                currentSliceImage      { new QLabel       };
+    QVBoxLayout*           currentSliceLayout     { new QVBoxLayout  };
 
-    QVBoxLayout*           optionsLayout          { new QVBoxLayout };
-    QWidget*               optionsContainer       { new QWidget     };
-    QPushButton*           sliceButton            { new QPushButton };
+    QVBoxLayout*           optionsLayout          { new QVBoxLayout  };
+    QWidget*               optionsContainer       { new QWidget      };
+    QPushButton*           sliceButton            { new QPushButton  };
 
-    QGroupBox*             _prepareGroup          { new QGroupBox   };
+    QGroupBox*             _prepareGroup          { new QGroupBox    };
+    QLabel*                _prepareMessage        { new QLabel       };
+    QProgressBar*          _prepareProgress       { new QProgressBar };
+    QPushButton*           _continueButton        { new QPushButton  };
+    QVBoxLayout*           _prepareLayout         { new QVBoxLayout  };
 
-    QGridLayout*           _layout                { new QGridLayout };
+    QGridLayout*           _layout                { new QGridLayout  };
 
     std::function<void( )> _initialShowEventFunc;
 
@@ -57,9 +61,13 @@ signals:
     void renderStarted( );
     void renderComplete( bool const success );
 
+    void prepareComplete( bool const success );
+
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setShepherd( Shepherd* shepherd );
+    void setSliceButtonEnabled( bool const value );
 
 protected slots:
 
@@ -74,6 +82,13 @@ private slots:
 
     void svgRenderer_progress( int const currentLayer );
     void svgRenderer_done( int const totalLayers );
+
+    void _continueButton_clicked( bool );
+    void _sendHome_complete( bool const success );
+    void _adjustBuildPlatform_complete( bool );
+    void _sendResinLoadMove_complete( bool const success );
+    void _loadPrintSolution_complete( bool );
+    void _sendExtend_complete( bool const success );
 
 };
 

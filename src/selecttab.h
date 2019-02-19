@@ -29,6 +29,7 @@ private:
     Loader*           _loader                  {                      };
     QGridLayout*      _layout                  { new QGridLayout      };
     PrintJob*         _printJob                {                      };
+    int               _selectedRow             { -1                   };
     QString           _fileName;
 
     bool _loadModel( QString const& filename );
@@ -55,7 +56,7 @@ private slots:
     void        fileSystemModel_FileRenamed      ( QString const& path, QString const& oldName, QString const& newName );
     void        fileSystemModel_RootPathChanged  ( QString const& newPath );
     void availableFilesListView_clicked          ( QModelIndex const& index );
-    void           selectButton_clicked          ( bool checked );
+    void           selectButton_clicked          ( bool );
 
 };
 

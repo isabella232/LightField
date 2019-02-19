@@ -110,7 +110,7 @@ void StatusTab::printer_offline( ) {
     printerStateDisplay->setText( "Offline" );
 }
 
-void StatusTab::stopButton_clicked( bool /*checked*/ ) {
+void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
     emit stopButtonClicked( );
 }
