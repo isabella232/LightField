@@ -146,6 +146,10 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _raiseOrLowerButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::_raiseOrLowerButton_clicked );
 
+    _homeButton->setText( "Home" );
+    _homeButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::_homeButton_clicked );
+
     _moveUpButton->setText( "Move Up\n100 µm" );
     _moveUpButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _moveUpButton, &QPushButton::clicked, this, &PrintTab::_moveUpButton_clicked );
@@ -157,6 +161,8 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustmentsHBox->addWidget( _adjustBedHeightButton );
     _adjustmentsHBox->addStretch( );
     _adjustmentsHBox->addWidget( _raiseOrLowerButton );
+    _adjustmentsHBox->addStretch( );
+    _adjustmentsHBox->addWidget( _homeButton );
     _adjustmentsHBox->addStretch( );
     _adjustmentsHBox->addWidget( _moveUpButton );
     _adjustmentsHBox->addWidget( _moveDownButton );
@@ -249,6 +255,13 @@ void PrintTab::_raiseOrLowerButton_clicked( bool ) {
     }
 }
 
+void PrintTab::_homeButton_clicked( bool ) {
+    debug( "+ PrintTab::_homeButton_clicked\n" );
+    setAdjustmentButtonsEnabled( false );
+
+    emit homePrinter( );
+}
+
 void PrintTab::raiseBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::raiseBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
@@ -259,6 +272,11 @@ void PrintTab::raiseBuildPlatformComplete( bool const success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
         setAdjustmentButtonsEnabled( true );
     }
+}
+
+void PrintTab::homeComplete( bool const success ) {
+    debug( "+ PrintTab::homeComplete: %s\n", success ? "succeeded" : "failed" );
+    setAdjustmentButtonsEnabled( true );
 }
 
 void PrintTab::lowerBuildPlatformComplete( bool const success ) {
@@ -321,7 +339,8 @@ void PrintTab::setPrintButtonEnabled( bool const value ) {
 void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
     debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
     _adjustBedHeightButton->setEnabled( value );
-    _raiseOrLowerButton->setEnabled( value );
+    _raiseOrLowerButton   ->setEnabled( value );
+    _homeButton           ->setEnabled( value );
     _moveUpButton         ->setEnabled( value );
     _moveDownButton       ->setEnabled( value );
 }

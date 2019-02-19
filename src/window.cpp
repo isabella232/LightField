@@ -82,8 +82,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab->setPrintJob( printJob );
     QObject::connect( printTab, &PrintTab::printButtonClicked,    this,     &Window::printTab_printButtonClicked    );
     QObject::connect( printTab, &PrintTab::adjustBedHeight,       this,     &Window::printTab_adjustBedHeight       );
-    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,  this,     &Window::printTab_raiseBuildPlatform  );
-    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,   this,     &Window::printTab_lowerBuildPlatform   );
+    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,    this,     &Window::printTab_raiseBuildPlatform    );
+    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,    this,     &Window::printTab_lowerBuildPlatform    );
+    QObject::connect( printTab, &PrintTab::homePrinter,           this,     &Window::printTab_homePrinter           );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this,     &Window::printTab_moveBuildPlatformUp   );
     QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this,     &Window::printTab_moveBuildPlatformDown );
     QObject::connect( this,     &Window::printJobChanged,         printTab, &PrintTab::setPrintJob                  );
@@ -260,11 +261,32 @@ void Window::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
     if ( !success ) {
         QMessageBox::critical( this, "Error",
             "<b>Error:</b><br>"
-            "Raiseion of build platform failed."
+            "Raise of build platform failed."
         );
     }
 
     printTab->raiseBuildPlatformComplete( success );
+}
+
+void Window::printTab_homePrinter( ) {
+    debug( "+ Window::printTab_homePrinter\n" );
+
+    QObject::connect( shepherd, &Shepherd::action_homeComplete, this, &Window::shepherd_homeComplete );
+    shepherd->doHome( );
+}
+
+void Window::shepherd_homeComplete( bool const success ) {
+    debug( "+ Window::shepherd_homeComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( shepherd, &Shepherd::action_homeComplete, this, &Window::shepherd_homeComplete );
+
+    if ( !success ) {
+        QMessageBox::critical( this, "Error",
+            "<b>Error:</b><br>"
+            "Homing failed."
+        );
+    }
+
+    printTab->homeComplete( success );
 }
 
 void Window::printTab_lowerBuildPlatform( ) {

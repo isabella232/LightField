@@ -59,7 +59,8 @@ private:
     QPushButton*       printButton                     { new QPushButton };
 
     QPushButton*       _adjustBedHeightButton          { new QPushButton };
-    QPushButton*       _raiseOrLowerButton          { new QPushButton };
+    QPushButton*       _raiseOrLowerButton             { new QPushButton };
+    QPushButton*       _homeButton                     { new QPushButton };
     QPushButton*       _moveUpButton                   { new QPushButton };
     QPushButton*       _moveDownButton                 { new QPushButton };
     QHBoxLayout*       _adjustmentsHBox                { new QHBoxLayout };
@@ -73,6 +74,7 @@ signals:
     void printButtonClicked( );
     void adjustBedHeight( double const newHeight );
     void raiseBuildPlatform( );
+    void homePrinter( );
     void lowerBuildPlatform( );
     void moveBuildPlatformUp( );
     void moveBuildPlatformDown( );
@@ -86,6 +88,7 @@ public slots:
 
     void adjustBedHeightComplete( bool const success );
     void raiseBuildPlatformComplete( bool const success );
+    void homeComplete( bool const success );
     void lowerBuildPlatformComplete( bool const success );
     void moveBuildPlatformUpComplete( bool const success );
     void moveBuildPlatformDownComplete( bool const success );
@@ -100,6 +103,7 @@ private slots:
     void printButton_clicked( bool );
     void _adjustBedHeightButton_clicked( bool );
     void _raiseOrLowerButton_clicked( bool );
+    void _homeButton_clicked( bool );
     void _moveUpButton_clicked( bool );
     void _moveDownButton_clicked( bool );
 
