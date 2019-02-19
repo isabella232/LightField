@@ -143,7 +143,6 @@ void PrepareTab::_initialShowEvent( ) {
     _maxSliceImageWidth = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
     debug( "+ PrepareTab::_initialShowEvent: maximum slice image width is %d\n", _maxSliceImageWidth );
     currentSliceImage->setMaximumSize( _maxSliceImageWidth, _maxSliceImageWidth );
-    //currentSliceImage->setScaledContents( true );
 
     QFontMetrics fontMetrics( _continueButton->font( ) );
     auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
@@ -250,7 +249,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
         renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
-            currentSliceImage->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) ) .scaledToWidth( _maxSliceImageWidth, Qt::SmoothTransformation ) );
+            currentSliceImage->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) ).scaledToWidth( _maxSliceImageWidth, Qt::SmoothTransformation ) );
         }
     }
 }
