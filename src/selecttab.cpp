@@ -139,6 +139,8 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     debug( "+ SelectTab::loader_gotMesh: done\n" );
 
     _canvas->load_mesh( m );
+
+    emit modelDimensioned( count, { minX, maxX }, { minY, maxY }, { minZ, maxZ } );
 }
 
 void SelectTab::loader_ErrorBadStl( ) {

@@ -1,6 +1,8 @@
 #ifndef __SELECTTAB_H__
 #define __SELECTTAB_H__
 
+#include "coordinate.h"
+
 class Canvas;
 class Loader;
 class Mesh;
@@ -37,6 +39,7 @@ private:
 signals:
 
     void modelSelected( bool const success, QString const& fileName );
+    void modelDimensioned( size_t const vertexCount, Coordinate const sizeX, Coordinate const sizeY, Coordinate const sizeZ );
 
 public slots:
 
