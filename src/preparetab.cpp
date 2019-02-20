@@ -295,7 +295,7 @@ void PrepareTab::_sendHome_complete( bool const success ) {
         _prepareButton->setText( QString( "Retry" ) );
         _prepareButton->setEnabled( true );
 
-        emit prepareComplete( false );
+        emit preparePrinterComplete( false );
         return;
     }
 
@@ -333,7 +333,7 @@ void PrepareTab::_sendResinLoadMove_complete( bool const success ) {
         _prepareButton->setText( QString( "Retry" ) );
         _prepareButton->setEnabled( true );
 
-        emit prepareComplete( false );
+        emit preparePrinterComplete( false );
         return;
     }
 
@@ -368,13 +368,15 @@ void PrepareTab::_sendExtend_complete( bool const success ) {
         _prepareButton->setText( QString( "Retry" ) );
         _prepareButton->setEnabled( true );
 
-        emit prepareComplete( false );
+        emit preparePrinterComplete( false );
         return;
     }
 
     _prepareMessage->setText( QString( "Preparation completed." ) );
+    _prepareButton->setText( "Prepare" );
+    _prepareButton->setEnabled( true );
 
-    emit prepareComplete( true );
+    emit preparePrinterComplete( true );
 }
 
 void PrepareTab::setPrepareButtonEnabled( bool const value ) {

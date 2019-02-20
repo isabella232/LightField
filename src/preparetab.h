@@ -16,7 +16,8 @@ public:
 
     Shepherd* shepherd( ) const { return _shepherd; }
 
-    bool isSliceButtonEnabled( ) const { return sliceButton->isEnabled( ); }
+    bool isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
+    bool   isSliceButtonEnabled( ) const { return    sliceButton->isEnabled( ); }
 
 protected:
 
@@ -65,7 +66,7 @@ signals:
     void renderStarted( );
     void renderComplete( bool const success );
 
-    void prepareComplete( bool const success );
+    void preparePrinterComplete( bool const success );
 
 public slots:
 
