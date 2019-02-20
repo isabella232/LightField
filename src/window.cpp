@@ -387,13 +387,15 @@ void Window::statusTab_cleanUpAfterPrint( ) {
     }
 
     prepareTab->setPrepareButtonEnabled( true );
+
+    debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", _isModelRendered, _isPrinterPrepared );
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     statusTab->setStopButtonEnabled( false );
 }
 
 #if defined _DEBUG
 void Window::signalHandler_signalReceived( int const signalNumber ) {
-    debug( "+ Window::signalHandler_signalReceived: received signal %s [%d]\n", strsignal( signalNumber ), signalNumber );
+    debug( "+ Window::signalHandler_signalReceived: received signal %s [%d]\n", ::strsignal( signalNumber ), signalNumber );
 
     if ( SIGUSR1 == signalNumber ) {
         debug( "+ Window::signalHandler_signalReceived: object information dump:\n" );
