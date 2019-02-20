@@ -373,6 +373,8 @@ void PrepareTab::_sendExtend_complete( bool const success ) {
     }
 
     _prepareMessage->setText( QString( "Preparation completed." ) );
+
+    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
     _prepareButton->setText( "Prepare" );
     _prepareButton->setEnabled( true );
 
