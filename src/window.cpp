@@ -392,7 +392,7 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager = nullptr;
     }
 
-    debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", _isModelRendered, _isPrinterPrepared );
+    debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );
     prepareTab->setPrepareButtonEnabled( true );
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     statusTab->setStopButtonEnabled( false );
