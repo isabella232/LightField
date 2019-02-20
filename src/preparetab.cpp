@@ -273,6 +273,8 @@ void PrepareTab::svgRenderer_done( int const totalLayers ) {
 void PrepareTab::_prepareButton_clicked( bool ) {
     debug( "+ PrepareTab::_prepareButton_clicked\n" );
 
+    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
+
     _prepareMessage->setText( QString( "Moving the printer to its home location..." ) );
     _prepareProgress->show( );
 
