@@ -144,6 +144,7 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
 void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", ToString( success ), fileName.toUtf8( ).data( ) );
     _isModelRendered = false;
+    debug( "  + isModelRendered set to false.\n" );
 
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
@@ -156,9 +157,14 @@ void Window::selectTab_modelSelected( bool const success, QString const& fileNam
     }
 }
 
+void Window::selectTab_modelDimensioned( size_t const vertexCount, Coordinate const x, Coordinate const y, Coordinate const z ) {
+    debug( "+ Window::selectTab_modelDimensioned: %zu vertices, dimensions %.3f×%.3f×%.3f mm\n", vertexCount, x.size, y.size, z.size );
+}
+
 void Window::prepareTab_sliceStarted( ) {
     debug( "+ Window::prepareTab_sliceStarted\n" );
     _isModelRendered = false;
+    debug( "  + isModelRendered set to false.\n" );
 
     prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
@@ -178,22 +184,22 @@ void Window::prepareTab_renderStarted( ) {
 void Window::prepareTab_renderComplete( bool const success ) {
     debug( "+ Window::prepareTab_renderComplete: success: %s\n", ToString( success ) );
     _isModelRendered = success;
-
-    if ( !success ) {
-        return;
-    }
+    debug( "  + isModelRendered set to %s.\n", ToString( success ) );
 
     prepareTab->setSliceButtonEnabled( true );
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
+    if ( success && ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
 
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
+    debug( "+ Window::prepareTab_renderStarted\n" );
     _isPrinterPrepared = success;
+    debug( "  + isPrinterPrepared set to %s.\n", ToString( success ) );
+
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
+    if ( success && ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
@@ -266,7 +272,7 @@ void Window::printTab_raiseBuildPlatform( ) {
     debug( "+ Window::printTab_raiseBuildPlatform\n" );
 
     QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( PrinterMaximumHeight );
+    shepherd->doMoveTo( PrinterMaximumZ );
 }
 
 void Window::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
@@ -386,9 +392,8 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager = nullptr;
     }
 
-    prepareTab->setPrepareButtonEnabled( true );
-
     debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", _isModelRendered, _isPrinterPrepared );
+    prepareTab->setPrepareButtonEnabled( true );
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     statusTab->setStopButtonEnabled( false );
 }

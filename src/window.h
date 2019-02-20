@@ -1,6 +1,8 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
 
+#include "coordinate.h"
+
 class Shepherd;
 class PrintManager;
 class PrintJob;
@@ -73,6 +75,7 @@ private slots:
     void tabs_currentChanged( int index );
 
     void selectTab_modelSelected( bool const success, QString const& fileName );
+    void selectTab_modelDimensioned( size_t const vertexCount, Coordinate const sizeX, Coordinate const sizeY, Coordinate const sizeZ );
 
     void prepareTab_sliceStarted( );
     void prepareTab_sliceComplete( bool const success );
