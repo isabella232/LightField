@@ -6,6 +6,8 @@ QSize   extern const MaximalRightHandPaneSize;
 QSize   extern const PngDisplayWindowSize;
 QString extern const StlModelLibraryPath;
 
-double         const PrinterMaximumHeight     = 40.0;
+double         const PrinterMaximumX          = 64.0;
+double         const PrinterMaximumY          = 40.0;
+double         const PrinterMaximumZ          = 40.0;
 
 #endif // __CONSTANTS_H__
