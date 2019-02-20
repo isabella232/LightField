@@ -19,8 +19,8 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
     _bedHeightLabelLayout->addWidget( _bedHeightLabel );
     _bedHeightLabelLayout->addWidget( _bedHeightValue );
 
-    _bedHeightDial->setMinimum( -1000 * PrinterMaximumHeight );
-    _bedHeightDial->setMaximum(  1000 * PrinterMaximumHeight );
+    _bedHeightDial->setMinimum( -1000 * PrinterMaximumZ );
+    _bedHeightDial->setMaximum(  1000 * PrinterMaximumZ );
     _bedHeightDial->setNotchesVisible( true );
     _bedHeightDial->setSingleStep( 100 );
     _bedHeightDial->setPageStep( 1000 );
@@ -34,8 +34,8 @@ BedHeightAdjustmentDialog::BedHeightAdjustmentDialog( QWidget* parent, Qt::Windo
     _bedHeightDialRightLabel->setAlignment( Qt::AlignRight   );
 
     _bedHeightDialTopLabel  ->setText( QString( "0.000" ) );
-    _bedHeightDialLeftLabel ->setText( QString(    "%1" ).arg( -PrinterMaximumHeight, 0, 'f', 3 ) );
-    _bedHeightDialRightLabel->setText( QString(    "%1" ).arg(  PrinterMaximumHeight, 0, 'f', 3 ) );
+    _bedHeightDialLeftLabel ->setText( QString(    "%1" ).arg( -PrinterMaximumZ, 0, 'f', 3 ) );
+    _bedHeightDialRightLabel->setText( QString(    "%1" ).arg(  PrinterMaximumZ, 0, 'f', 3 ) );
 
     _bedHeightDialLowerLabelsLayout->addStretch( );
     _bedHeightDialLowerLabelsLayout->addWidget( _bedHeightDialLeftLabel );

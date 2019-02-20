@@ -317,7 +317,7 @@ void PrepareTab::_adjustBuildPlatform_complete( bool ) {
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendResinLoadMove_complete );
     _shepherd->doSend( QStringList {
         QString( "G90" ),
-        QString( "G0 X%1" ).arg( PrinterMaximumHeight, 0, 'f', 3 )
+        QString( "G0 X%1" ).arg( PrinterMaximumZ, 0, 'f', 3 )
     } );
 }
 
