@@ -144,6 +144,7 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
 void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
     debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", ToString( success ), fileName.toUtf8( ).data( ) );
     _isModelRendered = false;
+
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
@@ -183,15 +184,18 @@ void Window::prepareTab_renderComplete( bool const success ) {
     }
 
     prepareTab->setSliceButtonEnabled( true );
-    printTab->setPrintButtonEnabled( _isPrinterPrepared && _isModelRendered );
-    if ( tabs->currentIndex( ) == +TabIndex::Prepare ) {
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
 
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
     _isPrinterPrepared = success;
-    printTab->setPrintButtonEnabled( _isPrinterPrepared && _isModelRendered );
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
+        tabs->setCurrentIndex( +TabIndex::Print );
+    }
 }
 
 void Window::printTab_printButtonClicked( ) {
@@ -382,9 +386,8 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager = nullptr;
     }
 
-    _isPrinterPrepared = false;
     prepareTab->setPrepareButtonEnabled( true );
-    printTab->setPrintButtonEnabled( _isPrinterPrepared && _isModelRendered );
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     statusTab->setStopButtonEnabled( false );
 }
 
