@@ -18,6 +18,8 @@ public:
 
 protected:
 
+    virtual void showEvent( QShowEvent* ) override;
+
 private:
 
     QLabel*      printerStateLabel          { new QLabel      };
@@ -30,17 +32,21 @@ private:
     QLabel*      currentLayerDisplay        { new QLabel      };
     QVBoxLayout* progressControlsLayout     { new QVBoxLayout };
     QWidget*     progressControlsContainer  { new QWidget     };
-    QLabel*      currentLayerImageLabel     { new QLabel      };
-    QLabel*      currentLayerImageDisplay   { new QLabel      };
+    QLabel*      currentLayerImage          { new QLabel      };
     QVBoxLayout* currentLayerImageLayout    { new QVBoxLayout };
-    QWidget*     currentLayerImageContainer { new QWidget     };
+    QGroupBox*   currentLayerImageGroup     { new QGroupBox   };
     QPushButton* stopButton                 { new QPushButton };
     QGridLayout* _layout                    { new QGridLayout };
     PrintJob*    _printJob                  { };
     bool         _isPrinterOnline           { };
+    int          _maxLayerImageWidth        { -1 };
 
     QPalette     _stopButtonEnabledPalette  { };
     QPalette     _stopButtonDisabledPalette { };
+
+    std::function<void( )> _initialShowEventFunc;
+
+    void _initialShowEvent( );
 
 signals:
 

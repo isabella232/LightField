@@ -16,7 +16,8 @@ public:
 
     Shepherd* shepherd( ) const { return _shepherd; }
 
-    bool isSliceButtonEnabled( ) const { return sliceButton->isEnabled( ); }
+    bool isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
+    bool   isSliceButtonEnabled( ) const { return    sliceButton->isEnabled( ); }
 
 protected:
 
@@ -47,7 +48,7 @@ private:
     QGroupBox*             _prepareGroup          { new QGroupBox    };
     QLabel*                _prepareMessage        { new QLabel       };
     QProgressBar*          _prepareProgress       { new QProgressBar };
-    QPushButton*           _continueButton        { new QPushButton  };
+    QPushButton*           _prepareButton         { new QPushButton  };
     QVBoxLayout*           _prepareLayout         { new QVBoxLayout  };
 
     QGridLayout*           _layout                { new QGridLayout  };
@@ -65,10 +66,11 @@ signals:
     void renderStarted( );
     void renderComplete( bool const success );
 
-    void prepareComplete( bool const success );
+    void preparePrinterComplete( bool const success );
 
 public slots:
 
+    void setPrepareButtonEnabled( bool const value );
     void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
     void setSliceButtonEnabled( bool const value );
@@ -87,7 +89,7 @@ private slots:
     void svgRenderer_progress( int const currentLayer );
     void svgRenderer_done( int const totalLayers );
 
-    void _continueButton_clicked( bool );
+    void _prepareButton_clicked( bool );
     void _sendHome_complete( bool const success );
     void _adjustBuildPlatform_complete( bool );
     void _sendResinLoadMove_complete( bool const success );

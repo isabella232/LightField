@@ -7,6 +7,7 @@
 #include "shepherd.h"
 #include "printmanager.h"
 #include "printjob.h"
+#include "strings.h"
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
@@ -27,19 +28,25 @@ namespace {
 }
 
 Window::Window( QWidget *parent ): QMainWindow( parent ) {
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
+    setFixedSize( MainWindowSize );
+    move( g_settings.mainWindowPosition );
+
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
-
-    printJob   = new PrintJob;
 
     selectTab  = new SelectTab;
     prepareTab = new PrepareTab;
     printTab   = new PrintTab;
     statusTab  = new StatusTab;
 
-    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
-    setFixedSize( MainWindowSize );
-    move( g_settings.mainWindowPosition );
+    QObject::connect( this, &Window::printJobChanged, selectTab,  &SelectTab::setPrintJob  );
+    QObject::connect( this, &Window::printJobChanged, prepareTab, &PrepareTab::setPrintJob );
+    QObject::connect( this, &Window::printJobChanged, printTab,   &PrintTab::setPrintJob   );
+    QObject::connect( this, &Window::printJobChanged, statusTab,  &StatusTab::setPrintJob  );
+
+    printJob = new PrintJob;
+    emit printJobChanged( printJob );
 
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
@@ -55,9 +62,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     selectTab->setContentsMargins( { } );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    selectTab->setPrintJob( printJob );
-    QObject::connect( selectTab, &SelectTab::modelSelected, this,      &Window::selectTab_modelSelected );
-    QObject::connect( this,      &Window::printJobChanged,  selectTab, &SelectTab::setPrintJob          );
+    QObject::connect( selectTab, &SelectTab::modelSelected, this, &Window::selectTab_modelSelected );
 
     //
     // "Prepare" tab
@@ -65,13 +70,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     prepareTab->setContentsMargins( { } );
     prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    prepareTab->setPrintJob( printJob );
     prepareTab->setShepherd( shepherd );
-    QObject::connect( prepareTab, &PrepareTab::sliceStarted,   this,       &Window::prepareTab_sliceStarted   );
-    QObject::connect( prepareTab, &PrepareTab::sliceComplete,  this,       &Window::prepareTab_sliceComplete  );
-    QObject::connect( prepareTab, &PrepareTab::renderStarted,  this,       &Window::prepareTab_renderStarted  );
-    QObject::connect( prepareTab, &PrepareTab::renderComplete, this,       &Window::prepareTab_renderComplete );
-    QObject::connect( this,       &Window::printJobChanged,    prepareTab, &PrepareTab::setPrintJob           );
+    QObject::connect( prepareTab, &PrepareTab::sliceStarted,           this, &Window::prepareTab_sliceStarted           );
+    QObject::connect( prepareTab, &PrepareTab::sliceComplete,          this, &Window::prepareTab_sliceComplete          );
+    QObject::connect( prepareTab, &PrepareTab::renderStarted,          this, &Window::prepareTab_renderStarted          );
+    QObject::connect( prepareTab, &PrepareTab::renderComplete,         this, &Window::prepareTab_renderComplete         );
+    QObject::connect( prepareTab, &PrepareTab::preparePrinterComplete, this, &Window::prepareTab_preparePrinterComplete );
 
     //
     // "Print" tab
@@ -79,15 +83,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     printTab->setContentsMargins( { } );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    printTab->setPrintJob( printJob );
-    QObject::connect( printTab, &PrintTab::printButtonClicked,    this,     &Window::printTab_printButtonClicked    );
-    QObject::connect( printTab, &PrintTab::adjustBedHeight,       this,     &Window::printTab_adjustBedHeight       );
-    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,    this,     &Window::printTab_raiseBuildPlatform    );
-    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,    this,     &Window::printTab_lowerBuildPlatform    );
-    QObject::connect( printTab, &PrintTab::homePrinter,           this,     &Window::printTab_homePrinter           );
-    QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this,     &Window::printTab_moveBuildPlatformUp   );
-    QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this,     &Window::printTab_moveBuildPlatformDown );
-    QObject::connect( this,     &Window::printJobChanged,         printTab, &PrintTab::setPrintJob                  );
+    QObject::connect( printTab, &PrintTab::printButtonClicked,    this, &Window::printTab_printButtonClicked    );
+    QObject::connect( printTab, &PrintTab::adjustBedHeight,       this, &Window::printTab_adjustBedHeight       );
+    QObject::connect( printTab, &PrintTab::raiseBuildPlatform,    this, &Window::printTab_raiseBuildPlatform    );
+    QObject::connect( printTab, &PrintTab::lowerBuildPlatform,    this, &Window::printTab_lowerBuildPlatform    );
+    QObject::connect( printTab, &PrintTab::homePrinter,           this, &Window::printTab_homePrinter           );
+    QObject::connect( printTab, &PrintTab::moveBuildPlatformUp,   this, &Window::printTab_moveBuildPlatformUp   );
+    QObject::connect( printTab, &PrintTab::moveBuildPlatformDown, this, &Window::printTab_moveBuildPlatformDown );
 
     //
     // "Status" tab
@@ -95,10 +97,8 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     statusTab->setContentsMargins( { } );
     statusTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    statusTab->setPrintJob( printJob );
-    QObject::connect( statusTab, &StatusTab::stopButtonClicked, this,      &Window::statusTab_stopButtonClicked );
-    QObject::connect( statusTab, &StatusTab::printComplete,     this,      &Window::statusTab_cleanUpAfterPrint );
-    QObject::connect( this,      &Window::printJobChanged,      statusTab, &StatusTab::setPrintJob              );
+    QObject::connect( statusTab, &StatusTab::stopButtonClicked, this, &Window::statusTab_stopButtonClicked );
+    QObject::connect( statusTab, &StatusTab::printComplete,     this, &Window::statusTab_cleanUpAfterPrint );
 
     //
     // Tab widget
@@ -106,10 +106,10 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
     tabs->setContentsMargins( { } );
-    tabs->addTab( selectTab,      "Select"    );
-    tabs->addTab( prepareTab,     "Prepare"   );
-    tabs->addTab( printTab,       "Print"     );
-    tabs->addTab( statusTab,      "Status"    );
+    tabs->addTab( selectTab,  "Select"  );
+    tabs->addTab( prepareTab, "Prepare" );
+    tabs->addTab( printTab,   "Print"   );
+    tabs->addTab( statusTab,  "Status"  );
     tabs->setCurrentIndex( +TabIndex::Select );
 
     setCentralWidget( tabs );
@@ -142,7 +142,9 @@ void Window::shepherd_processError( QProcess::ProcessError error ) {
 }
 
 void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
-    debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", success ? "true" : "false", fileName.toUtf8( ).data( ) );
+    debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", ToString( success ), fileName.toUtf8( ).data( ) );
+    _isModelRendered = false;
+
     if ( success ) {
         prepareTab->setSliceButtonEnabled( true );
         printJob->modelFileName = fileName;
@@ -156,12 +158,14 @@ void Window::selectTab_modelSelected( bool const success, QString const& fileNam
 
 void Window::prepareTab_sliceStarted( ) {
     debug( "+ Window::prepareTab_sliceStarted\n" );
+    _isModelRendered = false;
+
     prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
 }
 
 void Window::prepareTab_sliceComplete( bool const success ) {
-    debug( "+ Window::prepareTab_sliceComplete: success: %s\n", success ? "true" : "false" );
+    debug( "+ Window::prepareTab_sliceComplete: success: %s\n", ToString( success ) );
     if ( !success ) {
         return;
     }
@@ -172,14 +176,24 @@ void Window::prepareTab_renderStarted( ) {
 }
 
 void Window::prepareTab_renderComplete( bool const success ) {
-    debug( "+ Window::prepareTab_renderComplete: success: %s\n", success ? "true" : "false" );
+    debug( "+ Window::prepareTab_renderComplete: success: %s\n", ToString( success ) );
+    _isModelRendered = success;
+
     if ( !success ) {
         return;
     }
 
     prepareTab->setSliceButtonEnabled( true );
-    printTab->setPrintButtonEnabled( true );
-    if ( tabs->currentIndex( ) == +TabIndex::Prepare ) {
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
+        tabs->setCurrentIndex( +TabIndex::Print );
+    }
+}
+
+void Window::prepareTab_preparePrinterComplete( bool const success ) {
+    _isPrinterPrepared = success;
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
@@ -220,6 +234,7 @@ void Window::printTab_printButtonClicked( ) {
     printJob = newJob;
     emit printJobChanged( printJob );
 
+    prepareTab->setPrepareButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( true );
 }
@@ -370,7 +385,9 @@ void Window::statusTab_cleanUpAfterPrint( ) {
         printManager->deleteLater( );
         printManager = nullptr;
     }
-    printTab->setPrintButtonEnabled( false );
+
+    prepareTab->setPrepareButtonEnabled( true );
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     statusTab->setStopButtonEnabled( false );
 }
 

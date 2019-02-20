@@ -36,15 +36,18 @@ protected:
 
 private:
 
-    Shepherd*     shepherd;
-    PrintManager* printManager { };
     PrintJob*     printJob;
+    PrintManager* printManager       { };
+    Shepherd*     shepherd;
 
-    QTabWidget*   tabs         { new QTabWidget };
+    QTabWidget*   tabs               { new QTabWidget };
     SelectTab*    selectTab;
     PrepareTab*   prepareTab;
     PrintTab*     printTab;
     StatusTab*    statusTab;
+
+    bool          _isPrinterPrepared { };
+    bool          _isModelRendered   { };
 
 signals:
 
@@ -75,6 +78,7 @@ private slots:
     void prepareTab_sliceComplete( bool const success );
     void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool const success );
+    void prepareTab_preparePrinterComplete( bool const success );
 
     void printTab_printButtonClicked( );
 
