@@ -136,7 +136,11 @@ void StatusTab::printManager_printStarting( ) {
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
-    currentLayerImage->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) ).scaledToWidth( currentLayerImageGroup->width( ), Qt::SmoothTransformation ) );
+    auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) );
+    if ( ( pixmap.width( ) > currentLayerImageGroup->width( ) ) || ( pixmap.height( ) > currentLayerImageGroup->height( ) ) ) {
+        pixmap = pixmap.scaled( currentLayerImageGroup->width( ), currentLayerImageGroup->height( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+    currentLayerImage->setPixmap( pixmap );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {

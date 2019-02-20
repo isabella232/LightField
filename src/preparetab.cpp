@@ -251,7 +251,12 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
         renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
-            currentSliceImage->setPixmap( QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) ).scaledToWidth( _maxSliceImageWidth, Qt::SmoothTransformation ) );
+            auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) );
+            // comparing height against width is not an error here -- the slice image widget is square
+            if ( ( pixmap.width( ) > _maxSliceImageWidth ) || ( pixmap.height( ) > _maxSliceImageWidth ) ) {
+                pixmap = pixmap.scaled( _maxSliceImageWidth, _maxSliceImageWidth, Qt::KeepAspectRatio, Qt::SmoothTransformation );
+            }
+            currentSliceImage->setPixmap( pixmap );
         }
     }
 }
