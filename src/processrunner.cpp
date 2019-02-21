@@ -47,7 +47,7 @@ void ProcessRunner::processErrorOccurred( QProcess::ProcessError error ) {
     debug( "+ ProcessRunner::processErrorOccurred: %d\n", static_cast<int>( error ) );
     // won't get signal "finished" if FailedToStart, so emit signal "failed" here for that case
     if ( error == QProcess::FailedToStart ) {
-        debug( "+ ProcessRunner::processFinished: process failed to start\n" );
+        debug( "+ ProcessRunner::processErrorOccurred: process failed to start\n" );
         emit failed( QProcess::FailedToStart );
     }
 }
