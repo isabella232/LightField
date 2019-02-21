@@ -10,20 +10,17 @@
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
-    layerThicknessLabel->setText( "Layer thickness:" );
+    layerThicknessLabel->setText( "Layer height:" );
 
-    layerThickness50Button->setText( "50 µm" );
-    layerThickness100Button->setText( "100 µm" );
-    layerThickness200Button->setText( "200 µm" );
+    layerThickness50Button->setText( "High res (50 µm)" );
+    layerThickness100Button->setText( "Medium res (100 µm)" );
     layerThickness100Button->setChecked( true );
     QObject::connect( layerThickness50Button,  &QPushButton::toggled, this, &PrepareTab::layerThickness50Button_toggled  );
     QObject::connect( layerThickness100Button, &QPushButton::toggled, this, &PrepareTab::layerThickness100Button_toggled );
-    QObject::connect( layerThickness200Button, &QPushButton::toggled, this, &PrepareTab::layerThickness200Button_toggled );
 
     layerThicknessButtonsLayout->setContentsMargins( { } );
-    layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
-    layerThicknessButtonsLayout->addWidget( layerThickness200Button );
+    layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
 
     sliceProgressLabel->setText( "Slicer status:" );
     sliceProgressLabel->setBuddy( sliceStatus );
@@ -157,10 +154,6 @@ void PrepareTab::layerThickness50Button_toggled( bool checked ) {
 
 void PrepareTab::layerThickness100Button_toggled( bool checked ) {
     _printJob->layerThickness = 100;
-}
-
-void PrepareTab::layerThickness200Button_toggled( bool checked ) {
-    _printJob->layerThickness = 200;
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
