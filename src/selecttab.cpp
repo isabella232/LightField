@@ -6,6 +6,7 @@
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
+#include "shepherd.h"
 #include "strings.h"
 
 namespace {
@@ -212,4 +213,8 @@ bool SelectTab::_loadModel( QString const& fileName ) {
 void SelectTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+}
+
+void SelectTab::setShepherd( Shepherd* newShepherd ) {
+    _shepherd = newShepherd;
 }

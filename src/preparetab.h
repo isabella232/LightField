@@ -14,10 +14,9 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    Shepherd* shepherd( ) const { return _shepherd; }
-
-    bool isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
-    bool   isSliceButtonEnabled( ) const { return    sliceButton->isEnabled( ); }
+    bool      isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
+    bool        isSliceButtonEnabled( ) const { return    sliceButton->isEnabled( ); }
+    Shepherd* shepherd( )               const { return _shepherd;                    }
 
 protected:
 

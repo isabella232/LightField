@@ -3,6 +3,7 @@
 #include "statustab.h"
 
 #include "printjob.h"
+#include "shepherd.h"
 
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this );
@@ -157,6 +158,17 @@ void StatusTab::printManager_printComplete( bool const success ) {
 void StatusTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+}
+
+void StatusTab::setShepherd( Shepherd* newShepherd ) {
+    if ( _shepherd ) {
+        QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    }
+
+    _shepherd = newShepherd;
+
+    QObject::connect( _shepherd, &Shepherd::printer_online,  this, &StatusTab::printer_online  );
+    QObject::connect( _shepherd, &Shepherd::printer_offline, this, &StatusTab::printer_offline );
 }
 
 void StatusTab::setStopButtonEnabled( bool value ) {

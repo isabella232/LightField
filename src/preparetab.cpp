@@ -397,8 +397,9 @@ void PrepareTab::setPrintJob( PrintJob* printJob ) {
     _printJob = printJob;
 }
 
-void PrepareTab::setShepherd( Shepherd* shepherd ) {
-    _shepherd = shepherd;
+void PrepareTab::setShepherd( Shepherd* newShepherd ) {
+    // TODO disconnect/reconnect events?
+    _shepherd = newShepherd;
 }
 
 void PrepareTab::setSliceButtonEnabled( bool const value ) {

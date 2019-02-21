@@ -2,6 +2,7 @@
 #define __STATUSTAB_H__
 
 class PrintJob;
+class Shepherd;
 
 class StatusTab: public QWidget {
 
@@ -15,6 +16,8 @@ public:
     bool isStopButtonEnabled( ) {
         return stopButton->isEnabled( );
     }
+
+    Shepherd* shepherd( ) const { return _shepherd; }
 
 protected:
 
@@ -38,6 +41,7 @@ private:
     QPushButton* stopButton                 { new QPushButton };
     QGridLayout* _layout                    { new QGridLayout };
     PrintJob*    _printJob                  { };
+    Shepherd*    _shepherd                  { };
     bool         _isPrinterOnline           { };
     int          _maxLayerImageWidth        { -1 };
 
@@ -56,6 +60,7 @@ signals:
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setShepherd( Shepherd* shepherd );
     void setStopButtonEnabled( bool value );
 
     void printer_online( );

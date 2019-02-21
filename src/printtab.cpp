@@ -2,8 +2,9 @@
 
 #include "printtab.h"
 
-#include "printjob.h"
 #include "bedheightadjustment.h"
+#include "printjob.h"
+#include "shepherd.h"
 #include "strings.h"
 
 namespace {
@@ -312,6 +313,20 @@ void PrintTab::moveBuildPlatformDownComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
+void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
+    debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
+    _adjustBedHeightButton->setEnabled( value );
+    _raiseOrLowerButton   ->setEnabled( value );
+    _homeButton           ->setEnabled( value );
+    _moveUpButton         ->setEnabled( value );
+    _moveDownButton       ->setEnabled( value );
+}
+
+void PrintTab::setPrintButtonEnabled( bool const value ) {
+    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
+    printButton->setEnabled( value );
+}
+
 void PrintTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
@@ -331,16 +346,6 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
     powerLevelDial->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
 }
 
-void PrintTab::setPrintButtonEnabled( bool const value ) {
-    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
-    printButton->setEnabled( value );
-}
-
-void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
-    debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
-    _adjustBedHeightButton->setEnabled( value );
-    _raiseOrLowerButton   ->setEnabled( value );
-    _homeButton           ->setEnabled( value );
-    _moveUpButton         ->setEnabled( value );
-    _moveDownButton       ->setEnabled( value );
+void PrintTab::setShepherd( Shepherd* newShepherd ) {
+    _shepherd = newShepherd;
 }
