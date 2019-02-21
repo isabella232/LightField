@@ -24,35 +24,38 @@ protected:
 
 private:
 
-    PrintJob*              _printJob              { };
-    Shepherd*              _shepherd              { };
-    QProcess*              slicerProcess          { };
-    SvgRenderer*           svgRenderer            { };
+    PrintJob*              _printJob                   { };
+    Shepherd*              _shepherd                   { };
+    QProcess*              slicerProcess               { };
+    SvgRenderer*           svgRenderer                 { };
 
-    QLabel*                layerThicknessLabel    { new QLabel       };
-    QComboBox*             layerThicknessComboBox { new QComboBox    };
+    QLabel*                layerThicknessLabel         { new QLabel       };
+    QRadioButton*          layerThickness50Button      { new QRadioButton };
+    QRadioButton*          layerThickness100Button     { new QRadioButton };
+    QRadioButton*          layerThickness200Button     { new QRadioButton };
+    QHBoxLayout*           layerThicknessButtonsLayout { new QHBoxLayout  };
 
-    QLabel*                sliceProgressLabel     { new QLabel       };
-    QLabel*                sliceStatus            { new QLabel       };
-    QLabel*                renderProgressLabel    { new QLabel       };
-    QLabel*                renderStatus           { new QLabel       };
-    QLabel*                currentSliceLabel      { new QLabel       };
-    QLabel*                currentSliceImage      { new QLabel       };
-    QVBoxLayout*           currentSliceLayout     { new QVBoxLayout  };
+    QLabel*                sliceProgressLabel          { new QLabel       };
+    QLabel*                sliceStatus                 { new QLabel       };
+    QLabel*                renderProgressLabel         { new QLabel       };
+    QLabel*                renderStatus                { new QLabel       };
+    QLabel*                currentSliceLabel           { new QLabel       };
+    QLabel*                currentSliceImage           { new QLabel       };
+    QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
 
-    QVBoxLayout*           optionsLayout          { new QVBoxLayout  };
-    QWidget*               optionsContainer       { new QWidget      };
-    QPushButton*           sliceButton            { new QPushButton  };
+    QVBoxLayout*           optionsLayout               { new QVBoxLayout  };
+    QWidget*               optionsContainer            { new QWidget      };
+    QPushButton*           sliceButton                 { new QPushButton  };
 
-    QGroupBox*             _prepareGroup          { new QGroupBox    };
-    QLabel*                _prepareMessage        { new QLabel       };
-    QProgressBar*          _prepareProgress       { new QProgressBar };
-    QPushButton*           _prepareButton         { new QPushButton  };
-    QVBoxLayout*           _prepareLayout         { new QVBoxLayout  };
+    QGroupBox*             _prepareGroup               { new QGroupBox    };
+    QLabel*                _prepareMessage             { new QLabel       };
+    QProgressBar*          _prepareProgress            { new QProgressBar };
+    QPushButton*           _prepareButton              { new QPushButton  };
+    QVBoxLayout*           _prepareLayout              { new QVBoxLayout  };
 
-    QGridLayout*           _layout                { new QGridLayout  };
+    QGridLayout*           _layout                     { new QGridLayout  };
 
-    int                    _maxSliceImageWidth    { -1               };
+    int                    _maxSliceImageWidth         { -1               };
 
     std::function<void( )> _initialShowEventFunc;
 
@@ -78,7 +81,9 @@ protected slots:
 
 private slots:
 
-    void layerThicknessComboBox_currentIndexChanged( int index );
+    void layerThickness50Button_toggled( bool checked );
+    void layerThickness100Button_toggled( bool checked );
+    void layerThickness200Button_toggled( bool checked );
     void sliceButton_clicked( bool );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );

@@ -7,25 +7,23 @@
 #include "strings.h"
 #include "svgrenderer.h"
 
-namespace {
-
-    std::vector<int> LayerThicknessValues { 50, 100, 200 };
-
-}
-
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
     layerThicknessLabel->setText( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessComboBox );
 
-    layerThicknessComboBox->setEditable( false );
-    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessValues.size( ) );
-    for ( auto value : LayerThicknessValues ) {
-        layerThicknessComboBox->addItem( QString( "%1 µm" ).arg( value ) );
-    }
-    layerThicknessComboBox->setCurrentIndex( 1 );
-    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
+    layerThickness50Button->setText( "50 µm" );
+    layerThickness100Button->setText( "100 µm" );
+    layerThickness200Button->setText( "200 µm" );
+    layerThickness100Button->setChecked( true );
+    QObject::connect( layerThickness50Button,  &QPushButton::toggled, this, &PrepareTab::layerThickness50Button_toggled  );
+    QObject::connect( layerThickness100Button, &QPushButton::toggled, this, &PrepareTab::layerThickness100Button_toggled );
+    QObject::connect( layerThickness200Button, &QPushButton::toggled, this, &PrepareTab::layerThickness200Button_toggled );
+
+    layerThicknessButtonsLayout->setContentsMargins( { } );
+    layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
+    layerThicknessButtonsLayout->addWidget( layerThickness100Button );
+    layerThicknessButtonsLayout->addWidget( layerThickness200Button );
 
     sliceProgressLabel->setText( "Slicer status:" );
     sliceProgressLabel->setBuddy( sliceStatus );
@@ -59,7 +57,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addWidget( layerThicknessComboBox );
+    optionsLayout->addLayout( layerThicknessButtonsLayout );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceStatus );
     optionsLayout->addWidget( renderProgressLabel );
@@ -153,10 +151,16 @@ void PrepareTab::_initialShowEvent( ) {
     _prepareButton->setMinimumWidth( _prepareButton->width( ) + ( maxWidth - minWidth ) );
 }
 
-void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
-    debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+void PrepareTab::layerThickness50Button_toggled( bool checked ) {
+    _printJob->layerThickness = 50;
+}
 
-    _printJob->layerThickness = LayerThicknessValues[index];
+void PrepareTab::layerThickness100Button_toggled( bool checked ) {
+    _printJob->layerThickness = 100;
+}
+
+void PrepareTab::layerThickness200Button_toggled( bool checked ) {
+    _printJob->layerThickness = 200;
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
