@@ -15,8 +15,8 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThickness50Button->setText( "High res (50 µm)" );
     layerThickness100Button->setText( "Medium res (100 µm)" );
     layerThickness100Button->setChecked( true );
-    QObject::connect( layerThickness50Button,  &QPushButton::toggled, this, &PrepareTab::layerThickness50Button_toggled  );
-    QObject::connect( layerThickness100Button, &QPushButton::toggled, this, &PrepareTab::layerThickness100Button_toggled );
+    QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
+    QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
     layerThicknessButtonsLayout->setContentsMargins( { } );
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
@@ -25,18 +25,18 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceProgressLabel->setText( "Slicer status:" );
     sliceProgressLabel->setBuddy( sliceStatus );
 
-    sliceStatus->setText( "Not slicing" );
+    sliceStatus->setText( "Idle" );
     sliceStatus->setFrameShadow( QFrame::Sunken );
     sliceStatus->setFrameStyle( QFrame::StyledPanel );
 
-    renderProgressLabel->setText( "Render status:" );
+    renderProgressLabel->setText( "Image generator:" );
     renderProgressLabel->setBuddy( renderStatus );
 
-    renderStatus->setText( "Not rendering" );
+    renderStatus->setText( "Idle" );
     renderStatus->setFrameShadow( QFrame::Sunken );
     renderStatus->setFrameStyle( QFrame::StyledPanel );
 
-    currentSliceLabel->setText( "Current slice:" );
+    currentSliceLabel->setText( "Current layer:" );
     currentSliceLabel->setBuddy( currentSliceImage );
 
     currentSliceImage->setAlignment( Qt::AlignCenter );
@@ -148,11 +148,13 @@ void PrepareTab::_initialShowEvent( ) {
     _prepareButton->setMinimumWidth( _prepareButton->width( ) + ( maxWidth - minWidth ) );
 }
 
-void PrepareTab::layerThickness50Button_toggled( bool checked ) {
+void PrepareTab::layerThickness50Button_clicked( bool checked ) {
+    debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
 }
 
-void PrepareTab::layerThickness100Button_toggled( bool checked ) {
+void PrepareTab::layerThickness100Button_clicked( bool checked ) {
+    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
     _printJob->layerThickness = 100;
 }
 
@@ -215,6 +217,8 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "Slicer started" );
+    renderStatus->setText( "Waiting for slicer" );
+    currentSliceImage->setPixmap( QPixmap( ) );
     emit sliceStarted( );
 }
 
@@ -246,7 +250,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
-        renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+        renderStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
             auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) );
             // comparing height against width is not an error here -- the slice image widget is square
@@ -260,9 +264,9 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
 
 void PrepareTab::svgRenderer_done( int const totalLayers ) {
     if ( totalLayers == -1 ) {
-        renderStatus->setText( QString( "Rendering failed" ) );
+        renderStatus->setText( QString( "Image generation failed" ) );
     } else {
-        renderStatus->setText( QString( "Rendering complete" ) );
+        renderStatus->setText( QString( "Image generation complete" ) );
         _printJob->layerCount = totalLayers;
     }
 

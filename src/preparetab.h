@@ -32,7 +32,7 @@ private:
     QLabel*                layerThicknessLabel         { new QLabel       };
     QRadioButton*          layerThickness50Button      { new QRadioButton };
     QRadioButton*          layerThickness100Button     { new QRadioButton };
-    QHBoxLayout*           layerThicknessButtonsLayout { new QHBoxLayout  };
+    QVBoxLayout*           layerThicknessButtonsLayout { new QVBoxLayout  };
 
     QLabel*                sliceProgressLabel          { new QLabel       };
     QLabel*                sliceStatus                 { new QLabel       };
@@ -80,8 +80,8 @@ protected slots:
 
 private slots:
 
-    void layerThickness50Button_toggled( bool checked );
-    void layerThickness100Button_toggled( bool checked );
+    void layerThickness50Button_clicked( bool checked );
+    void layerThickness100Button_clicked( bool checked );
     void sliceButton_clicked( bool );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
