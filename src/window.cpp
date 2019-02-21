@@ -109,12 +109,25 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
+    {
+        auto font { tabs->font( ) };
+        font.setPointSizeF( 13.5f );
+        tabs->setFont( font );
+    }
     tabs->setContentsMargins( { } );
     tabs->addTab( selectTab,  "Select"  );
     tabs->addTab( prepareTab, "Prepare" );
     tabs->addTab( printTab,   "Print"   );
     tabs->addTab( statusTab,  "Status"  );
     tabs->setCurrentIndex( +TabIndex::Select );
+    {
+        auto font { tabs->font( ) };
+        font.setPointSizeF( 9.0f );
+        selectTab ->setFont( font );
+        prepareTab->setFont( font );
+        printTab  ->setFont( font );
+        statusTab ->setFont( font );
+    }
 
     setCentralWidget( tabs );
 }
