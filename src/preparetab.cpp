@@ -83,7 +83,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareMessage->setTextFormat( Qt::RichText );
     _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
     _prepareMessage->setAlignment( Qt::AlignCenter );
-    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 3 / 4 );
+    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 85 / 100 );
     _prepareMessage->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
     _prepareProgress->setRange( 0, 0 );
@@ -218,7 +218,7 @@ void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "Slicer started" );
     renderStatus->setText( "Waiting for slicer" );
-    currentSliceImage->setPixmap( QPixmap( ) );
+    currentSliceImage->clear( );
     emit sliceStarted( );
 }
 
