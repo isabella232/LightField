@@ -8,6 +8,6 @@ QString extern const StlModelLibraryPath;
 
 double         const PrinterMaximumX          = 64.0;
 double         const PrinterMaximumY          = 40.0;
-double         const PrinterMaximumZ          = 40.0;
+double         const PrinterMaximumZ          = 70.0;
 
 #endif // __CONSTANTS_H__
