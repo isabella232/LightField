@@ -3,11 +3,13 @@
 #include "window.h"
 
 #include "app.h"
-#include "signalhandler.h"
-#include "shepherd.h"
-#include "printmanager.h"
 #include "printjob.h"
+#include "printmanager.h"
+#include "shepherd.h"
+#include "signalhandler.h"
 #include "strings.h"
+#include "utils.h"
+
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
@@ -109,25 +111,14 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
-    {
-        auto font { tabs->font( ) };
-        font.setPointSizeF( 13.5f );
-        tabs->setFont( font );
-    }
+    tabs->setFont( ModifyFont( tabs->font( ), 13.5f ) );
     tabs->setContentsMargins( { } );
-    tabs->addTab( selectTab,  "Select"  );
-    tabs->addTab( prepareTab, "Prepare" );
-    tabs->addTab( printTab,   "Print"   );
-    tabs->addTab( statusTab,  "Status"  );
+    auto font9pt = ModifyFont( selectTab->font( ), 9.0f );
+    tabs->addTab( selectTab,  "Select"  ); selectTab ->setFont( font9pt );
+    tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
+    tabs->addTab( printTab,   "Print"   ); printTab  ->setFont( font9pt );
+    tabs->addTab( statusTab,  "Status"  ); statusTab ->setFont( font9pt );
     tabs->setCurrentIndex( +TabIndex::Select );
-    {
-        auto font { tabs->font( ) };
-        font.setPointSizeF( 9.0f );
-        selectTab ->setFont( font );
-        prepareTab->setFont( font );
-        printTab  ->setFont( font );
-        statusTab ->setFont( font );
-    }
 
     setCentralWidget( tabs );
 }
