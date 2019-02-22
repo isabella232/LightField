@@ -257,7 +257,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
 
     ++_currentLayer;
     if ( _currentLayer == _printJob->layerCount ) {
-        QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
+        QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::step8_LiftUpComplete );
         debug( "+ PrintManager::step7_preLiftTimerExpired: raising build platform\n" );
         _shepherd->doMoveTo( PrinterMaximumZ );
     } else {
@@ -266,7 +266,7 @@ void PrintManager::step7_preLiftTimerExpired( ) {
 }
 
 void PrintManager::step8_LiftUpComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::step8_LiftUpComplete );
 
     debug( "+ PrintManager::step8_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
     _cleanUp( );
