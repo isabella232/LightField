@@ -158,7 +158,7 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
         auto sizeYstring = GroupDigits( QString( "%1" ).arg( sizeY,                          0, 'f', 2 ), ' ' );
         auto sizeZstring = GroupDigits( QString( "%1" ).arg( sizeZ,                          0, 'f', 2 ), ' ' );
         auto volume      = GroupDigits( QString( "%1" ).arg( sizeX * sizeY * sizeZ / 1000.0, 0, 'f', 2 ), ' ' );
-        _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm  •  %4 ml" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ).arg( volume ) );
+        _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm  •  %4 mL" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ).arg( volume ) );
     }
 
     if ( ( sizeX > PrinterMaximumX ) || ( sizeY > PrinterMaximumY ) || ( sizeZ > PrinterMaximumZ ) ) {
