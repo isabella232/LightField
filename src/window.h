@@ -37,6 +37,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
+    virtual void showEvent( QShowEvent* event ) override;
 
 private:
 
@@ -53,6 +54,10 @@ private:
 
     bool          _isPrinterPrepared { };
     bool          _isModelRendered   { };
+
+    std::function<void( )> _initialShowEventFunc;
+
+    void _initialShowEvent( );
 
 signals:
 

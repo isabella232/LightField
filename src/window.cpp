@@ -38,6 +38,8 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
+    _initialShowEventFunc = std::bind( &Window::_initialShowEvent, this );
+
     //welcomeTab = new WelcomeTab;
     selectTab  = new SelectTab;
     prepareTab = new PrepareTab;
@@ -122,7 +124,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
-    tabs->setFont( ModifyFont( tabs->font( ), 13.5f ) );
+    tabs->setFont( ModifyFont( tabs->font( ), 22.0f/*13.5f*/ ) );
     tabs->setContentsMargins( { } );
     auto font9pt = ModifyFont( selectTab->font( ), 9.0f );
     //tabs->addTab( welcomeTab, "Welcome" ); welcomeTab->setFont( font9pt );
@@ -130,8 +132,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
     tabs->addTab( printTab,   "Print"   ); printTab  ->setFont( font9pt );
     tabs->addTab( statusTab,  "Status"  ); statusTab ->setFont( font9pt );
-    tabs->setCurrentIndex( +TabIndex::Select );
-    //tabs->setCurrentIndex( +TabIndex::Welcome );
+    tabs->setCurrentIndex( +TabIndex::Select/*+TabIndex::Welcome*/ );
 
     setCentralWidget( tabs );
 }
@@ -148,6 +149,18 @@ void Window::closeEvent( QCloseEvent* event ) {
     }
     shepherd->doTerminate( );
     event->accept( );
+}
+
+void Window::showEvent( QShowEvent* event ) {
+    if ( _initialShowEventFunc ) {
+        _initialShowEventFunc( );
+        _initialShowEventFunc = nullptr;
+    }
+    event->ignore( );
+}
+
+void Window::_initialShowEvent( ) {
+    debug( "+ Window::_initialShowEvent: tabs->tabBar()->height() %d\n", tabs->tabBar( )->height( ) );
 }
 
 void Window::shepherd_started( ) {
