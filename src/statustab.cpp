@@ -4,6 +4,7 @@
 
 #include "printjob.h"
 #include "shepherd.h"
+#include "utils.h"
 
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this );
@@ -22,7 +23,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
     projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
-    jobStateLabel->setText( "Job status:" );
+    jobStateLabel->setText( "Print status:" );
     jobStateLabel->setBuddy( jobStateDisplay );
 
     jobStateDisplay->setText( "Not printing" );
@@ -52,32 +53,30 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     currentLayerImage->setAlignment( Qt::AlignCenter );
     currentLayerImage->setContentsMargins( { } );
-    {
-        auto pal = currentLayerImage->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
-        currentLayerImage->setPalette( pal );
-    }
+    currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
+
+    auto imageBackground = new QWidget( );
+    imageBackground->setContentsMargins( { } );
+    imageBackground->setFixedWidth( MaximalRightHandPaneSize.width( ) );
+    imageBackground->setFixedHeight( MaximalRightHandPaneSize.width( ) / AspectRatio16to10 + 0.5 );
+    imageBackground->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    imageBackground->setLayout( WrapWidgetInVBox( currentLayerImage ) );
+    imageBackground->setStyleSheet( QString( "QWidget { background: black }" ) );
 
     currentLayerImageGroup->setTitle( "Current layer" );
-    currentLayerImageGroup->setLayout( currentLayerImageLayout );
     currentLayerImageGroup->setContentsMargins( { } );
     currentLayerImageGroup->setMinimumSize( MaximalRightHandPaneSize );
-
-    currentLayerImageLayout->setAlignment( Qt::AlignCenter );
-    currentLayerImageLayout->setContentsMargins( { } );
-    currentLayerImageLayout->addWidget( currentLayerImage );
+    currentLayerImageGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentLayerImageGroup->setLayout( WrapWidgetInVBox( imageBackground ) );
 
     {
-        auto font { stopButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        font.setWeight( QFont::Bold );
-        stopButton->setFont( font );
-
-        _stopButtonEnabledPalette  = stopButton->palette( );
+        _stopButtonEnabledPalette  =  stopButton->palette( );
         _stopButtonDisabledPalette = _stopButtonEnabledPalette;
         _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
         _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
     }
+    stopButton->setFont( ModifyFont( stopButton->font( ), 22.25f, QFont::Bold ) );
     stopButton->setText( "STOP" );
     stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     stopButton->setEnabled( false );
@@ -138,10 +137,9 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
     auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) );
-    if ( ( pixmap.width( ) > currentLayerImageGroup->width( ) ) || ( pixmap.height( ) > currentLayerImageGroup->height( ) ) ) {
-        pixmap = pixmap.scaled( currentLayerImageGroup->width( ), currentLayerImageGroup->height( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
-    }
-    currentLayerImage->setPixmap( pixmap );
+    int scaledWidth  = pixmap.width( )  / 1280.0 * static_cast<double>( currentLayerImageGroup->width( )  ) + 0.5;
+    int scaledHeight = pixmap.height( ) /  800.0 * static_cast<double>( currentLayerImageGroup->height( ) ) + 0.5;
+    currentLayerImage->setPixmap( pixmap.scaled( scaledWidth, scaledHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
