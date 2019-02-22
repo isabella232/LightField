@@ -33,9 +33,10 @@ private:
 
     QProcess*      _process;
     QString        _buffer;
-    PendingCommand _pendingCommand  { PendingCommand::none };
-    int            _okCount         { };
-    int            _expectedOkCount { };
+    PendingCommand _pendingCommand        { PendingCommand::none };
+    int            _okCount               { };
+    int            _expectedOkCount       { };
+    bool           _isTerminationExpected { };
 
     bool           getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
     QStringList    splitLine( QString const& line );
@@ -46,8 +47,8 @@ private:
 signals:
 
     void shepherd_started( );
-    void shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus );
-    void shepherd_processError( QProcess::ProcessError error );
+    void shepherd_startFailed( );
+    void shepherd_terminated( bool const expected, bool const cleanExit );
 
     void printer_online( );
     void printer_offline( );

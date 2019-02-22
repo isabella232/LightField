@@ -1,6 +1,6 @@
 QT += core gui opengl widgets xml
 
-TARGET = fstl
+TARGET = lf
 TEMPLATE = app
 
 # Bump optimization up to -O3 in release builds
@@ -29,7 +29,8 @@ SOURCES += \
     ../src/printtab.cpp \
     ../src/statustab.cpp \
     ../src/constants.cpp \
-    ../src/bedheightadjustment.cpp
+    ../src/bedheightadjustment.cpp \
+    ../src/utils.cpp
 
 HEADERS  += \
     ../src/app.h\
@@ -54,24 +55,14 @@ HEADERS  += \
     ../src/statustab.h \
     ../src/constants.h \
     ../src/bedheightadjustment.h \
+    ../src/utils.h \
     ../src/debug.h
 
 CONFIG += c++17
 CONFIG += precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
-RESOURCES += \
-    qt.qrc \
-    ../gl/gl.qrc
-
-macx {
-    QMAKE_INFO_PLIST = ../app/Info.plist
-    ICON = ../app/fstl.icns
-}
-
-win32 {
-    RC_FILE = ../exe/fstl.rc
-}
+RESOURCES += ../gl/gl.qrc ../breeze/breeze.qrc
 
 linux {
     target.path = /usr/bin

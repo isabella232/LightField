@@ -6,42 +6,41 @@
 #include "shepherd.h"
 #include "strings.h"
 #include "svgrenderer.h"
-
-namespace {
-
-    std::vector<int> LayerThicknessValues { 50, 100, 200 };
-
-}
+#include "utils.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
-    layerThicknessLabel->setText( "Layer thickness:" );
-    layerThicknessLabel->setBuddy( layerThicknessComboBox );
+    auto font16pt = ModifyFont( font( ), 16.0f );
+    auto font22pt = ModifyFont( font( ), 22.0f );
 
-    layerThicknessComboBox->setEditable( false );
-    layerThicknessComboBox->setMaxVisibleItems( LayerThicknessValues.size( ) );
-    for ( auto value : LayerThicknessValues ) {
-        layerThicknessComboBox->addItem( QString( "%1 µm" ).arg( value ) );
-    }
-    layerThicknessComboBox->setCurrentIndex( 1 );
-    QObject::connect( layerThicknessComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrepareTab::layerThicknessComboBox_currentIndexChanged );
+    layerThicknessLabel->setText( "Layer height:" );
+
+    layerThickness50Button->setText( "High res (50 µm)" );
+    layerThickness100Button->setText( "Medium res (100 µm)" );
+    layerThickness100Button->setChecked( true );
+    QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
+    QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
+
+    layerThicknessButtonsLayout->setContentsMargins( { } );
+    layerThicknessButtonsLayout->addWidget( layerThickness100Button );
+    layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
 
     sliceProgressLabel->setText( "Slicer status:" );
     sliceProgressLabel->setBuddy( sliceStatus );
 
-    sliceStatus->setText( "Not slicing" );
+    sliceStatus->setText( "Idle" );
     sliceStatus->setFrameShadow( QFrame::Sunken );
     sliceStatus->setFrameStyle( QFrame::StyledPanel );
 
-    renderProgressLabel->setText( "Render status:" );
+    renderProgressLabel->setText( "Image generator:" );
     renderProgressLabel->setBuddy( renderStatus );
 
-    renderStatus->setText( "Not rendering" );
+    renderStatus->setText( "Idle" );
     renderStatus->setFrameShadow( QFrame::Sunken );
     renderStatus->setFrameStyle( QFrame::StyledPanel );
 
-    currentSliceLabel->setText( "Current slice:" );
+    currentSliceLabel->setText( "Current layer:" );
     currentSliceLabel->setBuddy( currentSliceImage );
 
     currentSliceImage->setAlignment( Qt::AlignCenter );
@@ -49,7 +48,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     {
         auto pal = currentSliceImage->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
+        pal.setColor( QPalette::Window, Qt::black );
         currentSliceImage->setPalette( pal );
     }
 
@@ -59,7 +58,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addWidget( layerThicknessComboBox );
+    optionsLayout->addLayout( layerThicknessButtonsLayout );
     optionsLayout->addWidget( sliceProgressLabel );
     optionsLayout->addWidget( sliceStatus );
     optionsLayout->addWidget( renderProgressLabel );
@@ -70,35 +69,23 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
 
-    {
-        auto font { sliceButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        sliceButton->setFont( font );
-    }
+    sliceButton->setFont( font22pt );
     sliceButton->setText( "Slice" );
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    {
-        auto font { _prepareMessage->font( ) };
-        font.setPointSizeF( 16.25 );
-        _prepareMessage->setFont( font );
-    }
+    _prepareMessage->setFont( font16pt );
     _prepareMessage->setTextFormat( Qt::RichText );
     _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
     _prepareMessage->setAlignment( Qt::AlignCenter );
-    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 3 / 4 );
+    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 85 / 100 );
     _prepareMessage->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
     _prepareProgress->setRange( 0, 0 );
     _prepareProgress->hide( );
 
-    {
-        auto font { _prepareButton->font( ) };
-        font.setPointSizeF( 16.25 );
-        _prepareButton->setFont( font );
-    }
+    _prepareButton->setFont( font16pt );
     _prepareButton->setText( QString( "Prepare" ) );
     _prepareButton->setEnabled( true );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
@@ -153,10 +140,14 @@ void PrepareTab::_initialShowEvent( ) {
     _prepareButton->setMinimumWidth( _prepareButton->width( ) + ( maxWidth - minWidth ) );
 }
 
-void PrepareTab::layerThicknessComboBox_currentIndexChanged( int index ) {
-    debug( "+ PrepareTab::layerThicknessComboBox_currentIndexChanged: new value: %d µm\n", LayerThicknessValues[index] );
+void PrepareTab::layerThickness50Button_clicked( bool checked ) {
+    debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
+    _printJob->layerThickness = 50;
+}
 
-    _printJob->layerThickness = LayerThicknessValues[index];
+void PrepareTab::layerThickness100Button_clicked( bool checked ) {
+    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
+    _printJob->layerThickness = 100;
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -218,6 +209,8 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "Slicer started" );
+    renderStatus->setText( "Waiting for slicer" );
+    currentSliceImage->clear( );
     emit sliceStarted( );
 }
 
@@ -249,7 +242,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
-        renderStatus->setText( QString( "Rendering layer %1" ).arg( currentLayer ) );
+        renderStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
             auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) );
             // comparing height against width is not an error here -- the slice image widget is square
@@ -263,9 +256,9 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
 
 void PrepareTab::svgRenderer_done( int const totalLayers ) {
     if ( totalLayers == -1 ) {
-        renderStatus->setText( QString( "Rendering failed" ) );
+        renderStatus->setText( QString( "Image generation failed" ) );
     } else {
-        renderStatus->setText( QString( "Rendering complete" ) );
+        renderStatus->setText( QString( "Image generation complete" ) );
         _printJob->layerCount = totalLayers;
     }
 
@@ -397,8 +390,9 @@ void PrepareTab::setPrintJob( PrintJob* printJob ) {
     _printJob = printJob;
 }
 
-void PrepareTab::setShepherd( Shepherd* shepherd ) {
-    _shepherd = shepherd;
+void PrepareTab::setShepherd( Shepherd* newShepherd ) {
+    // TODO disconnect/reconnect events?
+    _shepherd = newShepherd;
 }
 
 void PrepareTab::setSliceButtonEnabled( bool const value ) {

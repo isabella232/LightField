@@ -9,6 +9,7 @@ enum class BuildPlatformState {
 };
 
 class PrintJob;
+class Shepherd;
 
 class PrintTab: public QWidget {
 
@@ -19,20 +20,17 @@ public:
     PrintTab( QWidget* parent = nullptr );
     virtual ~PrintTab( ) override;
 
-    PrintJob* printJob( ) const {
-        return _printJob;
-    }
-
-    bool isPrintButtonEnabled( ) const {
-        return printButton->isEnabled( );
-    }
+    bool      isPrintButtonEnabled( ) const { return printButton->isEnabled( ); }
+    PrintJob* printJob( )             const { return _printJob;                 }
+    Shepherd* shepherd( )             const { return _shepherd;                 }
 
 protected:
 
 private:
 
-    PrintJob*          _printJob                       { };
     BuildPlatformState _buildPlatformState             { BuildPlatformState::Lowered };
+    PrintJob*          _printJob                       { };
+    Shepherd*          _shepherd                       { };
 
     QLabel*            exposureTimeLabel               { new QLabel      };
     QLabel*            exposureTimeValue               { new QLabel      };
@@ -81,10 +79,10 @@ signals:
 
 public slots:
 
-    void setPrintJob( PrintJob* printJob );
-    void setPrintButtonEnabled( bool const value );
-
     void setAdjustmentButtonsEnabled( bool const value );
+    void setPrintButtonEnabled( bool const value );
+    void setPrintJob( PrintJob* printJob );
+    void setShepherd( Shepherd* shepherd );
 
     void adjustBedHeightComplete( bool const success );
     void raiseBuildPlatformComplete( bool const success );

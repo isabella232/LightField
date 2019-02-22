@@ -2,6 +2,7 @@
 #define __STATUSTAB_H__
 
 class PrintJob;
+class Shepherd;
 
 class StatusTab: public QWidget {
 
@@ -16,33 +17,35 @@ public:
         return stopButton->isEnabled( );
     }
 
+    Shepherd* shepherd( ) const { return _shepherd; }
+
 protected:
 
     virtual void showEvent( QShowEvent* ) override;
 
 private:
 
-    QLabel*      printerStateLabel          { new QLabel      };
-    QLabel*      printerStateDisplay        { new QLabel      };
-    QLabel*      projectorLampStateLabel    { new QLabel      };
-    QLabel*      projectorLampStateDisplay  { new QLabel      };
-    QLabel*      jobStateLabel              { new QLabel      };
-    QLabel*      jobStateDisplay            { new QLabel      };
-    QLabel*      currentLayerLabel          { new QLabel      };
-    QLabel*      currentLayerDisplay        { new QLabel      };
-    QVBoxLayout* progressControlsLayout     { new QVBoxLayout };
-    QWidget*     progressControlsContainer  { new QWidget     };
-    QLabel*      currentLayerImage          { new QLabel      };
-    QVBoxLayout* currentLayerImageLayout    { new QVBoxLayout };
-    QGroupBox*   currentLayerImageGroup     { new QGroupBox   };
-    QPushButton* stopButton                 { new QPushButton };
-    QGridLayout* _layout                    { new QGridLayout };
-    PrintJob*    _printJob                  { };
-    bool         _isPrinterOnline           { };
-    int          _maxLayerImageWidth        { -1 };
+    QLabel*      printerStateLabel                 { new QLabel      };
+    QLabel*      printerStateDisplay               { new QLabel      };
+    QLabel*      projectorLampStateLabel           { new QLabel      };
+    QLabel*      projectorLampStateDisplay         { new QLabel      };
+    QLabel*      jobStateLabel                     { new QLabel      };
+    QLabel*      jobStateDisplay                   { new QLabel      };
+    QLabel*      currentLayerLabel                 { new QLabel      };
+    QLabel*      currentLayerDisplay               { new QLabel      };
+    QVBoxLayout* progressControlsLayout            { new QVBoxLayout };
+    QWidget*     progressControlsContainer         { new QWidget     };
+    QLabel*      currentLayerImage                 { new QLabel      };
+    QGroupBox*   currentLayerImageGroup            { new QGroupBox   };
+    QPushButton* stopButton                        { new QPushButton };
+    QGridLayout* _layout                           { new QGridLayout };
+    PrintJob*    _printJob                         { };
+    Shepherd*    _shepherd                         { };
+    bool         _isPrinterOnline                  { };
+    int          _maxLayerImageWidth               { -1 };
 
-    QPalette     _stopButtonEnabledPalette  { };
-    QPalette     _stopButtonDisabledPalette { };
+    QPalette     _stopButtonEnabledPalette         { };
+    QPalette     _stopButtonDisabledPalette        { };
 
     std::function<void( )> _initialShowEventFunc;
 
@@ -56,6 +59,7 @@ signals:
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setShepherd( Shepherd* shepherd );
     void setStopButtonEnabled( bool value );
 
     void printer_online( );
