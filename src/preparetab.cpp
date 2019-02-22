@@ -6,9 +6,13 @@
 #include "shepherd.h"
 #include "strings.h"
 #include "svgrenderer.h"
+#include "utils.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
+
+    auto font16pt = ModifyFont( font( ), 16.0f );
+    auto font22pt = ModifyFont( font( ), 22.0f );
 
     layerThicknessLabel->setText( "Layer height:" );
 
@@ -44,7 +48,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     {
         auto pal = currentSliceImage->palette( );
-        pal.setColor( QPalette::Background, Qt::black );
+        pal.setColor( QPalette::Window, Qt::black );
         currentSliceImage->setPalette( pal );
     }
 
@@ -65,21 +69,13 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
 
-    {
-        auto font { sliceButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        sliceButton->setFont( font );
-    }
+    sliceButton->setFont( font22pt );
     sliceButton->setText( "Slice" );
     sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    {
-        auto font { _prepareMessage->font( ) };
-        font.setPointSizeF( 16.25 );
-        _prepareMessage->setFont( font );
-    }
+    _prepareMessage->setFont( font16pt );
     _prepareMessage->setTextFormat( Qt::RichText );
     _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
     _prepareMessage->setAlignment( Qt::AlignCenter );
@@ -89,11 +85,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareProgress->setRange( 0, 0 );
     _prepareProgress->hide( );
 
-    {
-        auto font { _prepareButton->font( ) };
-        font.setPointSizeF( 16.25 );
-        _prepareButton->setFont( font );
-    }
+    _prepareButton->setFont( font16pt );
     _prepareButton->setText( QString( "Prepare" ) );
     _prepareButton->setEnabled( true );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );

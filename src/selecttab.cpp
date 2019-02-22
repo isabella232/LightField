@@ -8,6 +8,7 @@
 #include "printjob.h"
 #include "shepherd.h"
 #include "strings.h"
+#include "utils.h"
 
 namespace {
 
@@ -45,11 +46,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
 
-    {
-        auto font { _selectButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        _selectButton->setFont( font );
-    }
+    _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0f ) );
     _selectButton->setText( "Select" );
     _selectButton->setEnabled( false );
     _selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
@@ -68,7 +65,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 
     {
         auto pal = _dimensionsErrorLabel->palette( );
-        pal.setColor( QPalette::Foreground, Qt::red );
+        pal.setColor( QPalette::WindowText, Qt::red );
         _dimensionsErrorLabel->setPalette( pal );
     }
     _dimensionsErrorLabel->setText( "Model exceeds build volume!" );

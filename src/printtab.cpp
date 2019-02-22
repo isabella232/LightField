@@ -6,6 +6,7 @@
 #include "printjob.h"
 #include "shepherd.h"
 #include "strings.h"
+#include "utils.h"
 
 namespace {
 
@@ -130,11 +131,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     optionsContainer->setLayout( optionsLayout );
 
     printButton->setText( "Print" );
-    {
-        auto font { printButton->font( ) };
-        font.setPointSizeF( 22.25 );
-        printButton->setFont( font );
-    }
+    printButton->setFont( ModifyFont( printButton->font( ), 22.0f ) );
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     printButton->setEnabled( false );
     QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
