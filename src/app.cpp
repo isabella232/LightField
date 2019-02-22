@@ -70,7 +70,12 @@ App::App( int& argc, char *argv[] ):
 {
     QCoreApplication::setOrganizationName( "Volumetric" );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
-    QCoreApplication::setApplicationName( "Volumetric 3D Printer Controller" );
+    QCoreApplication::setApplicationName( "LightField" );
+
+    QFile file { ":/dark.qss" };
+    file.open( QFile::ReadOnly | QFile::Text );
+    QTextStream stream { &file };
+    setStyleSheet( stream.readAll( ) );
 
     parseCommandLine( );
 
