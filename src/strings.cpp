@@ -46,6 +46,7 @@ namespace {
     };
 
     char const* TabIndexStrings[] {
+        //"Welcome",
         "Select",
         "Prepare",
         "Print",
@@ -132,7 +133,7 @@ char const* ToString( PendingCommand const value ) {
 
 char const* ToString( TabIndex const value ) {
 #if defined _DEBUG
-    if ( ( value >= TabIndex::Select ) && ( value <= TabIndex::Status ) ) {
+    if ( ( value >= TabIndex::Select/*Welcome*/ ) && ( value <= TabIndex::Status ) ) {
 #endif
         return TabIndexStrings[static_cast<int>( value )];
 #if defined _DEBUG

@@ -24,6 +24,7 @@ SOURCES += \
     ../src/svgrenderer.cpp \
     ../src/processrunner.cpp \
     ../src/signalhandler.cpp \
+    ../src/welcometab.cpp \
     ../src/selecttab.cpp \
     ../src/preparetab.cpp \
     ../src/printtab.cpp \
@@ -49,6 +50,7 @@ HEADERS  += \
     ../src/svgrenderer.h \
     ../src/processrunner.h \
     ../src/signalhandler.h \
+    ../src/welcometab.h \
     ../src/selecttab.h \
     ../src/preparetab.h \
     ../src/printtab.h \

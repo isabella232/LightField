@@ -10,6 +10,7 @@
 #include "strings.h"
 #include "utils.h"
 
+#include "welcometab.h"
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
@@ -37,11 +38,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
+    //welcomeTab = new WelcomeTab;
     selectTab  = new SelectTab;
     prepareTab = new PrepareTab;
     printTab   = new PrintTab;
     statusTab  = new StatusTab;
 
+    //QObject::connect( this, &Window::printJobChanged, welcomeTab, &WelcomeTab::setPrintJob );
     QObject::connect( this, &Window::printJobChanged, selectTab,  &SelectTab::setPrintJob  );
     QObject::connect( this, &Window::printJobChanged, prepareTab, &PrepareTab::setPrintJob );
     QObject::connect( this, &Window::printJobChanged, printTab,   &PrintTab::setPrintJob   );
@@ -50,6 +53,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printJob = new PrintJob;
     emit printJobChanged( printJob );
 
+    //QObject::connect( this, &Window::shepherdChanged, welcomeTab, &WelcomeTab::setShepherd );
     QObject::connect( this, &Window::shepherdChanged, selectTab,  &SelectTab::setShepherd  );
     QObject::connect( this, &Window::shepherdChanged, prepareTab, &PrepareTab::setShepherd );
     QObject::connect( this, &Window::shepherdChanged, printTab,   &PrintTab::setShepherd   );
@@ -61,6 +65,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
     shepherd->start( );
     emit shepherdChanged( shepherd );
+
+    //
+    // "Welcome" tab
+    //
+
+    //welcomeTab->setContentsMargins( { } );
+    //welcomeTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // "Select" tab
@@ -114,11 +125,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     tabs->setFont( ModifyFont( tabs->font( ), 13.5f ) );
     tabs->setContentsMargins( { } );
     auto font9pt = ModifyFont( selectTab->font( ), 9.0f );
+    //tabs->addTab( welcomeTab, "Welcome" ); welcomeTab->setFont( font9pt );
     tabs->addTab( selectTab,  "Select"  ); selectTab ->setFont( font9pt );
     tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
     tabs->addTab( printTab,   "Print"   ); printTab  ->setFont( font9pt );
     tabs->addTab( statusTab,  "Status"  ); statusTab ->setFont( font9pt );
     tabs->setCurrentIndex( +TabIndex::Select );
+    //tabs->setCurrentIndex( +TabIndex::Welcome );
 
     setCentralWidget( tabs );
 }

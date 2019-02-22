@@ -7,12 +7,14 @@ class Shepherd;
 class PrintManager;
 class PrintJob;
 
+class WelcomeTab;
 class SelectTab;
 class PrepareTab;
 class PrintTab;
 class StatusTab;
 
 enum class TabIndex {
+    //Welcome,
     Select,
     Prepare,
     Print,
@@ -43,6 +45,7 @@ private:
     Shepherd*     shepherd;
 
     QTabWidget*   tabs               { new QTabWidget };
+    WelcomeTab*   welcomeTab;
     SelectTab*    selectTab;
     PrepareTab*   prepareTab;
     PrintTab*     printTab;
