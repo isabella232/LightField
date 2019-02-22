@@ -74,8 +74,11 @@ App::App( int& argc, char *argv[] ):
 
     QFile file { ":/dark.qss" };
     file.open( QFile::ReadOnly | QFile::Text );
-    QTextStream stream { &file };
-    setStyleSheet( stream.readAll( ) );
+    setStyleSheet( QTextStream { &file }.readAll( ) );
+
+    auto font = QGuiApplication::font( );
+    font.setFamily( QString( "Montserrat" ) );
+    QGuiApplication::setFont( font );
 
     parseCommandLine( );
 
