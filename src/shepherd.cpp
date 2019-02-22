@@ -37,7 +37,10 @@ Shepherd::~Shepherd( ) {
 
 void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
     debug( "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
-    emit shepherd_processError( error );
+    if ( error == QProcess::FailedToStart ) {
+        debug( "+ Shepherd::processErrorOccurred: process failed to start\n" );
+        emit shepherd_startFailed( );
+    }
 }
 
 void Shepherd::processStarted( ) {
@@ -68,12 +71,17 @@ void Shepherd::processReadyReadStandardOutput( ) {
 
 void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
     debug( "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
-    emit shepherd_finished( exitCode, exitStatus );
+    if ( ( exitStatus == QProcess::CrashExit ) || ( exitCode != 0 ) ) {
+        debug( "+ Shepherd::processFinished: process failed: exit status: %s [%d]; exit code: %d\n", ToString( exitStatus ), exitStatus, exitCode );
+        emit shepherd_terminated( _isTerminationExpected, false );
+    } else {
+        emit shepherd_terminated( _isTerminationExpected, true );
+    }
 }
 
 bool Shepherd::getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount ) {
     if ( _pendingCommand != PendingCommand::none ) {
-        debug( "+ Shepherd::%s: command already in progress\n", functionName );
+        debug( "+ Shepherd::%s: command %s already in progress\n", functionName, ToString( pendingCommand ) );
         return false;
     }
 
@@ -294,6 +302,7 @@ void Shepherd::doSend( QStringList args ) {
 }
 
 void Shepherd::doTerminate( ) {
+    _isTerminationExpected = true;
     _process->write( "terminate\n" );
     _process->waitForFinished( );
 }

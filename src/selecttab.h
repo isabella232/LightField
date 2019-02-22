@@ -7,6 +7,7 @@ class Canvas;
 class Loader;
 class Mesh;
 class PrintJob;
+class Shepherd;
 
 class SelectTab: public QWidget {
 
@@ -17,17 +18,24 @@ public:
     SelectTab( QWidget* parent = nullptr );
     virtual ~SelectTab( ) override;
 
+    Shepherd* shepherd( ) const { return _shepherd; }
+
 protected:
 
 private:
 
+    Shepherd*         _shepherd                { };
     QFileSystemModel* _fileSystemModel         { new QFileSystemModel };
     QListView*        _availableFilesListView  { new QListView        };
     QLabel*           _availableFilesLabel     { new QLabel           };
     QGridLayout*      _availableFilesLayout    { new QGridLayout      };
     QWidget*          _availableFilesContainer { new QWidget          };
+    QLabel*           _dimensionsLabel         { new QLabel           };
+    QLabel*           _dimensionsErrorLabel    { new QLabel           };
+    QHBoxLayout*      _dimensionsLayout        { new QHBoxLayout      };
     QPushButton*      _selectButton            { new QPushButton      };
     Canvas*           _canvas                  {                      };
+    QVBoxLayout*      _canvasLayout            { new QVBoxLayout      };
     Loader*           _loader                  {                      };
     QGridLayout*      _layout                  { new QGridLayout      };
     PrintJob*         _printJob                {                      };
@@ -44,6 +52,7 @@ signals:
 public slots:
 
     void setPrintJob( PrintJob* printJob );
+    void setShepherd( Shepherd* shepherd );
 
 protected slots:
 

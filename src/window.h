@@ -54,6 +54,7 @@ private:
 signals:
 
     void printJobChanged( PrintJob* newJob );
+    void shepherdChanged( Shepherd* newShepherd );
 
 public slots:
 
@@ -62,8 +63,8 @@ protected slots:
 private slots:
 
     void shepherd_started( );
-    void shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus );
-    void shepherd_processError( QProcess::ProcessError error );
+    void shepherd_startFailed( );
+    void shepherd_terminated( bool const expected, bool const cleanExit );
 
     void shepherd_adjustBedHeightMoveToComplete( bool const success );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );

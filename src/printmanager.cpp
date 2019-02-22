@@ -258,8 +258,8 @@ void PrintManager::step7_preLiftTimerExpired( ) {
     ++_currentLayer;
     if ( _currentLayer == _printJob->layerCount ) {
         QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step8_LiftUpComplete );
-        debug( "+ PrintManager::step7_preLiftTimerExpired: moving %f\n", LiftDistance );
-        _shepherd->doMove( LiftDistance );
+        debug( "+ PrintManager::step7_preLiftTimerExpired: raising build platform\n" );
+        _shepherd->doMoveTo( PrinterMaximumZ );
     } else {
         _startNextLayer( );
     }

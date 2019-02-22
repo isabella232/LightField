@@ -11,7 +11,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     setCentralWidget( _label );
 
     auto pal = palette( );
-    pal.setColor( QPalette::Background, Qt::black );
+    pal.setColor( QPalette::Window, Qt::black );
     setPalette( pal );
 
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );

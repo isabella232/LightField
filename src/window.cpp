@@ -3,11 +3,13 @@
 #include "window.h"
 
 #include "app.h"
-#include "signalhandler.h"
-#include "shepherd.h"
-#include "printmanager.h"
 #include "printjob.h"
+#include "printmanager.h"
+#include "shepherd.h"
+#include "signalhandler.h"
 #include "strings.h"
+#include "utils.h"
+
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
@@ -48,13 +50,17 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printJob = new PrintJob;
     emit printJobChanged( printJob );
 
+    QObject::connect( this, &Window::shepherdChanged, selectTab,  &SelectTab::setShepherd  );
+    QObject::connect( this, &Window::shepherdChanged, prepareTab, &PrepareTab::setShepherd );
+    QObject::connect( this, &Window::shepherdChanged, printTab,   &PrintTab::setShepherd   );
+    QObject::connect( this, &Window::shepherdChanged, statusTab,  &StatusTab::setShepherd  );
+
     shepherd = new Shepherd( parent );
-    QObject::connect( shepherd, &Shepherd::shepherd_started,      this,      &Window::shepherd_started      );
-    QObject::connect( shepherd, &Shepherd::shepherd_finished,     this,      &Window::shepherd_finished     );
-    QObject::connect( shepherd, &Shepherd::shepherd_processError, this,      &Window::shepherd_processError );
-    QObject::connect( shepherd, &Shepherd::printer_online,        statusTab, &StatusTab::printer_online     );
-    QObject::connect( shepherd, &Shepherd::printer_offline,       statusTab, &StatusTab::printer_offline    );
+    QObject::connect( shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
+    QObject::connect( shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
+    QObject::connect( shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
     shepherd->start( );
+    emit shepherdChanged( shepherd );
 
     //
     // "Select" tab
@@ -105,11 +111,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
+    tabs->setFont( ModifyFont( tabs->font( ), 13.5f ) );
     tabs->setContentsMargins( { } );
-    tabs->addTab( selectTab,  "Select"  );
-    tabs->addTab( prepareTab, "Prepare" );
-    tabs->addTab( printTab,   "Print"   );
-    tabs->addTab( statusTab,  "Status"  );
+    auto font9pt = ModifyFont( selectTab->font( ), 9.0f );
+    tabs->addTab( selectTab,  "Select"  ); selectTab ->setFont( font9pt );
+    tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
+    tabs->addTab( printTab,   "Print"   ); printTab  ->setFont( font9pt );
+    tabs->addTab( statusTab,  "Status"  ); statusTab ->setFont( font9pt );
     tabs->setCurrentIndex( +TabIndex::Select );
 
     setCentralWidget( tabs );
@@ -133,12 +141,14 @@ void Window::shepherd_started( ) {
     debug( "+ Window::shepherd_started\n" );
 }
 
-void Window::shepherd_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    debug( "+ Window::shepherd_finished: exitStatus %d, exitCode %d\n", exitStatus, exitCode );
+void Window::shepherd_startFailed( ) {
+    debug( "+ Window::shepherd_startFailed\n" );
+    // TODO panic!
 }
 
-void Window::shepherd_processError( QProcess::ProcessError error ) {
-    debug( "+ Window::shepherd_processError: %d\n", error );
+void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
+    debug( "+ Window::shepherd_terminated: expected? %s; clean? %s\n", ToString( expected ), ToString( cleanExit ) );
+    // TODO restart shepherd if not expected
 }
 
 void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
