@@ -35,7 +35,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->setModel( _fileSystemModel );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &SelectTab::availableFilesListView_clicked );
 
-    _availableFilesLabel->setText( "Available files:" );
+    _availableFilesLabel->setText( "Available models:" );
     _availableFilesLabel->setBuddy( _availableFilesListView );
 
     _availableFilesLayout->setContentsMargins( { } );
@@ -63,13 +63,31 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( format, this );
-    _canvas->setMinimumSize( MaximalRightHandPaneSize );
+    _canvas->setMinimumWidth( MaximalRightHandPaneSize.width( ) );
     _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    {
+        auto pal = _dimensionsErrorLabel->palette( );
+        pal.setColor( QPalette::Foreground, Qt::red );
+        _dimensionsErrorLabel->setPalette( pal );
+    }
+    _dimensionsErrorLabel->setText( "Model exceeds build volume!" );
+    _dimensionsErrorLabel->hide( );
+
+    _dimensionsLayout->setContentsMargins( { } );
+    _dimensionsLayout->setAlignment( Qt::AlignLeft );
+    _dimensionsLayout->addWidget( _dimensionsLabel );
+    _dimensionsLayout->addStretch( );
+    _dimensionsLayout->addWidget( _dimensionsErrorLabel );
+
+    _canvasLayout->setContentsMargins( { } );
+    _canvasLayout->addWidget( _canvas );
+    _canvasLayout->addLayout( _dimensionsLayout );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _availableFilesContainer, 0, 0, 1, 1 );
     _layout->addWidget( _selectButton,            1, 0, 1, 1 );
-    _layout->addWidget( _canvas,                  0, 1, 2, 1 );
+    _layout->addLayout( _canvasLayout,            0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -137,7 +155,22 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
         minY, maxY, sizeY,
         minZ, maxZ, sizeZ
     );
-    debug( "+ SelectTab::loader_gotMesh: done\n" );
+
+    {
+        auto sizeXstring = GroupDigits( QString( "%1" ).arg( sizeX,                 0, 'f', 2 ), ' ' );
+        auto sizeYstring = GroupDigits( QString( "%1" ).arg( sizeY,                 0, 'f', 2 ), ' ' );
+        auto sizeZstring = GroupDigits( QString( "%1" ).arg( sizeZ,                 0, 'f', 2 ), ' ' );
+        auto volume      = GroupDigits( QString( "%1" ).arg( sizeX * sizeY * sizeZ, 0, 'f', 2 ), ' ' );
+        _dimensionsLabel->setText( QString( "%1×%2×%3 mm  •  %4 ml" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ).arg( volume ) );
+    }
+
+    if ( ( sizeX > PrinterMaximumX ) || ( sizeY > PrinterMaximumY ) || ( sizeZ > PrinterMaximumZ ) ) {
+        _dimensionsErrorLabel->show( );
+        _selectButton->setEnabled( false );
+    } else {
+        _dimensionsErrorLabel->hide( );
+        _selectButton->setEnabled( true );
+    }
 
     _canvas->load_mesh( m );
 
@@ -182,7 +215,6 @@ void SelectTab::loader_Finished( ) {
 
 void SelectTab::loader_LoadedFile( const QString& fileName ) {
     debug( "+ SelectTab::loader_LoadedFile: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
-    _selectButton->setEnabled( true );
 }
 
 bool SelectTab::_loadModel( QString const& fileName ) {

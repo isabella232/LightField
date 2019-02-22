@@ -142,8 +142,8 @@ char const* ToString( TabIndex const value ) {
 #endif
 }
 
-QString FormatDouble( double const value, int precision ) {
-    QString str = QString( "%1" ).arg( value, 0, 'f', precision );
+QString FormatDouble( double const value, int const fieldWidth, int const precision ) {
+    QString str = QString( "%1" ).arg( value, fieldWidth, 'f', precision );
     int index = str.length( ) - 1;
     while ( ( index > -1 ) && ( str[index].unicode( ) == L'0' ) ) {
         --index;
@@ -152,5 +152,20 @@ QString FormatDouble( double const value, int precision ) {
         --index;
     }
     str.resize( index + 1 );
+    return str;
+}
+
+QString GroupDigits( QString const& input, char const groupSeparator ) {
+    QString str { input };
+
+    int index = str.indexOf( QChar( '.' ) );
+    if ( -1 == index ) {
+        index = str.length( );
+    }
+
+    while ( index - 3 > 0 ) {
+        index -= 3;
+        str.insert( index, QChar( ',' ) );
+    }
     return str;
 }

@@ -30,8 +30,12 @@ private:
     QLabel*           _availableFilesLabel     { new QLabel           };
     QGridLayout*      _availableFilesLayout    { new QGridLayout      };
     QWidget*          _availableFilesContainer { new QWidget          };
+    QLabel*           _dimensionsLabel         { new QLabel           };
+    QLabel*           _dimensionsErrorLabel    { new QLabel           };
+    QHBoxLayout*      _dimensionsLayout        { new QHBoxLayout      };
     QPushButton*      _selectButton            { new QPushButton      };
     Canvas*           _canvas                  {                      };
+    QVBoxLayout*      _canvasLayout            { new QVBoxLayout      };
     Loader*           _loader                  {                      };
     QGridLayout*      _layout                  { new QGridLayout      };
     PrintJob*         _printJob                {                      };

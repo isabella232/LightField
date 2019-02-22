@@ -17,6 +17,8 @@ QString     ToString( QPoint                 const value );
 QString     ToString( QRect                  const value );
 QString     ToString( QSize                  const value );
 
-QString FormatDouble( double const value, int precision = -1 );
+QString FormatDouble( double const value, int const fieldWidth = 0, int const precision = -1 );
+
+QString GroupDigits( QString const& input, char const groupSeparator );
 
 #endif // __STRINGS_H__
