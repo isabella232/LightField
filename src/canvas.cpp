@@ -11,9 +11,6 @@ Canvas::Canvas(const QSurfaceFormat& format, QWidget *parent)
       perspective(0.25), anim(this, "perspective"), status(" ")
 {
 	setFormat(format);
-    QFile styleFile(":/qt/style.qss");
-    styleFile.open( QFile::ReadOnly );
-    setStyleSheet(styleFile.readAll());
 
     anim.setDuration(100);
 }
