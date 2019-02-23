@@ -13,8 +13,6 @@
 
 namespace {
 
-    QString DefaultModelFileName { ":gl/BoundingBox.stl" };
-
     QRegularExpression VolumeLineMatcher { QString { "^volume\\s*=\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
 }
@@ -109,8 +107,6 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _layout->setRowStretch( 1, 1 );
 
     setLayout( _layout );
-
-    _loadModel( DefaultModelFileName );
 }
 
 SelectTab::~SelectTab( ) {
@@ -153,7 +149,15 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
     QString dirname { GetFirstDirectoryIn( _userMediaDirectory ) };
     if ( dirname.isEmpty( ) ) {
         debug( "  + no directories in user media directory '%s'\n", _userMediaDirectory.toUtf8( ).data( ) );
-        _showLibrary( );
+        if ( _modelsLocation == ModelsLocation::Usb ) {
+            _showLibrary( );
+        }
+        if ( _fileName.startsWith( _userMediaDirectory ) ) {
+            _fileName.clear( );
+            _canvas->clear( );
+            _dimensionsLabel->clear( );
+            _selectButton->setEnabled( false );
+        }
         _toggleLocationButton->setEnabled( false );
     } else {
         _usbPath = _userMediaDirectory + QString( "/" ) + dirname;

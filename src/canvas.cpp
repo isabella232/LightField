@@ -54,10 +54,16 @@ void Canvas::draw_wireframe()
 
 void Canvas::load_mesh(Mesh* m)
 {
+    if (mesh) {
+        delete mesh;
+    }
     mesh = new GLMesh(m);
 
     QVector3D lower(m->xmin(), m->ymin(), m->zmin());
     QVector3D upper(m->xmax(), m->ymax(), m->zmax());
+
+    delete m;
+
     center = (lower + upper) / 2;
     scale = 2 / (upper - lower).length();
 
@@ -67,8 +73,17 @@ void Canvas::load_mesh(Mesh* m)
     tilt = 90;
 
     update();
+}
 
-    delete m;
+void Canvas::clear()
+{
+    if (mesh) {
+        delete mesh;
+        mesh = nullptr;
+    }
+    status.clear();
+
+    update();
 }
 
 void Canvas::set_status(const QString &s)
