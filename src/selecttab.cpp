@@ -135,12 +135,13 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
     debug( "  + user media directory '%s'\n", userMediaDirectory.toUtf8( ).data( ) );
 
     if ( path == "/media" ) {
-        if ( 0 != ::access( userMediaDirectory.toUtf8( ).data( ), F_OK ) ) {
-            debug( "  + access failed, so '%s' doesn't exist\n", userMediaDirectory.toUtf8( ).data( ) );
-            return;
+        if ( 0 == ::access( userMediaDirectory.toUtf8( ).data( ), F_OK ) ) {
+            _fsWatcher->addPath( userMediaDirectory );
+        } else {
+            error_t err = errno;
+            debug( "  + access(F) failed: %s [%d]\n", strerror( err ), err );
+            _fsWatcher->removePath( userMediaDirectory );
         }
-
-        _fsWatcher->addPath( userMediaDirectory );
     }
 
     QString dirname { GetFirstDirectoryIn( userMediaDirectory ) };
@@ -153,11 +154,16 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
         debug( "  + USB path is '%s'\n", _usbPath.toUtf8( ).data( ) );
 
         struct stat statbuf { };
-        if ( -1 == stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
+        if ( -1 == ::stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
             error_t err = errno;
             debug( "  + stat failed: %s [%d]\n", strerror( err ), err );
         } else {
-            debug( "  + stat reports mode 0%o\n", statbuf.st_mode );
+            debug( "  + stat reports mode 0%o, uid %d, gid %d\n", statbuf.st_mode, statbuf.st_uid, statbuf.st_gid );
+        }
+
+        if ( 0 != ::access( userMediaDirectory.toUtf8( ).data( ), R_OK | X_OK ) ) {
+            error_t err = errno;
+            debug( "  + access(RX) failed: %s [%d]\n", strerror( err ), err );
         }
 
         _usbFsModel->setRootPath( _usbPath );

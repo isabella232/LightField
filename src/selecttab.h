@@ -55,6 +55,8 @@ private:
     QString             _slicerBuffer;
     QString             _usbPath;
     QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
+    QTimer*             _usbRetryTimer           { new QTimer              };
+    int                 _usbRetryCount           { -1                      };
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
 
