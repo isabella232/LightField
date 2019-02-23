@@ -31,8 +31,10 @@ When a process exits abnormally
 */
 
 ProcessRunner::ProcessRunner( QObject* parent ): QObject( parent ) {
-    QObject::connect( &_process, &QProcess::errorOccurred,                                        this, &ProcessRunner::processErrorOccurred );
-    QObject::connect( &_process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &ProcessRunner::processFinished      );
+    QObject::connect( &_process, &QProcess::errorOccurred,                                        this, &ProcessRunner::processErrorOccurred           );
+    QObject::connect( &_process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &ProcessRunner::processFinished                );
+    QObject::connect( &_process, &QProcess::readyReadStandardOutput,                              this, &ProcessRunner::processReadyReadStandardOutput );
+    QObject::connect( &_process, &QProcess::readyReadStandardError,                               this, &ProcessRunner::processReadyReadStandardError  );
 }
 
 ProcessRunner::~ProcessRunner( ) {
@@ -58,5 +60,21 @@ void ProcessRunner::processFinished( int exitCode, QProcess::ExitStatus exitStat
         emit failed( QProcess::Crashed );
     } else {
         emit succeeded( );
+    }
+}
+
+void ProcessRunner::processReadyReadStandardOutput( ) {
+    _process.setReadChannel( QProcess::StandardOutput );
+    QString data = _process.readAllStandardOutput( );
+    if ( data.length( ) ) {
+        emit readyReadStandardOutput( data );
+    }
+}
+
+void ProcessRunner::processReadyReadStandardError( ) {
+    _process.setReadChannel( QProcess::StandardError );
+    QString data = _process.readAllStandardError( );
+    if ( data.length( ) ) {
+        emit readyReadStandardError( data );
     }
 }
