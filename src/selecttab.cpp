@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <pwd.h>
+
 #include "selecttab.h"
 
 #include "canvas.h"
@@ -36,8 +38,8 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::usbFsModel_directoryLoaded );
 
     QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_lookForUsbStick );
-    _fsWatcher->addPath( UsbStickPath );
-    _lookForUsbStick( QString( UsbStickPath ) );
+    _fsWatcher->addPath( "/media" );
+    _lookForUsbStick( QString( "/media" ) );
 
     _availableFilesLabel->setText( "Models in library:" );
 
@@ -131,24 +133,26 @@ void SelectTab::usbFsModel_directoryLoaded( QString const& name ) {
 void SelectTab::_lookForUsbStick( QString const& path ) {
     debug( "+ SelectTab::_lookForUsbStick: name '%s'\n", path.toUtf8( ).data( ) );
 
-    auto dir = new QDir( path );
-    dir->setFilter( QDir::Dirs );
-    auto names = dir->entryList( );
-    QString dirname;
-    for ( auto name : names ) {
-        if ( ( name == "." ) || ( name == ".." ) ) {
-            continue;
+    auto userMediaDirectory = QString( "/media/" ) + GetUserName( );
+    debug( "  + user media directory '%s'\n", userMediaDirectory.toUtf8( ).data( ) );
+
+    if ( path == "/media" ) {
+        if ( 0 != ::access( userMediaDirectory.toUtf8( ).data( ), F_OK ) ) {
+            debug( "  + access failed, so '%s' doesn't exist\n", userMediaDirectory.toUtf8( ).data( ) );
+            return;
         }
-        dirname = name;
-        break;
+
+        _fsWatcher->addPath( userMediaDirectory );
     }
+
+    QString dirname { GetFirstDirectoryIn( userMediaDirectory ) };
     if ( dirname.isEmpty( ) ) {
         debug( "  + no directories on USB stick\n" );
         _showLibrary( );
         _toggleLocationButton->setEnabled( false );
     } else {
-        debug( "  + USB path is '%s/%s'\n", UsbStickPath.toUtf8( ).data( ), dirname.toUtf8( ).data( ) );
-        _usbPath = UsbStickPath + QString( "/" ) + dirname;
+        _usbPath = userMediaDirectory + QString( "/" ) + dirname;
+        debug( "  + USB path is '%s'\n", _usbPath.toUtf8( ).data( ) );
         _usbFsModel->setRootPath( _usbPath );
         _toggleLocationButton->setEnabled( true );
     }
@@ -294,7 +298,7 @@ void SelectTab::processRunner_succeeded( ) {
         auto match = VolumeLineMatcher.match( line );
         if ( match.hasMatch( ) ) {
             auto value = match.captured( 1 ).toDouble( );
-            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %4 mL" ).arg( value, 0, 'f', 2 ) );
+            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( value, 0, 'f', 2 ), ' ' ) ) );
         }
     }
 

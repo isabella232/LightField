@@ -6,4 +6,7 @@ QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignmen
 QFont ModifyFont( QFont const& font_, float const pointSizeF );
 QFont ModifyFont( QFont const& font_, float const pointSizeF, QFont::Weight const weight );
 
+QString GetUserName( );
+QString GetFirstDirectoryIn( QString const& directory );
+
 #endif // __UTILS_H__
