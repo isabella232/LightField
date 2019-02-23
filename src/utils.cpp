@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include <pwd.h>
-
 #include "utils.h"
 
 QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment ) {

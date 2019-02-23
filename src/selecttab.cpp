@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include <pwd.h>
-
 #include "selecttab.h"
 
 #include "canvas.h"
@@ -153,6 +151,15 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
     } else {
         _usbPath = userMediaDirectory + QString( "/" ) + dirname;
         debug( "  + USB path is '%s'\n", _usbPath.toUtf8( ).data( ) );
+
+        struct stat statbuf { };
+        if ( -1 == stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
+            error_t err = errno;
+            debug( "  + stat failed: %s [%d]\n", strerror( err ), err );
+        } else {
+            debug( "  + stat reports mode 0%o\n", statbuf.st_mode );
+        }
+
         _usbFsModel->setRootPath( _usbPath );
         _toggleLocationButton->setEnabled( true );
     }
