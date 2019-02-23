@@ -168,6 +168,7 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
                     _usbRetryTimer->setSingleShot( false );
                     _usbRetryTimer->setTimerType( Qt::PreciseTimer );
                     QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
+                    _usbRetryTimer->start( );
                 } else {
                     _usbRetryCount--;
                     if ( !_usbRetryCount ) {
