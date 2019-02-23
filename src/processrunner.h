@@ -26,6 +26,8 @@ signals:
 
     void succeeded( );
     void failed( QProcess::ProcessError const error );
+    void readyReadStandardOutput( QString const& data );
+    void readyReadStandardError( QString const& data );
 
 public slots:
 
@@ -39,6 +41,8 @@ private slots:
 
     void processErrorOccurred( QProcess::ProcessError error );
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void processReadyReadStandardOutput( );
+    void processReadyReadStandardError( );
 
 };
 

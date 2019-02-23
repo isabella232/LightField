@@ -7,6 +7,7 @@ class Canvas;
 class Loader;
 class Mesh;
 class PrintJob;
+class ProcessRunner;
 class Shepherd;
 
 class SelectTab: public QWidget {
@@ -24,25 +25,43 @@ protected:
 
 private:
 
-    Shepherd*         _shepherd                { };
-    QFileSystemModel* _fileSystemModel         { new QFileSystemModel };
-    QListView*        _availableFilesListView  { new QListView        };
-    QLabel*           _availableFilesLabel     { new QLabel           };
-    QGridLayout*      _availableFilesLayout    { new QGridLayout      };
-    QWidget*          _availableFilesContainer { new QWidget          };
-    QLabel*           _dimensionsLabel         { new QLabel           };
-    QLabel*           _dimensionsErrorLabel    { new QLabel           };
-    QHBoxLayout*      _dimensionsLayout        { new QHBoxLayout      };
-    QPushButton*      _selectButton            { new QPushButton      };
-    Canvas*           _canvas                  {                      };
-    QVBoxLayout*      _canvasLayout            { new QVBoxLayout      };
-    Loader*           _loader                  {                      };
-    QGridLayout*      _layout                  { new QGridLayout      };
-    PrintJob*         _printJob                {                      };
-    int               _selectedRow             { -1                   };
-    QString           _fileName;
+    enum class ModelsLocation {
+        Library,
+        Usb
+    };
+
+    Shepherd*           _shepherd                { };
+    PrintJob*           _printJob                { };
+    ProcessRunner*      _processRunner           { };
+
+    QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
+    QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
+    QFileSystemModel*   _currentFsModel          {                         };
+    QListView*          _availableFilesListView  { new QListView           };
+    QLabel*             _availableFilesLabel     { new QLabel              };
+    QPushButton*        _toggleLocationButton    { new QPushButton         };
+    QGridLayout*        _availableFilesLayout    { new QGridLayout         };
+    QWidget*            _availableFilesContainer { new QWidget             };
+    QLabel*             _dimensionsLabel         { new QLabel              };
+    QLabel*             _dimensionsErrorLabel    { new QLabel              };
+    QHBoxLayout*        _dimensionsLayout        { new QHBoxLayout         };
+    QPushButton*        _selectButton            { new QPushButton         };
+    Canvas*             _canvas                  {                         };
+    QVBoxLayout*        _canvasLayout            { new QVBoxLayout         };
+    Loader*             _loader                  {                         };
+    QGridLayout*        _layout                  { new QGridLayout         };
+    int                 _selectedRow             { -1                      };
+    QString             _fileName;
+    QString             _slicerBuffer;
+    QString             _usbPath;
+    QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
+
+    ModelsLocation      _modelsLocation          { ModelsLocation::Library };
 
     bool _loadModel( QString const& filename );
+
+    void _showLibrary( );
+    void _showUsbStick( );
 
 signals:
 
@@ -58,17 +77,22 @@ protected slots:
 
 private slots:
 
-    void                 loader_gotMesh          ( Mesh* m );
-    void                 loader_ErrorBadStl      ( );
-    void                 loader_ErrorEmptyMesh   ( );
-    void                 loader_ErrorMissingFile ( );
-    void                 loader_Finished         ( );
-    void                 loader_LoadedFile       ( QString const& filename );
-    void        fileSystemModel_DirectoryLoaded  ( QString const& name );
-    void        fileSystemModel_FileRenamed      ( QString const& path, QString const& oldName, QString const& newName );
-    void        fileSystemModel_RootPathChanged  ( QString const& newPath );
-    void availableFilesListView_clicked          ( QModelIndex const& index );
-    void           selectButton_clicked          ( bool );
+    void loader_gotMesh( Mesh* m );
+    void loader_ErrorBadStl( );
+    void loader_ErrorEmptyMesh( );
+    void loader_ErrorMissingFile( );
+    void loader_Finished( );
+    void loader_LoadedFile( QString const& filename );
+    void libraryFsModel_directoryLoaded( QString const& name );
+    void usbFsModel_directoryLoaded( QString const& name );
+    void _lookForUsbStick( QString const& path );
+    void availableFilesListView_clicked( QModelIndex const& index );
+    void toggleLocationButton_clicked( bool );
+    void selectButton_clicked( bool );
+    void processRunner_succeeded( );
+    void processRunner_failed( QProcess::ProcessError const error );
+    void processRunner_readyReadStandardOutput ( QString const& data );
+    void processRunner_readyReadStandardError( QString const& data );
 
 };
 

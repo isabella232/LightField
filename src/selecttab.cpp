@@ -6,6 +6,7 @@
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
+#include "processrunner.h"
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
@@ -14,18 +15,31 @@ namespace {
 
     QString DefaultModelFileName { ":gl/BoundingBox.stl" };
 
+    QRegularExpression VolumeLineMatcher { QString { "^volume\\s*=\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
+
 }
 
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     debug( "+ SelectTab::`ctor: construct at %p\n", this );
 
-    _fileSystemModel->setFilter( QDir::Files );
-    _fileSystemModel->setNameFilterDisables( false );
-    _fileSystemModel->setNameFilters( { { "*.stl" } } );
-    _fileSystemModel->setRootPath( StlModelLibraryPath );
-    QObject::connect( _fileSystemModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::fileSystemModel_DirectoryLoaded );
-    QObject::connect( _fileSystemModel, &QFileSystemModel::fileRenamed,     this, &SelectTab::fileSystemModel_FileRenamed     );
-    QObject::connect( _fileSystemModel, &QFileSystemModel::rootPathChanged, this, &SelectTab::fileSystemModel_RootPathChanged );
+    _currentFsModel = _libraryFsModel;
+
+    _libraryFsModel->setFilter( QDir::Files );
+    _libraryFsModel->setNameFilterDisables( false );
+    _libraryFsModel->setNameFilters( { { "*.stl" } } );
+    _libraryFsModel->setRootPath( StlModelLibraryPath );
+    QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::libraryFsModel_directoryLoaded );
+
+    _usbFsModel->setFilter( QDir::Drives | QDir::Files );
+    _usbFsModel->setNameFilterDisables( false );
+    _usbFsModel->setNameFilters( { { "*.stl" } } );
+    QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::usbFsModel_directoryLoaded );
+
+    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_lookForUsbStick );
+    _fsWatcher->addPath( UsbStickPath );
+    _lookForUsbStick( QString( UsbStickPath ) );
+
+    _availableFilesLabel->setText( "Models in library:" );
 
     _availableFilesListView->setFlow( QListView::TopToBottom );
     _availableFilesListView->setLayoutMode( QListView::SinglePass );
@@ -33,15 +47,16 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->setResizeMode( QListView::Fixed );
     _availableFilesListView->setViewMode( QListView::ListMode );
     _availableFilesListView->setWrapping( true );
-    _availableFilesListView->setModel( _fileSystemModel );
+    _availableFilesListView->setModel( _libraryFsModel );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &SelectTab::availableFilesListView_clicked );
 
-    _availableFilesLabel->setText( "Available models:" );
-    _availableFilesLabel->setBuddy( _availableFilesListView );
+    _toggleLocationButton->setText( "Show USB stick" );
+    QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &SelectTab::toggleLocationButton_clicked );
 
     _availableFilesLayout->setContentsMargins( { } );
     _availableFilesLayout->addWidget( _availableFilesLabel,    0, 0 );
     _availableFilesLayout->addWidget( _availableFilesListView, 1, 0 );
+    _availableFilesLayout->addWidget( _toggleLocationButton,   2, 0 );
 
     _availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
@@ -97,31 +112,69 @@ SelectTab::~SelectTab( ) {
     debug( "+ SelectTab::`dtor: destruct at %p\n", this );
 }
 
-void SelectTab::fileSystemModel_DirectoryLoaded( QString const& name ) {
-    debug( "+ SelectTab::fileSystemModel_DirectoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
-    _fileSystemModel->sort( 0, Qt::AscendingOrder );
-    _availableFilesListView->setRootIndex( _fileSystemModel->index( StlModelLibraryPath ) );
+void SelectTab::libraryFsModel_directoryLoaded( QString const& name ) {
+    debug( "+ SelectTab::libraryFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+    if ( _modelsLocation == ModelsLocation::Library ) {
+        _libraryFsModel->sort( 0, Qt::AscendingOrder );
+        _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
+    }
 }
 
-void SelectTab::fileSystemModel_FileRenamed( QString const& path, QString const& oldName, QString const& newName ) {
-    debug( "+ SelectTab::fileSystemModel_FileRenamed: path '%s', oldName '%s', newName '%s'\n", path.toUtf8( ).data( ), oldName.toUtf8( ).data( ), newName.toUtf8( ).data( ) );
+void SelectTab::usbFsModel_directoryLoaded( QString const& name ) {
+    debug( "+ SelectTab::usbFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+    if ( _modelsLocation == ModelsLocation::Usb ) {
+        _usbFsModel->sort( 0, Qt::AscendingOrder );
+        _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
+    }
 }
 
-void SelectTab::fileSystemModel_RootPathChanged( QString const& newPath ) {
-    debug( "+ SelectTab::fileSystemModel_RootPathChanged: newPath '%s'\n", newPath.toUtf8( ).data( ) );
+void SelectTab::_lookForUsbStick( QString const& path ) {
+    debug( "+ SelectTab::_lookForUsbStick: name '%s'\n", path.toUtf8( ).data( ) );
+
+    auto dir = new QDir( path );
+    dir->setFilter( QDir::Dirs );
+    auto names = dir->entryList( );
+    QString dirname;
+    for ( auto name : names ) {
+        if ( ( name == "." ) || ( name == ".." ) ) {
+            continue;
+        }
+        dirname = name;
+        break;
+    }
+    if ( dirname.isEmpty( ) ) {
+        debug( "  + no directories on USB stick\n" );
+        _showLibrary( );
+        _toggleLocationButton->setEnabled( false );
+    } else {
+        debug( "  + USB path is '%s/%s'\n", UsbStickPath.toUtf8( ).data( ), dirname.toUtf8( ).data( ) );
+        _usbPath = UsbStickPath + QString( "/" ) + dirname;
+        _usbFsModel->setRootPath( _usbPath );
+        _toggleLocationButton->setEnabled( true );
+    }
 }
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
-    _fileName = StlModelLibraryPath + QString( '/' ) + index.data( ).toString( );
+    auto fileName = ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + QString( "/" ) + index.data( ).toString( );
     int indexRow = index.row( );
-    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, _fileName.toUtf8( ).data( ) );
+    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, fileName.toUtf8( ).data( ) );
     if ( _selectedRow != indexRow ) {
+        _fileName = fileName;
         _selectedRow = indexRow;
         _selectButton->setEnabled( false );
         _availableFilesListView->setEnabled( false );
         if ( !_loadModel( _fileName ) ) {
             debug( "  + _loadModel failed!\n" );
+            _availableFilesListView->setEnabled( true );
         }
+    }
+}
+
+void SelectTab::toggleLocationButton_clicked( bool ) {
+    if ( _modelsLocation == ModelsLocation::Library ) {
+        _showUsbStick( );
+    } else {
+        _showLibrary( );
     }
 }
 
@@ -131,8 +184,6 @@ void SelectTab::selectButton_clicked( bool ) {
 }
 
 void SelectTab::loader_gotMesh( Mesh* m ) {
-    debug( "+ SelectTab::loader_gotMesh: mesh %p: size %zu\n", m, m->count( ) );
-
     float minX, minY, minZ, maxX, maxY, maxZ;
     size_t count;
 
@@ -154,11 +205,10 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     );
 
     {
-        auto sizeXstring = GroupDigits( QString( "%1" ).arg( sizeX,                          0, 'f', 2 ), ' ' );
-        auto sizeYstring = GroupDigits( QString( "%1" ).arg( sizeY,                          0, 'f', 2 ), ' ' );
-        auto sizeZstring = GroupDigits( QString( "%1" ).arg( sizeZ,                          0, 'f', 2 ), ' ' );
-        auto volume      = GroupDigits( QString( "%1" ).arg( sizeX * sizeY * sizeZ / 1000.0, 0, 'f', 2 ), ' ' );
-        _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm  •  %4 mL" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ).arg( volume ) );
+        auto sizeXstring = GroupDigits( QString( "%1" ).arg( sizeX, 0, 'f', 2 ), ' ' );
+        auto sizeYstring = GroupDigits( QString( "%1" ).arg( sizeY, 0, 'f', 2 ), ' ' );
+        auto sizeZstring = GroupDigits( QString( "%1" ).arg( sizeZ, 0, 'f', 2 ), ' ' );
+        _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ) );
     }
 
     if ( ( sizeX > PrinterMaximumX ) || ( sizeY > PrinterMaximumY ) || ( sizeZ > PrinterMaximumZ ) ) {
@@ -170,6 +220,29 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     }
 
     _canvas->load_mesh( m );
+
+    if ( _processRunner ) {
+        QObject::disconnect( _processRunner, nullptr, this, nullptr );
+        _processRunner->kill( );
+        _processRunner->deleteLater( );
+    }
+
+    _processRunner = new ProcessRunner( this );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &SelectTab::processRunner_succeeded               );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &SelectTab::processRunner_failed                  );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &SelectTab::processRunner_readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &SelectTab::processRunner_readyReadStandardError  );
+
+    if ( !_fileName.isEmpty( ) && ( _fileName[0].unicode( ) != L':' ) ) {
+        debug( "+ SelectTab::loader_gotMesh: file name '%s'\n", _fileName.toUtf8( ).data( ) );
+        _processRunner->start(
+            { "slic3r" },
+        {
+            { "--info"  },
+            { _fileName }
+        }
+        );
+    }
 
     emit modelDimensioned( count, { minX, maxX }, { minY, maxY }, { minZ, maxZ } );
 }
@@ -214,6 +287,39 @@ void SelectTab::loader_LoadedFile( const QString& fileName ) {
     debug( "+ SelectTab::loader_LoadedFile: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
 }
 
+void SelectTab::processRunner_succeeded( ) {
+    debug( "+ SelectTab::processRunner_succeeded\n" );
+
+    for ( auto line : _slicerBuffer.split( QRegularExpression { QString { "\\r?\\n" } } ) ) {
+        auto match = VolumeLineMatcher.match( line );
+        if ( match.hasMatch( ) ) {
+            auto value = match.captured( 1 ).toDouble( );
+            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %4 mL" ).arg( value, 0, 'f', 2 ) );
+        }
+    }
+
+    _slicerBuffer.clear( );
+}
+
+void SelectTab::processRunner_failed( QProcess::ProcessError const error ) {
+    debug( "SelectTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
+    _slicerBuffer.clear( );
+}
+
+void SelectTab::processRunner_readyReadStandardOutput( QString const& data ) {
+    debug( "+ SelectTab::processRunner_readyReadStandardOutput: %d bytes from slic3r\n", data.length( ) );
+    _slicerBuffer += data;
+}
+
+void SelectTab::processRunner_readyReadStandardError( QString const& data ) {
+    debug(
+        "+ SelectTab::processRunner_readyReadStandardError: %d bytes from slic3r:\n"
+        "%s",
+        data.length( ),
+        data.toUtf8( ).data( )
+    );
+}
+
 bool SelectTab::_loadModel( QString const& fileName ) {
     debug( "+ SelectTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     if ( _loader ) {
@@ -237,6 +343,28 @@ bool SelectTab::_loadModel( QString const& fileName ) {
     _selectButton->setEnabled( false );
     _loader->start( );
     return true;
+}
+
+void SelectTab::_showLibrary( ) {
+    _modelsLocation = ModelsLocation::Library;
+    _currentFsModel = _libraryFsModel;
+
+    _libraryFsModel->sort( 0, Qt::AscendingOrder );
+    _availableFilesLabel->setText( "Models in library:" );
+    _availableFilesListView->setModel( _libraryFsModel );
+    _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
+    _toggleLocationButton->setText( "Show USB stick" );
+}
+
+void SelectTab::_showUsbStick( ) {
+    _modelsLocation = ModelsLocation::Usb;
+    _currentFsModel = _usbFsModel;
+
+    _usbFsModel->sort( 0, Qt::AscendingOrder );
+    _availableFilesLabel->setText( "Models on USB stick:" );
+    _availableFilesListView->setModel( _usbFsModel );
+    _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
+    _toggleLocationButton->setText( "Show library" );
 }
 
 void SelectTab::setPrintJob( PrintJob* printJob ) {
