@@ -57,6 +57,7 @@ private:
     QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
     QTimer*             _usbRetryTimer           { new QTimer              };
     int                 _usbRetryCount           { -1                      };
+    QString             _userMediaDirectory;
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
 
@@ -95,6 +96,7 @@ private slots:
     void processRunner_failed( QProcess::ProcessError const error );
     void processRunner_readyReadStandardOutput ( QString const& data );
     void processRunner_readyReadStandardError( QString const& data );
+    void usbRetryTimer_timeout( );
 
 };
 
