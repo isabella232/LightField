@@ -54,9 +54,9 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &SelectTab::toggleLocationButton_clicked );
 
     _availableFilesLayout->setContentsMargins( { } );
-    _availableFilesLayout->addWidget( _availableFilesLabel,    0, 0 );
-    _availableFilesLayout->addWidget( _availableFilesListView, 1, 0 );
-    _availableFilesLayout->addWidget( _toggleLocationButton,   2, 0 );
+    _availableFilesLayout->addWidget( _toggleLocationButton,   0, 0 );
+    _availableFilesLayout->addWidget( _availableFilesLabel,    1, 0 );
+    _availableFilesLayout->addWidget( _availableFilesListView, 2, 0 );
 
     _availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
