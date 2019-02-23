@@ -22,6 +22,11 @@ namespace {
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     debug( "+ SelectTab::`ctor: construct at %p\n", this );
 
+    QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
+    _usbRetryTimer->setInterval( 1000 );
+    _usbRetryTimer->setSingleShot( false );
+    _usbRetryTimer->setTimerType( Qt::PreciseTimer );
+
     _currentFsModel = _libraryFsModel;
 
     _libraryFsModel->setFilter( QDir::Files );
@@ -164,19 +169,16 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
                 debug( "  + waiting a bit\n" );
                 if ( -1 == _usbRetryCount ) {
                     _usbRetryCount = 3;
-                    _usbRetryTimer->setInterval( 1000 );
-                    _usbRetryTimer->setSingleShot( false );
-                    _usbRetryTimer->setTimerType( Qt::PreciseTimer );
-                    QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
                     _usbRetryTimer->start( );
                 } else {
                     _usbRetryCount--;
                     if ( !_usbRetryCount ) {
-                        QObject::disconnect( _usbRetryTimer, nullptr, this, nullptr );
                         _usbRetryTimer->stop( );
                     }
                 }
                 return;
+            } else {
+                _usbRetryTimer->stop( );
             }
         }
 
