@@ -15,10 +15,15 @@ namespace {
 
     QRegularExpression VolumeLineMatcher { QString { "^volume\\s*=\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
+    QString MediaRootPath { "/media" };
+
 }
 
 SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     debug( "+ SelectTab::`ctor: construct at %p\n", this );
+
+    _userMediaPath = MediaRootPath + Slash + GetUserName( );
+    debug( "  + user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
 
     QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
     _usbRetryTimer->setInterval( 1000 );
@@ -39,8 +44,8 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::usbFsModel_directoryLoaded );
 
     QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_lookForUsbStick );
-    _fsWatcher->addPath( "/media" );
-    _lookForUsbStick( QString( "/media" ) );
+    _fsWatcher->addPath( MediaRootPath );
+    _lookForUsbStick( MediaRootPath );
 
     _availableFilesLabel->setText( "Models in library:" );
 
@@ -130,29 +135,26 @@ void SelectTab::usbFsModel_directoryLoaded( QString const& name ) {
 }
 
 void SelectTab::_lookForUsbStick( QString const& path ) {
-    debug( "+ SelectTab::_lookForUsbStick: name '%s'\n", path.toUtf8( ).data( ) );
+    debug( "+ SelectTab::_lookForUsbStick: path '%s' has changed\n", path.toUtf8( ).data( ) );
 
-    _userMediaDirectory = QString( "/media/" ) + GetUserName( );
-    debug( "  + user media directory '%s'\n", _userMediaDirectory.toUtf8( ).data( ) );
-
-    if ( path == "/media" ) {
-        if ( 0 == ::access( _userMediaDirectory.toUtf8( ).data( ), F_OK ) ) {
-            _fsWatcher->addPath( _userMediaDirectory );
+    if ( path == MediaRootPath ) {
+        if ( 0 == ::access( _userMediaPath.toUtf8( ).data( ), F_OK ) ) {
+            _fsWatcher->addPath( _userMediaPath );
         } else {
             error_t err = errno;
             debug( "  + access(F) failed: %s [%d]\n", strerror( err ), err );
-            _fsWatcher->removePath( _userMediaDirectory );
+            _fsWatcher->removePath( _userMediaPath );
             return;
         }
     }
 
-    QString dirname { GetFirstDirectoryIn( _userMediaDirectory ) };
+    QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
     if ( dirname.isEmpty( ) ) {
-        debug( "  + no directories in user media directory '%s'\n", _userMediaDirectory.toUtf8( ).data( ) );
+        debug( "  + no directories in user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
         if ( _modelsLocation == ModelsLocation::Usb ) {
             _showLibrary( );
         }
-        if ( _fileName.startsWith( _userMediaDirectory ) ) {
+        if ( _fileName.startsWith( _userMediaPath ) ) {
             _fileName.clear( );
             _canvas->clear( );
             _dimensionsLabel->clear( );
@@ -160,7 +162,7 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
         }
         _toggleLocationButton->setEnabled( false );
     } else {
-        _usbPath = _userMediaDirectory + QString( "/" ) + dirname;
+        _usbPath = _userMediaPath + Slash + dirname;
         debug( "  + mounted USB device is '%s'\n", _usbPath.toUtf8( ).data( ) );
 
         struct stat statbuf { };
@@ -197,7 +199,7 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
 }
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
-    auto fileName = ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + QString( "/" ) + index.data( ).toString( );
+    auto fileName = ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( );
     int indexRow = index.row( );
     debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, fileName.toUtf8( ).data( ) );
     if ( _selectedRow != indexRow ) {
@@ -363,7 +365,7 @@ void SelectTab::processRunner_readyReadStandardError( QString const& data ) {
 }
 
 void SelectTab::usbRetryTimer_timeout( ) {
-    _lookForUsbStick( _userMediaDirectory );
+    _lookForUsbStick( _userMediaPath );
 }
 
 bool SelectTab::_loadModel( QString const& fileName ) {

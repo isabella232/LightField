@@ -57,7 +57,7 @@ private:
     QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
     QTimer*             _usbRetryTimer           { new QTimer              };
     int                 _usbRetryCount           { -1                      };
-    QString             _userMediaDirectory;
+    QString             _userMediaPath;
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
 
