@@ -7,6 +7,7 @@ QSize   extern const PngDisplayWindowSize;
 
 QString extern const StlModelLibraryPath;
 QString extern const Slash;
+QString extern const MediaRootPath;
 
 QChar   extern const DigitZero;
 
