@@ -159,7 +159,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
     QString baseName = getFileBaseName( _printJob->modelFileName );
     _printJob->slicedSvgFileName =
         _printJob->pngFilesPath +
-        QChar( '/' ) +
+        Slash +
         baseName.left( baseName.length( ) - ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ? 4 : 0 ) ) +
         QString( ".svg" );
 
@@ -244,7 +244,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
         renderStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
-            auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( currentLayer - 1, 6, 10, QChar( '0' ) ) );
+            auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
             // comparing height against width is not an error here -- the slice image widget is square
             if ( ( pixmap.width( ) > _maxSliceImageWidth ) || ( pixmap.height( ) > _maxSliceImageWidth ) ) {
                 pixmap = pixmap.scaled( _maxSliceImageWidth, _maxSliceImageWidth, Qt::KeepAspectRatio, Qt::SmoothTransformation );

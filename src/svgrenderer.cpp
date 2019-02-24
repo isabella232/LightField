@@ -92,7 +92,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         QDomDocument layerDoc = _CloneDocRoot( skeletonDoc );
         layerDoc.documentElement( ).appendChild( element->cloneNode( true ) );
 
-        QFile data( QString( "%1/%2.svg" ).arg( outputDirectory ).arg( currentLayer++, 6, 10, QChar( '0' ) ) );
+        QFile data( QString( "%1/%2.svg" ).arg( outputDirectory ).arg( currentLayer++, 6, 10, DigitZero ) );
         if ( data.open( QFile::WriteOnly | QFile::Truncate ) ) {
             QTextStream textStream( &data );
             layerDoc.save( textStream, 0 );
@@ -120,8 +120,8 @@ void SvgRenderer::renderLayer( ) {
             QString( "-density"    ), QString( "400" ),
             QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
             QString( "-background" ), QString( "#000000" ),
-            QString( "%1/%2.svg"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) ),
-            QString( "%1/%2.png"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, QChar( '0' ) )
+            QString( "%1/%2.svg"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, DigitZero ),
+            QString( "%1/%2.png"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, DigitZero )
         }
     );
 }

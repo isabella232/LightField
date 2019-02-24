@@ -154,7 +154,7 @@ void PrintManager::step2_LiftDownComplete( bool const success ) {
     }
     debug( "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
 
-    QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 6, 10, QChar( '0' ) );
+    QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
     if ( !_pngDisplayer->load( pngFileName ) ) {
         debug( "+ PrintManager::step2_LiftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
     }

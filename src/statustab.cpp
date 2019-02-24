@@ -136,7 +136,7 @@ void StatusTab::printManager_printStarting( ) {
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
-    auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, QChar( '0' ) ) );
+    auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, DigitZero ) );
     int scaledWidth  = pixmap.width( )  / 1280.0 * static_cast<double>( currentLayerImageGroup->width( )  ) + 0.5;
     int scaledHeight = pixmap.height( ) /  800.0 * static_cast<double>( currentLayerImageGroup->height( ) ) + 0.5;
     currentLayerImage->setPixmap( pixmap.scaled( scaledWidth, scaledHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
