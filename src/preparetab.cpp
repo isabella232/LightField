@@ -17,7 +17,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessLabel->setText( "Layer height:" );
 
     layerThickness50Button->setText( "High res (50 µm)" );
-    layerThickness100Button->setText( "Medium res (100 µm)" );
+    layerThickness100Button->setText( "Standard res (100 µm)" );
     layerThickness100Button->setChecked( true );
     QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
     QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
