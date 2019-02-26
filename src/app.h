@@ -16,8 +16,9 @@ public:
     QPoint pngDisplayWindowPosition { 0,   0 };
     QPoint mainWindowPosition       { 0, 800 };
 
-    Theme  theme                    { Theme::Light };
-    bool   frameless                { false        };
+    Theme  theme                    { Theme::Dark };
+    bool   frameless                { false       };
+    bool   pretendPrinterIsPrepared { false       };
 
 };
 
