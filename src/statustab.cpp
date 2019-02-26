@@ -4,6 +4,7 @@
 
 #include "printjob.h"
 #include "shepherd.h"
+#include "strings.h"
 #include "utils.h"
 
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
@@ -115,6 +116,12 @@ void StatusTab::printer_online( ) {
     debug( "+ StatusTab::printer_online\n" );
     _isPrinterOnline = true;
     printerStateDisplay->setText( "Online" );
+
+    if ( !_isFirstOnlineTaskDone ) {
+        debug( "+ StatusTab::printer_online: printer has come online for the first time; sending 'disable steppers' command\n" );
+        QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::disableSteppers_sendComplete );
+        _shepherd->doSend( QString( "M18" ) );
+    }
 }
 
 void StatusTab::printer_offline( ) {
@@ -151,6 +158,27 @@ void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "Print complete" : "Print failed" );
     jobStateDisplay->setText( QString( success ? "Print complete" : "Print failed" ) );
     emit printComplete( );
+}
+
+void StatusTab::disableSteppers_sendComplete( bool const success ) {
+    debug( "+ StatusTab::disableSteppers_sendComplete: success %s\n", ToString( success ) );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::disableSteppers_sendComplete );
+
+    if ( success ) {
+        debug( "+ StatusTab::disableSteppers_sendComplete: sending 'set fan speed' command\n" );
+        QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::setFanSpeed_sendComplete );
+        _shepherd->doSend( QString( "M106 S220" ) );
+    }
+}
+
+void StatusTab::setFanSpeed_sendComplete( bool const success ) {
+    debug( "+ StatusTab::setFanSpeed_sendComplete: success %s\n", ToString( success ) );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::setFanSpeed_sendComplete );
+
+    if ( success ) {
+        debug( "+ StatusTab::setFanSpeed_sendComplete: first-online tasks completed\n" );
+        _isFirstOnlineTaskDone = true;
+    }
 }
 
 void StatusTab::setPrintJob( PrintJob* printJob ) {
