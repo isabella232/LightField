@@ -128,15 +128,16 @@ void PrepareTab::_initialShowEvent( ) {
     sliceButton->setFixedSize( sliceButton->size( ) );
 
     _maxSliceImageWidth = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
-    debug( "+ PrepareTab::_initialShowEvent: maximum slice image width is %d\n", _maxSliceImageWidth );
     currentSliceImage->setMaximumSize( _maxSliceImageWidth, _maxSliceImageWidth );
 
     QFontMetrics fontMetrics( _prepareButton->font( ) );
     auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
     auto bboxPrepare  = fontMetrics.size( 0, QString( "Prepare"  ) );
     auto bboxRetry    = fontMetrics.size( 0, QString( "Retry"    ) );
+
     auto minWidth = std::min( { bboxContinue.width( ), bboxPrepare.width( ), bboxRetry.width( ) } );
     auto maxWidth = std::max( { bboxContinue.width( ), bboxPrepare.width( ), bboxRetry.width( ) } );
+
     _prepareButton->setMinimumWidth( _prepareButton->width( ) + ( maxWidth - minWidth ) );
 }
 
