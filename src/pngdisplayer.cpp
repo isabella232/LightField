@@ -3,6 +3,7 @@
 #include "pngdisplayer.h"
 
 #include "app.h"
+#include "utils.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     debug( "+ construct PngDisplayer at %p\n", this );
@@ -10,9 +11,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );
 
-    auto pal = palette( );
-    pal.setColor( QPalette::Window, Qt::black );
-    setPalette( pal );
+    setPalette( ModifyPalette( palette( ), QPalette::Window, Qt::black ) );
 
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
 }

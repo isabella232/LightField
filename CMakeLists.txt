@@ -50,10 +50,13 @@ src/printtab.cpp
 src/statustab.cpp
 src/constants.cpp
 src/bedheightadjustment.cpp
-src/utils.cpp)
+src/utils.cpp
+src/gesturelistview.cpp)
 
 #set project headers. 
-set(Project_Headers src/app.h
+set(Project_Headers src/debug.h
+src/pch.h
+src/app.h
 src/canvas.h
 src/mesh.h
 src/glmesh.h
@@ -77,8 +80,7 @@ src/statustab.h
 src/constants.h
 src/bedheightadjustment.h
 src/utils.h
-src/debug.h
-src/pch.h)
+src/gesturelistview.h)
 
 #set project resources and icon resource
 set(Project_Resources gl/gl.qrc breeze/breeze.qrc)

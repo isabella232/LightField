@@ -54,6 +54,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->setViewMode( QListView::ListMode );
     _availableFilesListView->setWrapping( true );
     _availableFilesListView->setModel( _libraryFsModel );
+    _availableFilesListView->grabGesture( Qt::SwipeGesture );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &SelectTab::availableFilesListView_clicked );
 
     _toggleLocationButton->setText( "Show USB stick" );
@@ -209,6 +210,49 @@ void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
             debug( "  + _loadModel failed!\n" );
             _availableFilesListView->setEnabled( true );
         }
+    }
+}
+
+void SelectTab::availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture ) {
+    debug(
+        "+ SelectTab::availableFilesListView_swipeGesture:\n"
+        "  + state:               %s [%d]\n"
+        "  + horizontal direction %s [%d]\n"
+        "  + vertical direction   %s [%d]\n"
+        "",
+        ToString( gesture->state( ) ),               gesture->state( ),
+        ToString( gesture->horizontalDirection( ) ), gesture->horizontalDirection( ),
+        ToString( gesture->verticalDirection( ) ),   gesture->verticalDirection( ),
+        ToString( gesture->hasHotSpot( ) )
+    );
+    event->accept( );
+
+    if ( !gesture->hasHotSpot( ) ) {
+        debug( "  + gesture doesn't have a hotspot?\n" );
+        return;
+    }
+
+    debug( "  + gesture hotspot:     %s\n", ToString( gesture->hotSpot( ) ) );
+    switch ( gesture->state( ) ) {
+        case Qt::GestureStarted:
+            _swipeLastPoint = gesture->hotSpot( );
+            break;
+
+        case Qt::GestureUpdated:
+            debug( "  + difference from previous position: %f\n", _swipeLastPoint.y( ) - gesture->hotSpot( ).y( ) );
+            _swipeLastPoint = gesture->hotSpot( );
+            break;
+
+        case Qt::GestureFinished:
+            debug( "  + difference from previous position: %f\n", _swipeLastPoint.y( ) - gesture->hotSpot( ).y( ) );
+            _swipeLastPoint = gesture->hotSpot( );
+            break;
+
+        case Qt::GestureCanceled:
+            break;
+
+        case Qt::NoGesture:
+            break;
     }
 }
 

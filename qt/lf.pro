@@ -8,8 +8,8 @@ QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3
 
 SOURCES += \
-    ../src/app.cpp\
-    ../src/main.cpp\
+    ../src/app.cpp \
+    ../src/main.cpp \
     ../src/canvas.cpp \
     ../src/mesh.cpp \
     ../src/glmesh.cpp \
@@ -31,10 +31,12 @@ SOURCES += \
     ../src/statustab.cpp \
     ../src/constants.cpp \
     ../src/bedheightadjustment.cpp \
-    ../src/utils.cpp
+    ../src/utils.cpp \
+    ../src/gesturelistview.cpp
 
 HEADERS  += \
-    ../src/app.h\
+    ../src/debug.h \
+    ../src/app.h \
     ../src/canvas.h \
     ../src/mesh.h \
     ../src/glmesh.h \
@@ -58,7 +60,7 @@ HEADERS  += \
     ../src/constants.h \
     ../src/bedheightadjustment.h \
     ../src/utils.h \
-    ../src/debug.h
+    ../src/gesturelistview.h
 
 CONFIG += c++17
 CONFIG += precompile_header

@@ -2,6 +2,7 @@
 #define __SELECTTAB_H__
 
 #include "coordinate.h"
+#include "gesturelistview.h"
 
 class Canvas;
 class Loader;
@@ -37,7 +38,7 @@ private:
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
     QFileSystemModel*   _currentFsModel          {                         };
-    QListView*          _availableFilesListView  { new QListView           };
+    GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };
     QPushButton*        _toggleLocationButton    { new QPushButton         };
     QGridLayout*        _availableFilesLayout    { new QGridLayout         };
@@ -60,6 +61,7 @@ private:
     QString             _userMediaPath;
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
+    QPointF             _swipeLastPoint          {                         };
 
     bool _loadModel( QString const& filename );
 
@@ -90,6 +92,7 @@ private slots:
     void usbFsModel_directoryLoaded( QString const& name );
     void _lookForUsbStick( QString const& path );
     void availableFilesListView_clicked( QModelIndex const& index );
+    void availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture );
     void toggleLocationButton_clicked( bool );
     void selectButton_clicked( bool );
     void processRunner_succeeded( );

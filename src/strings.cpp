@@ -53,6 +53,22 @@ namespace {
         "Status",
     };
 
+    char const* SwipeDirectionStrings[] {
+        "NoDirection",
+        "Left",
+        "Right",
+        "Up",
+        "Down"
+    };
+
+    char const* GestureStateStrings[] {
+        "NoGesture",
+        "GestureStarted",
+        "GestureUpdated",
+        "GestureFinished",
+        "GestureCanceled",
+    };
+
 }
 
 char const* ToString( QProcess::ProcessError const value ) {
@@ -119,6 +135,18 @@ QString ToString( QRect const value ) {
     return QString( "%1-%2 [%3]" ).arg( ToString( value.topLeft( ) ) ).arg( ToString( value.bottomRight( ) ) ).arg( ToString( value.size( ) ) );
 }
 
+QString ToString( QPointF const value ) {
+    return QString( "(%1,%2)" ).arg( value.x( ), 0, 'f', 2 ).arg( value.y( ), 0, 'f', 2 );
+}
+
+QString ToString( QSizeF const value ) {
+    return QString( "%1×%2" ).arg( value.width( ), 0, 'f', 2 ).arg( value.height( ), 0, 'f', 2 );
+}
+
+QString ToString( QRectF const value ) {
+    return QString( "%1-%2 [%3]" ).arg( ToString( value.topLeft( ) ) ).arg( ToString( value.bottomRight( ) ) ).arg( ToString( value.size( ) ) );
+}
+
 char const* ToString( PendingCommand const value ) {
 #if defined _DEBUG
     if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::send ) ) {
@@ -136,6 +164,30 @@ char const* ToString( TabIndex const value ) {
     if ( ( value >= TabIndex::Select/*Welcome*/ ) && ( value <= TabIndex::Status ) ) {
 #endif
         return TabIndexStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( QSwipeGesture::SwipeDirection const value ) {
+#if defined _DEBUG
+    if ( ( value >= QSwipeGesture::NoDirection ) && ( value <= QSwipeGesture::Down ) ) {
+#endif
+        return SwipeDirectionStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( Qt::GestureState const value ) {
+#if defined _DEBUG
+    if ( ( value >= Qt::NoGesture ) && ( value <= Qt::GestureCanceled ) ) {
+#endif
+        return GestureStateStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;

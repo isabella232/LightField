@@ -24,6 +24,18 @@ QFont ModifyFont( QFont const& font_, float const pointSizeF, QFont::Weight cons
     return font;
 }
 
+QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color ) {
+    auto palette { palette_ };
+    palette.setColor( group, role, color );
+    return palette;
+}
+
+QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorRole const role, QColor const& color ) {
+    auto palette { palette_ };
+    palette.setColor( role, color );
+    return palette;
+}
+
 QString GetUserName( ) {
     struct passwd pwd;
     char* buf = new char[16384];
@@ -55,4 +67,12 @@ QString GetFirstDirectoryIn( QString const& directory ) {
     }
 
     return dirname;
+}
+
+qreal Distance( QPointF const& a, QPointF const& b ) {
+    return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
+}
+
+int Distance( QPoint const& a, QPoint const& b ) {
+    return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
 }
