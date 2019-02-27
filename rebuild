@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+BUILDDIR="/home/lumen/Volumetric/LightField/build"
+
+rebuild () {
+    if [ "${PWD}" != "${BUILDDIR}" ]
+    then
+	echo "You're in the wrong directory."
+	return
+    fi
+
+    local CLEAN= NUKE= QMAKE= TEMP=$(getopt -n 'rebuild' -o 'cnqx' --long 'clean,nuke-first,qmake-anyway' -- "$@")
+    eval set -- "$TEMP"
+
+    while [ -n "${1}" ]; do
+	case "$1" in
+	    '-c'        | '--clean' )        CLEAN=yes ;;
+	    '-n' | '-x' | '--nuke-first' )   NUKE=yes  ;;
+	    '-q'        | '--qmake-anyway' ) QMAKE=yes ;;
+	    -- )                             break     ;;
+	    * )                              echo unknown token \{${1}\}; return ;;
+	esac
+	shift
+    done
+
+    if [ "${NUKE}" == "yes" ]
+    then
+	cd .. && rm -dr ${BUILDDIR} && mkdir ${BUILDDIR} && cd ${BUILDDIR}
+    elif [ "${CLEAN}" == "yes" ]
+    then
+	make distclean
+    fi
+
+    if [ "${QMAKE}" == "yes" -o ! -f Makefile -o ../qt/lf.pro -nt Makefile ]
+    then
+	qmake CONFIG+=debug ../qt/lf.pro || return
+    fi
+
+    make -j${QT_BUILD_JOBS-12}
+}
+
+rebuild $*
