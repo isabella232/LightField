@@ -7,7 +7,7 @@
 
 namespace {
 
-    char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/fstl/stdio-shepherd";
+    char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/LightField/stdio-shepherd";
 
 }
 
