@@ -282,3 +282,7 @@ void PrintManager::abort_LiftUpComplete( bool const success ) {
     _cleanUp( );
     emit printAborted( );
 }
+
+int PrintManager::currentLayer( ) const {
+    return _currentLayer;
+}

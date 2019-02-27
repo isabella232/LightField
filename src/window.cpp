@@ -277,12 +277,8 @@ void Window::printTab_printButtonClicked( ) {
     *newJob = *printJob;
 
     printManager = new PrintManager( shepherd, this );
-    QObject::connect( printManager, &PrintManager::printStarting,    statusTab, &StatusTab::printManager_printStarting    );
-    QObject::connect( printManager, &PrintManager::startingLayer,    statusTab, &StatusTab::printManager_startingLayer    );
-    QObject::connect( printManager, &PrintManager::lampStatusChange, statusTab, &StatusTab::printManager_lampStatusChange );
-    QObject::connect( printManager, &PrintManager::printComplete,    statusTab, &StatusTab::printManager_printComplete    );
-    QObject::connect( printManager, &PrintManager::printAborted,     statusTab, &StatusTab::printManager_printAborted     );
     printManager->print( printJob );
+    statusTab->setPrintManager( printManager );
 
     printJob = newJob;
     emit printJobChanged( printJob );
@@ -437,6 +433,7 @@ void Window::statusTab_cleanUpAfterPrint( ) {
     if ( printManager ) {
         printManager->deleteLater( );
         printManager = nullptr;
+        statusTab->setPrintManager( nullptr );
     }
 
     debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );

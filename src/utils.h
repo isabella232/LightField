@@ -15,4 +15,10 @@ QString GetFirstDirectoryIn( QString const& directory );
 qreal Distance( QPointF const& a, QPointF const& b );
 int   Distance( QPoint  const& a, QPoint  const& b );
 
+double GetBootTimeClock( );
+
+void BreakDownTime( uint64_t totalSeconds, int& days, int& hours, int& minutes, int& seconds );
+
+QString TimeDeltaToString( double delta );
+
 #endif // __UTILS_H__

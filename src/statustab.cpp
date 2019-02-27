@@ -3,6 +3,7 @@
 #include "statustab.h"
 
 #include "printjob.h"
+#include "printmanager.h"
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
@@ -17,12 +18,14 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     printerStateDisplay->setFrameShadow( QFrame::Sunken );
     printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
+
     projectorLampStateLabel->setText( "Projector lamp status:" );
     projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
 
     projectorLampStateDisplay->setText( "off" );
     projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
     projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
+
 
     jobStateLabel->setText( "Print status:" );
     jobStateLabel->setBuddy( jobStateDisplay );
@@ -31,11 +34,34 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     jobStateDisplay->setFrameShadow( QFrame::Sunken );
     jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
+
     currentLayerLabel->setText( "Current layer:" );
     currentLayerLabel->setBuddy( currentLayerDisplay );
 
     currentLayerDisplay->setFrameShadow( QFrame::Sunken );
     currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
+
+
+    elapsedTimeLabel->setText( "Elapsed time:" );
+    elapsedTimeLabel->setBuddy( elapsedTimeDisplay );
+
+    elapsedTimeDisplay->setFrameShadow( QFrame::Sunken );
+    elapsedTimeDisplay->setFrameStyle( QFrame::StyledPanel );
+
+
+    estimatedTimeRemainingLabel->setText( "Estimated time remaining:" );
+    estimatedTimeRemainingLabel->setBuddy( elapsedTimeDisplay );
+
+    estimatedTimeRemainingDisplay->setFrameShadow( QFrame::Sunken );
+    estimatedTimeRemainingDisplay->setFrameStyle( QFrame::StyledPanel );
+
+
+    percentageCompleteLabel->setText( "Percentage completed:" );
+    percentageCompleteLabel->setBuddy( elapsedTimeDisplay );
+
+    percentageCompleteDisplay->setFrameShadow( QFrame::Sunken );
+    percentageCompleteDisplay->setFrameStyle( QFrame::StyledPanel );
+
 
     progressControlsLayout->setContentsMargins( { } );
     progressControlsLayout->addWidget( printerStateLabel );
@@ -46,6 +72,12 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     progressControlsLayout->addWidget( jobStateDisplay );
     progressControlsLayout->addWidget( currentLayerLabel );
     progressControlsLayout->addWidget( currentLayerDisplay );
+    progressControlsLayout->addWidget( elapsedTimeLabel );
+    progressControlsLayout->addWidget( elapsedTimeDisplay );
+    progressControlsLayout->addWidget( estimatedTimeRemainingLabel );
+    progressControlsLayout->addWidget( estimatedTimeRemainingDisplay );
+    progressControlsLayout->addWidget( percentageCompleteLabel );
+    progressControlsLayout->addWidget( percentageCompleteDisplay );
     progressControlsLayout->addStretch( );
 
     progressControlsContainer->setContentsMargins( { } );
@@ -90,6 +122,12 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
+    _updatePrintTimeInfo = new QTimer( this );
+    _updatePrintTimeInfo->setInterval( 1000 );
+    _updatePrintTimeInfo->setSingleShot( false );
+    _updatePrintTimeInfo->setTimerType( Qt::PreciseTimer );
+    QObject::connect( _updatePrintTimeInfo, &QTimer::timeout, this, &StatusTab::updatePrintTimeInfo_timeout );
+
     setLayout( _layout );
 }
 
@@ -132,12 +170,16 @@ void StatusTab::printer_offline( ) {
 
 void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
+    _updatePrintTimeInfo->stop( );
     emit stopButtonClicked( );
 }
 
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
     jobStateDisplay->setText( "Print started" );
+
+    _printJobStartTime = GetBootTimeClock( );
+    _updatePrintTimeInfo->start( );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
@@ -157,12 +199,14 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "Print complete" : "Print failed" );
     jobStateDisplay->setText( QString( success ? "Print complete" : "Print failed" ) );
+    _updatePrintTimeInfo->stop( );
     emit printComplete( );
 }
 
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
     jobStateDisplay->setText( QString( "Print aborted" ) );
+    _updatePrintTimeInfo->stop( );
     emit printComplete( );
 }
 
@@ -187,9 +231,48 @@ void StatusTab::setFanSpeed_sendComplete( bool const success ) {
     }
 }
 
+void StatusTab::updatePrintTimeInfo_timeout( ) {
+    if ( !_printManager ) {
+        debug( "+ StatusTab::updatePrintTimeInfo_timeout: no print manager. don't know why timer is even running, but stopping it.\n" );
+        _updatePrintTimeInfo->stop( );
+        return;
+    }
+
+    double delta = GetBootTimeClock( ) - _printJobStartTime;
+    debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n" );
+    elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
+
+    if ( delta >= 5.0 ) {
+        double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
+        debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
+        estimatedTimeRemainingDisplay->setText( TimeDeltaToString( estimatedTime ) );
+    } else {
+        estimatedTimeRemainingDisplay->setText( QString( "calculating..." ) );
+    }
+
+    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( _printManager->currentLayer( ) / _printJob->layerCount + 0.5 ) ) );
+}
+
 void StatusTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
+}
+
+void StatusTab::setPrintManager( PrintManager* printManager ) {
+    debug( "+ StatusTab::setPrintManager: printManager %p\n", printManager );
+    if ( _printManager ) {
+        QObject::disconnect( _printManager, nullptr, this, nullptr );
+    }
+
+    _printManager = printManager;
+
+    if ( _printManager ) {
+        QObject::connect( _printManager, &PrintManager::printStarting,    this, &StatusTab::printManager_printStarting    );
+        QObject::connect( _printManager, &PrintManager::printComplete,    this, &StatusTab::printManager_printComplete    );
+        QObject::connect( _printManager, &PrintManager::printAborted,     this, &StatusTab::printManager_printAborted     );
+        QObject::connect( _printManager, &PrintManager::startingLayer,    this, &StatusTab::printManager_startingLayer    );
+        QObject::connect( _printManager, &PrintManager::lampStatusChange, this, &StatusTab::printManager_lampStatusChange );
+    }
 }
 
 void StatusTab::setShepherd( Shepherd* newShepherd ) {

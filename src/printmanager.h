@@ -17,6 +17,8 @@ public:
 
     void print( PrintJob* printJob );
 
+    int currentLayer( ) const;
+
 protected:
 
 private:

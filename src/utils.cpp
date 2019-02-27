@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <ctime>
+
 #include "utils.h"
 
 QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment ) {
@@ -75,4 +77,33 @@ qreal Distance( QPointF const& a, QPointF const& b ) {
 
 int Distance( QPoint const& a, QPoint const& b ) {
     return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
+}
+
+double GetBootTimeClock( ) {
+    timespec now;
+    clock_gettime( CLOCK_BOOTTIME, &now );
+    return now.tv_sec + now.tv_nsec / 1'000'000'000.0;
+}
+
+void BreakDownTime( uint64_t totalSeconds, int& days, int& hours, int& minutes, int& seconds ) {
+    seconds = totalSeconds % 60; totalSeconds /= 60;
+    minutes = totalSeconds % 60; totalSeconds /= 60;
+    hours   = totalSeconds % 24;
+    days    = totalSeconds / 24;
+}
+
+QString TimeDeltaToString( double delta ) {
+    int days, hours, minutes, seconds;
+    BreakDownTime( delta + 0.5, days, hours, minutes, seconds );
+
+    QString timeString;
+    if ( days > 0 ) {
+        timeString = QString( "%1d " ).arg( days );
+    }
+    timeString += QString( "%1h%2m%3s" )
+        .arg( hours,   2, 10, QChar( '0' ) )
+        .arg( minutes, 2, 10, QChar( '0' ) )
+        .arg( seconds, 2, 10, QChar( '0' ) );
+
+    return timeString;
 }
