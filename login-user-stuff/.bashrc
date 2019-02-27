@@ -118,18 +118,16 @@ fi
 
 
 
-printf "###########################################################\n  Welcome to TouchPrint's sweeeeeeet Virtual Environment!\n          Are we ready to change the world today?\n###########################################################\n"
+printf "###########################################################\n  Welcome to Volumetric's sweeeeeeet Virtual Environment!\n          Are we ready to change the world today?\n###########################################################\n"
 
 
 cd /home/lumen/Volumetric/
-# Activate TouchPrint Virtualenv
-#. /home/lumen/Volumetric/TouchPrint/venv-TouchPrint-DefaultInterpreter/bin/activate
-#. /home/lumen/Volumetric/TouchPrint/venv-TouchPrint-Cython0.23-Kivy1.9.1/bin/activate
 
+# Activate TouchPrint Virtualenv
 ### START THE VIRTUAL ENVIRONMENT CORRECTLY
 . envTouchPrint/bin/activate
 
 # Now go into the APP directory:
-cd /home/lumen/Volumetric/TouchPrint/App/
+cd /home/lumen/Volumetric/LightField/build
 
 
