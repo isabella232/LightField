@@ -26,6 +26,8 @@ public:
 
 protected:
 
+    void showEvent( QShowEvent* event );
+
 private:
 
     BuildPlatformState _buildPlatformState             { BuildPlatformState::Lowered };
@@ -61,11 +63,25 @@ private:
     QPushButton*       _homeButton                     { new QPushButton };
     QPushButton*       _moveUpButton                   { new QPushButton };
     QPushButton*       _moveDownButton                 { new QPushButton };
-    QHBoxLayout*       _adjustmentsHBox                { new QHBoxLayout };
-    QVBoxLayout*       _adjustmentsVBox                { new QVBoxLayout };
+
+    QVBoxLayout*       _adjustBedHeightLayout          { new QVBoxLayout };
+    QVBoxLayout*       _raiseOrLowerLayout             { new QVBoxLayout };
+    QVBoxLayout*       _homeLayout                     { new QVBoxLayout };
+    QVBoxLayout*       _moveLayout                     { new QVBoxLayout };
+
+    QGroupBox*         _adjustBedHeightGroup           { new QGroupBox   };
+    QGroupBox*         _raiseOrLowerGroup              { new QGroupBox   };
+    QGroupBox*         _homeGroup                      { new QGroupBox   };
+    QGroupBox*         _moveGroup                      { new QGroupBox   };
+
+    QGridLayout*       _adjustmentsLayout              { new QGridLayout };
     QGroupBox*         _adjustmentsGroup               { new QGroupBox   };
 
     QGridLayout*       _layout                         { new QGridLayout };
+
+    std::function<void( QShowEvent* )> _initialShowEventFunc;
+
+    void _initialShowEvent( QShowEvent* event );
 
 signals:
 

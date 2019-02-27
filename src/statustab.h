@@ -42,6 +42,7 @@ private:
     PrintJob*    _printJob                         { };
     Shepherd*    _shepherd                         { };
     bool         _isPrinterOnline                  { };
+    bool         _isFirstOnlineTaskDone            { };
     int          _maxLayerImageWidth               { -1 };
 
     QPalette     _stopButtonEnabledPalette         { };
@@ -69,6 +70,9 @@ public slots:
     void printManager_startingLayer( int const layer );
     void printManager_lampStatusChange( bool const on );
     void printManager_printComplete( bool const success );
+
+    void disableSteppers_sendComplete( bool const success );
+    void setFanSpeed_sendComplete( bool const success );
 
 protected slots:
 

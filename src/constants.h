@@ -4,8 +4,13 @@
 QSize   extern const MainWindowSize;
 QSize   extern const MaximalRightHandPaneSize;
 QSize   extern const PngDisplayWindowSize;
+QSize   extern const QuarterRightHandPaneSize;
+
 QString extern const StlModelLibraryPath;
-QString extern const UsbStickPath;
+QString extern const Slash;
+QString extern const MediaRootPath;
+
+QChar   extern const DigitZero;
 
 double         const PrinterMaximumX          = 64.0;
 double         const PrinterMaximumY          = 40.0;

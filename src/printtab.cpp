@@ -8,6 +8,8 @@
 #include "strings.h"
 #include "utils.h"
 
+using namespace std::placeholders;
+
 namespace {
 
     QStringList ExposureTimeScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
@@ -30,6 +32,8 @@ namespace {
 }
 
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
+    _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
+
     exposureTimeDial->setMinimum(  1 );
     exposureTimeDial->setMaximum( 40 );
     exposureTimeDial->setNotchesVisible( true );
@@ -156,22 +160,52 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _moveDownButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _moveDownButton, &QPushButton::clicked, this, &PrintTab::_moveDownButton_clicked );
 
-    _adjustmentsHBox->addWidget( _adjustBedHeightButton );
-    _adjustmentsHBox->addStretch( );
-    _adjustmentsHBox->addWidget( _raiseOrLowerButton );
-    _adjustmentsHBox->addStretch( );
-    _adjustmentsHBox->addWidget( _homeButton );
-    _adjustmentsHBox->addStretch( );
-    _adjustmentsHBox->addWidget( _moveUpButton );
-    _adjustmentsHBox->addWidget( _moveDownButton );
+    _adjustBedHeightLayout->addStretch( );
+    _adjustBedHeightLayout->addWidget( _adjustBedHeightButton, 0, Qt::AlignCenter );
+    _adjustBedHeightLayout->addStretch( );
 
-    _adjustmentsVBox->addLayout( _adjustmentsHBox );
-    _adjustmentsVBox->addStretch( );
+    _raiseOrLowerLayout->addStretch( );
+    _raiseOrLowerLayout->addWidget( _raiseOrLowerButton, 0, Qt::AlignCenter );
+    _raiseOrLowerLayout->addStretch( );
+
+    _homeLayout->addStretch( );
+    _homeLayout->addWidget( _homeButton, 0, Qt::AlignCenter );
+    _homeLayout->addStretch( );
+
+    _moveLayout->addStretch( );
+    _moveLayout->addWidget( _moveUpButton,   0, Qt::AlignCenter );
+    _moveLayout->addWidget( _moveDownButton, 0, Qt::AlignCenter );
+    _moveLayout->addStretch( );
+
+    _adjustBedHeightGroup->setMinimumSize( QuarterRightHandPaneSize );
+    _adjustBedHeightGroup->setLayout( _adjustBedHeightLayout );
+    _adjustBedHeightGroup->setTitle( "Bed Height" );
+
+    _raiseOrLowerGroup->setMinimumSize( QuarterRightHandPaneSize );
+    _raiseOrLowerGroup->setLayout( _raiseOrLowerLayout );
+    _raiseOrLowerGroup->setTitle( "Build Platform" );
+
+    _homeGroup->setMinimumSize( QuarterRightHandPaneSize );
+    _homeGroup->setLayout( _homeLayout );
+    _homeGroup->setTitle( "Home" );
+
+    _moveGroup->setMinimumSize( QuarterRightHandPaneSize );
+    _moveGroup->setLayout( _moveLayout );
+    _moveGroup->setTitle( "Move" );
+
+    _adjustmentsLayout->addWidget( _adjustBedHeightGroup, 0, 0, 1, 1, Qt::AlignCenter );
+    _adjustmentsLayout->addWidget( _raiseOrLowerGroup,    0, 1, 1, 1, Qt::AlignCenter );
+    _adjustmentsLayout->addWidget( _homeGroup,            1, 0, 1, 1, Qt::AlignCenter );
+    _adjustmentsLayout->addWidget( _moveGroup,            1, 1, 1, 1, Qt::AlignCenter );
+    _adjustmentsLayout->setRowStretch( 0, 1 );
+    _adjustmentsLayout->setRowStretch( 1, 1 );
+    _adjustmentsLayout->setColumnStretch( 0, 1 );
+    _adjustmentsLayout->setColumnStretch( 1, 1 );
 
     _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _adjustmentsGroup->setMinimumSize( MaximalRightHandPaneSize );
-    _adjustmentsGroup->setLayout( _adjustmentsVBox );
+    _adjustmentsGroup->setLayout( _adjustmentsLayout );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
@@ -185,6 +219,42 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
 
 PrintTab::~PrintTab( ) {
     /*empty*/
+}
+
+void PrintTab::showEvent( QShowEvent* event ) {
+    if ( _initialShowEventFunc ) {
+        _initialShowEventFunc( event );
+        _initialShowEventFunc = nullptr;
+    } else {
+        event->ignore( );
+    }
+}
+
+void PrintTab::_initialShowEvent( QShowEvent* event ) {
+    auto size = QSize {
+        std::max( {
+            _adjustBedHeightButton->width( ),
+            _raiseOrLowerButton   ->width( ),
+            _homeButton           ->width( ),
+            _moveUpButton         ->width( ),
+            _moveDownButton       ->width( ),
+        } ),
+        std::max( {
+            _adjustBedHeightButton->height( ),
+            _raiseOrLowerButton   ->height( ),
+            _homeButton           ->height( ),
+            _moveUpButton         ->height( ),
+            _moveDownButton       ->height( ),
+        } )
+    };
+
+    _adjustBedHeightButton->setFixedSize( size );
+    _raiseOrLowerButton   ->setFixedSize( size );
+    _homeButton           ->setFixedSize( size );
+    _moveUpButton         ->setFixedSize( size );
+    _moveDownButton       ->setFixedSize( size );
+
+    event->accept( );
 }
 
 void PrintTab::exposureTimeDial_valueChanged( int value ) {

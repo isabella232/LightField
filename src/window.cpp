@@ -40,6 +40,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     _initialShowEventFunc = std::bind( &Window::_initialShowEvent, this );
 
+#if defined _DEBUG
+    if ( g_settings.pretendPrinterIsPrepared ) {
+        _isPrinterPrepared = true;
+    }
+#endif // _DEBUG
+
     //welcomeTab = new WelcomeTab;
     selectTab  = new SelectTab;
     prepareTab = new PrepareTab;
@@ -152,15 +158,15 @@ void Window::closeEvent( QCloseEvent* event ) {
 }
 
 void Window::showEvent( QShowEvent* event ) {
-    if ( _initialShowEventFunc ) {
-        _initialShowEventFunc( );
-        _initialShowEventFunc = nullptr;
-    }
-    event->ignore( );
+    //if ( _initialShowEventFunc ) {
+    //    _initialShowEventFunc( );
+    //    _initialShowEventFunc = nullptr;
+    //} else {
+        event->ignore( );
+    //}
 }
 
 void Window::_initialShowEvent( ) {
-    debug( "+ Window::_initialShowEvent: tabs->tabBar()->height() %d\n", tabs->tabBar( )->height( ) );
 }
 
 void Window::shepherd_started( ) {
@@ -231,7 +237,11 @@ void Window::prepareTab_renderComplete( bool const success ) {
 
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
     debug( "+ Window::prepareTab_renderStarted\n" );
+#if defined _DEBUG
+    _isPrinterPrepared = g_settings.pretendPrinterIsPrepared ? true : success;
+#else
     _isPrinterPrepared = success;
+#endif // _DEBUG
     debug( "  + isPrinterPrepared set to %s.\n", ToString( success ) );
 
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
