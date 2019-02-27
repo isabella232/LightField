@@ -40,9 +40,10 @@ private:
 signals:
 
     void printStarting( );
+    void printComplete( bool const success );
+    void printAborted( );
     void startingLayer( int const layer );
     void lampStatusChange( bool const on );
-    void printComplete( bool const success );
 
 public slots:
 
@@ -70,6 +71,8 @@ private slots:
     void step7_preLiftTimerExpired( );
 
     void step8_LiftUpComplete( bool const success );
+
+    void abort_LiftUpComplete( bool const success );
 
 };
 

@@ -112,12 +112,14 @@ void PrintManager::terminate( ) {
 void PrintManager::abort( ) {
     debug( "+ PrintManager::abort\n" );
 
-    _cleanUp( );
     if ( _lampOn ) {
         QProcess::startDetached( SetPowerCommand, { "0" } );
         _lampOn = false;
     }
-    emit printComplete( false );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_LiftUpComplete );
+    debug( "+ PrintManager::abort: raising build platform\n" );
+    _shepherd->doMoveTo( PrinterMaximumZ );
 }
 
 void PrintManager::_startNextLayer( ) {
@@ -271,4 +273,12 @@ void PrintManager::step8_LiftUpComplete( bool const success ) {
     debug( "+ PrintManager::step8_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
     _cleanUp( );
     emit printComplete( success );
+}
+
+void PrintManager::abort_LiftUpComplete( bool const success ) {
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_LiftUpComplete );
+
+    debug( "+ PrintManager::abort_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
+    _cleanUp( );
+    emit printAborted( );
 }

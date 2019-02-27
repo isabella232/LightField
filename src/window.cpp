@@ -281,6 +281,7 @@ void Window::printTab_printButtonClicked( ) {
     QObject::connect( printManager, &PrintManager::startingLayer,    statusTab, &StatusTab::printManager_startingLayer    );
     QObject::connect( printManager, &PrintManager::lampStatusChange, statusTab, &StatusTab::printManager_lampStatusChange );
     QObject::connect( printManager, &PrintManager::printComplete,    statusTab, &StatusTab::printManager_printComplete    );
+    QObject::connect( printManager, &PrintManager::printAborted,     statusTab, &StatusTab::printManager_printAborted     );
     printManager->print( printJob );
 
     printJob = newJob;

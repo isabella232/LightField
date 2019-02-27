@@ -160,6 +160,12 @@ void StatusTab::printManager_printComplete( bool const success ) {
     emit printComplete( );
 }
 
+void StatusTab::printManager_printAborted( ) {
+    debug( "+ StatusTab::printManager_printAborted\n" );
+    jobStateDisplay->setText( QString( "Print aborted" ) );
+    emit printComplete( );
+}
+
 void StatusTab::disableSteppers_sendComplete( bool const success ) {
     debug( "+ StatusTab::disableSteppers_sendComplete: success %s\n", ToString( success ) );
     QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::disableSteppers_sendComplete );

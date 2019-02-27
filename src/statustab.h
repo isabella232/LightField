@@ -70,6 +70,7 @@ public slots:
     void printManager_startingLayer( int const layer );
     void printManager_lampStatusChange( bool const on );
     void printManager_printComplete( bool const success );
+    void printManager_printAborted( );
 
     void disableSteppers_sendComplete( bool const success );
     void setFanSpeed_sendComplete( bool const success );
