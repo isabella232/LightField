@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=lumenLockPrimaryDisplay
+Exec=xrandr --output DP-2 --primary
+X-GNOME-Autostart-enabled=true
+Terminal=false
+Comment=Make sure all new windows only open on the touchscreen, set as DP-2 (displayport 2) according to 'arandr'

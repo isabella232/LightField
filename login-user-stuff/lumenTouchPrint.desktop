@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=TouchPrint
+Exec=/home/lumen/Volumetric/envTouchPrint/bin/python3 /home/lumen/Volumetric/TouchPrint/App/main.py 
+X-GNOME-Autostart-enabled=true
+Terminal=true
+Categories=Application;
+Comment[en_US]=launch Volumetric TouchPrint app FTW.
+Comment=launch Volumetric TouchPrint app FTW.
