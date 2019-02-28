@@ -11,6 +11,7 @@
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
+    auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
     auto font16pt = ModifyFont( font( ), 16.0f );
     auto font22pt = ModifyFont( font( ), 22.0f );
 
@@ -26,19 +27,32 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
     layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
 
-    sliceProgressLabel->setText( "Slicer status:" );
-    sliceProgressLabel->setBuddy( sliceStatus );
+
+    sliceStatusLabel->setText( "Slicer status:" );
+    sliceStatusLabel->setBuddy( sliceStatus );
 
     sliceStatus->setText( "Idle" );
     sliceStatus->setFrameShadow( QFrame::Sunken );
     sliceStatus->setFrameStyle( QFrame::StyledPanel );
+    sliceStatus->setFont( boldFont );
 
-    renderProgressLabel->setText( "Image generator:" );
-    renderProgressLabel->setBuddy( renderStatus );
+    sliceStatusLayout->addWidget( sliceStatusLabel );
+    sliceStatusLayout->addStretch( );
+    sliceStatusLayout->addWidget( sliceStatus );
 
-    renderStatus->setText( "Idle" );
-    renderStatus->setFrameShadow( QFrame::Sunken );
-    renderStatus->setFrameStyle( QFrame::StyledPanel );
+
+    imageGeneratorStatusLabel->setText( "Image generator:" );
+    imageGeneratorStatusLabel->setBuddy( imageGeneratorStatus );
+
+    imageGeneratorStatus->setText( "Idle" );
+    imageGeneratorStatus->setFrameShadow( QFrame::Sunken );
+    imageGeneratorStatus->setFrameStyle( QFrame::StyledPanel );
+    imageGeneratorStatus->setFont( boldFont );
+
+    imageGeneratorStatusLayout->addWidget( imageGeneratorStatusLabel );
+    imageGeneratorStatusLayout->addStretch( );
+    imageGeneratorStatusLayout->addWidget( imageGeneratorStatus );
+
 
     currentSliceLabel->setText( "Current layer:" );
     currentSliceLabel->setBuddy( currentSliceImage );
@@ -59,10 +73,8 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addLayout( layerThicknessButtonsLayout );
-    optionsLayout->addWidget( sliceProgressLabel );
-    optionsLayout->addWidget( sliceStatus );
-    optionsLayout->addWidget( renderProgressLabel );
-    optionsLayout->addWidget( renderStatus );
+    optionsLayout->addLayout( sliceStatusLayout );
+    optionsLayout->addLayout( imageGeneratorStatusLayout );
     optionsLayout->addWidget( currentSliceLabel );
     optionsLayout->addLayout( currentSliceLayout );
 
@@ -210,7 +222,7 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "Slicer started" );
-    renderStatus->setText( "Waiting for slicer" );
+    imageGeneratorStatus->setText( "Waiting for slicer" );
     currentSliceImage->clear( );
     emit sliceStarted( );
 }
@@ -243,7 +255,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {
     if ( 0 == ( currentLayer % 5 ) ) {
-        renderStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
+        imageGeneratorStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
         if ( currentLayer > 0 ) {
             auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
             // comparing height against width is not an error here -- the slice image widget is square
@@ -257,9 +269,9 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
 
 void PrepareTab::svgRenderer_done( int const totalLayers ) {
     if ( totalLayers == -1 ) {
-        renderStatus->setText( QString( "Image generation failed" ) );
+        imageGeneratorStatus->setText( QString( "Image generation failed" ) );
     } else {
-        renderStatus->setText( QString( "Image generation complete" ) );
+        imageGeneratorStatus->setText( QString( "Image generation complete" ) );
         _printJob->layerCount = totalLayers;
     }
 

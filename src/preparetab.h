@@ -34,10 +34,12 @@ private:
     QRadioButton*          layerThickness100Button     { new QRadioButton };
     QVBoxLayout*           layerThicknessButtonsLayout { new QVBoxLayout  };
 
-    QLabel*                sliceProgressLabel          { new QLabel       };
+    QLabel*                sliceStatusLabel            { new QLabel       };
     QLabel*                sliceStatus                 { new QLabel       };
-    QLabel*                renderProgressLabel         { new QLabel       };
-    QLabel*                renderStatus                { new QLabel       };
+    QHBoxLayout*           sliceStatusLayout           { new QHBoxLayout  };
+    QLabel*                imageGeneratorStatusLabel   { new QLabel       };
+    QLabel*                imageGeneratorStatus        { new QLabel       };
+    QHBoxLayout*           imageGeneratorStatusLayout  { new QHBoxLayout  };
     QLabel*                currentSliceLabel           { new QLabel       };
     QLabel*                currentSliceImage           { new QLabel       };
     QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };

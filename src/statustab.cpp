@@ -11,12 +11,15 @@
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this );
 
+    auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
+
     printerStateLabel->setText( "Printer state:" );
     printerStateLabel->setBuddy( printerStateDisplay );
 
     printerStateDisplay->setText( "offline" );
     printerStateDisplay->setFrameShadow( QFrame::Sunken );
     printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
+    printerStateDisplay->setFont( boldFont );
 
     printerStateLayout->addWidget( printerStateLabel );
     printerStateLayout->addStretch( );
@@ -29,18 +32,20 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     projectorLampStateDisplay->setText( "off" );
     projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
     projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
+    projectorLampStateDisplay->setFont( boldFont );
 
     projectorLampStateLayout->addWidget( projectorLampStateLabel );
     projectorLampStateLayout->addStretch( );
     projectorLampStateLayout->addWidget( projectorLampStateDisplay );
 
 
-    jobStateLabel->setText( "Print state:" );
+    jobStateLabel->setText( "Print job:" );
     jobStateLabel->setBuddy( jobStateDisplay );
 
     jobStateDisplay->setText( "not printing" );
     jobStateDisplay->setFrameShadow( QFrame::Sunken );
     jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
+    jobStateDisplay->setFont( boldFont );
 
     jobStateLayout->addWidget( jobStateLabel );
     jobStateLayout->addStretch( );
@@ -52,6 +57,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     currentLayerDisplay->setFrameShadow( QFrame::Sunken );
     currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
+    currentLayerDisplay->setFont( boldFont );
 
     currentLayerLayout->addWidget( currentLayerLabel );
     currentLayerLayout->addStretch( );
@@ -63,6 +69,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     elapsedTimeDisplay->setFrameShadow( QFrame::Sunken );
     elapsedTimeDisplay->setFrameStyle( QFrame::StyledPanel );
+    elapsedTimeDisplay->setFont( boldFont );
 
     elapsedTimeLayout->addWidget( elapsedTimeLabel );
     elapsedTimeLayout->addStretch( );
@@ -74,6 +81,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     estimatedTimeLeftDisplay->setFrameShadow( QFrame::Sunken );
     estimatedTimeLeftDisplay->setFrameStyle( QFrame::StyledPanel );
+    estimatedTimeLeftDisplay->setFont( boldFont );
 
     estimatedTimeLeftLayout->addWidget( estimatedTimeLeftLabel );
     estimatedTimeLeftLayout->addStretch( );
@@ -85,6 +93,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     percentageCompleteDisplay->setFrameShadow( QFrame::Sunken );
     percentageCompleteDisplay->setFrameStyle( QFrame::StyledPanel );
+    percentageCompleteDisplay->setFont( boldFont );
 
     percentageCompleteLayout->addWidget( percentageCompleteLabel );
     percentageCompleteLayout->addStretch( );
