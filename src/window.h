@@ -7,7 +7,7 @@ class Shepherd;
 class PrintManager;
 class PrintJob;
 
-class WelcomeTab;
+//class WelcomeTab;
 class SelectTab;
 class PrepareTab;
 class PrintTab;
@@ -46,7 +46,7 @@ private:
     Shepherd*     shepherd;
 
     QTabWidget*   tabs               { new QTabWidget };
-    WelcomeTab*   welcomeTab;
+    //WelcomeTab*   welcomeTab;
     SelectTab*    selectTab;
     PrepareTab*   prepareTab;
     PrintTab*     printTab;
@@ -74,12 +74,9 @@ private slots:
     void shepherd_startFailed( );
     void shepherd_terminated( bool const expected, bool const cleanExit );
 
-    void shepherd_adjustBedHeightMoveToComplete( bool const success );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
     void shepherd_homeComplete( bool const success );
     void shepherd_lowerBuildPlatformMoveToComplete( bool const success );
-    void shepherd_moveBuildPlatformUpMoveComplete( bool const success );
-    void shepherd_moveBuildPlatformDownMoveComplete( bool const success );
 
     void tabs_currentChanged( int index );
 
@@ -94,12 +91,9 @@ private slots:
 
     void printTab_printButtonClicked( );
 
-    void printTab_adjustBedHeight( double const newHeight );
     void printTab_raiseBuildPlatform( );
     void printTab_homePrinter( );
     void printTab_lowerBuildPlatform( );
-    void printTab_moveBuildPlatformUp( );
-    void printTab_moveBuildPlatformDown( );
 
     void statusTab_stopButtonClicked( );
     void statusTab_cleanUpAfterPrint( );
