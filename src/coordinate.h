@@ -5,7 +5,11 @@ class Coordinate {
 
 public:
 
-    Coordinate( float const min_ = 0.0f, float const max_ = 0.0f ): min( min_ ), max( max_ ), size( max_ - min_ ) {
+    constexpr Coordinate( ): min( 0.0f ), max( 0.0f ), size( 0.0f ) {
+        /*empty*/
+    }
+
+    constexpr Coordinate( float const min_, float const max_ ): min( min_ ), max( max_ ), size( max_ - min_ ) {
         /*empty*/
     }
 
