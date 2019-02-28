@@ -58,21 +58,14 @@ private:
     QWidget*           optionsContainer                { new QWidget     };
     QPushButton*       printButton                     { new QPushButton };
 
-    QPushButton*       _adjustBedHeightButton          { new QPushButton };
     QPushButton*       _raiseOrLowerButton             { new QPushButton };
     QPushButton*       _homeButton                     { new QPushButton };
-    QPushButton*       _moveUpButton                   { new QPushButton };
-    QPushButton*       _moveDownButton                 { new QPushButton };
 
-    QVBoxLayout*       _adjustBedHeightLayout          { new QVBoxLayout };
     QVBoxLayout*       _raiseOrLowerLayout             { new QVBoxLayout };
     QVBoxLayout*       _homeLayout                     { new QVBoxLayout };
-    QVBoxLayout*       _moveLayout                     { new QVBoxLayout };
 
-    QGroupBox*         _adjustBedHeightGroup           { new QGroupBox   };
     QGroupBox*         _raiseOrLowerGroup              { new QGroupBox   };
     QGroupBox*         _homeGroup                      { new QGroupBox   };
-    QGroupBox*         _moveGroup                      { new QGroupBox   };
 
     QGridLayout*       _adjustmentsLayout              { new QGridLayout };
     QGroupBox*         _adjustmentsGroup               { new QGroupBox   };
@@ -86,12 +79,9 @@ private:
 signals:
 
     void printButtonClicked( );
-    void adjustBedHeight( double const newHeight );
     void raiseBuildPlatform( );
     void homePrinter( );
     void lowerBuildPlatform( );
-    void moveBuildPlatformUp( );
-    void moveBuildPlatformDown( );
 
 public slots:
 
@@ -100,12 +90,9 @@ public slots:
     void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
 
-    void adjustBedHeightComplete( bool const success );
     void raiseBuildPlatformComplete( bool const success );
     void homeComplete( bool const success );
     void lowerBuildPlatformComplete( bool const success );
-    void moveBuildPlatformUpComplete( bool const success );
-    void moveBuildPlatformDownComplete( bool const success );
 
 protected slots:
 
@@ -115,11 +102,8 @@ private slots:
     void exposureTimeScaleFactorComboBox_currentIndexChanged( int index );
     void powerLevelDial_valueChanged( int value );
     void printButton_clicked( bool );
-    void _adjustBedHeightButton_clicked( bool );
     void _raiseOrLowerButton_clicked( bool );
     void _homeButton_clicked( bool );
-    void _moveUpButton_clicked( bool );
-    void _moveDownButton_clicked( bool );
 
 };
 
