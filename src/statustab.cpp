@@ -11,28 +11,40 @@
 StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this );
 
-    printerStateLabel->setText( "Printer status:" );
+    printerStateLabel->setText( "Printer state:" );
     printerStateLabel->setBuddy( printerStateDisplay );
 
-    printerStateDisplay->setText( "Offline" );
+    printerStateDisplay->setText( "offline" );
     printerStateDisplay->setFrameShadow( QFrame::Sunken );
     printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
+    printerStateLayout->addWidget( printerStateLabel );
+    printerStateLayout->addStretch( );
+    printerStateLayout->addWidget( printerStateDisplay );
 
-    projectorLampStateLabel->setText( "Projector lamp status:" );
+
+    projectorLampStateLabel->setText( "Projector state:" );
     projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
 
     projectorLampStateDisplay->setText( "off" );
     projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
     projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
 
+    projectorLampStateLayout->addWidget( projectorLampStateLabel );
+    projectorLampStateLayout->addStretch( );
+    projectorLampStateLayout->addWidget( projectorLampStateDisplay );
 
-    jobStateLabel->setText( "Print status:" );
+
+    jobStateLabel->setText( "Print state:" );
     jobStateLabel->setBuddy( jobStateDisplay );
 
-    jobStateDisplay->setText( "Not printing" );
+    jobStateDisplay->setText( "not printing" );
     jobStateDisplay->setFrameShadow( QFrame::Sunken );
     jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
+
+    jobStateLayout->addWidget( jobStateLabel );
+    jobStateLayout->addStretch( );
+    jobStateLayout->addWidget( jobStateDisplay );
 
 
     currentLayerLabel->setText( "Current layer:" );
@@ -41,6 +53,10 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     currentLayerDisplay->setFrameShadow( QFrame::Sunken );
     currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
 
+    currentLayerLayout->addWidget( currentLayerLabel );
+    currentLayerLayout->addStretch( );
+    currentLayerLayout->addWidget( currentLayerDisplay );
+
 
     elapsedTimeLabel->setText( "Elapsed time:" );
     elapsedTimeLabel->setBuddy( elapsedTimeDisplay );
@@ -48,12 +64,20 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     elapsedTimeDisplay->setFrameShadow( QFrame::Sunken );
     elapsedTimeDisplay->setFrameStyle( QFrame::StyledPanel );
 
+    elapsedTimeLayout->addWidget( elapsedTimeLabel );
+    elapsedTimeLayout->addStretch( );
+    elapsedTimeLayout->addWidget( elapsedTimeDisplay );
 
-    estimatedTimeRemainingLabel->setText( "Estimated time remaining:" );
-    estimatedTimeRemainingLabel->setBuddy( elapsedTimeDisplay );
 
-    estimatedTimeRemainingDisplay->setFrameShadow( QFrame::Sunken );
-    estimatedTimeRemainingDisplay->setFrameStyle( QFrame::StyledPanel );
+    estimatedTimeLeftLabel->setText( "Estimated time left:" );
+    estimatedTimeLeftLabel->setBuddy( elapsedTimeDisplay );
+
+    estimatedTimeLeftDisplay->setFrameShadow( QFrame::Sunken );
+    estimatedTimeLeftDisplay->setFrameStyle( QFrame::StyledPanel );
+
+    estimatedTimeLeftLayout->addWidget( estimatedTimeLeftLabel );
+    estimatedTimeLeftLayout->addStretch( );
+    estimatedTimeLeftLayout->addWidget( estimatedTimeLeftDisplay );
 
 
     percentageCompleteLabel->setText( "Percentage completed:" );
@@ -62,22 +86,19 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     percentageCompleteDisplay->setFrameShadow( QFrame::Sunken );
     percentageCompleteDisplay->setFrameStyle( QFrame::StyledPanel );
 
+    percentageCompleteLayout->addWidget( percentageCompleteLabel );
+    percentageCompleteLayout->addStretch( );
+    percentageCompleteLayout->addWidget( percentageCompleteDisplay );
+
 
     progressControlsLayout->setContentsMargins( { } );
-    progressControlsLayout->addWidget( printerStateLabel );
-    progressControlsLayout->addWidget( printerStateDisplay );
-    progressControlsLayout->addWidget( projectorLampStateLabel );
-    progressControlsLayout->addWidget( projectorLampStateDisplay );
-    progressControlsLayout->addWidget( jobStateLabel );
-    progressControlsLayout->addWidget( jobStateDisplay );
-    progressControlsLayout->addWidget( currentLayerLabel );
-    progressControlsLayout->addWidget( currentLayerDisplay );
-    progressControlsLayout->addWidget( elapsedTimeLabel );
-    progressControlsLayout->addWidget( elapsedTimeDisplay );
-    progressControlsLayout->addWidget( estimatedTimeRemainingLabel );
-    progressControlsLayout->addWidget( estimatedTimeRemainingDisplay );
-    progressControlsLayout->addWidget( percentageCompleteLabel );
-    progressControlsLayout->addWidget( percentageCompleteDisplay );
+    progressControlsLayout->addLayout( printerStateLayout );
+    progressControlsLayout->addLayout( projectorLampStateLayout );
+    progressControlsLayout->addLayout( jobStateLayout );
+    progressControlsLayout->addLayout( currentLayerLayout );
+    progressControlsLayout->addLayout( elapsedTimeLayout );
+    progressControlsLayout->addLayout( estimatedTimeLeftLayout );
+    progressControlsLayout->addLayout( percentageCompleteLayout );
     progressControlsLayout->addStretch( );
 
     progressControlsContainer->setContentsMargins( { } );
@@ -153,7 +174,7 @@ void StatusTab::_initialShowEvent( ) {
 void StatusTab::printer_online( ) {
     debug( "+ StatusTab::printer_online\n" );
     _isPrinterOnline = true;
-    printerStateDisplay->setText( "Online" );
+    printerStateDisplay->setText( "online" );
 
     if ( !_isFirstOnlineTaskDone ) {
         debug( "+ StatusTab::printer_online: printer has come online for the first time; sending 'disable steppers' command\n" );
@@ -165,7 +186,7 @@ void StatusTab::printer_online( ) {
 void StatusTab::printer_offline( ) {
     debug( "+ StatusTab::printer_offline\n" );
     _isPrinterOnline = false;
-    printerStateDisplay->setText( "Offline" );
+    printerStateDisplay->setText( "offline" );
 }
 
 void StatusTab::stopButton_clicked( bool ) {
@@ -176,7 +197,7 @@ void StatusTab::stopButton_clicked( bool ) {
 
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
-    jobStateDisplay->setText( "Print started" );
+    jobStateDisplay->setText( "print started" );
 
     _printJobStartTime = GetBootTimeClock( );
     _updatePrintTimeInfo->start( );
@@ -197,15 +218,15 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_printComplete( bool const success ) {
-    debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "Print complete" : "Print failed" );
-    jobStateDisplay->setText( QString( success ? "Print complete" : "Print failed" ) );
+    debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
+    jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
     _updatePrintTimeInfo->stop( );
     emit printComplete( );
 }
 
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
-    jobStateDisplay->setText( QString( "Print aborted" ) );
+    jobStateDisplay->setText( QString( "print aborted" ) );
     _updatePrintTimeInfo->stop( );
     emit printComplete( );
 }
@@ -245,9 +266,9 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     if ( delta >= 5.0 ) {
         double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
         debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
-        estimatedTimeRemainingDisplay->setText( TimeDeltaToString( estimatedTime ) );
+        estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTime ) );
     } else {
-        estimatedTimeRemainingDisplay->setText( QString( "calculating..." ) );
+        estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
     }
 
     percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( _printManager->currentLayer( ) / _printJob->layerCount + 0.5 ) ) );
