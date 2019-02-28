@@ -38,23 +38,24 @@ private:
     QLabel*                sliceStatus                 { new QLabel       };
     QLabel*                imageGeneratorStatusLabel   { new QLabel       };
     QLabel*                imageGeneratorStatus        { new QLabel       };
-    QLabel*                currentSliceLabel           { new QLabel       };
-    QLabel*                currentSliceImage           { new QLabel       };
-    QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
-
-    QVBoxLayout*           optionsLayout               { new QVBoxLayout  };
-    QWidget*               optionsContainer            { new QWidget      };
-    QPushButton*           sliceButton                 { new QPushButton  };
 
     QGroupBox*             _prepareGroup               { new QGroupBox    };
     QLabel*                _prepareMessage             { new QLabel       };
     QProgressBar*          _prepareProgress            { new QProgressBar };
     QPushButton*           _prepareButton              { new QPushButton  };
-    QVBoxLayout*           _prepareLayout              { new QVBoxLayout  };
+    QVBoxLayout*           _prepareInnerLayout         { new QVBoxLayout  };
+    QVBoxLayout*           _prepareLayout              {                  };
+
+    QVBoxLayout*           optionsLayout               { new QVBoxLayout  };
+    QWidget*               optionsContainer            { new QWidget      };
+    QPushButton*           sliceButton                 { new QPushButton  };
+
+    QGroupBox*             currentSliceGroup           { new QGroupBox    };
+    QLabel*                currentSliceLabel           { new QLabel       };
+    QLabel*                currentSliceImage           { new QLabel       };
+    QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
 
     QGridLayout*           _layout                     { new QGridLayout  };
-
-    int                    _maxSliceImageWidth         { -1               };
 
     std::function<void( )> _initialShowEventFunc;
 

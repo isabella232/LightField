@@ -13,7 +13,6 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
-    auto font16pt = ModifyFont( origFont, 16.0f );
     auto font22pt = ModifyFont( origFont, 22.0f );
 
     layerThicknessLabel->setText( "Layer height:" );
@@ -40,64 +39,65 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     imageGeneratorStatus->setText( "Idle" );
     imageGeneratorStatus->setFont( boldFont );
 
-    currentSliceLabel->setText( "Current layer:" );
-    currentSliceLabel->setBuddy( currentSliceImage );
+    _prepareMessage->setAlignment( Qt::AlignCenter );
+    _prepareMessage->setTextFormat( Qt::RichText );
+    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
 
-    currentSliceImage->setAlignment( Qt::AlignCenter );
-    currentSliceImage->setContentsMargins( { } );
-    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceImage->setPalette( ModifyPalette( currentSliceImage->palette( ), QPalette::Window, Qt::black ) );
+    _prepareProgress->setRange( 0, 0 );
+    _prepareProgress->hide( );
 
-    currentSliceLayout->setContentsMargins( { } );
-    currentSliceLayout->setAlignment( Qt::AlignHCenter );
-    currentSliceLayout->addWidget( currentSliceImage );
+    _prepareInnerLayout->setContentsMargins( { } );
+    _prepareInnerLayout->addStretch( ); _prepareInnerLayout->addWidget( _prepareMessage,  0, Qt::AlignCenter );
+    _prepareInnerLayout->addStretch( ); _prepareInnerLayout->addWidget( _prepareProgress, 0, Qt::AlignCenter );
+    _prepareInnerLayout->addStretch( );
+
+    _prepareGroup->setTitle( "Printer preparation" );
+    _prepareGroup->setLayout( _prepareInnerLayout );
+
+    _prepareButton->setEnabled( true );
+    _prepareButton->setFixedSize( MainButtonSize );
+    _prepareButton->setFont( font22pt );
+    _prepareButton->setText( QString( "Prepare" ) );
+    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
+
+    _prepareLayout = WrapWidgetsInVBox( { _prepareGroup, _prepareButton } );
 
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addLayout( layerThicknessButtonsLayout );
     optionsLayout->addLayout( WrapWidgetsInHBox( { sliceStatusLabel,          nullptr, sliceStatus          } ) );
     optionsLayout->addLayout( WrapWidgetsInHBox( { imageGeneratorStatusLabel, nullptr, imageGeneratorStatus } ) );
-    optionsLayout->addWidget( currentSliceLabel );
-    optionsLayout->addLayout( currentSliceLayout );
+    optionsLayout->addLayout( _prepareLayout );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
 
+    sliceButton->setEnabled( false );
+    sliceButton->setFixedSize( MainButtonSize );
     sliceButton->setFont( font22pt );
     sliceButton->setText( "Slice" );
-    sliceButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    sliceButton->setEnabled( false );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    _prepareMessage->setFont( font16pt );
-    _prepareMessage->setTextFormat( Qt::RichText );
-    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
-    _prepareMessage->setAlignment( Qt::AlignCenter );
-    _prepareMessage->setFixedWidth( MaximalRightHandPaneSize.width( ) * 85 / 100 );
-    _prepareMessage->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    currentSliceLabel->setText( "Current layer:" );
+    currentSliceLabel->setBuddy( currentSliceImage );
 
-    _prepareProgress->setRange( 0, 0 );
-    _prepareProgress->hide( );
+    currentSliceImage->setAlignment( Qt::AlignCenter );
+    currentSliceImage->setContentsMargins( { } );
+    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
-    _prepareButton->setFont( font16pt );
-    _prepareButton->setText( QString( "Prepare" ) );
-    _prepareButton->setEnabled( true );
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
+    currentSliceLayout->setAlignment( Qt::AlignCenter );
+    currentSliceLayout->setContentsMargins( { } );
+    currentSliceLayout->addWidget( currentSliceImage );
 
-    _prepareLayout->setContentsMargins( { } );
-    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _prepareMessage,  0, Qt::AlignCenter );
-    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _prepareProgress, 0, Qt::AlignCenter );
-    _prepareLayout->addStretch( ); _prepareLayout->addWidget( _prepareButton,   0, Qt::AlignCenter );
-    _prepareLayout->addStretch( );
-
-    _prepareGroup->setTitle( "Printer preparation" );
-    _prepareGroup->setMinimumSize( MaximalRightHandPaneSize );
-    _prepareGroup->setLayout( _prepareLayout );
+    currentSliceGroup->setTitle( "Current layer" );
+    currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
+    currentSliceGroup->setLayout( currentSliceLayout );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer, 0, 0, 1, 1 );
-    _layout->addWidget( sliceButton,      1, 0, 1, 1 );
-    _layout->addWidget( _prepareGroup,    0, 1, 2, 1 );
+    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( currentSliceGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -119,20 +119,8 @@ void PrepareTab::showEvent( QShowEvent* ev ) {
 }
 
 void PrepareTab::_initialShowEvent( ) {
-    sliceButton->setFixedSize( sliceButton->size( ) );
-
-    _maxSliceImageWidth = std::min( currentSliceImage->width( ), currentSliceImage->height( ) );
-    currentSliceImage->setMaximumSize( _maxSliceImageWidth, _maxSliceImageWidth );
-
-    QFontMetrics fontMetrics( _prepareButton->font( ) );
-    auto bboxContinue = fontMetrics.size( 0, QString( "Continue" ) );
-    auto bboxPrepare  = fontMetrics.size( 0, QString( "Prepare"  ) );
-    auto bboxRetry    = fontMetrics.size( 0, QString( "Retry"    ) );
-
-    auto minWidth = std::min( { bboxContinue.width( ), bboxPrepare.width( ), bboxRetry.width( ) } );
-    auto maxWidth = std::max( { bboxContinue.width( ), bboxPrepare.width( ), bboxRetry.width( ) } );
-
-    _prepareButton->setMinimumWidth( _prepareButton->width( ) + ( maxWidth - minWidth ) );
+    currentSliceImage->setFixedWidth( currentSliceImage->width( ) );
+    currentSliceImage->setFixedHeight( currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool checked ) {
@@ -203,8 +191,8 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
-    sliceStatus->setText( "Slicer started" );
-    imageGeneratorStatus->setText( "Waiting for slicer" );
+    sliceStatus->setText( "started" );
+    imageGeneratorStatus->clear( );
     currentSliceImage->clear( );
     emit sliceStarted( );
 }
@@ -219,12 +207,12 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 
     if ( exitStatus == QProcess::CrashExit ) {
         debug( "  + slicer process crashed?\n" );
-        sliceStatus->setText( "Slicer crashed" );
+        sliceStatus->setText( "crashed" );
         emit sliceComplete( false );
         return;
     }
 
-    sliceStatus->setText( "Slicer finished" );
+    sliceStatus->setText( "finished" );
     emit sliceComplete( true );
 
     svgRenderer = new SvgRenderer;
@@ -236,24 +224,23 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
 }
 
 void PrepareTab::svgRenderer_progress( int const currentLayer ) {
-    if ( 0 == ( currentLayer % 5 ) ) {
-        imageGeneratorStatus->setText( QString( "Generating layer %1" ).arg( currentLayer ) );
-        if ( currentLayer > 0 ) {
-            auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
-            // comparing height against width is not an error here -- the slice image widget is square
-            if ( ( pixmap.width( ) > _maxSliceImageWidth ) || ( pixmap.height( ) > _maxSliceImageWidth ) ) {
-                pixmap = pixmap.scaled( _maxSliceImageWidth, _maxSliceImageWidth, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-            }
-            currentSliceImage->setPixmap( pixmap );
-        }
+    imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer ) );
+    if ( 0 != ( currentLayer % 5 ) ) {
+        return;
     }
+
+    auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
+    if ( ( pixmap.width( ) > currentSliceImage->width( ) ) || ( pixmap.height( ) > currentSliceImage->height( ) ) ) {
+        pixmap = pixmap.scaled( currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+    currentSliceImage->setPixmap( pixmap );
 }
 
 void PrepareTab::svgRenderer_done( int const totalLayers ) {
     if ( totalLayers == -1 ) {
-        imageGeneratorStatus->setText( QString( "Image generation failed" ) );
+        imageGeneratorStatus->setText( QString( "failed" ) );
     } else {
-        imageGeneratorStatus->setText( QString( "Image generation complete" ) );
+        imageGeneratorStatus->setText( QString( "finished" ) );
         _printJob->layerCount = totalLayers;
     }
 
