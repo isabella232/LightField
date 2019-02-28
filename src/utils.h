@@ -3,6 +3,9 @@
 
 QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment = Qt::AlignCenter );
 
+QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets );
+QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets );
+
 QFont ModifyFont( QFont const& font_, float const pointSizeF );
 QFont ModifyFont( QFont const& font_, float const pointSizeF, QFont::Weight const weight );
 

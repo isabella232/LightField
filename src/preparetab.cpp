@@ -11,9 +11,10 @@
 PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
 
-    auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
-    auto font16pt = ModifyFont( font( ), 16.0f );
-    auto font22pt = ModifyFont( font( ), 22.0f );
+    auto origFont = font( );
+    auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
+    auto font16pt = ModifyFont( origFont, 16.0f );
+    auto font22pt = ModifyFont( origFont, 22.0f );
 
     layerThicknessLabel->setText( "Layer height:" );
 
@@ -27,32 +28,17 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
     layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
 
-
     sliceStatusLabel->setText( "Slicer status:" );
     sliceStatusLabel->setBuddy( sliceStatus );
 
     sliceStatus->setText( "Idle" );
-    sliceStatus->setFrameShadow( QFrame::Sunken );
-    sliceStatus->setFrameStyle( QFrame::StyledPanel );
     sliceStatus->setFont( boldFont );
-
-    sliceStatusLayout->addWidget( sliceStatusLabel );
-    sliceStatusLayout->addStretch( );
-    sliceStatusLayout->addWidget( sliceStatus );
-
 
     imageGeneratorStatusLabel->setText( "Image generator:" );
     imageGeneratorStatusLabel->setBuddy( imageGeneratorStatus );
 
     imageGeneratorStatus->setText( "Idle" );
-    imageGeneratorStatus->setFrameShadow( QFrame::Sunken );
-    imageGeneratorStatus->setFrameStyle( QFrame::StyledPanel );
     imageGeneratorStatus->setFont( boldFont );
-
-    imageGeneratorStatusLayout->addWidget( imageGeneratorStatusLabel );
-    imageGeneratorStatusLayout->addStretch( );
-    imageGeneratorStatusLayout->addWidget( imageGeneratorStatus );
-
 
     currentSliceLabel->setText( "Current layer:" );
     currentSliceLabel->setBuddy( currentSliceImage );
@@ -60,11 +46,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceImage->setAlignment( Qt::AlignCenter );
     currentSliceImage->setContentsMargins( { } );
     currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    {
-        auto pal = currentSliceImage->palette( );
-        pal.setColor( QPalette::Window, Qt::black );
-        currentSliceImage->setPalette( pal );
-    }
+    currentSliceImage->setPalette( ModifyPalette( currentSliceImage->palette( ), QPalette::Window, Qt::black ) );
 
     currentSliceLayout->setContentsMargins( { } );
     currentSliceLayout->setAlignment( Qt::AlignHCenter );
@@ -73,8 +55,8 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addLayout( layerThicknessButtonsLayout );
-    optionsLayout->addLayout( sliceStatusLayout );
-    optionsLayout->addLayout( imageGeneratorStatusLayout );
+    optionsLayout->addLayout( WrapWidgetsInHBox( { sliceStatusLabel,          nullptr, sliceStatus          } ) );
+    optionsLayout->addLayout( WrapWidgetsInHBox( { imageGeneratorStatusLabel, nullptr, imageGeneratorStatus } ) );
     optionsLayout->addWidget( currentSliceLabel );
     optionsLayout->addLayout( currentSliceLayout );
 

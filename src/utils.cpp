@@ -13,6 +13,32 @@ QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignmen
     return layout;
 }
 
+QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
+    auto layout = new QHBoxLayout;
+
+    for ( auto widget : widgets ) {
+        if ( widget ) {
+            layout->addWidget( widget );
+        } else {
+            layout->addStretch( );
+        }
+    }
+    return layout;
+}
+
+QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets ) {
+    auto layout = new QVBoxLayout;
+
+    for ( auto widget : widgets ) {
+        if ( widget ) {
+            layout->addWidget( widget );
+        } else {
+            layout->addStretch( );
+        }
+    }
+    return layout;
+}
+
 QFont ModifyFont( QFont const& font_, float const pointSizeF ) {
     auto font { font_ };
     font.setPointSizeF( pointSizeF );

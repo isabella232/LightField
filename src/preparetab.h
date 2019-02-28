@@ -36,10 +36,8 @@ private:
 
     QLabel*                sliceStatusLabel            { new QLabel       };
     QLabel*                sliceStatus                 { new QLabel       };
-    QHBoxLayout*           sliceStatusLayout           { new QHBoxLayout  };
     QLabel*                imageGeneratorStatusLabel   { new QLabel       };
     QLabel*                imageGeneratorStatus        { new QLabel       };
-    QHBoxLayout*           imageGeneratorStatusLayout  { new QHBoxLayout  };
     QLabel*                currentSliceLabel           { new QLabel       };
     QLabel*                currentSliceImage           { new QLabel       };
     QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };

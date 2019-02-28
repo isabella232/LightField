@@ -28,25 +28,18 @@ private:
 
     QLabel*       printerStateLabel          { new QLabel      };
     QLabel*       printerStateDisplay        { new QLabel      };
-    QHBoxLayout*  printerStateLayout         { new QHBoxLayout };
     QLabel*       projectorLampStateLabel    { new QLabel      };
     QLabel*       projectorLampStateDisplay  { new QLabel      };
-    QHBoxLayout*  projectorLampStateLayout   { new QHBoxLayout };
     QLabel*       jobStateLabel              { new QLabel      };
     QLabel*       jobStateDisplay            { new QLabel      };
-    QHBoxLayout*  jobStateLayout             { new QHBoxLayout };
     QLabel*       currentLayerLabel          { new QLabel      };
     QLabel*       currentLayerDisplay        { new QLabel      };
-    QHBoxLayout*  currentLayerLayout         { new QHBoxLayout };
     QLabel*       elapsedTimeLabel           { new QLabel      };
     QLabel*       elapsedTimeDisplay         { new QLabel      };
-    QHBoxLayout*  elapsedTimeLayout          { new QHBoxLayout };
     QLabel*       estimatedTimeLeftLabel     { new QLabel      };
     QLabel*       estimatedTimeLeftDisplay   { new QLabel      };
-    QHBoxLayout*  estimatedTimeLeftLayout    { new QHBoxLayout };
     QLabel*       percentageCompleteLabel    { new QLabel      };
     QLabel*       percentageCompleteDisplay  { new QLabel      };
-    QHBoxLayout*  percentageCompleteLayout   { new QHBoxLayout };
     QWidget*      progressControlsContainer  { new QWidget     };
     QVBoxLayout*  progressControlsLayout     { new QVBoxLayout };
     QLabel*       currentLayerImage          { new QLabel      };

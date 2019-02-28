@@ -17,97 +17,48 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     printerStateLabel->setBuddy( printerStateDisplay );
 
     printerStateDisplay->setText( "offline" );
-    printerStateDisplay->setFrameShadow( QFrame::Sunken );
-    printerStateDisplay->setFrameStyle( QFrame::StyledPanel );
     printerStateDisplay->setFont( boldFont );
-
-    printerStateLayout->addWidget( printerStateLabel );
-    printerStateLayout->addStretch( );
-    printerStateLayout->addWidget( printerStateDisplay );
-
 
     projectorLampStateLabel->setText( "Projector state:" );
     projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
 
     projectorLampStateDisplay->setText( "off" );
-    projectorLampStateDisplay->setFrameShadow( QFrame::Sunken );
-    projectorLampStateDisplay->setFrameStyle( QFrame::StyledPanel );
     projectorLampStateDisplay->setFont( boldFont );
-
-    projectorLampStateLayout->addWidget( projectorLampStateLabel );
-    projectorLampStateLayout->addStretch( );
-    projectorLampStateLayout->addWidget( projectorLampStateDisplay );
-
 
     jobStateLabel->setText( "Print job:" );
     jobStateLabel->setBuddy( jobStateDisplay );
 
     jobStateDisplay->setText( "not printing" );
-    jobStateDisplay->setFrameShadow( QFrame::Sunken );
-    jobStateDisplay->setFrameStyle( QFrame::StyledPanel );
     jobStateDisplay->setFont( boldFont );
-
-    jobStateLayout->addWidget( jobStateLabel );
-    jobStateLayout->addStretch( );
-    jobStateLayout->addWidget( jobStateDisplay );
-
 
     currentLayerLabel->setText( "Current layer:" );
     currentLayerLabel->setBuddy( currentLayerDisplay );
 
-    currentLayerDisplay->setFrameShadow( QFrame::Sunken );
-    currentLayerDisplay->setFrameStyle( QFrame::StyledPanel );
     currentLayerDisplay->setFont( boldFont );
-
-    currentLayerLayout->addWidget( currentLayerLabel );
-    currentLayerLayout->addStretch( );
-    currentLayerLayout->addWidget( currentLayerDisplay );
-
 
     elapsedTimeLabel->setText( "Elapsed time:" );
     elapsedTimeLabel->setBuddy( elapsedTimeDisplay );
 
-    elapsedTimeDisplay->setFrameShadow( QFrame::Sunken );
-    elapsedTimeDisplay->setFrameStyle( QFrame::StyledPanel );
     elapsedTimeDisplay->setFont( boldFont );
-
-    elapsedTimeLayout->addWidget( elapsedTimeLabel );
-    elapsedTimeLayout->addStretch( );
-    elapsedTimeLayout->addWidget( elapsedTimeDisplay );
-
 
     estimatedTimeLeftLabel->setText( "Estimated time left:" );
     estimatedTimeLeftLabel->setBuddy( elapsedTimeDisplay );
 
-    estimatedTimeLeftDisplay->setFrameShadow( QFrame::Sunken );
-    estimatedTimeLeftDisplay->setFrameStyle( QFrame::StyledPanel );
     estimatedTimeLeftDisplay->setFont( boldFont );
-
-    estimatedTimeLeftLayout->addWidget( estimatedTimeLeftLabel );
-    estimatedTimeLeftLayout->addStretch( );
-    estimatedTimeLeftLayout->addWidget( estimatedTimeLeftDisplay );
-
 
     percentageCompleteLabel->setText( "Percentage completed:" );
     percentageCompleteLabel->setBuddy( elapsedTimeDisplay );
 
-    percentageCompleteDisplay->setFrameShadow( QFrame::Sunken );
-    percentageCompleteDisplay->setFrameStyle( QFrame::StyledPanel );
     percentageCompleteDisplay->setFont( boldFont );
 
-    percentageCompleteLayout->addWidget( percentageCompleteLabel );
-    percentageCompleteLayout->addStretch( );
-    percentageCompleteLayout->addWidget( percentageCompleteDisplay );
-
-
     progressControlsLayout->setContentsMargins( { } );
-    progressControlsLayout->addLayout( printerStateLayout );
-    progressControlsLayout->addLayout( projectorLampStateLayout );
-    progressControlsLayout->addLayout( jobStateLayout );
-    progressControlsLayout->addLayout( currentLayerLayout );
-    progressControlsLayout->addLayout( elapsedTimeLayout );
-    progressControlsLayout->addLayout( estimatedTimeLeftLayout );
-    progressControlsLayout->addLayout( percentageCompleteLayout );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { printerStateLabel,       nullptr, printerStateDisplay       } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { projectorLampStateLabel, nullptr, projectorLampStateDisplay } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { jobStateLabel,           nullptr, jobStateDisplay           } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { currentLayerLabel,       nullptr, currentLayerDisplay       } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { elapsedTimeLabel,        nullptr, elapsedTimeDisplay        } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { estimatedTimeLeftLabel,  nullptr, estimatedTimeLeftDisplay  } ) );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { percentageCompleteLabel, nullptr, percentageCompleteDisplay } ) );
     progressControlsLayout->addStretch( );
 
     progressControlsContainer->setContentsMargins( { } );
