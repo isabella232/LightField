@@ -70,19 +70,15 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
-    auto imageBackground = new QWidget( );
-    imageBackground->setContentsMargins( { } );
-    imageBackground->setFixedWidth( MaximalRightHandPaneSize.width( ) );
-    imageBackground->setFixedHeight( MaximalRightHandPaneSize.width( ) / AspectRatio16to10 + 0.5 );
-    imageBackground->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    imageBackground->setLayout( WrapWidgetInVBox( currentLayerImage ) );
-    imageBackground->setStyleSheet( QString( "QWidget { background: black }" ) );
+    currentLayerLayout->setAlignment( Qt::AlignCenter );
+    currentLayerLayout->setContentsMargins( { } );
+    currentLayerLayout->addWidget( currentLayerImage );
 
     currentLayerImageGroup->setTitle( "Current layer" );
     currentLayerImageGroup->setContentsMargins( { } );
     currentLayerImageGroup->setMinimumSize( MaximalRightHandPaneSize );
     currentLayerImageGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentLayerImageGroup->setLayout( WrapWidgetInVBox( imageBackground ) );
+    currentLayerImageGroup->setLayout( WrapWidgetInVBox( currentLayerImage ) );
 
     {
         _stopButtonEnabledPalette  =  stopButton->palette( );
@@ -90,10 +86,10 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
         _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
         _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
     }
+    stopButton->setEnabled( false );
+    stopButton->setFixedSize( MainButtonSize );
     stopButton->setFont( ModifyFont( stopButton->font( ), 22.25f, QFont::Bold ) );
     stopButton->setText( "STOP" );
-    stopButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    stopButton->setEnabled( false );
     QObject::connect( stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
 
     _layout->setContentsMargins( { } );
@@ -125,10 +121,11 @@ void StatusTab::showEvent( QShowEvent* event ) {
 }
 
 void StatusTab::_initialShowEvent( ) {
-    currentLayerImageGroup->setFixedSize( currentLayerImageGroup->size( ) );
-    currentLayerImageGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-    _maxLayerImageWidth = std::min( currentLayerImage->width( ), currentLayerImage->height( ) );
+    currentLayerImage->setFixedWidth( currentLayerImage->width( ) );
+    currentLayerImage->setFixedHeight( currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    
+    //currentLayerImageGroup->setFixedSize( currentLayerImageGroup->size( ) );
+    //currentLayerImageGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 }
 
 void StatusTab::printer_online( ) {
@@ -164,12 +161,14 @@ void StatusTab::printManager_printStarting( ) {
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
-    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer, _printJob->layerCount );
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
-    auto pixmap = QPixmap( QString( "%1/%2.png" ).arg( _printJob->pngFilesPath ).arg( layer, 6, 10, DigitZero ) );
-    int scaledWidth  = pixmap.width( )  / 1280.0 * static_cast<double>( currentLayerImageGroup->width( )  ) + 0.5;
-    int scaledHeight = pixmap.height( ) /  800.0 * static_cast<double>( currentLayerImageGroup->height( ) ) + 0.5;
-    currentLayerImage->setPixmap( pixmap.scaled( scaledWidth, scaledHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
+
+    auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    if ( ( pixmap.width( ) > currentLayerImage->width( ) ) || ( pixmap.height( ) > currentLayerImage->height( ) ) ) {
+        pixmap = pixmap.scaled( currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+    currentLayerImage->setPixmap( pixmap );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {

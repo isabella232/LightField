@@ -43,10 +43,10 @@ private:
     QWidget*      progressControlsContainer  { new QWidget     };
     QVBoxLayout*  progressControlsLayout     { new QVBoxLayout };
     QLabel*       currentLayerImage          { new QLabel      };
+    QVBoxLayout*  currentLayerLayout         { new QVBoxLayout };
     QGroupBox*    currentLayerImageGroup     { new QGroupBox   };
     QPushButton*  stopButton                 { new QPushButton };
     QGridLayout*  _layout                    { new QGridLayout };
-    int           _maxLayerImageWidth        { -1 };
     QTimer*       _updatePrintTimeInfo       { };
     PrintJob*     _printJob                  { };
     PrintManager* _printManager              { };
