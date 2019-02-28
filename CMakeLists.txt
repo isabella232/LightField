@@ -49,7 +49,6 @@ src/preparetab.cpp
 src/printtab.cpp
 src/statustab.cpp
 src/constants.cpp
-src/bedheightadjustment.cpp
 src/utils.cpp
 src/gesturelistview.cpp)
 
@@ -78,7 +77,6 @@ src/preparetab.h
 src/printtab.h
 src/statustab.h
 src/constants.h
-src/bedheightadjustment.h
 src/utils.h
 src/gesturelistview.h)
 
