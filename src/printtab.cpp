@@ -34,6 +34,9 @@ namespace {
 PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
 
+    auto origFont = font( );
+    auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
+
     exposureTimeDial->setMinimum(  1 );
     exposureTimeDial->setMaximum( 40 );
     exposureTimeDial->setNotchesVisible( true );
@@ -44,31 +47,24 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureTimeLabel->setBuddy( exposureTimeDial );
 
     exposureTimeValue->setAlignment( Qt::AlignRight );
-    exposureTimeValue->setFrameShadow( QFrame::Sunken );
-    exposureTimeValue->setFrameStyle( QFrame::StyledPanel );
+    exposureTimeValue->setFont( boldFont );
 
+    exposureTimeValueLayout = WrapWidgetsInHBox( { exposureTimeLabel, nullptr, exposureTimeValue } );
     exposureTimeValueLayout->setContentsMargins( { } );
-    exposureTimeValueLayout->addWidget( exposureTimeLabel );
-    exposureTimeValueLayout->addStretch( );
-    exposureTimeValueLayout->addWidget( exposureTimeValue );
 
     exposureTimeValueContainer->setContentsMargins( { } );
     exposureTimeValueContainer->setLayout( exposureTimeValueLayout );
 
+    exposureTimeDialLeftLabel->setAlignment( Qt::AlignLeft );
     exposureTimeDialLeftLabel->setContentsMargins( { } );
     exposureTimeDialLeftLabel->setText( "0.5 s" );
-    exposureTimeDialLeftLabel->setAlignment( Qt::AlignLeft );
 
+    exposureTimeDialRightLabel->setAlignment( Qt::AlignRight );
     exposureTimeDialRightLabel->setContentsMargins( { } );
     exposureTimeDialRightLabel->setText( "20 s" );
-    exposureTimeDialRightLabel->setAlignment( Qt::AlignRight );
 
+    exposureTimeDialLabelsLayout = WrapWidgetsInHBox( { nullptr, exposureTimeDialLeftLabel, nullptr, exposureTimeDialRightLabel, nullptr } );
     exposureTimeDialLabelsLayout->setContentsMargins( { } );
-    exposureTimeDialLabelsLayout->addStretch( );
-    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialLeftLabel );
-    exposureTimeDialLabelsLayout->addStretch( );
-    exposureTimeDialLabelsLayout->addWidget( exposureTimeDialRightLabel );
-    exposureTimeDialLabelsLayout->addStretch( );
 
     exposureTimeDialLabelsContainer->setContentsMargins( { } );
     exposureTimeDialLabelsContainer->setLayout( exposureTimeDialLabelsLayout );
@@ -91,53 +87,45 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelLabel->setBuddy( powerLevelDial );
 
     powerLevelValue->setAlignment( Qt::AlignRight );
-    powerLevelValue->setFrameShadow( QFrame::Sunken );
-    powerLevelValue->setFrameStyle( QFrame::StyledPanel );
+    powerLevelValue->setFont( boldFont );
 
+    powerLevelValueLayout = WrapWidgetsInHBox( { powerLevelLabel, nullptr, powerLevelValue } );
     powerLevelValueLayout->setContentsMargins( { } );
-    powerLevelValueLayout->addWidget( powerLevelLabel );
-    powerLevelValueLayout->addStretch( );
-    powerLevelValueLayout->addWidget( powerLevelValue );
 
     powerLevelValueContainer->setContentsMargins( { } );
     powerLevelValueContainer->setLayout( powerLevelValueLayout );
 
+    powerLevelDialLeftLabel->setAlignment( Qt::AlignLeft );
     powerLevelDialLeftLabel->setContentsMargins( { } );
     powerLevelDialLeftLabel->setText( "20%" );
-    powerLevelDialLeftLabel->setAlignment( Qt::AlignLeft );
+    powerLevelDialLeftLabel->setBuddy( powerLevelDial );
 
+    powerLevelDialRightLabel->setAlignment( Qt::AlignRight );
     powerLevelDialRightLabel->setContentsMargins( { } );
     powerLevelDialRightLabel->setText( "100%" );
-    powerLevelDialRightLabel->setAlignment( Qt::AlignRight );
+    powerLevelDialRightLabel->setBuddy( powerLevelDial );
 
+    powerLevelDialLabelsLayout = WrapWidgetsInHBox( { nullptr, powerLevelDialLeftLabel, nullptr, powerLevelDialRightLabel, nullptr } );
     powerLevelDialLabelsLayout->setContentsMargins( { } );
-    powerLevelDialLabelsLayout->addStretch( );
-    powerLevelDialLabelsLayout->addWidget( powerLevelDialLeftLabel );
-    powerLevelDialLabelsLayout->addStretch( );
-    powerLevelDialLabelsLayout->addWidget( powerLevelDialRightLabel );
-    powerLevelDialLabelsLayout->addStretch( );
 
     powerLevelDialLabelsContainer->setContentsMargins( { } );
     powerLevelDialLabelsContainer->setLayout( powerLevelDialLabelsLayout );
 
+    optionsLayout = WrapWidgetsInVBox( {
+        exposureTimeValueContainer, exposureTimeDial, exposureTimeDialLabelsContainer,
+        exposureTimeScaleFactorLabel, exposureTimeScaleFactorComboBox,
+        powerLevelValueContainer, powerLevelDial, powerLevelDialLabelsContainer,
+        nullptr
+    } );
     optionsLayout->setContentsMargins( { } );
-    optionsLayout->addWidget( exposureTimeValueContainer );
-    optionsLayout->addWidget( exposureTimeDial );
-    optionsLayout->addWidget( exposureTimeDialLabelsContainer );
-    optionsLayout->addWidget( exposureTimeScaleFactorLabel );
-    optionsLayout->addWidget( exposureTimeScaleFactorComboBox );
-    optionsLayout->addWidget( powerLevelValueContainer );
-    optionsLayout->addWidget( powerLevelDial );
-    optionsLayout->addWidget( powerLevelDialLabelsContainer );
-    optionsLayout->addStretch( );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
 
-    printButton->setText( "Print" );
+    printButton->setEnabled( false );
     printButton->setFont( ModifyFont( printButton->font( ), 22.0f ) );
     printButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
-    printButton->setEnabled( false );
+    printButton->setText( "Print" );
     QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
     _adjustBedHeightButton->setText( "Adjust\nBed Height" );

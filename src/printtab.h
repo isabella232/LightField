@@ -36,23 +36,23 @@ private:
 
     QLabel*            exposureTimeLabel               { new QLabel      };
     QLabel*            exposureTimeValue               { new QLabel      };
-    QHBoxLayout*       exposureTimeValueLayout         { new QHBoxLayout };
+    QHBoxLayout*       exposureTimeValueLayout         {                 };
     QWidget*           exposureTimeValueContainer      { new QWidget     };
     QDial*             exposureTimeDial                { new QDial       };
     QLabel*            exposureTimeDialLeftLabel       { new QLabel      };
     QLabel*            exposureTimeDialRightLabel      { new QLabel      };
-    QHBoxLayout*       exposureTimeDialLabelsLayout    { new QHBoxLayout };
+    QHBoxLayout*       exposureTimeDialLabelsLayout    {                 };
     QWidget*           exposureTimeDialLabelsContainer { new QWidget     };
     QLabel*            exposureTimeScaleFactorLabel    { new QLabel      };
     QComboBox*         exposureTimeScaleFactorComboBox { new QComboBox   };
     QLabel*            powerLevelLabel                 { new QLabel      };
     QLabel*            powerLevelValue                 { new QLabel      };
-    QHBoxLayout*       powerLevelValueLayout           { new QHBoxLayout };
+    QHBoxLayout*       powerLevelValueLayout           {                 };
     QWidget*           powerLevelValueContainer        { new QWidget     };
     QDial*             powerLevelDial                  { new QDial       };
     QLabel*            powerLevelDialLeftLabel         { new QLabel      };
     QLabel*            powerLevelDialRightLabel        { new QLabel      };
-    QHBoxLayout*       powerLevelDialLabelsLayout      { new QHBoxLayout };
+    QHBoxLayout*       powerLevelDialLabelsLayout      {                 };
     QWidget*           powerLevelDialLabelsContainer   { new QWidget     };
     QVBoxLayout*       optionsLayout                   { new QVBoxLayout };
     QWidget*           optionsContainer                { new QWidget     };
