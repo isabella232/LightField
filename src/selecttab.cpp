@@ -68,10 +68,10 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
 
+    _selectButton->setEnabled( false );
+    _selectButton->setFixedSize( MainButtonSize );
     _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0f ) );
     _selectButton->setText( "Select" );
-    _selectButton->setEnabled( false );
-    _selectButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &SelectTab::selectButton_clicked );
 
     QSurfaceFormat format;
