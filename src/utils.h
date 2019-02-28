@@ -24,4 +24,8 @@ void BreakDownTime( uint64_t totalSeconds, int& days, int& hours, int& minutes, 
 
 QString TimeDeltaToString( double delta );
 
+inline QString GetFileBaseName( QString const& fileName ) {
+    return fileName.mid( fileName.lastIndexOf( Slash ) + 1 );
+}
+
 #endif // __UTILS_H__

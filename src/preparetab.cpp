@@ -139,7 +139,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
     mkdir( _printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
 
-    QString baseName = getFileBaseName( _printJob->modelFileName );
+    QString baseName = GetFileBaseName( _printJob->modelFileName );
     _printJob->slicedSvgFileName =
         _printJob->pngFilesPath +
         Slash +
