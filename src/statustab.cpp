@@ -123,9 +123,6 @@ void StatusTab::showEvent( QShowEvent* event ) {
 void StatusTab::_initialShowEvent( ) {
     currentLayerImage->setFixedWidth( currentLayerImage->width( ) );
     currentLayerImage->setFixedHeight( currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
-    
-    //currentLayerImageGroup->setFixedSize( currentLayerImageGroup->size( ) );
-    //currentLayerImageGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 }
 
 void StatusTab::printer_online( ) {
