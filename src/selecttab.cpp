@@ -43,6 +43,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 
     QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_lookForUsbStick );
     _fsWatcher->addPath( MediaRootPath );
+
     _lookForUsbStick( MediaRootPath );
 
     _availableFilesLabel->setText( "Models in library:" );
@@ -85,19 +86,13 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _canvas->setMinimumWidth( MaximalRightHandPaneSize.width( ) );
     _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-    {
-        auto pal = _dimensionsErrorLabel->palette( );
-        pal.setColor( QPalette::WindowText, Qt::red );
-        _dimensionsErrorLabel->setPalette( pal );
-    }
-    _dimensionsErrorLabel->setText( "Model exceeds build volume!" );
     _dimensionsErrorLabel->hide( );
+    _dimensionsErrorLabel->setPalette( ModifyPalette( _dimensionsErrorLabel->palette( ), QPalette::WindowText, Qt::red ) );
+    _dimensionsErrorLabel->setText( "Model exceeds build volume!" );
 
-    _dimensionsLayout->setContentsMargins( { } );
+    _dimensionsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _dimensionsErrorLabel } );
     _dimensionsLayout->setAlignment( Qt::AlignLeft );
-    _dimensionsLayout->addWidget( _dimensionsLabel );
-    _dimensionsLayout->addStretch( );
-    _dimensionsLayout->addWidget( _dimensionsErrorLabel );
+    _dimensionsLayout->setContentsMargins( { } );
 
     _canvasLayout->setContentsMargins( { } );
     _canvasLayout->addWidget( _canvas );
@@ -137,14 +132,13 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
     debug( "+ SelectTab::_lookForUsbStick: path '%s' has changed\n", path.toUtf8( ).data( ) );
 
     if ( path == MediaRootPath ) {
-        if ( 0 == ::access( _userMediaPath.toUtf8( ).data( ), F_OK ) ) {
-            _fsWatcher->addPath( _userMediaPath );
-        } else {
+        if ( 0 != ::access( _userMediaPath.toUtf8( ).data( ), F_OK ) ) {
             error_t err = errno;
             debug( "  + access(F) failed: %s [%d]\n", strerror( err ), err );
             _fsWatcher->removePath( _userMediaPath );
             return;
         }
+        _fsWatcher->addPath( _userMediaPath );
     }
 
     QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
@@ -153,63 +147,77 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
         if ( _modelsLocation == ModelsLocation::Usb ) {
             _showLibrary( );
         }
-        if ( _fileName.startsWith( _userMediaPath ) ) {
-            _fileName.clear( );
+        if ( _modelSelection.fileName.startsWith( _userMediaPath ) ) {
             _canvas->clear( );
             _dimensionsLabel->clear( );
             _selectButton->setEnabled( false );
         }
         _toggleLocationButton->setEnabled( false );
-    } else {
-        _usbPath = _userMediaPath + Slash + dirname;
-        debug( "  + mounted USB device is '%s'\n", _usbPath.toUtf8( ).data( ) );
-
-        struct stat statbuf { };
-        if ( -1 == ::stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
-            error_t err = errno;
-            debug( "  + stat failed: %s [%d]\n", strerror( err ), err );
-        } else {
-            debug( "  + stat reports mode 0%o, uid %d, gid %d\n", statbuf.st_mode, statbuf.st_uid, statbuf.st_gid );
-            if ( ( statbuf.st_uid == 0 ) || ( statbuf.st_gid == 0 ) ) {
-                debug( "  + waiting a bit\n" );
-                if ( -1 == _usbRetryCount ) {
-                    _usbRetryCount = 3;
-                    _usbRetryTimer->start( );
-                } else {
-                    _usbRetryCount--;
-                    if ( !_usbRetryCount ) {
-                        _usbRetryTimer->stop( );
-                    }
-                }
-                return;
-            } else {
-                _usbRetryTimer->stop( );
-            }
-        }
-
-        if ( 0 != ::access( _usbPath.toUtf8( ).data( ), R_OK | X_OK ) ) {
-            error_t err = errno;
-            debug( "  + access(RX) failed: %s [%d]\n", strerror( err ), err );
-        }
-
-        _usbFsModel->setRootPath( _usbPath );
-        _toggleLocationButton->setEnabled( true );
+        return;
     }
+
+    _usbPath = _userMediaPath + Slash + dirname;
+    debug( "  + mounted USB device is '%s'\n", _usbPath.toUtf8( ).data( ) );
+
+    struct stat statbuf { };
+    if ( -1 == ::stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
+        error_t err = errno;
+        debug( "  + stat failed: %s [%d]\n", strerror( err ), err );
+    } else {
+        debug( "  + stat reports mode 0%o, uid %d, gid %d\n", statbuf.st_mode, statbuf.st_uid, statbuf.st_gid );
+        if ( ( statbuf.st_uid == 0 ) || ( statbuf.st_gid == 0 ) ) {
+            if ( -1 == _usbRetryCount ) {
+                debug( "  + waiting one second 3 more times\n" );
+                _usbRetryCount = 3;
+                _usbRetryTimer->start( );
+            } else {
+                _usbRetryCount--;
+                if ( !_usbRetryCount ) {
+                    debug( "  + done waiting, giving up\n" );
+                    _usbRetryTimer->stop( );
+                } else {
+                    debug( "  + waiting one second %d more times\n", _usbRetryCount );
+                }
+            }
+            return;
+        }
+
+        _usbRetryTimer->stop( );
+    }
+
+    if ( 0 != ::access( _usbPath.toUtf8( ).data( ), R_OK | X_OK ) ) {
+        error_t err = errno;
+        debug( "  + access(RX) failed: %s [%d]\n", strerror( err ), err );
+        return;
+    }
+
+    _usbFsModel->setRootPath( _usbPath );
+    _toggleLocationButton->setEnabled( true );
 }
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
-    auto fileName = ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( );
     int indexRow = index.row( );
-    debug( "+ SelectTab::availableFilesListView_clicked: row %d, file name '%s'\n", indexRow, fileName.toUtf8( ).data( ) );
-    if ( _selectedRow != indexRow ) {
-        _fileName = fileName;
-        _selectedRow = indexRow;
-        _selectButton->setEnabled( false );
-        _availableFilesListView->setEnabled( false );
-        if ( !_loadModel( _fileName ) ) {
-            debug( "  + _loadModel failed!\n" );
-            _availableFilesListView->setEnabled( true );
-        }
+    if ( _selectedRow == indexRow ) {
+        return;
+    }
+
+    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ), };
+    _selectedRow    = indexRow;
+    debug( "+ SelectTab::availableFilesListView_clicked: selection changed to row %d, file name '%s'\n", _selectedRow, _modelSelection.fileName.toUtf8( ).data( ) );
+
+    _selectButton->setEnabled( false );
+    _availableFilesListView->setEnabled( false );
+
+    if ( _processRunner ) {
+        QObject::disconnect( _processRunner, nullptr, this, nullptr );
+        _processRunner->kill( );
+        _processRunner->deleteLater( );
+        _processRunner = nullptr;
+    }
+
+    if ( !_loadModel( _modelSelection.fileName ) ) {
+        debug( "  + _loadModel failed!\n" );
+        _availableFilesListView->setEnabled( true );
     }
 }
 
@@ -266,51 +274,58 @@ void SelectTab::toggleLocationButton_clicked( bool ) {
 
 void SelectTab::selectButton_clicked( bool ) {
     debug( "+ SelectTab::selectButton_clicked\n" );
-    emit modelSelected( true, _fileName );
+    auto selection = new ModelSelectionInfo( _modelSelection );
+    emit modelSelected( selection );
+    delete selection;
 }
 
 void SelectTab::loader_gotMesh( Mesh* m ) {
-    float minX, minY, minZ, maxX, maxY, maxZ;
-    size_t count;
+    if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0].unicode( ) == L':' ) ) {
+        debug( "+ SelectTab::loader_gotMesh: file name '%s' is empty or resource name\n", _modelSelection.fileName.toUtf8( ).data( ) );
+        return;
+    }
 
-    m->bounds( count, minX, minY, minZ, maxX, maxY, maxZ );
-    float sizeX  = maxX - minX;
-    float sizeY  = maxY - minY;
-    float sizeZ  = maxZ - minZ;
+    _modelSelection.estimatedVolume = 0.0;
+    m->bounds( _modelSelection.vertexCount, _modelSelection.x, _modelSelection.y, _modelSelection.z );
+
     debug(
         "+ SelectTab::loader_gotMesh:\n"
+        "  + file name:         '%s'\n"
         "  + count of vertices: %5zu\n"
         "  + X range:           %12.6f .. %12.6f, %12.6f\n"
         "  + Y range:           %12.6f .. %12.6f, %12.6f\n"
         "  + Z range:           %12.6f .. %12.6f, %12.6f\n"
         "",
-        count,
-        minX, maxX, sizeX,
-        minY, maxY, sizeY,
-        minZ, maxZ, sizeZ
+        _modelSelection.fileName.toUtf8( ).data( ),
+        _modelSelection.vertexCount,
+        _modelSelection.x.min, _modelSelection.x.max, _modelSelection.x.size,
+        _modelSelection.y.min, _modelSelection.y.max, _modelSelection.y.size,
+        _modelSelection.z.min, _modelSelection.z.max, _modelSelection.z.size
     );
 
     {
-        auto sizeXstring = GroupDigits( QString( "%1" ).arg( sizeX, 0, 'f', 2 ), ' ' );
-        auto sizeYstring = GroupDigits( QString( "%1" ).arg( sizeY, 0, 'f', 2 ), ' ' );
-        auto sizeZstring = GroupDigits( QString( "%1" ).arg( sizeZ, 0, 'f', 2 ), ' ' );
+        auto sizeXstring = GroupDigits( QString( "%1" ).arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' );
+        auto sizeYstring = GroupDigits( QString( "%1" ).arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' );
+        auto sizeZstring = GroupDigits( QString( "%1" ).arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' );
         _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ) );
     }
 
-    if ( ( sizeX > PrinterMaximumX ) || ( sizeY > PrinterMaximumY ) || ( sizeZ > PrinterMaximumZ ) ) {
+    _canvas->load_mesh( m );
+
+    if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _dimensionsErrorLabel->show( );
         _selectButton->setEnabled( false );
+        emit modelSelectionFailed( );
+        return;
     } else {
         _dimensionsErrorLabel->hide( );
-        _selectButton->setEnabled( true );
     }
-
-    _canvas->load_mesh( m );
 
     if ( _processRunner ) {
         QObject::disconnect( _processRunner, nullptr, this, nullptr );
         _processRunner->kill( );
         _processRunner->deleteLater( );
+        _processRunner = nullptr;
     }
 
     _processRunner = new ProcessRunner( this );
@@ -319,18 +334,13 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &SelectTab::processRunner_readyReadStandardOutput );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &SelectTab::processRunner_readyReadStandardError  );
 
-    if ( !_fileName.isEmpty( ) && ( _fileName[0].unicode( ) != L':' ) ) {
-        debug( "+ SelectTab::loader_gotMesh: file name '%s'\n", _fileName.toUtf8( ).data( ) );
-        _processRunner->start(
-            { "slic3r" },
+    _processRunner->start(
+        { "slic3r" },
         {
-            { "--info"  },
-            { _fileName }
+            { "--info"                 },
+            { _modelSelection.fileName }
         }
-        );
-    }
-
-    emit modelDimensioned( count, { minX, maxX }, { minY, maxY }, { minZ, maxZ } );
+    );
 }
 
 void SelectTab::loader_ErrorBadStl( ) {
@@ -340,7 +350,7 @@ void SelectTab::loader_ErrorBadStl( ) {
         "This <code>.stl</code> file is invalid or corrupted.<br>"
         "Please export it from the original source, verify, and retry."
     );
-    emit modelSelected( false, _fileName );
+    emit modelSelectionFailed( );
 }
 
 void SelectTab::loader_ErrorEmptyMesh( ) {
@@ -349,7 +359,7 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
         "<b>Error:</b><br>"
         "This file is syntactically correct<br>but contains no triangles."
     );
-    emit modelSelected( false, _fileName );
+    emit modelSelectionFailed( );
 }
 
 void SelectTab::loader_ErrorMissingFile( ) {
@@ -358,7 +368,7 @@ void SelectTab::loader_ErrorMissingFile( ) {
         "<b>Error:</b><br>"
         "The target file is missing.<br>"
     );
-    emit modelSelected( false, _fileName );
+    emit modelSelectionFailed( );
 }
 
 void SelectTab::loader_Finished( ) {
@@ -369,19 +379,22 @@ void SelectTab::loader_Finished( ) {
     _loader = nullptr;
 }
 
-void SelectTab::loader_LoadedFile( const QString& fileName ) {
-    debug( "+ SelectTab::loader_LoadedFile: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
-}
-
 void SelectTab::processRunner_succeeded( ) {
     debug( "+ SelectTab::processRunner_succeeded\n" );
 
+    bool gotVolume = false;
     for ( auto line : _slicerBuffer.split( QRegularExpression { QString { "\\r?\\n" } } ) ) {
         auto match = VolumeLineMatcher.match( line );
         if ( match.hasMatch( ) ) {
-            auto value = match.captured( 1 ).toDouble( );
-            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( value, 0, 'f', 2 ), ' ' ) ) );
+            _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );
+            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume, 0, 'f', 2 ), ' ' ) ) );
+            gotVolume = true;
+            break;
         }
+    }
+
+    if ( gotVolume ) {
+        _selectButton->setEnabled( true );
     }
 
     _slicerBuffer.clear( );
@@ -390,6 +403,7 @@ void SelectTab::processRunner_succeeded( ) {
 void SelectTab::processRunner_failed( QProcess::ProcessError const error ) {
     debug( "SelectTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
     _slicerBuffer.clear( );
+    emit modelSelectionFailed( );
 }
 
 void SelectTab::processRunner_readyReadStandardOutput( QString const& data ) {
@@ -417,7 +431,7 @@ bool SelectTab::_loadModel( QString const& fileName ) {
         return false;
     }
 
-    _canvas->set_status( QString( "Loading " ) + getFileBaseName( fileName ) );
+    _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
 
     _loader = new Loader( fileName, this );
     connect( _loader, &Loader::got_mesh,           this,    &SelectTab::loader_gotMesh          );
@@ -425,10 +439,6 @@ bool SelectTab::_loadModel( QString const& fileName ) {
     connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );
     connect( _loader, &Loader::error_missing_file, this,    &SelectTab::loader_ErrorMissingFile );
     connect( _loader, &Loader::finished,           this,    &SelectTab::loader_Finished         );
-
-    if ( fileName[0] != ':' ) {
-        connect( _loader, &Loader::loaded_file,    this,    &SelectTab::loader_LoadedFile       );
-    }
 
     _selectButton->setEnabled( false );
     _loader->start( );

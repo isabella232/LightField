@@ -11,6 +11,19 @@ class PrintJob;
 class ProcessRunner;
 class Shepherd;
 
+class ModelSelectionInfo {
+
+public:
+
+    QString    fileName        { };
+    size_t     vertexCount     { };
+    Coordinate x               { };
+    Coordinate y               { };
+    Coordinate z               { };
+    double     estimatedVolume { };
+
+};
+
 class SelectTab: public QWidget {
 
     Q_OBJECT
@@ -45,23 +58,24 @@ private:
     QWidget*            _availableFilesContainer { new QWidget             };
     QLabel*             _dimensionsLabel         { new QLabel              };
     QLabel*             _dimensionsErrorLabel    { new QLabel              };
-    QHBoxLayout*        _dimensionsLayout        { new QHBoxLayout         };
+    QHBoxLayout*        _dimensionsLayout        {                         };
     QPushButton*        _selectButton            { new QPushButton         };
     Canvas*             _canvas                  {                         };
     QVBoxLayout*        _canvasLayout            { new QVBoxLayout         };
     Loader*             _loader                  {                         };
     QGridLayout*        _layout                  { new QGridLayout         };
-    int                 _selectedRow             { -1                      };
-    QString             _fileName;
-    QString             _slicerBuffer;
-    QString             _usbPath;
     QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
     QTimer*             _usbRetryTimer           { new QTimer              };
-    int                 _usbRetryCount           { -1                      };
+
+    int                 _selectedRow             { -1 };
+    QString             _slicerBuffer;
+    QString             _usbPath;
+    int                 _usbRetryCount           { -1 };
     QString             _userMediaPath;
+    ModelSelectionInfo  _modelSelection;
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
-    QPointF             _swipeLastPoint          {                         };
+    QPointF             _swipeLastPoint          { };
 
     bool _loadModel( QString const& filename );
 
@@ -70,8 +84,8 @@ private:
 
 signals:
 
-    void modelSelected( bool const success, QString const& fileName );
-    void modelDimensioned( size_t const vertexCount, Coordinate const sizeX, Coordinate const sizeY, Coordinate const sizeZ );
+    void modelSelected( ModelSelectionInfo* modelSelection );
+    void modelSelectionFailed( );
 
 public slots:
 
@@ -87,7 +101,6 @@ private slots:
     void loader_ErrorEmptyMesh( );
     void loader_ErrorMissingFile( );
     void loader_Finished( );
-    void loader_LoadedFile( QString const& filename );
     void libraryFsModel_directoryLoaded( QString const& name );
     void usbFsModel_directoryLoaded( QString const& name );
     void _lookForUsbStick( QString const& path );
