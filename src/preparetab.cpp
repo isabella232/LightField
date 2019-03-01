@@ -178,14 +178,14 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 
     if ( QProcess::FailedToStart == error ) {
         debug( "  + slicer process failed to start\n" );
-        sliceStatus->setText( "Slicer failed to start" );
+        sliceStatus->setText( "failed to start" );
     } else if ( QProcess::Crashed == error ) {
         debug( "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
         if ( slicerProcess->state( ) != QProcess::NotRunning ) {
             slicerProcess->kill( );
             debug( "  + slicer terminated\n" );
         }
-        sliceStatus->setText( "Slicer crashed" );
+        sliceStatus->setText( "crashed" );
     }
 }
 
