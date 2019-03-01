@@ -48,6 +48,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureTimeSlider->setMaximum( 40 );
     exposureTimeSlider->setOrientation( Qt::Horizontal );
     exposureTimeSlider->setTickInterval( 2 );
+    exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( exposureTimeSlider, &QDial::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
 
@@ -70,6 +71,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     exposureTimeScaleFactorSlider->setMaximum( 5 );
     exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
     exposureTimeScaleFactorSlider->setTickInterval( 1 );
+    exposureTimeScaleFactorSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
 
 
@@ -100,6 +102,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelSlider->setMaximum( 100 );
     powerLevelSlider->setOrientation( Qt::Horizontal );
     powerLevelSlider->setTickInterval( 1 );
+    powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
 
