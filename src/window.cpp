@@ -87,7 +87,8 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     selectTab->setContentsMargins( { } );
     selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( selectTab, &SelectTab::modelSelected, this, &Window::selectTab_modelSelected );
+    QObject::connect( selectTab, &SelectTab::modelSelected,        this, &Window::selectTab_modelSelected        );
+    QObject::connect( selectTab, &SelectTab::modelSelectionFailed, this, &Window::selectTab_modelSelectionFailed );
 
     //
     // "Prepare" tab
@@ -180,24 +181,42 @@ void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
     // TODO restart shepherd if not expected
 }
 
-void Window::selectTab_modelSelected( bool const success, QString const& fileName ) {
-    debug( "+ Window::selectTab_modelSelected: success: %s, fileName: '%s'\n", ToString( success ), fileName.toUtf8( ).data( ) );
+void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
+    debug(
+        "+ Window::selectTab_modelSelected:\n"
+        "  + file name:        '%s'\n"
+        "  + vertex count:     %zu\n"
+        "  + X min, max, size: %.2f..%.2f, %.2f\n"
+        "  + Y min, max, size: %.2f..%.2f, %.2f\n"
+        "  + Z min, max, size: %.2f..%.2f, %.2f\n"
+        "  + estimated volume: %.2f mL\n"
+        "",
+        modelSelection->fileName.toUtf8( ).data( ),
+        modelSelection->vertexCount,
+        modelSelection->x.min, modelSelection->x.max, modelSelection->x.size,
+        modelSelection->y.min, modelSelection->y.max, modelSelection->y.size,
+        modelSelection->z.min, modelSelection->z.max, modelSelection->z.size,
+        modelSelection->estimatedVolume
+    );
     _isModelRendered = false;
     debug( "  + isModelRendered set to false.\n" );
 
-    if ( success ) {
-        prepareTab->setSliceButtonEnabled( true );
-        printJob->modelFileName = fileName;
-        if ( tabs->currentIndex( ) == +TabIndex::Select ) {
-            tabs->setCurrentIndex( +TabIndex::Prepare );
-        }
-    } else {
-        prepareTab->setSliceButtonEnabled( false );
+    prepareTab->setSliceButtonEnabled( true );
+    printJob->vertexCount     = modelSelection->vertexCount;
+    printJob->x               = modelSelection->x;
+    printJob->y               = modelSelection->y;
+    printJob->z               = modelSelection->z;
+    printJob->estimatedVolume = modelSelection->estimatedVolume;
+    printJob->modelFileName   = modelSelection->fileName;
+    if ( tabs->currentIndex( ) == +TabIndex::Select ) {
+        tabs->setCurrentIndex( +TabIndex::Prepare );
     }
 }
 
-void Window::selectTab_modelDimensioned( size_t const vertexCount, Coordinate const x, Coordinate const y, Coordinate const z ) {
-    debug( "+ Window::selectTab_modelDimensioned: %zu vertices, dimensions %.3f×%.3f×%.3f mm\n", vertexCount, x.size, y.size, z.size );
+void Window::selectTab_modelSelectionFailed( ) {
+    debug( "+ Window::selectTab_modelSelectionFailed\n" );
+    prepareTab->setSliceButtonEnabled( false );
+    printTab->setPrintButtonEnabled( false );
 }
 
 void Window::prepareTab_sliceStarted( ) {
