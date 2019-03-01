@@ -1,6 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "coordinate.h"
+
 class Mesh
 {
 public:
@@ -16,7 +18,7 @@ public:
     float ymax() const { return max(1); }
     float zmax() const { return max(2); }
 
-    void bounds( size_t& count, float& minX, float& minY, float& minZ, float& maxX, float& maxY, float& maxZ );
+    void bounds( size_t& count, Coordinate& x, Coordinate& y, Coordinate& z );
 
     size_t count( ) const { return vertices.size( ); }
 

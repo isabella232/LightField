@@ -38,12 +38,13 @@ float Mesh::max(size_t start) const
     return v;
 }
 
-void Mesh::bounds( size_t& count, float& minX, float& minY, float& minZ, float& maxX, float& maxY, float& maxZ ) {
-    count = vertices.size( );
+void Mesh::bounds( size_t& count, Coordinate& x, Coordinate& y, Coordinate& z ) {
+    float minX, minY, minZ;
+    float maxX, maxY, maxZ;
     minX = minY = minZ = std::numeric_limits<float>::max( );
     maxX = maxY = maxZ = std::numeric_limits<float>::min( );
 
-    size_t limit = vertices.size( );
+    size_t limit = count = vertices.size( );
     for ( size_t i = 0; ( i + 2 ) < limit; i += 3 ) {
         float x = vertices[i];
         float y = vertices[i + 1];
@@ -55,6 +56,10 @@ void Mesh::bounds( size_t& count, float& minX, float& minY, float& minZ, float& 
         maxY = std::max( y, maxY );
         maxZ = std::max( z, maxZ );
     }
+
+    x = { minX, maxX };
+    y = { minY, maxY };
+    z = { minZ, maxZ };
 }
 
 bool Mesh::empty() const
