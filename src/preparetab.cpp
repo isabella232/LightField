@@ -374,7 +374,10 @@ void PrepareTab::setPrintJob( PrintJob* printJob ) {
 }
 
 void PrepareTab::setShepherd( Shepherd* newShepherd ) {
-    // TODO disconnect/reconnect events?
+    if ( _shepherd ) {
+        QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    }
+
     _shepherd = newShepherd;
 }
 
