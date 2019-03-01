@@ -118,7 +118,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     printButton->setText( "Print" );
     QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
-    _raiseOrLowerButton->setText( "Raise\nBuild Platform" );
+    _raiseOrLowerButton->setText( "Raise Build Platform" );
     _raiseOrLowerButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::_raiseOrLowerButton_clicked );
 
@@ -129,7 +129,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
-    _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _raiseOrLowerButton, nullptr, _homeButton, nullptr } ) );
+    _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( optionsContainer,  0, 0, 1, 2 );
@@ -219,7 +219,7 @@ void PrintTab::raiseBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::raiseBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
-        _raiseOrLowerButton->setText( "Lower\nBuild Platform" );
+        _raiseOrLowerButton->setText( "Lower Build Platform" );
         _raiseOrLowerButton->setEnabled( true );
     } else {
         _buildPlatformState = BuildPlatformState::Lowered;
@@ -236,7 +236,7 @@ void PrintTab::lowerBuildPlatformComplete( bool const success ) {
     debug( "+ PrintTab::lowerBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
-        _raiseOrLowerButton->setText( "Raise\nBuild Platform" );
+        _raiseOrLowerButton->setText( "Raise Build Platform" );
     } else {
         _buildPlatformState = BuildPlatformState::Raised;
     }
