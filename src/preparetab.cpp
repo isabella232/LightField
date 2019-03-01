@@ -17,11 +17,12 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     layerThicknessLabel->setText( "Layer height:" );
 
-    layerThickness50Button->setText( "High res (50 µm)" );
-    layerThickness100Button->setText( "Standard res (100 µm)" );
     layerThickness100Button->setChecked( true );
-    QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
+    layerThickness100Button->setText( "Standard res (100 µm)" );
     QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
+
+    layerThickness50Button->setText( "High res (50 µm)" );
+    QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
 
     layerThicknessButtonsLayout->setContentsMargins( { } );
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
@@ -30,13 +31,13 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceStatusLabel->setText( "Slicer status:" );
     sliceStatusLabel->setBuddy( sliceStatus );
 
-    sliceStatus->setText( "Idle" );
+    sliceStatus->setText( "idle" );
     sliceStatus->setFont( boldFont );
 
     imageGeneratorStatusLabel->setText( "Image generator:" );
     imageGeneratorStatusLabel->setBuddy( imageGeneratorStatus );
 
-    imageGeneratorStatus->setText( "Idle" );
+    imageGeneratorStatus->setText( "idle" );
     imageGeneratorStatus->setFont( boldFont );
 
     _prepareMessage->setAlignment( Qt::AlignCenter );
@@ -192,7 +193,7 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "started" );
-    imageGeneratorStatus->clear( );
+    imageGeneratorStatus->setText( "waiting" );
     currentSliceImage->clear( );
     emit sliceStarted( );
 }
@@ -255,7 +256,7 @@ void PrepareTab::_prepareButton_clicked( bool ) {
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
 
-    _prepareMessage->setText( QString( "Moving the printer to its home location..." ) );
+    _prepareMessage->setText( QString( "Moving the printer to<br>its home location..." ) );
     _prepareProgress->show( );
 
     _prepareButton->setText( QString( "Continue" ) );
