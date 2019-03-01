@@ -35,6 +35,10 @@ public slots:
         _process.kill( );
     }
 
+    void terminate( ) {
+        _process.terminate( );
+    }
+
 protected slots:
 
 private slots:

@@ -210,7 +210,7 @@ void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
     if ( _processRunner ) {
         QObject::disconnect( _processRunner, nullptr, this, nullptr );
-        _processRunner->kill( );
+        _processRunner->terminate( );
         _processRunner->deleteLater( );
         _processRunner = nullptr;
     }
@@ -323,7 +323,7 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
 
     if ( _processRunner ) {
         QObject::disconnect( _processRunner, nullptr, this, nullptr );
-        _processRunner->kill( );
+        _processRunner->terminate( );
         _processRunner->deleteLater( );
         _processRunner = nullptr;
     }
