@@ -11,9 +11,6 @@ using namespace std::placeholders;
 
 namespace {
 
-    QStringList ExposureTimeScaleFactorStringList { "1×", "2×", "3×", "4×", "5×" };
-    double      ExposureTimeScaleFactorValues[]   { 1.0,  2.0,  3.0,  4.0,  5.0  };
-
     char const* BuildPlatformStateStrings[] { "Lowered", "Raising", "Raised", "Lowering" };
 
     char const* ToString( BuildPlatformState const value ) {
@@ -36,54 +33,62 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
 
-    exposureTimeDial->setMinimum(  1 );
-    exposureTimeDial->setMaximum( 40 );
-    exposureTimeDial->setNotchesVisible( true );
-    exposureTimeDial->setWrapping( false );
-    QObject::connect( exposureTimeDial, &QDial::valueChanged, this, &PrintTab::exposureTimeDial_valueChanged );
 
+    exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
     exposureTimeLabel->setText( "Exposure time (seconds):" );
-    exposureTimeLabel->setBuddy( exposureTimeDial );
+    exposureTimeLabel->setBuddy( exposureTimeSlider );
 
-    exposureTimeValue->setAlignment( Qt::AlignRight );
+    exposureTimeValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
     exposureTimeValue->setFont( boldFont );
 
     exposureTimeValueLayout = WrapWidgetsInHBox( { exposureTimeLabel, nullptr, exposureTimeValue } );
     exposureTimeValueLayout->setContentsMargins( { } );
 
-    exposureTimeValueContainer->setContentsMargins( { } );
-    exposureTimeValueContainer->setLayout( exposureTimeValueLayout );
+    exposureTimeSlider->setMinimum( 1 );
+    exposureTimeSlider->setMaximum( 40 );
+    exposureTimeSlider->setOrientation( Qt::Horizontal );
+    exposureTimeSlider->setTickInterval( 2 );
+    QObject::connect( exposureTimeSlider, &QDial::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
-    exposureTimeDialLeftLabel->setAlignment( Qt::AlignLeft );
-    exposureTimeDialLeftLabel->setContentsMargins( { } );
-    exposureTimeDialLeftLabel->setText( "0.5 s" );
 
-    exposureTimeDialRightLabel->setAlignment( Qt::AlignRight );
-    exposureTimeDialRightLabel->setContentsMargins( { } );
-    exposureTimeDialRightLabel->setText( "20 s" );
+    exposureTimeLayout->setContentsMargins( { } );
+    exposureTimeLayout->addLayout( exposureTimeValueLayout );
+    exposureTimeLayout->addWidget( exposureTimeSlider );
 
-    exposureTimeDialLabelsLayout = WrapWidgetsInHBox( { nullptr, exposureTimeDialLeftLabel, nullptr, exposureTimeDialRightLabel, nullptr } );
-    exposureTimeDialLabelsLayout->setContentsMargins( { } );
 
-    exposureTimeDialLabelsContainer->setContentsMargins( { } );
-    exposureTimeDialLabelsContainer->setLayout( exposureTimeDialLabelsLayout );
-
-    exposureTimeScaleFactorComboBox->setEditable( false );
-    exposureTimeScaleFactorComboBox->setMaxVisibleItems( ExposureTimeScaleFactorStringList.count( ) );
-    exposureTimeScaleFactorComboBox->addItems( ExposureTimeScaleFactorStringList );
-    QObject::connect( exposureTimeScaleFactorComboBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this, &PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged );
-
+    exposureTimeScaleFactorLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
     exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
-    exposureTimeScaleFactorLabel->setBuddy( exposureTimeScaleFactorComboBox );
+    exposureTimeScaleFactorLabel->setBuddy( exposureTimeScaleFactorSlider );
 
-    powerLevelDial->setMinimum( 20 );
-    powerLevelDial->setMaximum( 100 );
-    powerLevelDial->setNotchesVisible( true );
-    powerLevelDial->setWrapping( false );
-    QObject::connect( powerLevelDial, &QDial::valueChanged, this, &PrintTab::powerLevelDial_valueChanged );
+    exposureTimeScaleFactorValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
+    exposureTimeScaleFactorValue->setFont( boldFont );
+
+    exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { exposureTimeScaleFactorLabel, nullptr, exposureTimeScaleFactorValue } );
+    exposureTimeScaleFactorValueLayout->setContentsMargins( { } );
+
+    exposureTimeScaleFactorSlider->setMinimum( 1 );
+    exposureTimeScaleFactorSlider->setMaximum( 5 );
+    exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
+    exposureTimeScaleFactorSlider->setTickInterval( 1 );
+    QObject::connect( exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
+
+
+    exposureTimeScaleFactorLayout->setContentsMargins( { } );
+    exposureTimeScaleFactorLayout->addLayout( exposureTimeScaleFactorValueLayout );
+    exposureTimeScaleFactorLayout->addWidget( exposureTimeScaleFactorSlider );
+
+
+    exposureLayout->addLayout( exposureTimeLayout,            0, 0 );
+    exposureLayout->addLayout( exposureTimeScaleFactorLayout, 0, 2 );
+    exposureLayout->setRowStretch( 0, 1 );
+    exposureLayout->setRowStretch( 1, 1 );
+    exposureLayout->setColumnStretch( 0, 8 );
+    exposureLayout->setColumnStretch( 1, 1 );
+    exposureLayout->setColumnStretch( 2, 4 );
+
 
     powerLevelLabel->setText( "Projector power level:" );
-    powerLevelLabel->setBuddy( powerLevelDial );
+    powerLevelLabel->setBuddy( powerLevelSlider );
 
     powerLevelValue->setAlignment( Qt::AlignRight );
     powerLevelValue->setFont( boldFont );
@@ -91,32 +96,18 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     powerLevelValueLayout = WrapWidgetsInHBox( { powerLevelLabel, nullptr, powerLevelValue } );
     powerLevelValueLayout->setContentsMargins( { } );
 
-    powerLevelValueContainer->setContentsMargins( { } );
-    powerLevelValueContainer->setLayout( powerLevelValueLayout );
+    powerLevelSlider->setMinimum( 20 );
+    powerLevelSlider->setMaximum( 100 );
+    powerLevelSlider->setOrientation( Qt::Horizontal );
+    powerLevelSlider->setTickInterval( 1 );
+    QObject::connect( powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
-    powerLevelDialLeftLabel->setAlignment( Qt::AlignLeft );
-    powerLevelDialLeftLabel->setContentsMargins( { } );
-    powerLevelDialLeftLabel->setText( "20%" );
-    powerLevelDialLeftLabel->setBuddy( powerLevelDial );
 
-    powerLevelDialRightLabel->setAlignment( Qt::AlignRight );
-    powerLevelDialRightLabel->setContentsMargins( { } );
-    powerLevelDialRightLabel->setText( "100%" );
-    powerLevelDialRightLabel->setBuddy( powerLevelDial );
-
-    powerLevelDialLabelsLayout = WrapWidgetsInHBox( { nullptr, powerLevelDialLeftLabel, nullptr, powerLevelDialRightLabel, nullptr } );
-    powerLevelDialLabelsLayout->setContentsMargins( { } );
-
-    powerLevelDialLabelsContainer->setContentsMargins( { } );
-    powerLevelDialLabelsContainer->setLayout( powerLevelDialLabelsLayout );
-
-    optionsLayout = WrapWidgetsInVBox( {
-        exposureTimeValueContainer, exposureTimeDial, exposureTimeDialLabelsContainer,
-        exposureTimeScaleFactorLabel, exposureTimeScaleFactorComboBox,
-        powerLevelValueContainer, powerLevelDial, powerLevelDialLabelsContainer,
-        nullptr
-    } );
     optionsLayout->setContentsMargins( { } );
+    optionsLayout->addLayout( exposureLayout );
+    optionsLayout->addLayout( powerLevelValueLayout );
+    optionsLayout->addWidget( powerLevelSlider );
+    optionsLayout->addStretch( );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
@@ -135,38 +126,15 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _homeButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::_homeButton_clicked );
 
-    _raiseOrLowerLayout->addStretch( );
-    _raiseOrLowerLayout->addWidget( _raiseOrLowerButton, 0, Qt::AlignCenter );
-    _raiseOrLowerLayout->addStretch( );
-
-    _homeLayout->addStretch( );
-    _homeLayout->addWidget( _homeButton, 0, Qt::AlignCenter );
-    _homeLayout->addStretch( );
-
-    _raiseOrLowerGroup->setMinimumSize( QuarterRightHandPaneSize );
-    _raiseOrLowerGroup->setLayout( _raiseOrLowerLayout );
-    _raiseOrLowerGroup->setTitle( "Build Platform" );
-
-    _homeGroup->setMinimumSize( QuarterRightHandPaneSize );
-    _homeGroup->setLayout( _homeLayout );
-    _homeGroup->setTitle( "Home" );
-
-    _adjustmentsLayout->addWidget( _raiseOrLowerGroup, 1, 0, 1, 1, Qt::AlignCenter );
-    _adjustmentsLayout->addWidget( _homeGroup,         1, 1, 1, 1, Qt::AlignCenter );
-    _adjustmentsLayout->setRowStretch( 0, 1 );
-    _adjustmentsLayout->setRowStretch( 1, 1 );
-    _adjustmentsLayout->setColumnStretch( 0, 1 );
-    _adjustmentsLayout->setColumnStretch( 1, 1 );
-
     _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _adjustmentsGroup->setMinimumSize( MaximalRightHandPaneSize );
-    _adjustmentsGroup->setLayout( _adjustmentsLayout );
+    _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
+    _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _raiseOrLowerButton, nullptr, _homeButton, nullptr } ) );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( optionsContainer,  0, 0, 1, 2 );
     _layout->addWidget( printButton,       1, 0, 1, 1 );
-    _layout->addWidget( _adjustmentsGroup, 0, 1, 2, 1 );
+    _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -198,18 +166,18 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
-void PrintTab::exposureTimeDial_valueChanged( int value ) {
+void PrintTab::exposureTimeSlider_valueChanged( int value ) {
     _printJob->exposureTime = value / 2.0;
     exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 }
 
-void PrintTab::exposureTimeScaleFactorComboBox_currentIndexChanged( int index ) {
-    _printJob->exposureTimeScaleFactor = ExposureTimeScaleFactorValues[index];
+void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
+    _printJob->exposureTimeScaleFactor = value;
+    exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( value ) );
 }
 
-void PrintTab::powerLevelDial_valueChanged( int value ) {
-    int scaledValue = ( value / 100.0 * 255.0 ) + 0.5;
-    _printJob->powerLevel = scaledValue;
+void PrintTab::powerLevelSlider_valueChanged( int value ) {
+    _printJob->powerLevel = value / 100.0 * 255.0 + 0.5;
     powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
@@ -292,17 +260,15 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
 
     int value = _printJob->exposureTime / 0.5;
     _printJob->exposureTime = value / 2.0;
-    exposureTimeDial->setValue( value );
+    exposureTimeSlider->setValue( value );
+    exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 
-    auto exposureTimeScaleFactorText = FormatDouble( _printJob->exposureTimeScaleFactor ) + QString( "×" );
-    int index = exposureTimeScaleFactorComboBox->findText( exposureTimeScaleFactorText );
-    if ( -1 == index ) {
-        debug( "  + couldn't find exposureTimeScaleFactorComboBox entry for %f => '%s'\n", _printJob->exposureTimeScaleFactor, exposureTimeScaleFactorText.toUtf8( ).data( ) );
-    } else {
-        exposureTimeScaleFactorComboBox->setCurrentIndex( index );
-    }
+    debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
+    exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
+    exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
 
-    powerLevelDial->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
+    powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
+    powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
 }
 
 void PrintTab::setShepherd( Shepherd* newShepherd ) {

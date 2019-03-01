@@ -30,47 +30,41 @@ protected:
 
 private:
 
-    BuildPlatformState _buildPlatformState             { BuildPlatformState::Lowered };
-    PrintJob*          _printJob                       { };
-    Shepherd*          _shepherd                       { };
+    BuildPlatformState _buildPlatformState                { BuildPlatformState::Lowered };
+    PrintJob*          _printJob                          { };
+    Shepherd*          _shepherd                          { };
 
-    QLabel*            exposureTimeLabel               { new QLabel      };
-    QLabel*            exposureTimeValue               { new QLabel      };
-    QHBoxLayout*       exposureTimeValueLayout         {                 };
-    QWidget*           exposureTimeValueContainer      { new QWidget     };
-    QDial*             exposureTimeDial                { new QDial       };
-    QLabel*            exposureTimeDialLeftLabel       { new QLabel      };
-    QLabel*            exposureTimeDialRightLabel      { new QLabel      };
-    QHBoxLayout*       exposureTimeDialLabelsLayout    {                 };
-    QWidget*           exposureTimeDialLabelsContainer { new QWidget     };
-    QLabel*            exposureTimeScaleFactorLabel    { new QLabel      };
-    QComboBox*         exposureTimeScaleFactorComboBox { new QComboBox   };
-    QLabel*            powerLevelLabel                 { new QLabel      };
-    QLabel*            powerLevelValue                 { new QLabel      };
-    QHBoxLayout*       powerLevelValueLayout           {                 };
-    QWidget*           powerLevelValueContainer        { new QWidget     };
-    QDial*             powerLevelDial                  { new QDial       };
-    QLabel*            powerLevelDialLeftLabel         { new QLabel      };
-    QLabel*            powerLevelDialRightLabel        { new QLabel      };
-    QHBoxLayout*       powerLevelDialLabelsLayout      {                 };
-    QWidget*           powerLevelDialLabelsContainer   { new QWidget     };
-    QVBoxLayout*       optionsLayout                   { new QVBoxLayout };
-    QWidget*           optionsContainer                { new QWidget     };
-    QPushButton*       printButton                     { new QPushButton };
+    QLabel*            exposureTimeLabel                  { new QLabel      };
+    QLabel*            exposureTimeValue                  { new QLabel      };
+    QHBoxLayout*       exposureTimeValueLayout            {                 };
+    QSlider*           exposureTimeSlider                 { new QSlider     };
 
-    QPushButton*       _raiseOrLowerButton             { new QPushButton };
-    QPushButton*       _homeButton                     { new QPushButton };
+    QLabel*            exposureTimeScaleFactorValue       { new QLabel      };
+    QLabel*            exposureTimeScaleFactorLabel       { new QLabel      };
+    QHBoxLayout*       exposureTimeScaleFactorValueLayout {                 };
+    QSlider*           exposureTimeScaleFactorSlider      { new QSlider     };
 
-    QVBoxLayout*       _raiseOrLowerLayout             { new QVBoxLayout };
-    QVBoxLayout*       _homeLayout                     { new QVBoxLayout };
+    QVBoxLayout*       exposureTimeLayout                 { new QVBoxLayout };
+    QVBoxLayout*       exposureTimeScaleFactorLayout      { new QVBoxLayout };
 
-    QGroupBox*         _raiseOrLowerGroup              { new QGroupBox   };
-    QGroupBox*         _homeGroup                      { new QGroupBox   };
+    QGridLayout*       exposureLayout                     { new QGridLayout };
 
-    QGridLayout*       _adjustmentsLayout              { new QGridLayout };
-    QGroupBox*         _adjustmentsGroup               { new QGroupBox   };
+    QLabel*            powerLevelLabel                    { new QLabel      };
+    QLabel*            powerLevelValue                    { new QLabel      };
+    QHBoxLayout*       powerLevelValueLayout              {                 };
+    QSlider*           powerLevelSlider                   { new QSlider     };
 
-    QGridLayout*       _layout                         { new QGridLayout };
+    QVBoxLayout*       optionsLayout                      { new QVBoxLayout };
+    QWidget*           optionsContainer                   { new QWidget     };
+
+    QPushButton*       printButton                        { new QPushButton };
+
+    QPushButton*       _raiseOrLowerButton                { new QPushButton };
+    QPushButton*       _homeButton                        { new QPushButton };
+
+    QGroupBox*         _adjustmentsGroup                  { new QGroupBox   };
+
+    QGridLayout*       _layout                            { new QGridLayout };
 
     std::function<void( QShowEvent* )> _initialShowEventFunc;
 
@@ -98,9 +92,9 @@ protected slots:
 
 private slots:
 
-    void exposureTimeDial_valueChanged( int value );
-    void exposureTimeScaleFactorComboBox_currentIndexChanged( int index );
-    void powerLevelDial_valueChanged( int value );
+    void exposureTimeSlider_valueChanged( int value );
+    void exposureTimeScaleFactorSlider_valueChanged( int value );
+    void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool );
     void _raiseOrLowerButton_clicked( bool );
     void _homeButton_clicked( bool );
