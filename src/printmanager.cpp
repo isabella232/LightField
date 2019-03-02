@@ -31,11 +31,11 @@
 
 namespace {
 
-    auto PauseBeforeProject = 1000;
-    auto PauseBeforeLift    = 1000;
-    auto LiftDistance       = 2.0;
+    auto const PauseBeforeProject = 1000; // ms
+    auto const PauseBeforeLift    = 1000; // ms
+    auto const LiftDistance       = 2.00; // mm
 
-    auto SetPowerCommand    = QString { "setpower" };
+    auto const SetPowerCommand    = QString { "setpower" };
 
 }
 
@@ -117,14 +117,14 @@ void PrintManager::abort( ) {
         _lampOn = false;
     }
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_LiftUpComplete );
     debug( "+ PrintManager::abort: raising build platform\n" );
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_LiftUpComplete );
     _shepherd->doMoveTo( PrinterMaximumZ );
 }
 
 void PrintManager::_startNextLayer( ) {
-    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
     debug( "+ PrintManager::_startNextLayer: moving %f\n", LiftDistance );
+    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_LiftUpComplete );
     _shepherd->doMove( LiftDistance );
     emit startingLayer( _currentLayer );
 }
@@ -138,11 +138,11 @@ void PrintManager::step1_LiftUpComplete( bool const success ) {
         emit printComplete( false );
         return;
     }
-    debug( "+ PrintManager::step1_LiftUpComplete: action succeeded\n" );
-
-    debug( "+ PrintManager::step1_LiftUpComplete: moving %f\n", -LiftDistance + _printJob->layerThickness / 1000.0 );
+    
+    auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
+    debug( "+ PrintManager::step1_LiftUpComplete: action succeeded, moving %f\n", moveDistance );
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_LiftDownComplete );
-    _shepherd->doMove( -LiftDistance + _printJob->layerThickness / 1000.0 );
+    _shepherd->doMove( moveDistance );
 }
 
 void PrintManager::step2_LiftDownComplete( bool const success ) {
@@ -201,12 +201,6 @@ void PrintManager::step4_setPowerCompleted( ) {
 void PrintManager::step4_setPowerFailed( QProcess::ProcessError const error ) {
     debug( "+ PrintManager::step4_setPowerFailed: but that's okay, carrying on\n" );
 
-    if ( QProcess::Crashed == error ) {
-        if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setPowerProcess->kill( );
-        }
-    }
-
     step4_setPowerCompleted( );
 }
 
@@ -242,12 +236,6 @@ void PrintManager::step6_setPowerCompleted( ) {
 void PrintManager::step6_setPowerFailed( QProcess::ProcessError const error ) {
     debug( "+ PrintManager::step6_setPowerFailed: %s [%d], but that's okay, carrying on\n", ToString( error ), error );
 
-    if ( QProcess::Crashed == error ) {
-        if ( _setPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setPowerProcess->kill( );
-        }
-    }
-
     step6_setPowerCompleted( );
 }
 
@@ -281,8 +269,4 @@ void PrintManager::abort_LiftUpComplete( bool const success ) {
     debug( "+ PrintManager::abort_LiftUpComplete: action %s\n", success ? "succeeded" : "failed" );
     _cleanUp( );
     emit printAborted( );
-}
-
-int PrintManager::currentLayer( ) const {
-    return _currentLayer;
 }
