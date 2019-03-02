@@ -20,11 +20,11 @@ public:
 
     void start( );
 
-    void doMove( float arg );
-    void doMoveTo( float arg );
+    void doMove( float const relativeDistance );
+    void doMoveTo( float const absolutePosition );
     void doHome( );
-    void doSend( QString arg );
-    void doSend( QStringList args );
+    void doSend( QString& cmd );
+    void doSend( QStringList& cmds );
     void doTerminate( );
 
 protected:
@@ -44,6 +44,8 @@ private:
     void           handleCommandFail( QStringList const& input );
     void           handleInput( QString const& input );
 
+    void           doSendOne( QString& cmd );
+
 signals:
 
     void shepherd_started( );
@@ -53,6 +55,7 @@ signals:
     void printer_online( );
     void printer_offline( );
     void printer_output( QString const& output );
+    void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
 
     void action_moveComplete( bool const successful );
     void action_moveToComplete( bool const successful );

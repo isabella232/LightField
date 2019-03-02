@@ -9,6 +9,8 @@ namespace {
 
     char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/LightField/stdio-shepherd";
 
+    QRegularExpression PositionReportMatcher { "^X:(\\d+\\.\\d\\d) Y:(\\d+\\.\\d\\d) Z:(\\d+\\.\\d\\d) E:(\\d+\\.\\d\\d) Count X:(\\d+) Y:(\\d+) Z:(\\d+)", QRegularExpression::CaseInsensitiveOption };
+
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
@@ -147,7 +149,7 @@ void Shepherd::handleFromPrinter( QString const& input ) {
     );
     if ( input == "ok" ) {
         if ( ++_okCount == _expectedOkCount ) {
-            debug( "+ Shepherd::handleFromPrinter: got last ok, dispatching completion notification\n" );
+            debug( "+ Shepherd::handleFromPrinter: got final expected ok, dispatching completion notification\n" );
             auto pending = _pendingCommand;
             _pendingCommand = PendingCommand::none;
             switch ( pending ) {
@@ -176,6 +178,16 @@ void Shepherd::handleFromPrinter( QString const& input ) {
                     break;
             }
         }
+    } else if ( auto match = PositionReportMatcher.match( input ); match.hasMatch( ) ) {
+        auto px = match.captured( 1 ).toDouble( );
+        auto py = match.captured( 2 ).toDouble( );
+        auto pz = match.captured( 3 ).toDouble( );
+        auto pe = match.captured( 4 ).toDouble( );
+        auto cx = match.captured( 5 ).toDouble( );
+        auto cy = match.captured( 6 ).toDouble( );
+        auto cz = match.captured( 7 ).toDouble( );
+        debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
+        emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
     }
 }
 
@@ -269,36 +281,40 @@ void Shepherd::start( ) {
     }
 }
 
-void Shepherd::doMove( float arg ) {
-    if ( getReady( "doMove", PendingCommand::move, 5 ) ) {
-        _process->write( QString( "move %1\n" ).arg( arg ).toUtf8( ) );
+void Shepherd::doMove( float const relativeDistance ) {
+    if ( getReady( "doMove", PendingCommand::move, 4 ) ) {
+        _process->write( QString( "move %1\n" ).arg( relativeDistance, 0, 'f', 2 ).toUtf8( ) );
     }
 }
 
-void Shepherd::doMoveTo( float arg ) {
+void Shepherd::doMoveTo( float const absolutePosition ) {
     if ( getReady( "doMoveTo", PendingCommand::moveTo, 4 ) ) {
-        _process->write( QString( "moveTo %1\n" ).arg( arg ).toUtf8( ) );
+        _process->write( QString( "moveTo %1\n" ).arg( absolutePosition, 0, 'f', 2 ).toUtf8( ) );
     }
 }
 
 void Shepherd::doHome( ) {
-    if ( getReady( "doHome", PendingCommand::home, 1 ) ) {
+    if ( getReady( "doHome", PendingCommand::home, 3 ) ) {
         _process->write( "home\n" );
     }
 }
 
-void Shepherd::doSend( QString arg ) {
-    doSend( QStringList { arg } );
+void Shepherd::doSend( QString& cmd ) {
+    if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
+        doSendOne( cmd );
+    }
 }
 
-void Shepherd::doSend( QStringList args ) {
-    if ( getReady( "doSend", PendingCommand::send, args.count( ) ) ) {
-        QString output;
-        for ( auto& arg : args ) {
-            output += QString( "send \"%1\"\n" ).arg( arg.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) );
+void Shepherd::doSend( QStringList& cmds ) {
+    if ( getReady( "doSend", PendingCommand::send, cmds.count( ) ) ) {
+        for ( auto& cmd : cmds ) {
+            doSendOne( cmd );
         }
-        _process->write( output.toUtf8( ) );
     }
+}
+
+void Shepherd::doSendOne( QString& cmd ) {
+    _process->write( QString( "send \"%1\"\n" ).arg( cmd.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) ).toUtf8( ) );
 }
 
 void Shepherd::doTerminate( ) {
