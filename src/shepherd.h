@@ -23,8 +23,8 @@ public:
     void doMove( float const relativeDistance );
     void doMoveTo( float const absolutePosition );
     void doHome( );
-    void doSend( QString& cmd );
-    void doSend( QStringList& cmds );
+    void doSend( QString cmd );
+    void doSend( QStringList cmds );
     void doTerminate( );
 
 protected:

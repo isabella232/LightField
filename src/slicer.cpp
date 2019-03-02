@@ -54,7 +54,7 @@ void Slicer::processReadyRead( ) {
     _process->setReadChannel( QProcess::StandardError );
     input = _process->readAllStandardError( );
     if ( input.length( ) ) {
-        fprintf( stderr,
+        debug(
             "+ Slicer::processReadyReadStdout\n"
             "  + received from stderr: >>%s<<\n",
             input.toUtf8( ).data( )
@@ -64,7 +64,7 @@ void Slicer::processReadyRead( ) {
     _process->setReadChannel( QProcess::StandardOutput );
     input = _process->readAllStandardOutput( );
     if ( input.length( ) ) {
-        fprintf( stderr,
+        debug(
             "+ Slicer::processReadyReadStdout\n"
             "  + received from stdout: >>%s<<\n",
             input.toUtf8( ).data( )

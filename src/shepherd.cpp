@@ -54,7 +54,7 @@ void Shepherd::processReadyReadStandardError( ) {
     _process->setReadChannel( QProcess::StandardError );
     QString input = _process->readAllStandardError( );
     if ( input.length( ) ) {
-        fprintf( stderr,
+        debug(
             "+ Shepherd::processReadyReadStandardError: from stderr:\n"
             "%s\n",
             input.toUtf8( ).data( )
@@ -299,13 +299,13 @@ void Shepherd::doHome( ) {
     }
 }
 
-void Shepherd::doSend( QString& cmd ) {
+void Shepherd::doSend( QString cmd ) {
     if ( getReady( "doSend", PendingCommand::send, 1 ) ) {
         doSendOne( cmd );
     }
 }
 
-void Shepherd::doSend( QStringList& cmds ) {
+void Shepherd::doSend( QStringList cmds ) {
     if ( getReady( "doSend", PendingCommand::send, cmds.count( ) ) ) {
         for ( auto& cmd : cmds ) {
             doSendOne( cmd );
