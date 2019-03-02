@@ -152,16 +152,17 @@ void StatusTab::stopButton_clicked( bool ) {
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
     jobStateDisplay->setText( "print started" );
-
-    _printJobStartTime = GetBootTimeClock( );
-    _updatePrintTimeInfo->start( );
+    estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
 
-    auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    _printJobStartTime = GetBootTimeClock( );
+    _updatePrintTimeInfo->start( );
+
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
     if ( ( pixmap.width( ) > currentLayerImage->width( ) ) || ( pixmap.height( ) > currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -215,19 +216,20 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
         return;
     }
 
+    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( _printManager->currentLayer( ) / _printJob->layerCount + 0.5 ) ) );
+
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n" );
     elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
 
-    if ( delta >= 5.0 ) {
-        double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
-        debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
-        estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTime ) );
-    } else {
-        estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
+    auto currentLayer = _printManager->currentLayer( );
+    if ( currentLayer < 4 ) {
+        return;
     }
 
-    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( _printManager->currentLayer( ) / _printJob->layerCount + 0.5 ) ) );
+    double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
+    debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
+    estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTime ) );
 }
 
 void StatusTab::setPrintJob( PrintJob* printJob ) {

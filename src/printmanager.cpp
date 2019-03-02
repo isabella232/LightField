@@ -12,21 +12,28 @@
 //
 // Before printing:
 //
-// ✓ 0. Home the printer
+// ✗ 1.  Raise the build platform to maximum Z.
+// ✗ 2.  Prompt user to load recommended volume of print solution.
+// ✗ 3.  Lower to first layer height.
+// ✗ 4.  Wait for four seconds.
 //
 // For each layer:
 //
-// ✓ 1. Lift up
-// ✓ 2. Lift down
-// ✓ 3. Pause before projection
-// ✓ 4. Start projecting: setpower ${powerLevel}
-// ✓ 5. Pause for layer time
-// ✓ 6. Stop projection: setpower 0
-// ✓ 7. Pause before lift
+// ✓ 5.  Start projection: setpower ${powerLevel} .
+// ✓ 6.  Pause for layer projection time, optionally scaled.
+// ✓ 7.  Stop projection: setpower 0 .
+// ✓ 8.  Pause before raise.
+// ✓ 9.  Raise the build platform by LiftDistance.
+// ✓ 10. Lower the build platform by LiftDistance - LayerHeight.
+// ✓ 11. Pause before projection.
 //
 // After printing:
 //
-// ✓ 8. Final lift up
+// ✗ 12a. Raise the build platform to maximum Z.
+//
+// On abort:
+//
+// ✗ 12b. Raise the build platform to maximum Z.
 //
 
 namespace {
@@ -156,7 +163,7 @@ void PrintManager::step2_LiftDownComplete( bool const success ) {
     }
     debug( "+ PrintManager::step2_LiftDownComplete: action succeeded\n" );
 
-    QString pngFileName = _printJob->pngFilesPath + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
+    QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
     if ( !_pngDisplayer->load( pngFileName ) ) {
         debug( "+ PrintManager::step2_LiftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
     }
