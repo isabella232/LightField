@@ -185,7 +185,7 @@ void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     debug(
         "+ Window::selectTab_modelSelected:\n"
         "  + file name:        '%s'\n"
-        "  + vertex count:     %zu\n"
+        "  + vertex count:     %5zu\n"
         "  + X min, max, size: %.2f..%.2f, %.2f\n"
         "  + Y min, max, size: %.2f..%.2f, %.2f\n"
         "  + Z min, max, size: %.2f..%.2f, %.2f\n"
@@ -270,28 +270,26 @@ void Window::printTab_printButtonClicked( ) {
     debug( "+ Window::printTab_printButtonClicked\n" );
     tabs->setCurrentIndex( +TabIndex::Status );
 
-    fprintf( stderr,
+    debug(
         "  + Print job:\n"
-        "    + modelFileName:     '%s'\n"
-        "    + slicedSvgFileName: '%s'\n"
-        "    + pngFilesPath:      '%s'\n"
-        "    + layerCount:        %d\n"
-        "    + layerThickness:    %d\n"
-        "    + exposureTime:      %f\n"
-        "    + powerLevel:        %d\n"
+        "    + modelFileName:       '%s'\n"
+        "    + slicedSvgFileName:   '%s'\n"
+        "    + jobWorkingDirectory: '%s'\n"
+        "    + layerCount:          %d\n"
+        "    + layerThickness:      %d\n"
+        "    + exposureTime:        %f\n"
+        "    + powerLevel:          %d\n"
         "",
         printJob->modelFileName.toUtf8( ).data( ),
         printJob->slicedSvgFileName.toUtf8( ).data( ),
-        printJob->pngFilesPath.toUtf8( ).data( ),
+        printJob->jobWorkingDirectory.toUtf8( ).data( ),
         printJob->layerCount,
         printJob->layerThickness,
         printJob->exposureTime,
         printJob->powerLevel
     );
 
-    PrintJob* newJob = new PrintJob;
-    *newJob = *printJob;
-
+    PrintJob* newJob = new PrintJob( *printJob );
     printManager = new PrintManager( shepherd, this );
     printManager->print( printJob );
     statusTab->setPrintManager( printManager );
