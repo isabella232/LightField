@@ -262,12 +262,12 @@ void PrepareTab::_prepareButton_clicked( bool ) {
     _prepareButton->setText( QString( "Continue" ) );
     _prepareButton->setEnabled( false );
 
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendHome_complete );
-    _shepherd->doSend( "G28 X" );
+    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::_shepherd_homeComplete );
+    _shepherd->doHome( );
 }
 
-void PrepareTab::_sendHome_complete( bool const success ) {
-    debug( "+ PrepareTab::_sendHome_complete: success: %s\n", success ? "true" : "false" );
+void PrepareTab::_shepherd_homeComplete( bool const success ) {
+    debug( "+ PrepareTab::_shepherd_homeComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
     _prepareProgress->hide( );
@@ -297,50 +297,12 @@ void PrepareTab::_adjustBuildPlatform_complete( bool ) {
     _prepareMessage->setText( QString( "<div style='text-align: center;'>Raising the build platform<br>out of the way...</div>" ) );
     _prepareProgress->show( );
 
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendResinLoadMove_complete );
-    _shepherd->doSend( QStringList {
-        QString( "G90" ),
-        QString( "G0 X%1" ).arg( PrinterMaximumZ, 0, 'f', 3 )
-    } );
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::_shepherd_resinLoadMoveToComplete );
+    _shepherd->doMoveTo( PrinterMaximumZ );
 }
 
-void PrepareTab::_sendResinLoadMove_complete( bool const success ) {
-    debug( "+ PrepareTab::_sendResinLoadMove_complete: success: %s\n", success ? "true" : "false" );
-
-    QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    _prepareProgress->hide( );
-
-    if ( !success ) {
-        _prepareMessage->setText( QString( "Preparation failed." ) );
-
-        _prepareButton->setText( QString( "Retry" ) );
-        _prepareButton->setEnabled( true );
-
-        emit preparePrinterComplete( false );
-        return;
-    }
-
-    _prepareMessage->setText( QString( "<div style='text-align: center;'>Load the print solution,<br>then tap <b>Continue</b>.</div>" ) );
-
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_loadPrintSolution_complete );
-    _prepareButton->setEnabled( true );
-}
-
-void PrepareTab::_loadPrintSolution_complete( bool ) {
-    debug( "+ PrepareTab::_loadPrintSolution_complete\n" );
-
-    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
-    _prepareButton->setEnabled( false );
-
-    _prepareMessage->setText( QString( "Lowering the build platform..." ) );
-    _prepareProgress->show( );
-
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrepareTab::_sendExtend_complete );
-    _shepherd->doSend( QString( "G0 X%1" ).arg( std::max( 100, _printJob->layerThickness ) / 1000.0, 0, 'f', 3 ) );
-}
-
-void PrepareTab::_sendExtend_complete( bool const success ) {
-    debug( "+ PrepareTab::_sendExtend_complete: success: %s\n", success ? "true" : "false" );
+void PrepareTab::_shepherd_resinLoadMoveToComplete( bool const success ) {
+    debug( "+ PrepareTab::_shepherd_resinLoadMoveToComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
     _prepareProgress->hide( );

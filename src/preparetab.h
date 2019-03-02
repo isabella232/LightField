@@ -93,11 +93,9 @@ private slots:
     void svgRenderer_done( int const totalLayers );
 
     void _prepareButton_clicked( bool );
-    void _sendHome_complete( bool const success );
+    void _shepherd_homeComplete( bool const success );
     void _adjustBuildPlatform_complete( bool );
-    void _sendResinLoadMove_complete( bool const success );
-    void _loadPrintSolution_complete( bool );
-    void _sendExtend_complete( bool const success );
+    void _shepherd_resinLoadMoveToComplete( bool const success );
 
 };
 
