@@ -12,6 +12,10 @@ public:
 
     void start( QString const& program, QStringList const& arguments, QProcess::OpenMode const mode = QProcess::ReadWrite );
 
+    int instanceId( ) const {
+        return _instanceId;
+    }
+
     QProcess::ProcessState state( ) const {
         return _process.state( );
     }
@@ -21,6 +25,7 @@ protected:
 private:
 
     QProcess _process;
+    int _instanceId;
 
 signals:
 
