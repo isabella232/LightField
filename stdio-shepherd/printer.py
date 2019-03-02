@@ -138,27 +138,28 @@ class printer(PrinterEventHandler):
     def move(self, d=1.0, axis=MOTOR_AXIS):
         if(self.p.online):
             self.send_noisy("G91")
-            self.send_noisy("G1 %s%f"%(axis,d))
-            self.send_noisy("G90")
+            self.send_noisy("G0 %s%f"%(axis,d))
             self.send_noisy("M400")
             self.send_noisy("M114")
 
     def moveto(self, d=1.0, axis=MOTOR_AXIS):
         if(self.p.online):
             self.send_noisy("G90")
-            self.send_noisy("G1 %s%f"%(axis,d))
+            self.send_noisy("G0 %s%f"%(axis,d))
             self.send_noisy("M400")
             self.send_noisy("M114")
 
-    def home(self, axis="X"):
+    def home(self, axis=MOTOR_AXIS):
         if(self.p.online):
             self.send_noisy("G28 "+axis)
+            self.send_noisy("M400")
+            self.send_noisy("M114")
 
     def lift(self, d=0.1, l=2.0, axis=MOTOR_AXIS):
         if(self.p.online):
             self.send_noisy("G91")
-            self.send_noisy("G1 %s%f"%(axis,l))
-            self.send_noisy("G1 %s%f"%(axis,d-l))
+            self.send_noisy("G0 %s%f"%(axis,l))
+            self.send_noisy("G0 %s%f"%(axis,d-l))
             self.send_noisy("G90")
             self.send_noisy("M400")
             self.send_noisy("M114")
