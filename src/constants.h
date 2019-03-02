@@ -9,6 +9,7 @@ QSize   extern const QuarterRightHandPaneSize;
 
 QString extern const MediaRootPath;
 QString extern const StlModelLibraryPath;
+QString extern const JobWorkingDirectoryPath;
 
 QChar   extern const DigitZero;
 QChar   extern const Slash;

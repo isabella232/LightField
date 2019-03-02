@@ -137,15 +137,22 @@ void PrepareTab::layerThickness100Button_clicked( bool checked ) {
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
 
-    _printJob->pngFilesPath = StlModelLibraryPath + QString( "/working_%1" ).arg( static_cast<unsigned long long>( getpid( ) ) * 10000000000ull + static_cast<unsigned long long>( rand( ) ) );
-    mkdir( _printJob->pngFilesPath.toUtf8( ).data( ), 0700 );
+    QCryptographicHash hasher { QCryptographicHash::Md5 };
+    QFile file { _printJob->modelFileName, this };
+    if ( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
+        debug( "+ PrepareTab::sliceButton_Clicked: couldn't open model for reading?\n" );
+        _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + QString( "/X%1_%2" ).arg( getpid( ) ).arg( rand( ) );
+    } else {
+        hasher.addData( &file );
+        file.close( );
+        auto hash = hasher.result( );
+        _printJob->jobWorkingDirectory = hash.toHex( ).data( );
+    }
 
-    QString baseName = GetFileBaseName( _printJob->modelFileName );
-    _printJob->slicedSvgFileName =
-        _printJob->pngFilesPath +
-        Slash +
-        baseName.left( baseName.length( ) - ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ? 4 : 0 ) ) +
-        QString( ".svg" );
+    mkdir( _printJob->jobWorkingDirectory.toUtf8( ).data( ), 0700 );
+
+    auto baseName = GetFileBaseName( _printJob->modelFileName );
+    _printJob->slicedSvgFileName = _printJob->jobWorkingDirectory + Slash + baseName.left( baseName.length( ) - ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ? 4 : 0 ) ) + QString( ".svg" );
 
     debug(
         "  + model filename:      '%s'\n"
@@ -154,13 +161,13 @@ void PrepareTab::sliceButton_clicked( bool ) {
         "",
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->slicedSvgFileName.toUtf8( ).data( ),
-        _printJob->pngFilesPath.toUtf8( ).data( )
+        _printJob->jobWorkingDirectory.toUtf8( ).data( )
     );
 
     slicerProcess = new QProcess( this );
-    QObject::connect( slicerProcess, &QProcess::errorOccurred, this, &PrepareTab::slicerProcessErrorOccurred );
-    QObject::connect( slicerProcess, &QProcess::started,       this, &PrepareTab::slicerProcessStarted       );
-    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished );
+    QObject::connect( slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
+    QObject::connect( slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
+    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
     slicerProcess->start(
         QString     { "slic3r" },
         QStringList {
@@ -219,7 +226,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     svgRenderer = new SvgRenderer;
     QObject::connect( svgRenderer, &SvgRenderer::nextLayer, this, &PrepareTab::svgRenderer_progress );
     QObject::connect( svgRenderer, &SvgRenderer::done,      this, &PrepareTab::svgRenderer_done     );
-    svgRenderer->startRender( _printJob->slicedSvgFileName, _printJob->pngFilesPath );
+    svgRenderer->startRender( _printJob->slicedSvgFileName, _printJob->jobWorkingDirectory );
 
     emit renderStarted( );
 }
@@ -230,7 +237,7 @@ void PrepareTab::svgRenderer_progress( int const currentLayer ) {
         return;
     }
 
-    auto pixmap = QPixmap( _printJob->pngFilesPath + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
     if ( ( pixmap.width( ) > currentSliceImage->width( ) ) || ( pixmap.height( ) > currentSliceImage->height( ) ) ) {
         pixmap = pixmap.scaled( currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }

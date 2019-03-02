@@ -15,7 +15,7 @@ public:
 
     QString    modelFileName;
     QString    slicedSvgFileName;
-    QString    pngFilesPath;
+    QString    jobWorkingDirectory;
 
     int        layerCount              {     };
     int        layerThickness          { 100 }; // µm
