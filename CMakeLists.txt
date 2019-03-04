@@ -4,8 +4,8 @@
 
 cmake_minimum_required(VERSION 3.3)
 
-# Setting -std=c++11
-set(CMAKE_CXX_STANDARD 11)
+# Setting -std=c++17
+set(CMAKE_CXX_STANDARD 17)
 # Setting standard to required, as requisted by DeveloperPaul123 on github
 set(CXX_STANDARD_REQUIRED ON)
 
@@ -50,7 +50,8 @@ src/printtab.cpp
 src/statustab.cpp
 src/constants.cpp
 src/utils.cpp
-src/gesturelistview.cpp)
+src/gesturelistview.cpp
+src/hasher.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
@@ -78,7 +79,8 @@ src/printtab.h
 src/statustab.h
 src/constants.h
 src/utils.h
-src/gesturelistview.h)
+src/gesturelistview.h
+src/hasher.h)
 
 #set project resources and icon resource
 set(Project_Resources gl/gl.qrc breeze/breeze.qrc)

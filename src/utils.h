@@ -28,4 +28,8 @@ inline QString GetFileBaseName( QString const& fileName ) {
     return fileName.mid( fileName.lastIndexOf( Slash ) + 1 );
 }
 
+inline QString RemoveFileExtension( QString const& fileName ) {
+    return fileName.left( fileName.lastIndexOf( QChar( '.' ) ) );
+}
+
 #endif // __UTILS_H__

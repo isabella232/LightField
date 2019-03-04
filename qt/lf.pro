@@ -31,7 +31,8 @@ SOURCES += \
     ../src/statustab.cpp \
     ../src/constants.cpp \
     ../src/utils.cpp \
-    ../src/gesturelistview.cpp
+    ../src/gesturelistview.cpp \
+    ../src/hasher.cpp
 
 HEADERS  += \
     ../src/debug.h \
@@ -58,7 +59,8 @@ HEADERS  += \
     ../src/statustab.h \
     ../src/constants.h \
     ../src/utils.h \
-    ../src/gesturelistview.h
+    ../src/gesturelistview.h \
+    ../src/hasher.h
 
 CONFIG += c++17
 CONFIG += precompile_header

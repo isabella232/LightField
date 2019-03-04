@@ -2,6 +2,7 @@
 
 #include "preparetab.h"
 
+#include "hasher.h"
 #include "printjob.h"
 #include "shepherd.h"
 #include "strings.h"
@@ -124,6 +125,69 @@ void PrepareTab::_initialShowEvent( ) {
     currentSliceImage->setFixedHeight( currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
 }
 
+bool PrepareTab::_checkPreSlicedFiles( ) {
+    debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
+
+    // check that the sliced SVG file is newer than the STL file
+    auto modelFile     = QFileInfo { _printJob->modelFileName     };
+    auto slicedSvgFile = QFileInfo { _printJob->slicedSvgFileName };
+    if ( !modelFile.exists( ) ) {
+        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: model file does not exist\n" );
+        return false;
+    }
+    if ( !slicedSvgFile.exists( ) ) {
+        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: sliced SVG file does not exist\n" );
+        return false;
+    }
+
+    auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
+    if ( modelFile.lastModified( ) > slicedSvgFileLastModified ) {
+        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: model file is newer than sliced SVG file\n" );
+        return false;
+    }
+
+    int layerNumber     = -1;
+    int prevLayerNumber = -1;
+
+    auto jobDir = QDir { _printJob->jobWorkingDirectory };
+    jobDir.setSorting( QDir::Name );
+    jobDir.setNameFilters( { "[0-9]?????.svg" } );
+
+    // check that the layer SVG files are newer than the sliced SVG file,
+    //   and that the layer PNG files are newer than the layer SVG files,
+    //   and that there are no gaps in the numbering.
+    for ( auto entry : jobDir.entryInfoList( ) ) {
+        debug( "+ PrepareTab::_checkPreSlicedFiles: layer SVG file name: %s\n", entry.filePath( ).toUtf8( ).data( ) );
+        if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
+            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
+            return false;
+        }
+
+        auto layerPngFile = QFileInfo { entry.path( ) + Slash + entry.completeBaseName( ) + QString( ".png" ) };
+        debug( "+ PrepareTab::_checkPreSlicedFiles: layer PNG file name: %s\n", layerPngFile.filePath( ).toUtf8( ).data( ) );
+        if ( !layerPngFile.exists( ) ) {
+            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: layer PNG file %s does not exist\n", layerPngFile.fileName( ).toUtf8( ).data( ) );
+            return false;
+        }
+        if ( entry.lastModified( ) > layerPngFile.lastModified( ) ) {
+            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: layer SVG file %s is newer than layer PNG file %s\n", entry.fileName( ).toUtf8( ).data( ), layerPngFile.fileName( ).toUtf8( ).data( ) );
+            return false;
+        }
+
+        layerNumber = RemoveFileExtension( entry.baseName( ) ).toInt( );
+        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
+            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
+            return false;
+        }
+        prevLayerNumber = layerNumber;
+    }
+
+    _printJob->layerCount = layerNumber + 1;
+    debug( "+ PrepareTab::_checkPreSlicedFiles: Success, %d layers\n", _printJob->layerCount );
+
+    return true;
+}
+
 void PrepareTab::layerThickness50Button_clicked( bool checked ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
@@ -135,35 +199,63 @@ void PrepareTab::layerThickness100Button_clicked( bool checked ) {
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
-    debug( "+ PrepareTab::sliceButton_clicked\n" );
+    debug( "+ PrepareTab::sliceButton_clicked: kicking off hasher\n" );
 
-    QCryptographicHash hasher { QCryptographicHash::Md5 };
-    QFile file { _printJob->modelFileName, this };
-    if ( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        debug( "+ PrepareTab::sliceButton_Clicked: couldn't open model for reading?\n" );
-        _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + QString( "/X%1_%2" ).arg( getpid( ) ).arg( rand( ) );
-    } else {
-        hasher.addData( &file );
-        file.close( );
-        auto hash = hasher.result( );
-        _printJob->jobWorkingDirectory = hash.toHex( ).data( );
-    }
+    _hasher = new Hasher;
+    QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
+    _hasher->hash( _printJob->modelFileName );
 
-    mkdir( _printJob->jobWorkingDirectory.toUtf8( ).data( ), 0700 );
+    sliceStatus->setText( "hashing" );
+    imageGeneratorStatus->setText( "waiting" );
+    currentSliceImage->clear( );
+    emit sliceStarted( );
+}
+
+void PrepareTab::hasher_resultReady( QString const hash ) {
+    debug( "+ PrepareTab::hasher_resultReady:\n  + result hash:           '%s'\n", hash.toUtf8( ).data( ) );
+
+    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash );
+    _hasher->deleteLater( );
+    _hasher = nullptr;
 
     auto baseName = GetFileBaseName( _printJob->modelFileName );
-    _printJob->slicedSvgFileName = _printJob->jobWorkingDirectory + Slash + baseName.left( baseName.length( ) - ( baseName.endsWith( ".stl", Qt::CaseInsensitive ) ? 4 : 0 ) ) + QString( ".svg" );
+    _printJob->slicedSvgFileName = _printJob->jobWorkingDirectory + Slash + QString( "sliced.svg" );
 
     debug(
-        "  + model filename:      '%s'\n"
-        "  + sliced SVG filename: '%s'\n"
-        "  + PNG files path:      '%s'\n"
+        "  + model filename:        '%s'\n"
+        "  + sliced SVG filename:   '%s'\n"
+        "  + job working directory: '%s'\n"
         "",
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->slicedSvgFileName.toUtf8( ).data( ),
         _printJob->jobWorkingDirectory.toUtf8( ).data( )
     );
 
+    if ( 0 != ::mkdir( _printJob->jobWorkingDirectory.toUtf8( ).data( ), 0700 ) ) {
+        error_t err = errno;
+        // if err is EEXIST [17] then it may already be sliced and ready for us, but for now, just ignore that
+        if ( EEXIST != err ) {
+            debug( "  + unable to create job working directory: %s [%d]\n", strerror( err ), err );
+            emit sliceComplete( false );
+            return;
+        }
+
+        if ( _checkPreSlicedFiles( ) ) {
+            sliceStatus->setText( "skipped" );
+            imageGeneratorStatus->setText( "skipped" );
+            emit sliceComplete( true );
+            emit renderStarted( );
+            emit renderComplete( true );
+            return;
+        }
+    }
+
+    QDir jobDir { _printJob->jobWorkingDirectory };
+    for ( auto entryName : jobDir.entryList( ) ) {
+        jobDir.remove( entryName );
+    }
+
+    sliceStatus->setText( "starting" );
     slicerProcess = new QProcess( this );
     QObject::connect( slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
     QObject::connect( slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
@@ -200,9 +292,6 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
     sliceStatus->setText( "started" );
-    imageGeneratorStatus->setText( "waiting" );
-    currentSliceImage->clear( );
-    emit sliceStarted( );
 }
 
 void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
@@ -216,6 +305,11 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     if ( exitStatus == QProcess::CrashExit ) {
         debug( "  + slicer process crashed?\n" );
         sliceStatus->setText( "crashed" );
+        emit sliceComplete( false );
+        return;
+    } else if ( ( exitStatus == QProcess::NormalExit ) && ( exitCode != 0 ) ) {
+        debug( "  + slicer process failed\n" );
+        sliceStatus->setText( "failed" );
         emit sliceComplete( false );
         return;
     }

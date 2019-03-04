@@ -1,6 +1,7 @@
 #ifndef __PREPARETAB_H__
 #define __PREPARETAB_H__
 
+class Hasher;
 class PrintJob;
 class Shepherd;
 class SvgRenderer;
@@ -28,6 +29,7 @@ private:
     Shepherd*              _shepherd                   { };
     QProcess*              slicerProcess               { };
     SvgRenderer*           svgRenderer                 { };
+    Hasher*                _hasher                     { };
 
     QLabel*                layerThicknessLabel         { new QLabel       };
     QRadioButton*          layerThickness50Button      { new QRadioButton };
@@ -60,6 +62,7 @@ private:
     std::function<void( )> _initialShowEventFunc;
 
     void _initialShowEvent( );
+    bool _checkPreSlicedFiles( );
 
 signals:
 
@@ -84,6 +87,7 @@ private slots:
     void layerThickness50Button_clicked( bool checked );
     void layerThickness100Button_clicked( bool checked );
     void sliceButton_clicked( bool );
+    void hasher_resultReady( QString const hash );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );

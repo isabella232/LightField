@@ -75,6 +75,8 @@ App::App( int& argc, char *argv[] ):
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
 
+    g_signalHandler = new SignalHandler;
+
     auto font = QGuiApplication::font( );
     font.setFamily( QString( "Montserrat" ) );
     QGuiApplication::setFont( font );
@@ -87,7 +89,11 @@ App::App( int& argc, char *argv[] ):
         setStyleSheet( QTextStream { &file }.readAll( ) );
     }
 
-    g_signalHandler = new SignalHandler;
+    if ( 0 != ::mkdir( JobWorkingDirectoryPath.toUtf8( ).data( ), 0700 ) ) {
+        error_t err = errno;
+        debug( "App::`ctor: unable to create job working directory root: %s [%d]\n", strerror( err ), err );
+        // TODO now what?
+    }
 
     window = new Window( );
     window->show( );
