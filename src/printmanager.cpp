@@ -20,7 +20,7 @@
 // For each layer:
 //
 // ✓ 5.  Start projection: setpower ${powerLevel} .
-// ✓ 6.  Pause for layer projection time, optionally scaled.
+// ✓ 6.  Pause for layer projection time (first two layers: scaled by scale factor)
 // ✓ 7.  Stop projection: setpower 0 .
 // ✓ 8.  Pause before raise.
 // ✓ 9.  Raise the build platform by LiftDistance.
