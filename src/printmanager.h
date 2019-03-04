@@ -29,7 +29,7 @@ private:
     Shepherd*      _shepherd             { };
     PrintJob*      _printJob             { };
     PngDisplayer*  _pngDisplayer         { };
-    ProcessRunner* _setPowerProcess      { };
+    ProcessRunner* _setpowerProcess      { };
 
     int            _currentLayer         { };
 
@@ -58,9 +58,9 @@ protected slots:
 
 private slots:
 
-    void step1_LiftUpComplete( bool const success );
+    void step1_liftUpComplete( bool const success );
 
-    void step2_LiftDownComplete( bool const success );
+    void step2_liftDownComplete( bool const success );
 
     void step3_preProjectionTimerExpired( );
 
@@ -74,9 +74,9 @@ private slots:
 
     void step7_preLiftTimerExpired( );
 
-    void step8_LiftUpComplete( bool const success );
+    void step8_liftUpComplete( bool const success );
 
-    void abort_LiftUpComplete( bool const success );
+    void abort_liftUpComplete( bool const success );
 
 };
 
