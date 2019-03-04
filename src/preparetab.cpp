@@ -395,7 +395,7 @@ void PrepareTab::_adjustBuildPlatform_complete( bool ) {
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( QString( "<div style='text-align: center;'>Raising the build platform<br>out of the way...</div>" ) );
+    _prepareMessage->setText( QString( "<div style='text-align: center;'>Raising the build platform...</div>" ) );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::_shepherd_resinLoadMoveToComplete );
