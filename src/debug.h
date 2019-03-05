@@ -2,13 +2,16 @@
 #define __DEBUG_H__
 
 #if defined _DEBUG
+inline void debug( char const* fmt ) {
+    fputs( fmt, stderr );
+}
+
 template<typename... Args>
 inline void debug( char const* fmt, Args... args ) {
     fprintf( stderr, fmt, args... );
 }
 #else
-template<typename... Args>
-inline void debug( char const*, Args... ) {
+inline void debug( ... ) {
     /*empty*/
 }
 #endif // _DEBUG
