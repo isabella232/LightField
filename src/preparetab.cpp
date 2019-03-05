@@ -14,7 +14,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
-    auto font22pt = ModifyFont( origFont, 22.0f );
+    auto font22pt = ModifyFont( origFont, 22.0 );
 
     layerThicknessLabel->setText( "Layer height:" );
 

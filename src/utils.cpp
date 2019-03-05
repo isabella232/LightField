@@ -39,13 +39,13 @@ QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets ) {
     return layout;
 }
 
-QFont ModifyFont( QFont const& font_, float const pointSizeF ) {
+QFont ModifyFont( QFont const& font_, double const pointSizeF ) {
     auto font { font_ };
     font.setPointSizeF( pointSizeF );
     return font;
 }
 
-QFont ModifyFont( QFont const& font_, float const pointSizeF, QFont::Weight const weight ) {
+QFont ModifyFont( QFont const& font_, double const pointSizeF, QFont::Weight const weight ) {
     auto font { font_ };
     font.setPointSizeF( pointSizeF );
     font.setWeight( weight );

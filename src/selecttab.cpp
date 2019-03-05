@@ -71,7 +71,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
 
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
-    _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0f ) );
+    _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0 ) );
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &SelectTab::selectButton_clicked );
 
@@ -473,5 +473,9 @@ void SelectTab::setPrintJob( PrintJob* printJob ) {
 }
 
 void SelectTab::setShepherd( Shepherd* newShepherd ) {
+    if ( _shepherd ) {
+        QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    }
+
     _shepherd = newShepherd;
 }

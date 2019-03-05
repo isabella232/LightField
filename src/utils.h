@@ -6,8 +6,8 @@ QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignmen
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets );
 QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets );
 
-QFont ModifyFont( QFont const& font_, float const pointSizeF );
-QFont ModifyFont( QFont const& font_, float const pointSizeF, QFont::Weight const weight );
+QFont ModifyFont( QFont const& font_, double const pointSizeF );
+QFont ModifyFont( QFont const& font_, double const pointSizeF, QFont::Weight const weight );
 
 QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color );
 QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorRole const role, QColor const& color );

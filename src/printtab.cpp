@@ -117,7 +117,7 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
 
     printButton->setEnabled( false );
     printButton->setFixedSize( MainButtonSize );
-    printButton->setFont( ModifyFont( printButton->font( ), 22.0f ) );
+    printButton->setFont( ModifyFont( printButton->font( ), 22.0 ) );
     printButton->setText( "Print" );
     QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
@@ -275,5 +275,9 @@ void PrintTab::setPrintJob( PrintJob* printJob ) {
 }
 
 void PrintTab::setShepherd( Shepherd* newShepherd ) {
+    if ( _shepherd ) {
+        QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    }
+
     _shepherd = newShepherd;
 }

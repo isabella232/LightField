@@ -128,9 +128,10 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     QObject::connect( tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
-    tabs->setFont( ModifyFont( tabs->font( ), 22.0f/*13.5f*/ ) );
+    double pointSize = tabs->font( ).pointSizeF( );
+    tabs->setFont( ModifyFont( tabs->font( ), 22.0 ) );
     tabs->setContentsMargins( { } );
-    auto font9pt = ModifyFont( selectTab->font( ), 9.0f );
+    auto font9pt = ModifyFont( selectTab->font( ), pointSize );
     //tabs->addTab( welcomeTab, "Welcome" ); welcomeTab->setFont( font9pt );
     tabs->addTab( selectTab,  "Select"  ); selectTab ->setFont( font9pt );
     tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
