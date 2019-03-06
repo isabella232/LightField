@@ -7,7 +7,9 @@
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     debug( "+ construct PngDisplayer at %p\n", this );
-    _label = new QLabel( );
+
+    setStyleSheet( QString( "QWidget { background: black }" ) );
+
     _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );
 
@@ -21,11 +23,14 @@ PngDisplayer::~PngDisplayer( ) {
 }
 
 bool PngDisplayer::load( QString const& fileName ) {
-    QPixmap pixmap;
-    if ( !pixmap.load( fileName ) ) {
+    if ( !_png.load( fileName ) ) {
         return false;
     }
 
-    _label->setPixmap( pixmap );
+    _label->setPixmap( _png );
     return true;
+}
+
+void PngDisplayer::clear( ) {
+    _label->clear( );
 }

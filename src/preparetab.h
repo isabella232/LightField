@@ -53,7 +53,6 @@ private:
     QPushButton*           sliceButton                 { new QPushButton  };
 
     QGroupBox*             currentSliceGroup           { new QGroupBox    };
-    QLabel*                currentSliceLabel           { new QLabel       };
     QLabel*                currentSliceImage           { new QLabel       };
     QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
 
@@ -79,6 +78,8 @@ public slots:
     void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
     void setSliceButtonEnabled( bool const value );
+
+    void resetState( );
 
 protected slots:
 

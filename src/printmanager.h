@@ -8,6 +8,8 @@ class Shepherd;
 
 class PrintManager: public QObject {
 
+    using TimerExpiryFunc = void ( PrintManager::* )( );
+
     Q_OBJECT
 
 public:
@@ -26,6 +28,8 @@ protected:
 private:
 
     bool           _lampOn               { };
+    bool           _aborting             { };
+    bool           _success              { };
     Shepherd*      _shepherd             { };
     PrintJob*      _printJob             { };
     PngDisplayer*  _pngDisplayer         { };
@@ -37,12 +41,13 @@ private:
     QTimer*        _layerProjectionTimer { };
     QTimer*        _preLiftTimer         { };
 
-    void _cleanUp( );
-
-    void _startNextLayer( );
+    QTimer* _makeAndStartTimer( int const duration, TimerExpiryFunc func );
+    void    _stopAndCleanUpTimer( QTimer*& timer );
+    void    _cleanUp( );
 
 signals:
 
+    void requestLoadPrintSolution( );
     void printStarting( );
     void printComplete( bool const success );
     void printAborted( );
@@ -51,6 +56,8 @@ signals:
 
 public slots:
 
+    void printSolutionLoaded( );
+
     void terminate( );
     void abort( );
 
@@ -58,25 +65,45 @@ protected slots:
 
 private slots:
 
-    void step1_liftUpComplete( bool const success );
+    void stepA1_start( );
+    void stepA1_completed( bool const success );
 
-    void step2_liftDownComplete( bool const success );
+    void stepA2_start( );
+    void stepA2_completed( );
 
-    void step3_preProjectionTimerExpired( );
+    void stepA3_start( );
+    void stepA3_completed( bool const success );
 
-    void step4_setPowerCompleted( );
-    void step4_setPowerFailed( QProcess::ProcessError const error );
+    void stepA4_start( );
+    void stepA4_completed( );
 
-    void step5_layerProjectionTimerExpired( );
 
-    void step6_setPowerCompleted( );
-    void step6_setPowerFailed( QProcess::ProcessError const error );
+    void stepB1_start( );
+    void stepB1_completed( );
+    void stepB1_failed( QProcess::ProcessError const error );
 
-    void step7_preLiftTimerExpired( );
+    void stepB2_start( );
+    void stepB2_completed( );
 
-    void step8_liftUpComplete( bool const success );
+    void stepB3_start( );
+    void stepB3_completed( );
+    void stepB3_failed( QProcess::ProcessError const error );
 
-    void abort_liftUpComplete( bool const success );
+    void stepB4_start( );
+    void stepB4_completed( );
+
+    void stepB5_start( );
+    void stepB5_completed( bool const success );
+
+    void stepB6_start( );
+    void stepB6_completed( bool const success );
+
+    void stepB7_start( );
+    void stepB7_completed( );
+
+
+    void stepC1_start( );
+    void stepC1_completed( bool const success );
 
 };
 

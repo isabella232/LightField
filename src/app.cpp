@@ -91,8 +91,10 @@ App::App( int& argc, char *argv[] ):
 
     if ( 0 != ::mkdir( JobWorkingDirectoryPath.toUtf8( ).data( ), 0700 ) ) {
         error_t err = errno;
-        debug( "App::`ctor: unable to create job working directory root: %s [%d]\n", strerror( err ), err );
-        // TODO now what?
+        if ( EEXIST != err ) {
+            debug( "App::`ctor: unable to create job working directory root: %s [%d]\n", strerror( err ), err );
+            // TODO now what?
+        }
     }
 
     window = new Window( );

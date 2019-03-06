@@ -80,9 +80,6 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     sliceButton->setText( "Slice" );
     QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    currentSliceLabel->setText( "Current layer:" );
-    currentSliceLabel->setBuddy( currentSliceImage );
-
     currentSliceImage->setAlignment( Qt::AlignCenter );
     currentSliceImage->setContentsMargins( { } );
     currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -157,14 +154,12 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
     for ( auto entry : jobDir.entryInfoList( ) ) {
-        debug( "+ PrepareTab::_checkPreSlicedFiles: layer SVG file name: %s\n", entry.filePath( ).toUtf8( ).data( ) );
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
             debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
         }
 
         auto layerPngFile = QFileInfo { entry.path( ) + Slash + entry.completeBaseName( ) + QString( ".png" ) };
-        debug( "+ PrepareTab::_checkPreSlicedFiles: layer PNG file name: %s\n", layerPngFile.filePath( ).toUtf8( ).data( ) );
         if ( !layerPngFile.exists( ) ) {
             debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: layer PNG file %s does not exist\n", layerPngFile.fileName( ).toUtf8( ).data( ) );
             return false;
@@ -446,4 +441,10 @@ void PrepareTab::setShepherd( Shepherd* newShepherd ) {
 
 void PrepareTab::setSliceButtonEnabled( bool const value ) {
     sliceButton->setEnabled( value );
+}
+
+void PrepareTab::resetState( ) {
+    sliceStatus->setText( "idle" );
+    imageGeneratorStatus->setText( "idle" );
+    currentSliceImage->clear( );
 }

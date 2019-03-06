@@ -34,11 +34,12 @@
 
 namespace {
 
-    auto const PauseBeforeProject = 1000; // ms
-    auto const PauseBeforeLift    = 1000; // ms
-    auto const LiftDistance       = 2.00; // mm
+    auto const PauseAfterPrintSolutionLoad = 4000; // ms
+    auto const PauseBeforeProject          = 1000; // ms
+    auto const PauseBeforeLift             = 1000; // ms
+    auto const LiftDistance                = 2.00; // mm
 
-    auto const SetpowerCommand    = QString { "setpower" };
+    auto const SetpowerCommand             = QString { "setpower" };
 
 }
 
@@ -55,8 +56,33 @@ PrintManager::~PrintManager( ) {
     debug( "+ destruct PrintManager at %p\n", this );
 }
 
+QTimer* PrintManager::_makeAndStartTimer( int const interval, TimerExpiryFunc func ) {
+    auto timer = new QTimer( this );
+    QObject::connect( timer, &QTimer::timeout, this, func );
+    timer->setInterval( interval );
+    timer->setSingleShot( true );
+    timer->setTimerType( Qt::PreciseTimer );
+    timer->start( );
+    return timer;
+}
+
+void PrintManager::_stopAndCleanUpTimer( QTimer*& timer ) {
+    if ( !timer ) {
+        return;
+    }
+
+    QObject::disconnect( timer, nullptr, this, nullptr );
+    timer->stop( );
+    timer->deleteLater( );
+    timer = nullptr;
+}
+
 void PrintManager::_cleanUp( ) {
     QObject::disconnect( this );
+
+    _stopAndCleanUpTimer( _preProjectionTimer   );
+    _stopAndCleanUpTimer( _layerProjectionTimer );
+    _stopAndCleanUpTimer( _preLiftTimer         );
 
     if ( _printJob ) {
         delete _printJob;
@@ -69,12 +95,6 @@ void PrintManager::_cleanUp( ) {
         _pngDisplayer = nullptr;
     }
 
-    if ( _preProjectionTimer ) {
-        _preProjectionTimer->stop( );
-        _preProjectionTimer->deleteLater( );
-        _preProjectionTimer = nullptr;
-    }
-
     if ( _setpowerProcess ) {
         if ( _setpowerProcess->state( ) != QProcess::NotRunning ) {
             _setpowerProcess->kill( );
@@ -82,161 +102,242 @@ void PrintManager::_cleanUp( ) {
         _setpowerProcess->deleteLater( );
         _setpowerProcess = nullptr;
     }
-
-    if ( _preLiftTimer ) {
-        _preLiftTimer->stop( );
-        _preLiftTimer->deleteLater( );
-        _preLiftTimer = nullptr;
-    }
 }
 
-void PrintManager::_startNextLayer( ) {
-    debug( "+ PrintManager::_startNextLayer: moving %f\n", LiftDistance );
-    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_liftUpComplete );
-    _shepherd->doMove( LiftDistance );
+// A1. Raise the build platform to maximum Z.
+void PrintManager::stepA1_start( ) {
+    debug( "+ PrintManager::stepA1_start: raising build platform to %.2f mm\n", PrinterMaximumZ );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA1_completed );
+    _shepherd->doMoveTo( PrinterMaximumZ );
+}
+
+void PrintManager::stepA1_completed( bool const success ) {
+    debug( "+ PrintManager::stepA1_completed: action %s\n", success ? "succeeded" : "failed" );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA1_completed );
+
+    stepA2_start( );
+}
+
+// A2. Prompt user to load recommended volume of print solution.
+void PrintManager::stepA2_start( ) {
+    debug( "+ PrintManager::stepA2_start: waiting for user to load print solution\n" );
+
+    emit requestLoadPrintSolution( );
+}
+
+void PrintManager::stepA2_completed( ) {
+    debug( "+ PrintManager::stepA2_completed\n" );
+
+    stepA3_start( );
+}
+
+// A3. Lower to first layer height.
+void PrintManager::stepA3_start( ) {
+    auto firstLayerHeight = std::max( 100, _printJob->layerThickness ) / 1000.0;
+
+    debug( "+ PrintManager::stepA3_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA3_completed );
+    _shepherd->doMoveTo( firstLayerHeight );
+}
+
+void PrintManager::stepA3_completed( bool const success ) {
+    debug( "+ PrintManager::stepA3_completed: action %s\n", success ? "succeeded" : "failed" );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA3_completed );
+
+    stepA4_start( );
+}
+
+// A4. Wait for four seconds.
+void PrintManager::stepA4_start( ) {
+    debug( "+ PrintManager::stepA4_start: pausing for %d ms\n", PauseAfterPrintSolutionLoad );
+
+    _preProjectionTimer = _makeAndStartTimer( PauseAfterPrintSolutionLoad, &PrintManager::stepA4_completed );
+}
+
+void PrintManager::stepA4_completed( ) {
+    debug( "+ PrintManager::stepA4_completed\n" );
+
+    _stopAndCleanUpTimer( _preProjectionTimer );
+
     emit startingLayer( _currentLayer );
+
+    stepB1_start( );
 }
 
-void PrintManager::step1_liftUpComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step1_liftUpComplete );
-
-    if ( !success ) {
-        debug( "+ PrintManager::step1_liftUpComplete: action failed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
-    }
-    
-    auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
-    debug( "+ PrintManager::step1_liftUpComplete: action succeeded, moving %f\n", moveDistance );
-    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_liftDownComplete );
-    _shepherd->doMove( moveDistance );
-}
-
-void PrintManager::step2_liftDownComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::step2_liftDownComplete );
-
-    if ( !success ) {
-        debug( "+ PrintManager::step2_liftDownComplete: action failed\n" );
-        _cleanUp( );
-        emit printComplete( false );
-        return;
-    }
-    debug( "+ PrintManager::step2_liftDownComplete: action succeeded\n" );
+// B1. Start projection: "setpower ${_printJob->powerLevel}".
+void PrintManager::stepB1_start( ) {
+    debug( "+ PrintManager::stepB1_start: running 'setpower %d'\n", _printJob->powerLevel );
 
     QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
     if ( !_pngDisplayer->load( pngFileName ) ) {
-        debug( "+ PrintManager::step2_liftDownComplete: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+        debug( "+ PrintManager::stepB1_start: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+        this->abort( );
+        return;
     }
 
-    _preProjectionTimer = new QTimer( this );
-    _preProjectionTimer->setInterval( PauseBeforeProject );
-    _preProjectionTimer->setSingleShot( true );
-    _preProjectionTimer->setTimerType( Qt::PreciseTimer );
-    QObject::connect( _preProjectionTimer, &QTimer::timeout, this, &PrintManager::step3_preProjectionTimerExpired );
-    _preProjectionTimer->start( );
-}
-
-void PrintManager::step3_preProjectionTimerExpired( ) {
-    QObject::disconnect( _preProjectionTimer, &QTimer::timeout, this, &PrintManager::step3_preProjectionTimerExpired );
-
-    debug( "+ PrintManager::step3_preProjectionTimerExpired\n" );
-
-    _preProjectionTimer->deleteLater( );
-    _preProjectionTimer = nullptr;
-
-    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::step4_setPowerCompleted );
-    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::step4_setPowerFailed    );
+    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
+    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
     _setpowerProcess->start( SetpowerCommand, { QString( "%1" ).arg( _printJob->powerLevel ) } );
 }
 
-void PrintManager::step4_setPowerCompleted( ) {
-    debug( "+ PrintManager::step4_setPowerCompleted\n" );
+void PrintManager::stepB1_completed( ) {
+    debug( "+ PrintManager::stepB1_completed\n" );
 
     QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
 
     _lampOn = true;
     emit lampStatusChange( true );
 
-    _layerProjectionTimer = new QTimer( this );
-    _layerProjectionTimer->setInterval( 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 ) );
-    _layerProjectionTimer->setSingleShot( true );
-    _layerProjectionTimer->setTimerType( Qt::PreciseTimer );
-    QObject::connect( _layerProjectionTimer, &QTimer::timeout, this, &PrintManager::step5_layerProjectionTimerExpired );
-    _layerProjectionTimer->start( );
+    stepB2_start( );
 }
 
-void PrintManager::step4_setPowerFailed( QProcess::ProcessError const error ) {
-    debug( "+ PrintManager::step4_setPowerFailed: but that's okay, carrying on\n" );
+void PrintManager::stepB1_failed( QProcess::ProcessError const ) {
+    debug( "+ PrintManager::stepB1_failed: but that's okay, carrying on\n" );
 
-    step4_setPowerCompleted( );
+    stepB1_completed( );
 }
 
-void PrintManager::step5_layerProjectionTimerExpired( ) {
-    QObject::disconnect( _layerProjectionTimer, &QTimer::timeout, this, &PrintManager::step5_layerProjectionTimerExpired );
+// B2. Pause for layer projection time (first two layers: scaled by scale factor)
+void PrintManager::stepB2_start( ) {
+    int layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+    debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
 
-    debug( "+ PrintManager::step5_layerProjectionTimerExpired\n" );
+    _layerProjectionTimer = _makeAndStartTimer( layerProjectionTime, &PrintManager::stepB2_completed );
+}
 
-    _layerProjectionTimer->deleteLater( );
-    _layerProjectionTimer = nullptr;
+void PrintManager::stepB2_completed( ) {
+    debug( "+ PrintManager::stepB2_completed\n" );
 
-    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::step6_setPowerCompleted );
-    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::step6_setPowerFailed    );
+    _stopAndCleanUpTimer( _layerProjectionTimer );
+
+    stepB3_start( );
+}
+
+// B3. Stop projection: "setpower 0".
+void PrintManager::stepB3_start( ) {
+    debug( "+ PrintManager::stepB3_start: running 'setpower 0'\n" );
+
+    _pngDisplayer->clear( );
+
+    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB3_completed );
+    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB3_failed    );
     _setpowerProcess->start( SetpowerCommand, { "0" } );
 }
 
-void PrintManager::step6_setPowerCompleted( ) {
-    debug( "+ PrintManager::step6_setPowerCompleted\n" );
+void PrintManager::stepB3_completed( ) {
+    debug( "+ PrintManager::stepB3_completed\n" );
 
     QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
 
     _lampOn = false;
     emit lampStatusChange( false );
 
-    _preLiftTimer = new QTimer( this );
-    _preLiftTimer->setInterval( PauseBeforeLift );
-    _preLiftTimer->setSingleShot( true );
-    _preLiftTimer->setTimerType( Qt::PreciseTimer );
-    QObject::connect( _preLiftTimer, &QTimer::timeout, this, &PrintManager::step7_preLiftTimerExpired );
-    _preLiftTimer->start( );
+    stepB4_start( );
 }
 
-void PrintManager::step6_setPowerFailed( QProcess::ProcessError const error ) {
-    debug( "+ PrintManager::step6_setPowerFailed: %s [%d], but that's okay, carrying on\n", ToString( error ), error );
+void PrintManager::stepB3_failed( QProcess::ProcessError const error ) {
+    debug( "+ PrintManager::stepB3_failed: but that's okay, carrying on\n" );
 
-    step6_setPowerCompleted( );
+    stepB3_completed( );
 }
 
-void PrintManager::step7_preLiftTimerExpired( ) {
-    QObject::disconnect( _preLiftTimer, &QTimer::timeout, this, &PrintManager::step7_preLiftTimerExpired );
+// B4. Pause before raise.
+void PrintManager::stepB4_start( ) {
+    debug( "+ PrintManager::stepB4_start: pausing for %d ms before raising build platform\n", PauseBeforeLift );
 
-    _preLiftTimer->deleteLater( );
-    _preLiftTimer = nullptr;
+    _preLiftTimer = _makeAndStartTimer( PauseBeforeLift, &PrintManager::stepB4_completed );
+}
 
-    ++_currentLayer;
-    if ( _currentLayer == _printJob->layerCount ) {
-        QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::step8_liftUpComplete );
-        debug( "+ PrintManager::step7_preLiftTimerExpired: raising build platform\n" );
-        _shepherd->doMoveTo( PrinterMaximumZ );
+void PrintManager::stepB4_completed( ) {
+    debug( "+ PrintManager::stepB4_completed\n" );
+
+    _stopAndCleanUpTimer( _preLiftTimer );
+
+    stepB5_start( );
+}
+
+// B5. Raise the build platform by LiftDistance.
+void PrintManager::stepB5_start( ) {
+    if ( ++_currentLayer == _printJob->layerCount ) {
+        debug( "+ PrintManager::stepB5_start: print complete\n" );
+
+        _aborting = false;
+        _success  = true;
+
+        stepC1_start( );
     } else {
-        _startNextLayer( );
+        debug( "+ PrintManager::stepB5_start: raising build platform by %.2f mm\n", LiftDistance );
+
+        QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB5_completed );
+        _shepherd->doMove( LiftDistance );
+
+        emit startingLayer( _currentLayer );
     }
 }
 
-void PrintManager::step8_liftUpComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::step8_liftUpComplete );
+void PrintManager::stepB5_completed( bool const success ) {
+    debug( "+ PrintManager::stepB5_completed\n" );
 
-    debug( "+ PrintManager::step8_liftUpComplete: action %s\n", success ? "succeeded" : "failed" );
-    _cleanUp( );
-    emit printComplete( success );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB5_completed );
+
+    stepB6_start( );
 }
 
-void PrintManager::abort_liftUpComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_liftUpComplete );
+// B6. Lower the build platform by LiftDistance - LayerHeight.
+void PrintManager::stepB6_start( ) {
+    auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
+    debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", moveDistance );
 
-    debug( "+ PrintManager::abort_liftUpComplete: action %s\n", success ? "succeeded" : "failed" );
+    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
+    _shepherd->doMove( moveDistance );
+}
+
+void PrintManager::stepB6_completed( bool const success ) {
+    debug( "+ PrintManager::stepB6_completed\n" );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
+
+    stepB7_start( );
+}
+
+// B7. Pause before projection.
+void PrintManager::stepB7_start( ) {
+    debug( "+ PrintManager::stepB7_start: pausing for %d ms before projecting layer\n", PauseBeforeProject );
+
+    _preProjectionTimer = _makeAndStartTimer( PauseBeforeProject, &PrintManager::stepB7_completed );
+}
+
+void PrintManager::stepB7_completed( ) {
+    debug( "+ PrintManager::stepB7_completed\n" );
+
+    _stopAndCleanUpTimer( _preProjectionTimer );
+
+    stepB1_start( );
+}
+
+// C1. Raise the build platform to maximum Z.
+void PrintManager::stepC1_start( ) {
+    debug( "+ PrintManager::stepC1_start: raising build platform to maximum Z\n" );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
+    _shepherd->doMoveTo( PrinterMaximumZ );
+}
+
+void PrintManager::stepC1_completed( bool const success ) {
+    debug( "+ PrintManager::stepC1_completed: %s. aborting? %s success? %s\n", success ? "success" : "failure", _aborting ? "yes" : "no", _success ? "yes" : "no" );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
+
+    if ( _aborting ) {
+        emit printAborted( );
+    } else {
+        emit printComplete( _success );
+    }
     _cleanUp( );
-    emit printAborted( );
 }
 
 void PrintManager::print( PrintJob* printJob ) {
@@ -252,24 +353,30 @@ void PrintManager::print( PrintJob* printJob ) {
     _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
     _pngDisplayer->show( );
 
+    debug( "+ PrintManager::print: emitting printStarting()\n" );
     emit printStarting( );
-    _startNextLayer( );
+    stepA1_start( );
 }
 
 void PrintManager::terminate( ) {
     debug( "+ PrintManager::terminate\n" );
+    _aborting = false;
     _cleanUp( );
 }
 
 void PrintManager::abort( ) {
     debug( "+ PrintManager::abort\n" );
 
+    _aborting = true;
+
     if ( _lampOn ) {
         QProcess::startDetached( SetpowerCommand, { "0" } );
         _lampOn = false;
     }
 
-    debug( "+ PrintManager::abort: raising build platform\n" );
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::abort_liftUpComplete );
-    _shepherd->doMoveTo( PrinterMaximumZ );
+    stepC1_start( );
+}
+
+void PrintManager::printSolutionLoaded( ) {
+    stepA2_completed( );
 }

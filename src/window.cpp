@@ -202,6 +202,7 @@ void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     _isModelRendered = false;
     debug( "  + isModelRendered set to false.\n" );
 
+    prepareTab->resetState( );
     prepareTab->setSliceButtonEnabled( true );
     printJob->vertexCount     = modelSelection->vertexCount;
     printJob->x               = modelSelection->x;
@@ -216,6 +217,7 @@ void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
 
 void Window::selectTab_modelSelectionFailed( ) {
     debug( "+ Window::selectTab_modelSelectionFailed\n" );
+    prepareTab->resetState( );
     prepareTab->setSliceButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
 }
@@ -292,8 +294,9 @@ void Window::printTab_printButtonClicked( ) {
 
     PrintJob* newJob = new PrintJob( *printJob );
     printManager = new PrintManager( shepherd, this );
-    printManager->print( printJob );
+
     statusTab->setPrintManager( printManager );
+    printManager->print( printJob );
 
     printJob = newJob;
     emit printJobChanged( printJob );

@@ -11,13 +11,14 @@ public:
     virtual ~PngDisplayer( ) override;
 
     bool load( QString const& fileName );
+    void clear( );
 
 protected:
 
 private:
 
-    QLabel* _label;
-    QPixmap* _png { new QPixmap };
+    QLabel* _label { new QLabel  };
+    QPixmap _png;
 
 signals:
 

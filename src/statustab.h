@@ -42,12 +42,20 @@ private:
     QLabel*       percentageCompleteDisplay  { new QLabel      };
     QWidget*      progressControlsContainer  { new QWidget     };
     QVBoxLayout*  progressControlsLayout     { new QVBoxLayout };
+
     QLabel*       currentLayerImage          { new QLabel      };
-    QVBoxLayout*  currentLayerLayout         { new QVBoxLayout };
-    QGroupBox*    currentLayerImageGroup     { new QGroupBox   };
+    QVBoxLayout*  currentLayerLayout         {                 };
+    QGroupBox*    currentLayerGroup          { new QGroupBox   };
+
+    QLabel*       loadPrintSolutionLabel     { new QLabel      };
+    QPushButton*  printSolutionLoadedButton  { new QPushButton };
+    QGroupBox*    loadPrintSolutionGroup     { new QGroupBox   };
+
     QPushButton*  stopButton                 { new QPushButton };
+
     QGridLayout*  _layout                    { new QGridLayout };
     QTimer*       _updatePrintTimeInfo       { };
+
     PrintJob*     _printJob                  { };
     PrintManager* _printManager              { };
     Shepherd*     _shepherd                  { };
@@ -92,6 +100,8 @@ protected slots:
 private slots:
 
     void stopButton_clicked( bool );
+    void printManager_requestLoadPrintSolution( );
+    void printSolutionLoadedButton_clicked( bool );
 
 };
 
