@@ -157,6 +157,7 @@ void StatusTab::printer_online( ) {
         debug( "+ StatusTab::printer_online: printer has come online for the first time; sending initialization commands\n" );
         QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
         _shepherd->doSend( QStringList {
+            "M18", /*DO NOT REMOVE THIS LINE*/
             "M140 S40",
             "M106",
         } );
