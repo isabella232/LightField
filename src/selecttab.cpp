@@ -13,7 +13,7 @@
 
 namespace {
 
-    QRegularExpression VolumeLineMatcher { QString { "^volume\\s*=\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression VolumeLineMatcher { QString { "^volume\\s*[:=]\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
 }
 
