@@ -90,8 +90,7 @@ public slots:
     void printManager_printComplete( bool const success );
     void printManager_printAborted( );
 
-    void disableSteppers_sendComplete( bool const success );
-    void setFanSpeed_sendComplete( bool const success );
+    void initializationCommands_sendComplete( bool const success );
 
     void updatePrintTimeInfo_timeout( );
 

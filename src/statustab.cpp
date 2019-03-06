@@ -154,8 +154,8 @@ void StatusTab::printer_online( ) {
     printerStateDisplay->setText( "online" );
 
     if ( !_isFirstOnlineTaskDone ) {
-        debug( "+ StatusTab::printer_online: printer has come online for the first time; sending 'disable steppers' command\n" );
-        QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::disableSteppers_sendComplete );
+        debug( "+ StatusTab::printer_online: printer has come online for the first time; sending initialization commands\n" );
+        QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
         _shepherd->doSend( QStringList {
             "M18",
             "M106 S220",
@@ -232,20 +232,9 @@ void StatusTab::printManager_printAborted( ) {
     emit printComplete( );
 }
 
-void StatusTab::disableSteppers_sendComplete( bool const success ) {
-    debug( "+ StatusTab::disableSteppers_sendComplete: success %s\n", ToString( success ) );
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::disableSteppers_sendComplete );
-
-    if ( success ) {
-        debug( "+ StatusTab::disableSteppers_sendComplete: sending 'set fan speed' command\n" );
-        QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::setFanSpeed_sendComplete );
-        _shepherd->doSend( QString( "M106 S220" ) );
-    }
-}
-
-void StatusTab::setFanSpeed_sendComplete( bool const success ) {
-    debug( "+ StatusTab::setFanSpeed_sendComplete: success %s\n", ToString( success ) );
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::setFanSpeed_sendComplete );
+void StatusTab::initializationCommands_sendComplete( bool const success ) {
+    debug( "+ StatusTab::initializationCommands_sendComplete: success %s\n", ToString( success ) );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
 
     if ( success ) {
         debug( "+ StatusTab::setFanSpeed_sendComplete: first-online tasks completed\n" );
