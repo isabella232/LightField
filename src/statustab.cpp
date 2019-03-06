@@ -158,7 +158,7 @@ void StatusTab::printer_online( ) {
         QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
         _shepherd->doSend( QStringList {
             "M18", /*DO NOT REMOVE THIS LINE, string list requires at least one argument*/
-            "M140 S40",
+            /*"M140 S40",*/
             "M106",
         } );
     }
