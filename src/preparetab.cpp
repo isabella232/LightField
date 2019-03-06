@@ -209,7 +209,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 void PrepareTab::hasher_resultReady( QString const hash ) {
     debug( "+ PrepareTab::hasher_resultReady:\n  + result hash:           '%s'\n", hash.toUtf8( ).data( ) );
 
-    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash );
+    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash ) + QString( "-%1" ).arg( _printJob->layerThickness );
     _hasher->deleteLater( );
     _hasher = nullptr;
 
@@ -228,7 +228,6 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     if ( 0 != ::mkdir( _printJob->jobWorkingDirectory.toUtf8( ).data( ), 0700 ) ) {
         error_t err = errno;
-        // if err is EEXIST [17] then it may already be sliced and ready for us, but for now, just ignore that
         if ( EEXIST != err ) {
             debug( "  + unable to create job working directory: %s [%d]\n", strerror( err ), err );
             emit sliceComplete( false );
