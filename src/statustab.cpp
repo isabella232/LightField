@@ -13,9 +13,9 @@ namespace {
     double const PrintSolutionRecommendedScaleFactor = 2.0;
 
     QStringList const PrinterInitializationCommands {
-        //"M18",
+        "M18",
         //"M140 S40",
-        //"M106",
+        "M106",
     };
 
 }
