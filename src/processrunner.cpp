@@ -34,7 +34,7 @@ When a process exits abnormally
 
 namespace {
 
-    std::atomic_int InstanceId = 0;
+    std::atomic_int InstanceId { 0 };
 
 }
 
