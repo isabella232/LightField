@@ -42,6 +42,9 @@ private:
     QStringList    splitLine( QString const& line );
     void           handleFromPrinter( QString const& input );
     void           handleCommandFail( QStringList const& input );
+#if defined _DEBUG
+    void           handleCommandFailAlternate( QStringList const& input );
+#endif // defined _DEBUG
     void           handleInput( QString const& input );
 
     void           doSendOne( QString& cmd );

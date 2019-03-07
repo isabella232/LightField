@@ -19,6 +19,7 @@ public:
     Theme  theme                    { Theme::Dark };
     bool   frameless                { false       };
     bool   pretendPrinterIsPrepared { false       };
+    bool   ignoreShepherdFailures   { false       };
 
 };
 

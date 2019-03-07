@@ -16,27 +16,31 @@ namespace {
         QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                        },
         QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows." },
         QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                },
+        QCommandLineOption {               "k",            "Ignore stdio-shepherd failures."                                         },
         QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
     };
 
     QList<std::function<void( )>> commandLineActions {
-        [] ( ) {
-            /*empty*/
+        [] ( ) { // -? or --help
+            /* empty - handled elsewhere */
         },
-        [] ( ) {
+        [] ( ) { // -g
             g_settings.mainWindowPosition.setY( 560 );
         },
-        [] ( ) {
+        [] ( ) { // -h
             g_settings.mainWindowPosition.setY( 0 );
             g_settings.pngDisplayWindowPosition.setY( 480 );
         },
-        [] ( ) {
+        [] ( ) { // -i
             g_settings.frameless = true;
         },
-        [] ( ) {
+        [] ( ) { // -j
             g_settings.pretendPrinterIsPrepared = true;
         },
-        [] ( ) {
+        [] ( ) { // -k
+            g_settings.ignoreShepherdFailures = true;
+        },
+        [] ( ) { // -l or --light
             g_settings.theme = Theme::Light;
         },
     };

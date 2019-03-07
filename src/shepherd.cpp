@@ -1,9 +1,10 @@
 #include "pch.h"
 
 #include "shepherd.h"
-#include "window.h"
 
+#include "app.h"
 #include "strings.h"
+#include "window.h"
 
 namespace {
 
@@ -17,13 +18,6 @@ Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
 
     _process = new QProcess( parent );
-
-    auto env = _process->processEnvironment( );
-    if ( env.isEmpty( ) ) {
-        env = QProcessEnvironment::systemEnvironment( );
-    }
-    env.insert( "PYTHONUNBUFFERED", "x" );
-    _process->setProcessEnvironment( env );
     _process->setWorkingDirectory( ShepherdBaseDirectory );
 
     QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred           );
@@ -223,6 +217,40 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
     }
 }
 
+#if defined _DEBUG
+void Shepherd::handleCommandFailAlternate( QStringList const& input ) {
+    debug( "+ Shepherd::handleCommandFailAlternate: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
+
+    auto pending = _pendingCommand;
+    _pendingCommand = PendingCommand::none;
+    switch ( pending ) {
+        case PendingCommand::move:
+            emit action_moveComplete( true );
+            break;
+
+        case PendingCommand::moveTo:
+            emit action_moveToComplete( true );
+            break;
+
+        case PendingCommand::home:
+            emit action_homeComplete( true );
+            break;
+
+        case PendingCommand::send:
+            emit action_sendComplete( true );
+            break;
+
+        case PendingCommand::none:
+            debug( "+ Shepherd::handleCommandFailAlternate: no pending command\n" );
+            break;
+
+        default:
+            debug( "+ Shepherd::handleCommandFailAlternate: unknown pending command\n" );
+            break;
+    }
+}
+#endif // defined _DEBUG
+
 void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
@@ -251,7 +279,11 @@ void Shepherd::handleInput( QString const& input ) {
             debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "fail" ) {
             debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
-            handleCommandFail( pieces );
+            if ( g_settings.ignoreShepherdFailures ) {
+                handleCommandFailAlternate( pieces );
+            } else {
+                handleCommandFail( pieces );
+            }
         } else if ( pieces[0] == "warning" ) {
             debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "info" ) {
