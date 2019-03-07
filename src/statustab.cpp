@@ -69,7 +69,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     printSolutionLoadedButton->setText( "Continue" );
     QObject::connect( printSolutionLoadedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
 
-    loadPrintSolutionGroup->setTitle( "Load print solution" );
+    loadPrintSolutionGroup->setTitle( "Dispense print solution" );
     loadPrintSolutionGroup->setContentsMargins( { } );
     loadPrintSolutionGroup->setEnabled( false );
     loadPrintSolutionGroup->setFixedWidth( MainButtonSize.width( ) );
@@ -271,7 +271,7 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 }
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
-    loadPrintSolutionLabel->setText( QString( "Load <b>%1 mL</b> of print solution." ).arg( PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume, 0, 'f', 2 ) );
+    loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
     loadPrintSolutionGroup->setEnabled( true );
 }
 

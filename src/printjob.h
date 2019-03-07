@@ -11,7 +11,7 @@ public:
     Coordinate x;
     Coordinate y;
     Coordinate z;
-    double     estimatedVolume;
+    double     estimatedVolume;                 // µL
 
     QString    modelFileName;
     QString    slicedSvgFileName;

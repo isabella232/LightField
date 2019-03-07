@@ -429,7 +429,11 @@ void SelectTab::processRunner_succeeded( ) {
         auto match = VolumeLineMatcher.match( line );
         if ( match.hasMatch( ) ) {
             _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );
-            _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume, 0, 'f', 2 ), ' ' ) ) );
+            if ( _modelSelection.estimatedVolume < 1000.0 ) {
+                _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 µL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume,          0, 'f', 2 ), ' ' ) ) );
+            } else {
+                _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume / 1000.0, 0, 'f', 2 ), ' ' ) ) );
+            }
             gotVolume = true;
             break;
         }
