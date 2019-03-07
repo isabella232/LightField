@@ -53,7 +53,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     elapsedTimeDisplay->setFont( boldFont );
 
-    estimatedTimeLeftLabel->setText( "Estimated time left:" );
+    estimatedTimeLeftLabel->setText( "Time left:" );
     estimatedTimeLeftLabel->setBuddy( elapsedTimeDisplay );
 
     estimatedTimeLeftDisplay->setFont( boldFont );
@@ -64,7 +64,9 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     percentageCompleteDisplay->setFont( boldFont );
 
 
+    loadPrintSolutionLabel->setAlignment( Qt::AlignHCenter );
     loadPrintSolutionLabel->setTextFormat( Qt::RichText );
+    loadPrintSolutionLabel->setWordWrap( true );
 
     printSolutionLoadedButton->setText( "Continue" );
     QObject::connect( printSolutionLoadedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
@@ -271,7 +273,7 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 }
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
-    loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
+    loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
     loadPrintSolutionGroup->setEnabled( true );
 }
 
