@@ -41,6 +41,12 @@ namespace {
 
     auto const SetpowerCommand             = QString { "setpower" };
 
+    char const* PrintResultStrings[] {
+        "Failure",
+        "Success",
+        "Abort",
+    };
+
 }
 
 PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
@@ -113,9 +119,15 @@ void PrintManager::stepA1_start( ) {
 }
 
 void PrintManager::stepA1_completed( bool const success ) {
-    debug( "+ PrintManager::stepA1_completed: action %s\n", success ? "succeeded" : "failed" );
+    debug( "+ PrintManager::stepA1_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA1_completed );
+
+    if ( !success ) {
+        _printResult = PrintResult::Failure;
+        stepC1_start( );
+        return;
+    }
 
     stepA2_start( );
 }
@@ -144,9 +156,15 @@ void PrintManager::stepA3_start( ) {
 }
 
 void PrintManager::stepA3_completed( bool const success ) {
-    debug( "+ PrintManager::stepA3_completed: action %s\n", success ? "succeeded" : "failed" );
+    debug( "+ PrintManager::stepA3_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA3_completed );
+
+    if ( !success ) {
+        _printResult = PrintResult::Failure;
+        stepC1_start( );
+        return;
+    }
 
     stepA4_start( );
 }
@@ -196,8 +214,6 @@ void PrintManager::stepB1_completed( ) {
 }
 
 void PrintManager::stepB1_failed( QProcess::ProcessError const ) {
-    debug( "+ PrintManager::stepB1_failed: but that's okay, carrying on\n" );
-
     stepB1_completed( );
 }
 
@@ -240,8 +256,6 @@ void PrintManager::stepB3_completed( ) {
 }
 
 void PrintManager::stepB3_failed( QProcess::ProcessError const error ) {
-    debug( "+ PrintManager::stepB3_failed: but that's okay, carrying on\n" );
-
     stepB3_completed( );
 }
 
@@ -265,8 +279,7 @@ void PrintManager::stepB5_start( ) {
     if ( ++_currentLayer == _printJob->layerCount ) {
         debug( "+ PrintManager::stepB5_start: print complete\n" );
 
-        _aborting = false;
-        _success  = true;
+        _printResult = PrintResult::Success;
 
         stepC1_start( );
     } else {
@@ -280,9 +293,15 @@ void PrintManager::stepB5_start( ) {
 }
 
 void PrintManager::stepB5_completed( bool const success ) {
-    debug( "+ PrintManager::stepB5_completed\n" );
+    debug( "+ PrintManager::stepB5_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB5_completed );
+
+    if ( !success ) {
+        _printResult = PrintResult::Failure;
+        stepC1_start( );
+        return;
+    }
 
     stepB6_start( );
 }
@@ -297,9 +316,15 @@ void PrintManager::stepB6_start( ) {
 }
 
 void PrintManager::stepB6_completed( bool const success ) {
-    debug( "+ PrintManager::stepB6_completed\n" );
+    debug( "+ PrintManager::stepB6_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
+
+    if ( !success ) {
+        _printResult = PrintResult::Failure;
+        stepC1_start( );
+        return;
+    }
 
     stepB7_start( );
 }
@@ -328,14 +353,14 @@ void PrintManager::stepC1_start( ) {
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
-    debug( "+ PrintManager::stepC1_completed: %s. aborting? %s success? %s\n", success ? "success" : "failure", _aborting ? "yes" : "no", _success ? "yes" : "no" );
+    debug( "+ PrintManager::stepC1_completed: action %s. print result %s\n", SucceededString( success ), PrintResultStrings[+_printResult] );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
 
-    if ( _aborting ) {
+    if ( PrintResult::Abort == _printResult ) {
         emit printAborted( );
     } else {
-        emit printComplete( _success );
+        emit printComplete( _printResult == PrintResult::Success );
     }
     _cleanUp( );
 }
@@ -360,14 +385,13 @@ void PrintManager::print( PrintJob* printJob ) {
 
 void PrintManager::terminate( ) {
     debug( "+ PrintManager::terminate\n" );
-    _aborting = false;
     _cleanUp( );
 }
 
 void PrintManager::abort( ) {
     debug( "+ PrintManager::abort\n" );
 
-    _aborting = true;
+    _printResult = PrintResult::Abort;
 
     if ( _lampOn ) {
         QProcess::startDetached( SetpowerCommand, { "0" } );

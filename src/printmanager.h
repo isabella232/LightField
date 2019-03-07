@@ -6,6 +6,10 @@ class PrintJob;
 class ProcessRunner;
 class Shepherd;
 
+enum class PrintResult { Failure, Success, Abort, };
+
+inline int operator+( PrintResult value ) { return static_cast<int>( value ); }
+
 class PrintManager: public QObject {
 
     using TimerExpiryFunc = void ( PrintManager::* )( );
@@ -19,17 +23,14 @@ public:
 
     void print( PrintJob* printJob );
 
-    int currentLayer( ) const {
-        return _currentLayer;
-    }
+    int currentLayer( ) const { return _currentLayer; }
 
 protected:
 
 private:
 
     bool           _lampOn               { };
-    bool           _aborting             { };
-    bool           _success              { };
+    PrintResult    _printResult          { };
     Shepherd*      _shepherd             { };
     PrintJob*      _printJob             { };
     PngDisplayer*  _pngDisplayer         { };
