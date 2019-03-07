@@ -45,7 +45,7 @@
 
 #   if defined WIN32
 
-#include <io.h>
+#       include <io.h>
 
 using error_t = int;
 
@@ -54,8 +54,17 @@ int const W_OK = 2;
 int const X_OK = 1;
 int const F_OK = 0;
 
+int const CLOCK_BOOTTIME = 7;
+
+struct passwd {
+    char* pw_name;
+};
+
 extern int access( char const* pathName, int mode );
+extern int clock_gettime( int clk_id, struct timespec* tp );
 extern int getpid( );
+extern int getpwuid_r( int uid, struct passwd* pwd, char* buf, size_t buflen, struct passwd** result );
+extern int getuid( );
 extern int mkdir( char const* pathName, int mode );
 extern char* strsignal( int sig );
 
