@@ -5,7 +5,9 @@
 // Functions for converting various types to constant strings.
 //
 
-char const* ToString( bool                          const value );
+inline char const*        ToString( bool const value ) { return value ? "true"      : "false";  }
+inline char const*     YesNoString( bool const value ) { return value ? "yes"       : "no";     }
+inline char const* SucceededString( bool const value ) { return value ? "succeeded" : "failed"; }
 
 char const* ToString( QDialog::DialogCode           const value );
 

@@ -40,11 +40,6 @@ namespace {
         "send",
     };
 
-    char const* boolStrings[] {
-        "false",
-        "true",
-    };
-
     char const* TabIndexStrings[] {
         //"Welcome",
         "Select",
@@ -117,10 +112,6 @@ char const* ToString( QDialog::DialogCode const value ) {
         return nullptr;
     }
 #endif
-}
-
-char const* ToString( bool const value ) {
-    return boolStrings[!!value];
 }
 
 QString ToString( QPoint const value ) {

@@ -65,31 +65,27 @@ QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorRole const role
 }
 
 QString GetUserName( ) {
-    struct passwd pwd;
     char* buf = new char[16384];
+    struct passwd pwd;
     struct passwd* result;
+    QString userName;
 
-    if ( 0 != ::getpwuid_r( ::getuid( ), &pwd, buf, 16384, &result ) ) {
-        debug( "@@@ + SelectTab::_lookForUsbStick: getpwuid_r failed?!\n" );
-        delete[] buf;
-        return QString( );
+    if ( 0 == ::getpwuid_r( ::getuid( ), &pwd, buf, 16384, &result ) ) {
+        userName = pwd.pw_name;
+    } else {
+        debug( "+ GetUserName: getpwuid_r failed?!\n" );
     }
 
-    QString userName { pwd.pw_name };
     delete[] buf;
     return userName;
 }
 
 QString GetFirstDirectoryIn( QString const& directory ) {
     auto dir = new QDir( directory );
-    dir->setFilter( QDir::Dirs );
+    dir->setFilter( QDir::Dirs | QDir::NoDotAndDotDot );
 
     QString dirname;
     for ( auto name : dir->entryList( ) ) {
-        if ( ( name == "." ) || ( name == ".." ) ) {
-            continue;
-        }
-
         dirname = name;
         break;
     }
