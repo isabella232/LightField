@@ -11,17 +11,16 @@ public:
     Coordinate x;
     Coordinate y;
     Coordinate z;
-    double     estimatedVolume;                 // µL
+    double     estimatedVolume;                 // unit: µL
 
     QString    modelFileName;
-    QString    slicedSvgFileName;
     QString    jobWorkingDirectory;
 
     int        layerCount              {     };
-    int        layerThickness          { 100 }; // µm
-    double     exposureTime            { 1.0 }; // s
-    double     exposureTimeScaleFactor { 1.0 }; // for first two layers
-    int        powerLevel              { 127 }; // 0..255
+    int        layerThickness          { 100 }; // unit: µm
+    double     exposureTime            { 1.0 }; // unit: s
+    double     exposureTimeScaleFactor { 1.0 }; // unit: for first two layers
+    int        powerLevel              { 127 }; // unit: 0..255
 
 };
 

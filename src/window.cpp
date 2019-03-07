@@ -278,7 +278,6 @@ void Window::printTab_printButtonClicked( ) {
     debug(
         "  + Print job:\n"
         "    + modelFileName:       '%s'\n"
-        "    + slicedSvgFileName:   '%s'\n"
         "    + jobWorkingDirectory: '%s'\n"
         "    + layerCount:          %d\n"
         "    + layerThickness:      %d\n"
@@ -286,7 +285,6 @@ void Window::printTab_printButtonClicked( ) {
         "    + powerLevel:          %d\n"
         "",
         printJob->modelFileName.toUtf8( ).data( ),
-        printJob->slicedSvgFileName.toUtf8( ).data( ),
         printJob->jobWorkingDirectory.toUtf8( ).data( ),
         printJob->layerCount,
         printJob->layerThickness,

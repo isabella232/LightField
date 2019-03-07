@@ -126,8 +126,8 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
-    auto modelFile     = QFileInfo { _printJob->modelFileName     };
-    auto slicedSvgFile = QFileInfo { _printJob->slicedSvgFileName };
+    auto modelFile     = QFileInfo { _printJob->modelFileName                                   };
+    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
     if ( !modelFile.exists( ) ) {
         debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: model file does not exist\n" );
         return false;
@@ -214,15 +214,12 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _hasher = nullptr;
 
     auto baseName = GetFileBaseName( _printJob->modelFileName );
-    _printJob->slicedSvgFileName = _printJob->jobWorkingDirectory + Slash + QString( "sliced.svg" );
 
     debug(
         "  + model filename:        '%s'\n"
-        "  + sliced SVG filename:   '%s'\n"
         "  + job working directory: '%s'\n"
         "",
         _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->slicedSvgFileName.toUtf8( ).data( ),
         _printJob->jobWorkingDirectory.toUtf8( ).data( )
     );
 
@@ -262,7 +259,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
             QString( "--layer-height" ),
             QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
             QString( "--output" ),
-            _printJob->slicedSvgFileName
+            _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName
         }
     );
 }
@@ -314,7 +311,7 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     svgRenderer = new SvgRenderer;
     QObject::connect( svgRenderer, &SvgRenderer::nextLayer, this, &PrepareTab::svgRenderer_progress );
     QObject::connect( svgRenderer, &SvgRenderer::done,      this, &PrepareTab::svgRenderer_done     );
-    svgRenderer->startRender( _printJob->slicedSvgFileName, _printJob->jobWorkingDirectory );
+    svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
 
     emit renderStarted( );
 }
