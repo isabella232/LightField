@@ -57,6 +57,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->grabGesture( Qt::SwipeGesture );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &SelectTab::availableFilesListView_clicked );
 
+    _toggleLocationButton->setEnabled( false );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &SelectTab::toggleLocationButton_clicked );
 
@@ -192,7 +193,6 @@ void SelectTab::_checkUsbPath( ) {
     QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
     if ( dirname.isEmpty( ) ) {
         debug( "  + no directories in user media path\n" );
-        system( "ls -lR /media" );
         _startUsbRetry( );
         return;
     }

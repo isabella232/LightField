@@ -3,12 +3,14 @@
 
 #if defined _DEBUG
 inline void debug( char const* fmt ) {
-    fputs( fmt, stderr );
+    extern FILE* DebugLog;
+    fputs( fmt, DebugLog );
 }
 
 template<typename... Args>
 inline void debug( char const* fmt, Args... args ) {
-    fprintf( stderr, fmt, args... );
+    extern FILE* DebugLog;
+    fprintf( DebugLog, fmt, args... );
 }
 #else
 inline void debug( ... ) {

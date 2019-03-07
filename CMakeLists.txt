@@ -27,7 +27,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 #set project sources
-set(Project_Sources src/app.cpp
+set(Project_Sources src/debug.cpp
+src/app.cpp
 src/main.cpp
 src/canvas.cpp
 src/mesh.cpp
