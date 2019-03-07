@@ -226,16 +226,23 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 
 void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
+
     jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
     _updatePrintTimeInfo->stop( );
+    estimatedTimeLeftDisplay->clear( );
     currentLayerImage->clear( );
+
     emit printComplete( );
 }
 
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
+
     jobStateDisplay->setText( QString( "print aborted" ) );
     _updatePrintTimeInfo->stop( );
+    estimatedTimeLeftDisplay->clear( );
+    currentLayerImage->clear( );
+
     emit printComplete( );
 }
 
@@ -256,7 +263,7 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
         return;
     }
 
-    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
+    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) + 1 ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
 
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n", delta );
