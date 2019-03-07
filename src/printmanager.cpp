@@ -39,8 +39,6 @@ namespace {
     auto const PauseBeforeLift             = 1000; // ms
     auto const LiftDistance                = 2.00; // mm
 
-    auto const SetpowerCommand             = QString { "setpower" };
-
     char const* PrintResultStrings[] {
         "Failure",
         "Success",

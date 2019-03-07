@@ -68,12 +68,12 @@ void App::parseCommandLine( ) {
     }
 }
 
-App::App( int& argc, char *argv[] ):
-    QApplication( argc, argv )
-{
+App::App( int& argc, char *argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationName( "Volumetric" );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
+
+    QProcess::startDetached( SetpowerCommand, { "0" } );
 
     g_signalHandler = new SignalHandler;
 
@@ -104,4 +104,6 @@ App::App( int& argc, char *argv[] ):
 App::~App( ) {
     delete window;
     delete g_signalHandler;
+
+    QProcess::startDetached( SetpowerCommand, { "0" } );
 }

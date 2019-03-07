@@ -11,6 +11,7 @@ QString extern const MediaRootPath;
 QString extern const StlModelLibraryPath;
 QString extern const JobWorkingDirectoryPath;
 QString extern const SlicedSvgFileName;
+QString extern const SetpowerCommand;
 
 QChar   extern const DigitZero;
 QChar   extern const Slash;
