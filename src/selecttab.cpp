@@ -175,7 +175,7 @@ void SelectTab::_checkUserMediaPath( ) {
     }
 
     if ( !userMediaPathInfo.isReadable( ) || !userMediaPathInfo.isExecutable( ) ) {
-        debug( "  + User media path is inaccessible (uid: %u; gid: %u; mode: %4o)\n", userMediaPathInfo.ownerId( ), userMediaPathInfo.groupId( ), userMediaPathInfo.permissions( ) & 0777 );
+        debug( "  + User media path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", userMediaPathInfo.ownerId( ), userMediaPathInfo.groupId( ), userMediaPathInfo.permissions( ) & 0777 );
     }
 
     if ( !_fsWatcher->directories( ).contains( _userMediaPath ) && !_fsWatcher->addPath( _userMediaPath ) ) {
@@ -202,7 +202,7 @@ void SelectTab::_checkUsbPath( ) {
 
     QFileInfo usbPathInfo { _usbPath };
     if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
-        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %4o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 0777 );
+        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 0777 );
         _startUsbRetry( );
         return;
     }
