@@ -219,7 +219,9 @@ void Window::selectTab_modelSelectionFailed( ) {
     debug( "+ Window::selectTab_modelSelectionFailed\n" );
     prepareTab->resetState( );
     prepareTab->setSliceButtonEnabled( false );
-    printTab->setPrintButtonEnabled( false );
+    if ( !_isModelRendered ) {
+        printTab->setPrintButtonEnabled( false );
+    }
 }
 
 void Window::prepareTab_sliceStarted( ) {

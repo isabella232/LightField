@@ -79,6 +79,12 @@ private:
 
     bool _loadModel( QString const& filename );
 
+    void _checkUserMediaPath( );
+    void _checkUsbPath( );
+
+    void _startUsbRetry( );
+    void _stopUsbRetry( );
+
     void _showLibrary( );
     void _showUsbStick( );
 
@@ -103,7 +109,6 @@ private slots:
     void loader_Finished( );
     void libraryFsModel_directoryLoaded( QString const& name );
     void usbFsModel_directoryLoaded( QString const& name );
-    void _lookForUsbStick( QString const& path );
     void availableFilesListView_clicked( QModelIndex const& index );
     void availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture );
     void toggleLocationButton_clicked( bool );
@@ -113,6 +118,7 @@ private slots:
     void processRunner_readyReadStandardOutput ( QString const& data );
     void processRunner_readyReadStandardError( QString const& data );
     void usbRetryTimer_timeout( );
+    void fsWatcher_directoryChanged( QString const& path );
 
 };
 

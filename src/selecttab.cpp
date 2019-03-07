@@ -23,7 +23,6 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _userMediaPath = MediaRootPath + Slash + GetUserName( );
     debug( "  + user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
 
-    QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
     _usbRetryTimer->setInterval( 1000 );
     _usbRetryTimer->setSingleShot( false );
     _usbRetryTimer->setTimerType( Qt::PreciseTimer );
@@ -36,15 +35,15 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::libraryFsModel_directoryLoaded );
 
-    _usbFsModel->setFilter( QDir::Drives | QDir::Files );
+    _usbFsModel->setFilter( QDir::Files );
     _usbFsModel->setNameFilterDisables( false );
     _usbFsModel->setNameFilters( { { "*.stl" } } );
     QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::usbFsModel_directoryLoaded );
 
-    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_lookForUsbStick );
+    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_checkUsbPath );
     _fsWatcher->addPath( MediaRootPath );
 
-    _lookForUsbStick( MediaRootPath );
+    _checkUserMediaPath( );
 
     _availableFilesLabel->setText( "Models in library:" );
 
@@ -128,22 +127,26 @@ void SelectTab::usbFsModel_directoryLoaded( QString const& name ) {
     }
 }
 
-void SelectTab::_lookForUsbStick( QString const& path ) {
-    debug( "+ SelectTab::_lookForUsbStick: path '%s' has changed\n", path.toUtf8( ).data( ) );
+void SelectTab::fsWatcher_directoryChanged( QString const& path ) {
+    debug( "+ SelectTab::fsWatcher_directoryChanged: path '%s'\n", path.toUtf8( ).data( ) );
 
-    if ( path == MediaRootPath ) {
-        if ( 0 != ::access( _userMediaPath.toUtf8( ).data( ), F_OK ) ) {
-            error_t err = errno;
-            debug( "  + access(F) failed: %s [%d]\n", strerror( err ), err );
-            _fsWatcher->removePath( _userMediaPath );
-            return;
-        }
-        _fsWatcher->addPath( _userMediaPath );
+    _checkUserMediaPath( );
+}
+
+void SelectTab::usbRetryTimer_timeout( ) {
+    debug( "+ SelectTab::usbRetryTimer_timeout: retry count is %d\n", _usbRetryCount );
+
+    _checkUserMediaPath( );
+
+    if ( !_usbRetryTimer->isActive( ) ) {
+        return;
     }
 
-    QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
-    if ( dirname.isEmpty( ) ) {
-        debug( "  + no directories in user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
+    --_usbRetryCount;
+    if ( _usbRetryCount < 1 ) {
+        debug( "+ SelectTab::usbRetryTimer_timeout: out of retries, giving up\n" );
+        _stopUsbRetry( );
+
         if ( _modelsLocation == ModelsLocation::Usb ) {
             _showLibrary( );
         }
@@ -151,48 +154,81 @@ void SelectTab::_lookForUsbStick( QString const& path ) {
             _canvas->clear( );
             _dimensionsLabel->clear( );
             _selectButton->setEnabled( false );
+            emit modelSelectionFailed( );
         }
         _toggleLocationButton->setEnabled( false );
+    } else {
+        debug( "+ SelectTab::usbRetryTimer_timeout: %d more retries\n", _usbRetryCount );
+    }
+}
+
+void SelectTab::_checkUserMediaPath( ) {
+    debug( "+ SelectTab::_checkUserMediaPath\n" );
+
+    QFileInfo userMediaPathInfo { _userMediaPath };
+    if ( !userMediaPathInfo.exists( ) ) {
+        debug( "  + User media path doesn't exist\n" );
+        _fsWatcher->removePath( _userMediaPath );
+        _startUsbRetry( );
+        return;
+    }
+
+    if ( !userMediaPathInfo.isReadable( ) || !userMediaPathInfo.isExecutable( ) ) {
+        debug( "  + User media path is inaccessible (uid: %u; gid: %u; mode: %4o)\n", userMediaPathInfo.ownerId( ), userMediaPathInfo.groupId( ), userMediaPathInfo.permissions( ) & 0777 );
+    }
+
+    if ( !_fsWatcher->directories( ).contains( _userMediaPath ) && !_fsWatcher->addPath( _userMediaPath ) ) {
+        debug( "  + QFileSystemWatcher::addPath failed for user media path\n" );
+        _startUsbRetry( );
+        return;
+    }
+
+    _checkUsbPath( );
+}
+
+void SelectTab::_checkUsbPath( ) {
+    debug( "+ SelectTab::_checkUsbPath\n" );
+
+    QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
+    if ( dirname.isEmpty( ) ) {
+        debug( "  + no directories in user media path\n" );
+        system( "ls -lR /media" );
+        _startUsbRetry( );
         return;
     }
 
     _usbPath = _userMediaPath + Slash + dirname;
     debug( "  + mounted USB device is '%s'\n", _usbPath.toUtf8( ).data( ) );
 
-    struct stat statbuf { };
-    if ( -1 == ::stat( _usbPath.toUtf8( ).data( ), &statbuf ) ) {
-        error_t err = errno;
-        debug( "  + stat failed: %s [%d]\n", strerror( err ), err );
-    } else {
-        debug( "  + stat reports mode 0%o, uid %d, gid %d\n", statbuf.st_mode, statbuf.st_uid, statbuf.st_gid );
-        if ( ( statbuf.st_uid == 0 ) || ( statbuf.st_gid == 0 ) ) {
-            if ( -1 == _usbRetryCount ) {
-                debug( "  + waiting one second 3 more times\n" );
-                _usbRetryCount = 3;
-                _usbRetryTimer->start( );
-            } else {
-                _usbRetryCount--;
-                if ( !_usbRetryCount ) {
-                    debug( "  + done waiting, giving up\n" );
-                    _usbRetryTimer->stop( );
-                } else {
-                    debug( "  + waiting one second %d more times\n", _usbRetryCount );
-                }
-            }
-            return;
-        }
-
-        _usbRetryTimer->stop( );
-    }
-
-    if ( 0 != ::access( _usbPath.toUtf8( ).data( ), R_OK | X_OK ) ) {
-        error_t err = errno;
-        debug( "  + access(RX) failed: %s [%d]\n", strerror( err ), err );
+    QFileInfo usbPathInfo { _usbPath };
+    if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
+        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %4o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 0777 );
+        _startUsbRetry( );
         return;
     }
 
+    debug( "  + USB path is good\n" );
+    _stopUsbRetry( );
+
     _usbFsModel->setRootPath( _usbPath );
     _toggleLocationButton->setEnabled( true );
+}
+
+void SelectTab::_startUsbRetry( ) {
+    debug( "+ SelectTab::_startUsbRetry\n" );
+    if ( !_usbRetryTimer->isActive( ) ) {
+        QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
+        _usbRetryCount = 5;
+        _usbRetryTimer->start( );
+    }
+}
+
+void SelectTab::_stopUsbRetry( ) {
+    debug( "+ SelectTab::_stopUsbRetry\n" );
+    _usbRetryCount = 0;
+    QObject::disconnect( _usbRetryTimer, nullptr, this, nullptr );
+    _usbRetryTimer->stop( );
+    debug( "+ SelectTab::_stopUsbRetry: timer stopped\n" );
 }
 
 void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
@@ -350,6 +386,8 @@ void SelectTab::loader_ErrorBadStl( ) {
         "This <code>.stl</code> file is invalid or corrupted.<br>"
         "Please export it from the original source, verify, and retry."
     );
+
+    _selectButton->setEnabled( false );
     emit modelSelectionFailed( );
 }
 
@@ -359,6 +397,8 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
         "<b>Error:</b><br>"
         "This file is syntactically correct<br>but contains no triangles."
     );
+
+    _selectButton->setEnabled( false );
     emit modelSelectionFailed( );
 }
 
@@ -368,6 +408,8 @@ void SelectTab::loader_ErrorMissingFile( ) {
         "<b>Error:</b><br>"
         "The target file is missing.<br>"
     );
+
+    _selectButton->setEnabled( false );
     emit modelSelectionFailed( );
 }
 
@@ -418,10 +460,6 @@ void SelectTab::processRunner_readyReadStandardError( QString const& data ) {
         data.length( ),
         data.toUtf8( ).data( )
     );
-}
-
-void SelectTab::usbRetryTimer_timeout( ) {
-    _lookForUsbStick( _userMediaPath );
 }
 
 bool SelectTab::_loadModel( QString const& fileName ) {
