@@ -2,6 +2,8 @@
 
 #include "debug.h"
 
+#if defined _DEBUG
+
 FILE* DebugLog { stderr };
 
 namespace {
@@ -29,7 +31,7 @@ namespace {
             if ( !DebugLog ) {
                 DebugLog = stderr;
             } else {
-                dup2( 2, ::fileno( DebugLog ) );
+                dup2( ::fileno( DebugLog ), 2 );
             }
         }
 
@@ -42,3 +44,5 @@ namespace {
     DebugManager _debugManager;
 
 }
+
+#endif
