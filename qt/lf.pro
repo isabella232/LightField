@@ -18,7 +18,6 @@ SOURCES +=                     \
     ../src/window.cpp          \
     ../src/backdrop.cpp        \
     ../src/shepherd.cpp        \
-    ../src/slicer.cpp          \
     ../src/strings.cpp         \
     ../src/printmanager.cpp    \
     ../src/pngdisplayer.cpp    \
@@ -45,7 +44,6 @@ HEADERS  += \
     ../src/window.h          \
     ../src/backdrop.h        \
     ../src/shepherd.h        \
-    ../src/slicer.h          \
     ../src/strings.h         \
     ../src/printmanager.h    \
     ../src/printjob.h        \
