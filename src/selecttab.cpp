@@ -395,7 +395,8 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
     debug( "+ SelectTab::loader_ErrorEmptyMesh\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
-        "This file is syntactically correct<br>but contains no triangles."
+        "This file is syntactically correct<br>"
+        "but contains no triangles."
     );
 
     _selectButton->setEnabled( false );
@@ -406,7 +407,7 @@ void SelectTab::loader_ErrorMissingFile( ) {
     debug( "+ SelectTab::loader_ErrorMissingFile\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
-        "The target file is missing.<br>"
+        "The target file is missing."
     );
 
     _selectButton->setEnabled( false );
