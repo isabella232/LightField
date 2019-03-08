@@ -13,5 +13,6 @@ QString        const JobWorkingDirectoryPath  { "/home/lumen/Volumetric/working"
 QString        const SlicedSvgFileName        { "sliced.svg"                           };
 QString        const SetpowerCommand          { "setpower"                             };
 
-QChar          const DigitZero                { '0' };
-QChar          const Slash                    { '/' };
+QChar          const DigitZero                { L'0'      };
+QChar          const Slash                    { L'/'      };
+QChar          const FigureSpace              { L'\u2007' };

@@ -16,7 +16,7 @@ public:
     virtual ~PrepareTab( ) override;
 
     bool      isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
-    bool        isSliceButtonEnabled( ) const { return    sliceButton->isEnabled( ); }
+    bool      isSliceButtonEnabled( )   const { return sliceButton->isEnabled( );    }
     Shepherd* shepherd( )               const { return _shepherd;                    }
 
 protected:
@@ -30,6 +30,8 @@ private:
     QProcess*              slicerProcess               { };
     SvgRenderer*           svgRenderer                 { };
     Hasher*                _hasher                     { };
+    int                    _visibleLayer               { };
+    int                    _renderedLayers             { };
 
     QLabel*                layerThicknessLabel         { new QLabel       };
     QRadioButton*          layerThickness50Button      { new QRadioButton };
@@ -55,12 +57,21 @@ private:
     QLabel*                currentSliceImage           { new QLabel       };
     QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
 
+    QPushButton*           navigateFirst               { new QPushButton  };
+    QPushButton*           navigatePrevious            { new QPushButton  };
+    QLabel*                navigateCurrentLabel        { new QLabel       };
+    QPushButton*           navigateNext                { new QPushButton  };
+    QPushButton*           navigateLast                { new QPushButton  };
+    QHBoxLayout*           navigationLayout            {                  };
+
     QGridLayout*           _layout                     { new QGridLayout  };
 
     std::function<void( )> _initialShowEventFunc;
 
     void _initialShowEvent( );
     bool _checkPreSlicedFiles( );
+    void _setNavigationButtonsEnabled( bool const enabled );
+    void _showLayerImage( int const layer );
 
 signals:
 
@@ -85,17 +96,25 @@ protected slots:
 
 private slots:
 
-    void layerThickness50Button_clicked( bool checked );
-    void layerThickness100Button_clicked( bool checked );
+    void layerThickness50Button_clicked( bool );
+    void layerThickness100Button_clicked( bool );
+
+    void navigateFirst_clicked( bool );
+    void navigatePrevious_clicked( bool );
+    void navigateNext_clicked( bool );
+    void navigateLast_clicked( bool );
+
     void sliceButton_clicked( bool );
+
     void hasher_resultReady( QString const hash );
 
     void slicerProcessErrorOccurred( QProcess::ProcessError error );
     void slicerProcessStarted( );
     void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void svgRenderer_progress( int const currentLayer );
-    void svgRenderer_done( int const totalLayers );
+    void svgRenderer_layerCount( int const totalLayers );
+    void svgRenderer_layerComplete( int const currentLayer );
+    void svgRenderer_done( bool const success );
 
     void _prepareButton_clicked( bool );
     void _shepherd_homeComplete( bool const success );

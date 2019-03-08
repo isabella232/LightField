@@ -14,6 +14,7 @@ QString extern const SlicedSvgFileName;
 QString extern const SetpowerCommand;
 
 QChar   extern const DigitZero;
+QChar   extern const FigureSpace;
 QChar   extern const Slash;
 
 double         const PrinterMaximumX          = 64.0;

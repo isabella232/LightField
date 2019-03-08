@@ -23,7 +23,7 @@ private:
     ProcessRunner* pr;
 
     int currentLayer;
-    int layerCount { 0 };
+    int totalLayers { 0 };
     int digits;
     int pxWidth;
     int pxHeight;
@@ -32,8 +32,9 @@ private:
 
 signals:
 
-    void nextLayer( int const layer );
-    void done( int const totalLayers );
+    void layerCount( int const totalLayers );
+    void layerComplete( int const layer );
+    void done( bool const success );
 
 public slots:
 

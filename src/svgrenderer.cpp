@@ -33,13 +33,13 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
         debug( "  + couldn't open file '%s'", svgFileName.toUtf8( ).data( ) );
-        emit done( -1 );
+        emit done( false );
         return;
     }
     if ( !doc.setContent( &file ) ) {
         debug( "  + couldn't load file\n" );
         file.close( );
-        emit done( -1 );
+        emit done( false );
         return;
     }
     file.close( );
@@ -49,7 +49,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     QDomElement svgElement = doc.documentElement( );
     if ( !svgElement.hasAttributes( ) ) {
         debug( "  + SVG element has no attributes?\n" );
-        emit done( -1 );
+        emit done( false );
         return;
     }
 
@@ -61,7 +61,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
     QDomNodeList childNodes = svgElement.childNodes( );
     int limit = childNodes.length( );
-    digits = ceil( log10( static_cast<double>( limit ) ) );
     debug( "  + childNodes.length(): %d\n", childNodes.length( ) );
 
     currentLayer = 0;
@@ -99,11 +98,12 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             data.close( );
         } else {
             debug( "+ SvgRenderer::startRender: save failed\n" );
-            emit done( -1 );
+            emit done( false );
             return;
         }
     }
-    layerCount = currentLayer;
+    totalLayers = currentLayer;
+    emit layerCount( totalLayers );
 
     currentLayer = 0;
     renderLayer( );
@@ -111,7 +111,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
 void SvgRenderer::renderLayer( ) {
     debug( "+ SvgRenderer::renderLayer: currentLayer: %d\n", currentLayer );
-    emit nextLayer( currentLayer );
     pr->start(
         QString     { "gm" },
         QStringList {
@@ -127,16 +126,18 @@ void SvgRenderer::renderLayer( ) {
 }
 
 void SvgRenderer::programSucceeded( ) {
-    ++currentLayer;
-    if ( currentLayer == layerCount ) {
+    if ( currentLayer + 1 == totalLayers ) {
         debug( "+ SvgRenderer::programSucceeded: finished\n" );
-        emit done( layerCount );
+        emit layerComplete( currentLayer );
+        emit done( true );
     } else {
+        emit layerComplete( currentLayer );
+        ++currentLayer;
         renderLayer( );
     }
 }
 
 void SvgRenderer::programFailed( QProcess::ProcessError const error ) {
     debug( "+ SvgRenderer::programFailed: error: %s [%d]\n", ToString( error ), static_cast<int>( error ) );
-    emit done( -1 );
+    emit done( false );
 }

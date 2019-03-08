@@ -26,7 +26,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     layerThickness50Button->setText( "High res (50 µm)" );
     layerThickness50Button->setFont( font12pt );
-    QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
+    QObject::connect( layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
     layerThicknessButtonsLayout->setContentsMargins( { } );
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
@@ -47,7 +47,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareMessage->setAlignment( Qt::AlignCenter );
     _prepareMessage->setTextFormat( Qt::RichText );
     _prepareMessage->setWordWrap( true );
-    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below to prepare the printer." ) );
+    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button to prepare the printer." ) );
 
     _prepareProgress->setAlignment( Qt::AlignCenter );
     _prepareProgress->setFormat( QString( ) );
@@ -55,7 +55,6 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareProgress->setTextVisible( false );
     _prepareProgress->hide( );
 
-    _prepareLayout->setContentsMargins( { } );
     _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareMessage  } ), 1 );
     _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareProgress } ), 1 );
     _prepareLayout->addStretch( );
@@ -90,9 +89,34 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
-    currentSliceLayout->setAlignment( Qt::AlignCenter );
+    auto fontAwesome = origFont;
+    fontAwesome.setFamily( "FontAwesome" );
+    for ( auto button : { navigateFirst, navigatePrevious, navigateNext, navigateLast } ) {
+        button->setFont( fontAwesome );
+    }
+
+    navigateFirst   ->setText( QString( L'\uF049' ) );
+    navigatePrevious->setText( QString( L'\uF04A' ) );
+    navigateNext    ->setText( QString( L'\uF04E' ) );
+    navigateLast    ->setText( QString( L'\uF050' ) );
+
+    QObject::connect( navigateFirst,    &QPushButton::clicked, this, &PrepareTab::navigateFirst_clicked    );
+    QObject::connect( navigatePrevious, &QPushButton::clicked, this, &PrepareTab::navigatePrevious_clicked );
+    QObject::connect( navigateNext,     &QPushButton::clicked, this, &PrepareTab::navigateNext_clicked     );
+    QObject::connect( navigateLast,     &QPushButton::clicked, this, &PrepareTab::navigateLast_clicked     );
+
+    navigateCurrentLabel->setAlignment( Qt::AlignCenter );
+    navigateCurrentLabel->setText( "0/0" );
+
+    navigationLayout = WrapWidgetsInHBox( { nullptr, navigateFirst, navigatePrevious, navigateCurrentLabel, navigateNext, navigateLast, nullptr } );
+    navigationLayout->setAlignment( Qt::AlignCenter );
+
+    _setNavigationButtonsEnabled( false );
+
+    currentSliceLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
     currentSliceLayout->setContentsMargins( { } );
     currentSliceLayout->addWidget( currentSliceImage );
+    currentSliceLayout->addLayout( navigationLayout );
 
     currentSliceGroup->setTitle( "Current layer" );
     currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
@@ -183,7 +207,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     }
 
     _printJob->layerCount = layerNumber + 1;
-    debug( "+ PrepareTab::_checkPreSlicedFiles: Success, %d layers\n", _printJob->layerCount );
+    debug( "+ PrepareTab::_checkPreSlicedFiles: Success: %d layers\n", _printJob->layerCount );
 
     return true;
 }
@@ -198,6 +222,52 @@ void PrepareTab::layerThickness100Button_clicked( bool checked ) {
     _printJob->layerThickness = 100;
 }
 
+void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
+    navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
+    navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
+    navigateNext    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
+    navigateLast    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
+}
+
+void PrepareTab::_showLayerImage( int const layer ) {
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    if ( ( pixmap.width( ) > currentSliceImage->width( ) ) || ( pixmap.height( ) > currentSliceImage->height( ) ) ) {
+        pixmap = pixmap.scaled( currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+    currentSliceImage->setPixmap( pixmap );
+
+    int fieldWidth = ceil( log10( _printJob->layerCount ) );
+    navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+}
+
+void PrepareTab::navigateFirst_clicked( bool ) {
+    _visibleLayer = 0;
+    _setNavigationButtonsEnabled( true );
+    _showLayerImage( _visibleLayer );
+}
+
+void PrepareTab::navigatePrevious_clicked( bool ) {
+    if ( _visibleLayer > 0 ) {
+        --_visibleLayer;
+    }
+    _setNavigationButtonsEnabled( true );
+    _showLayerImage( _visibleLayer );
+}
+
+void PrepareTab::navigateNext_clicked( bool ) {
+    if ( _visibleLayer + 1 < _printJob->layerCount ) {
+        ++_visibleLayer;
+    }
+    _setNavigationButtonsEnabled( true );
+    _showLayerImage( _visibleLayer );
+}
+
+void PrepareTab::navigateLast_clicked( bool ) {
+    _visibleLayer = _printJob->layerCount - 1;
+    _setNavigationButtonsEnabled( true );
+    _showLayerImage( _visibleLayer );
+}
+
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked: kicking off hasher\n" );
 
@@ -208,11 +278,18 @@ void PrepareTab::sliceButton_clicked( bool ) {
     sliceStatus->setText( "hashing" );
     imageGeneratorStatus->setText( "waiting" );
     currentSliceImage->clear( );
+    navigateCurrentLabel->setText( "0/0" );
+    _setNavigationButtonsEnabled( false );
     emit sliceStarted( );
 }
 
 void PrepareTab::hasher_resultReady( QString const hash ) {
-    debug( "+ PrepareTab::hasher_resultReady:\n  + result hash:           '%s'\n", hash.toUtf8( ).data( ) );
+    debug(
+        "+ PrepareTab::hasher_resultReady:\n"
+        "  + result hash:           '%s'\n"
+        "",
+        hash.toUtf8( ).data( )
+    );
 
     _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash ) + QString( "-%1" ).arg( _printJob->layerThickness );
     _hasher->deleteLater( );
@@ -239,6 +316,11 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         if ( _checkPreSlicedFiles( ) ) {
             sliceStatus->setText( "skipped" );
             imageGeneratorStatus->setText( "skipped" );
+
+            int fieldWidth = ceil( log10( _printJob->layerCount ) );
+            navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+            _setNavigationButtonsEnabled( true );
+
             emit sliceComplete( true );
             emit renderStarted( );
             emit renderComplete( true );
@@ -311,41 +393,45 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     }
 
     sliceStatus->setText( "finished" );
+
     emit sliceComplete( true );
 
     svgRenderer = new SvgRenderer;
-    QObject::connect( svgRenderer, &SvgRenderer::nextLayer, this, &PrepareTab::svgRenderer_progress );
-    QObject::connect( svgRenderer, &SvgRenderer::done,      this, &PrepareTab::svgRenderer_done     );
+    QObject::connect( svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
+    QObject::connect( svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
+    QObject::connect( svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
     svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
 
     emit renderStarted( );
 }
 
-void PrepareTab::svgRenderer_progress( int const currentLayer ) {
-    imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer ) );
-    if ( 0 != ( currentLayer % 5 ) ) {
-        return;
-    }
+void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
+    debug( "+ PrepareTab::svgRenderer_layerCount: totalLayers %d\n", totalLayers );
+    _printJob->layerCount = totalLayers;
 
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( currentLayer - 1, 6, 10, DigitZero ) );
-    if ( ( pixmap.width( ) > currentSliceImage->width( ) ) || ( pixmap.height( ) > currentSliceImage->height( ) ) ) {
-        pixmap = pixmap.scaled( currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
-    }
-    currentSliceImage->setPixmap( pixmap );
+    int fieldWidth = ceil( log10( _printJob->layerCount ) );
+    navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
 }
 
-void PrepareTab::svgRenderer_done( int const totalLayers ) {
-    if ( totalLayers == -1 ) {
-        imageGeneratorStatus->setText( QString( "failed" ) );
-    } else {
-        imageGeneratorStatus->setText( QString( "finished" ) );
-        _printJob->layerCount = totalLayers;
+void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
+    _renderedLayers = currentLayer;
+    imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
+
+    if ( 0 == ( currentLayer % 5 ) ) {
+        _visibleLayer = currentLayer;
+        _showLayerImage( _visibleLayer );
     }
+}
+
+void PrepareTab::svgRenderer_done( bool const success ) {
+    imageGeneratorStatus->setText( success ? "finished" : "failed" );
 
     svgRenderer->deleteLater( );
     svgRenderer = nullptr;
 
-    emit renderComplete( totalLayers != -1 );
+    _setNavigationButtonsEnabled( true );
+
+    emit renderComplete( success );
 }
 
 void PrepareTab::_prepareButton_clicked( bool ) {
