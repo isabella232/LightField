@@ -190,20 +190,24 @@ void PrintTab::printButton_clicked( bool ) {
 }
 
 void PrintTab::_raiseOrLowerButton_clicked( bool ) {
-    debug( "+ PrintTab::_raiseOrLowerButton_clicked: _buildPlatformState %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
+    debug( "+ PrintTab::_raiseOrLowerButton_clicked: build platform state %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
     setAdjustmentButtonsEnabled( false );
 
     switch ( _buildPlatformState ) {
         case BuildPlatformState::Lowered:
         case BuildPlatformState::Raising:
             _buildPlatformState = BuildPlatformState::Raising;
-            emit raiseBuildPlatform( );
+
+            QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
+            _shepherd->doMoveTo( PrinterMaximumZ );
             break;
 
         case BuildPlatformState::Raised:
         case BuildPlatformState::Lowering:
             _buildPlatformState = BuildPlatformState::Lowering;
-            emit lowerBuildPlatform( );
+
+            QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+            _shepherd->doMoveTo( std::max( 100, _printJob->layerThickness ) / 1000.0 );
             break;
 
         default:
@@ -211,38 +215,46 @@ void PrintTab::_raiseOrLowerButton_clicked( bool ) {
     }
 }
 
-void PrintTab::_homeButton_clicked( bool ) {
-    debug( "+ PrintTab::_homeButton_clicked\n" );
-    setAdjustmentButtonsEnabled( false );
+void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
+    debug( "+ PrintTab::raiseBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
 
-    emit homePrinter( );
-}
-
-void PrintTab::raiseBuildPlatformComplete( bool const success ) {
-    debug( "+ PrintTab::raiseBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
         _raiseOrLowerButton->setText( "Lower Build Platform" );
         _raiseOrLowerButton->setEnabled( true );
     } else {
         _buildPlatformState = BuildPlatformState::Lowered;
-        setAdjustmentButtonsEnabled( true );
     }
-}
 
-void PrintTab::homeComplete( bool const success ) {
-    debug( "+ PrintTab::homeComplete: %s\n", success ? "succeeded" : "failed" );
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::lowerBuildPlatformComplete( bool const success ) {
-    debug( "+ PrintTab::lowerBuildPlatformComplete: %s\n", success ? "succeeded" : "failed" );
+void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
+    debug( "+ PrintTab::lowerBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
         _raiseOrLowerButton->setText( "Raise Build Platform" );
+        _raiseOrLowerButton->setEnabled( true );
     } else {
         _buildPlatformState = BuildPlatformState::Raised;
     }
+
+    setAdjustmentButtonsEnabled( true );
+}
+
+void PrintTab::_homeButton_clicked( bool ) {
+    debug( "+ PrintTab::_homeButton_clicked\n" );
+    setAdjustmentButtonsEnabled( false );
+
+    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintTab::home_homeComplete );
+    _shepherd->doHome( );
+}
+
+void PrintTab::home_homeComplete( bool const success ) {
+    debug( "+ PrintTab::home_homeComplete: %s\n", success ? "succeeded" : "failed" );
     setAdjustmentButtonsEnabled( true );
 }
 

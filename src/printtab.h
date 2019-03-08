@@ -73,9 +73,6 @@ private:
 signals:
 
     void printButtonClicked( );
-    void raiseBuildPlatform( );
-    void homePrinter( );
-    void lowerBuildPlatform( );
 
 public slots:
 
@@ -84,9 +81,9 @@ public slots:
     void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
 
-    void raiseBuildPlatformComplete( bool const success );
-    void homeComplete( bool const success );
-    void lowerBuildPlatformComplete( bool const success );
+    void raiseBuildPlatform_moveToComplete( bool const success );
+    void lowerBuildPlatform_moveToComplete( bool const success );
+    void home_homeComplete( bool const success );
 
 protected slots:
 
