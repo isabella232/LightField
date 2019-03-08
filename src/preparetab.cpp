@@ -29,7 +29,7 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     layerThicknessButtonsLayout->addWidget( layerThickness100Button );
     layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
 
-    sliceStatusLabel->setText( "Slicer status:" );
+    sliceStatusLabel->setText( "Slicer:" );
     sliceStatusLabel->setBuddy( sliceStatus );
 
     sliceStatus->setText( "idle" );
@@ -43,18 +43,22 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     _prepareMessage->setAlignment( Qt::AlignCenter );
     _prepareMessage->setTextFormat( Qt::RichText );
-    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below<br>to prepare the printer." ) );
+    _prepareMessage->setWordWrap( true );
+    _prepareMessage->setText( QString( "Tap the <b>Prepare</b> button below to prepare the printer." ) );
 
+    _prepareProgress->setAlignment( Qt::AlignCenter );
+    _prepareProgress->setFormat( QString( ) );
     _prepareProgress->setRange( 0, 0 );
+    _prepareProgress->setTextVisible( false );
     _prepareProgress->hide( );
 
-    _prepareInnerLayout->setContentsMargins( { } );
-    _prepareInnerLayout->addStretch( ); _prepareInnerLayout->addWidget( _prepareMessage,  0, Qt::AlignCenter );
-    _prepareInnerLayout->addStretch( ); _prepareInnerLayout->addWidget( _prepareProgress, 0, Qt::AlignCenter );
-    _prepareInnerLayout->addStretch( );
+    _prepareLayout->setContentsMargins( { } );
+    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareMessage  } ), 1 );
+    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareProgress } ), 1 );
+    _prepareLayout->addStretch( );
 
     _prepareGroup->setTitle( "Printer preparation" );
-    _prepareGroup->setLayout( _prepareInnerLayout );
+    _prepareGroup->setLayout( _prepareLayout );
 
     _prepareButton->setEnabled( true );
     _prepareButton->setFixedSize( MainButtonSize );
@@ -62,14 +66,12 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareButton->setText( QString( "Prepare" ) );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
 
-    _prepareLayout = WrapWidgetsInVBox( { _prepareGroup, _prepareButton } );
-
     optionsLayout->setContentsMargins( { } );
     optionsLayout->addWidget( layerThicknessLabel );
     optionsLayout->addLayout( layerThicknessButtonsLayout );
     optionsLayout->addLayout( WrapWidgetsInHBox( { sliceStatusLabel,          nullptr, sliceStatus          } ) );
     optionsLayout->addLayout( WrapWidgetsInHBox( { imageGeneratorStatusLabel, nullptr, imageGeneratorStatus } ) );
-    optionsLayout->addLayout( _prepareLayout );
+    optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
 
     optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     optionsContainer->setLayout( optionsLayout );
@@ -348,7 +350,7 @@ void PrepareTab::_prepareButton_clicked( bool ) {
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
 
-    _prepareMessage->setText( QString( "Moving the printer to<br>its home location..." ) );
+    _prepareMessage->setText( QString( "Moving the printer to its home location..." ) );
     _prepareProgress->show( );
 
     _prepareButton->setText( QString( "Continue" ) );
@@ -356,6 +358,8 @@ void PrepareTab::_prepareButton_clicked( bool ) {
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::_shepherd_homeComplete );
     _shepherd->doHome( );
+
+    emit preparePrinterStarted( );
 }
 
 void PrepareTab::_shepherd_homeComplete( bool const success ) {
@@ -374,7 +378,7 @@ void PrepareTab::_shepherd_homeComplete( bool const success ) {
         return;
     }
 
-    _prepareMessage->setText( QString( "<div style='text-align: center;'>Adjust the build platform position,<br>then tap <b>Continue</b>.</div>" ) );
+    _prepareMessage->setText( QString( "Adjust the build platform position, then tap <b>Continue</b>." ) );
 
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_adjustBuildPlatform_complete );
     _prepareButton->setEnabled( true );
@@ -386,7 +390,7 @@ void PrepareTab::_adjustBuildPlatform_complete( bool ) {
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( QString( "<div style='text-align: center;'>Raising the build platform...</div>" ) );
+    _prepareMessage->setText( QString( "Raising the build platform..." ) );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::_shepherd_resinLoadMoveToComplete );

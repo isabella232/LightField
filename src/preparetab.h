@@ -45,8 +45,7 @@ private:
     QLabel*                _prepareMessage             { new QLabel       };
     QProgressBar*          _prepareProgress            { new QProgressBar };
     QPushButton*           _prepareButton              { new QPushButton  };
-    QVBoxLayout*           _prepareInnerLayout         { new QVBoxLayout  };
-    QVBoxLayout*           _prepareLayout              {                  };
+    QVBoxLayout*           _prepareLayout              { new QVBoxLayout  };
 
     QVBoxLayout*           optionsLayout               { new QVBoxLayout  };
     QWidget*               optionsContainer            { new QWidget      };
@@ -70,6 +69,7 @@ signals:
     void renderStarted( );
     void renderComplete( bool const success );
 
+    void preparePrinterStarted( );
     void preparePrinterComplete( bool const success );
 
 public slots:

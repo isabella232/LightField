@@ -101,6 +101,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( prepareTab, &PrepareTab::sliceComplete,          this, &Window::prepareTab_sliceComplete          );
     QObject::connect( prepareTab, &PrepareTab::renderStarted,          this, &Window::prepareTab_renderStarted          );
     QObject::connect( prepareTab, &PrepareTab::renderComplete,         this, &Window::prepareTab_renderComplete         );
+    QObject::connect( prepareTab, &PrepareTab::preparePrinterStarted,  this, &Window::prepareTab_preparePrinterStarted  );
     QObject::connect( prepareTab, &PrepareTab::preparePrinterComplete, this, &Window::prepareTab_preparePrinterComplete );
 
     //
@@ -110,9 +111,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printTab->setContentsMargins( { } );
     printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     QObject::connect( printTab, &PrintTab::printButtonClicked, this, &Window::printTab_printButtonClicked );
-    QObject::connect( printTab, &PrintTab::raiseBuildPlatform, this, &Window::printTab_raiseBuildPlatform );
-    QObject::connect( printTab, &PrintTab::lowerBuildPlatform, this, &Window::printTab_lowerBuildPlatform );
-    QObject::connect( printTab, &PrintTab::homePrinter,        this, &Window::printTab_homePrinter        );
 
     //
     // "Status" tab
@@ -256,8 +254,13 @@ void Window::prepareTab_renderComplete( bool const success ) {
     }
 }
 
+void Window::prepareTab_preparePrinterStarted( ) {
+    debug( "+ Window::prepareTab_preparePrinterStarted" );
+    _isPrinterPrepared = false;
+}
+
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
-    debug( "+ Window::prepareTab_renderStarted\n" );
+    debug( "+ Window::prepareTab_preparePrinterComplete\n" );
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared ? true : success;
 #else
@@ -304,69 +307,6 @@ void Window::printTab_printButtonClicked( ) {
     prepareTab->setPrepareButtonEnabled( false );
     printTab->setPrintButtonEnabled( false );
     statusTab->setStopButtonEnabled( true );
-}
-
-void Window::printTab_raiseBuildPlatform( ) {
-    debug( "+ Window::printTab_raiseBuildPlatform\n" );
-
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( PrinterMaximumZ );
-}
-
-void Window::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_raiseBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_raiseBuildPlatformMoveToComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Raise of build platform failed."
-        );
-    }
-
-    printTab->raiseBuildPlatformComplete( success );
-}
-
-void Window::printTab_homePrinter( ) {
-    debug( "+ Window::printTab_homePrinter\n" );
-
-    QObject::connect( shepherd, &Shepherd::action_homeComplete, this, &Window::shepherd_homeComplete );
-    shepherd->doHome( );
-}
-
-void Window::shepherd_homeComplete( bool const success ) {
-    debug( "+ Window::shepherd_homeComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_homeComplete, this, &Window::shepherd_homeComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Homing failed."
-        );
-    }
-
-    printTab->homeComplete( success );
-}
-
-void Window::printTab_lowerBuildPlatform( ) {
-    debug( "+ Window::printTab_lowerBuildPlatform\n" );
-
-    QObject::connect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
-    shepherd->doMoveTo( std::max( 100, printJob->layerThickness ) / 1000.0 );
-}
-
-void Window::shepherd_lowerBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ Window::shepherd_lowerBuildPlatformMoveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( shepherd, &Shepherd::action_moveToComplete, this, &Window::shepherd_lowerBuildPlatformMoveToComplete );
-
-    if ( !success ) {
-        QMessageBox::critical( this, "Error",
-            "<b>Error:</b><br>"
-            "Extension of build platform failed."
-        );
-    }
-
-    printTab->lowerBuildPlatformComplete( success );
 }
 
 void Window::tabs_currentChanged( int index ) {

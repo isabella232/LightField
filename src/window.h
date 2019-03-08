@@ -75,10 +75,6 @@ private slots:
     void shepherd_startFailed( );
     void shepherd_terminated( bool const expected, bool const cleanExit );
 
-    void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
-    void shepherd_homeComplete( bool const success );
-    void shepherd_lowerBuildPlatformMoveToComplete( bool const success );
-
     void tabs_currentChanged( int index );
 
     void selectTab_modelSelected( ModelSelectionInfo* modelSelection );
@@ -88,13 +84,10 @@ private slots:
     void prepareTab_sliceComplete( bool const success );
     void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool const success );
+    void prepareTab_preparePrinterStarted( );
     void prepareTab_preparePrinterComplete( bool const success );
 
     void printTab_printButtonClicked( );
-
-    void printTab_raiseBuildPlatform( );
-    void printTab_homePrinter( );
-    void printTab_lowerBuildPlatform( );
 
     void statusTab_stopButtonClicked( );
     void statusTab_cleanUpAfterPrint( );
