@@ -14,15 +14,18 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
 
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
+    auto font12pt = ModifyFont( origFont, 12.0 );
     auto font22pt = ModifyFont( origFont, 22.0 );
 
     layerThicknessLabel->setText( "Layer height:" );
 
     layerThickness100Button->setChecked( true );
+    layerThickness100Button->setFont( font12pt );
     layerThickness100Button->setText( "Standard res (100 µm)" );
     QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
     layerThickness50Button->setText( "High res (50 µm)" );
+    layerThickness50Button->setFont( font12pt );
     QObject::connect( layerThickness50Button,  &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked  );
 
     layerThicknessButtonsLayout->setContentsMargins( { } );
