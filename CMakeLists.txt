@@ -48,6 +48,7 @@ src/selecttab.cpp
 src/preparetab.cpp
 src/printtab.cpp
 src/statustab.cpp
+src/advancedtab.cpp
 src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
@@ -76,6 +77,7 @@ src/selecttab.h
 src/preparetab.h
 src/printtab.h
 src/statustab.h
+src/advancedtab.h
 src/constants.h
 src/utils.h
 src/gesturelistview.h

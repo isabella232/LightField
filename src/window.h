@@ -13,6 +13,7 @@ class SelectTab;
 class PrepareTab;
 class PrintTab;
 class StatusTab;
+class AdvancedTab;
 
 enum class TabIndex {
     //Welcome,
@@ -20,6 +21,7 @@ enum class TabIndex {
     Prepare,
     Print,
     Status,
+    Advanced,
 };
 
 inline int operator+( TabIndex value ) {
@@ -52,6 +54,7 @@ private:
     PrepareTab*   prepareTab;
     PrintTab*     printTab;
     StatusTab*    statusTab;
+    AdvancedTab*  advancedTab;
 
     bool          _isPrinterPrepared { };
     bool          _isModelRendered   { };

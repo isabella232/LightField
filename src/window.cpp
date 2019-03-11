@@ -10,11 +10,12 @@
 #include "strings.h"
 #include "utils.h"
 
-#include "welcometab.h"
+//#include "welcometab.h"
 #include "selecttab.h"
 #include "preparetab.h"
 #include "printtab.h"
 #include "statustab.h"
+#include "advancedtab.h"
 
 namespace {
 
@@ -47,10 +48,11 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 #endif // _DEBUG
 
     //welcomeTab = new WelcomeTab;
-    selectTab  = new SelectTab;
-    prepareTab = new PrepareTab;
-    printTab   = new PrintTab;
-    statusTab  = new StatusTab;
+    selectTab   = new SelectTab;
+    prepareTab  = new PrepareTab;
+    printTab    = new PrintTab;
+    statusTab   = new StatusTab;
+    advancedTab = new AdvancedTab;
 
     //QObject::connect( this, &Window::printJobChanged, welcomeTab, &WelcomeTab::setPrintJob );
     QObject::connect( this, &Window::printJobChanged, selectTab,  &SelectTab::setPrintJob  );
@@ -61,11 +63,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     printJob = new PrintJob;
     emit printJobChanged( printJob );
 
-    //QObject::connect( this, &Window::shepherdChanged, welcomeTab, &WelcomeTab::setShepherd );
-    QObject::connect( this, &Window::shepherdChanged, selectTab,  &SelectTab::setShepherd  );
-    QObject::connect( this, &Window::shepherdChanged, prepareTab, &PrepareTab::setShepherd );
-    QObject::connect( this, &Window::shepherdChanged, printTab,   &PrintTab::setShepherd   );
-    QObject::connect( this, &Window::shepherdChanged, statusTab,  &StatusTab::setShepherd  );
+    //QObject::connect( this, &Window::shepherdChanged, welcomeTab,  &WelcomeTab::setShepherd  );
+    QObject::connect( this, &Window::shepherdChanged, selectTab,   &SelectTab::setShepherd   );
+    QObject::connect( this, &Window::shepherdChanged, prepareTab,  &PrepareTab::setShepherd  );
+    QObject::connect( this, &Window::shepherdChanged, printTab,    &PrintTab::setShepherd    );
+    QObject::connect( this, &Window::shepherdChanged, statusTab,   &StatusTab::setShepherd   );
+    QObject::connect( this, &Window::shepherdChanged, advancedTab, &AdvancedTab::setShepherd );
 
     shepherd = new Shepherd( parent );
     QObject::connect( shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
@@ -122,6 +125,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( statusTab, &StatusTab::printComplete,     this, &Window::statusTab_cleanUpAfterPrint );
 
     //
+    // "Advanced" tab
+    //
+
+    advancedTab->setContentsMargins( { } );
+    advancedTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    //
     // Tab widget
     //
 
@@ -130,11 +140,12 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     tabs->setFont( ModifyFont( tabs->font( ), 22.0 ) );
     tabs->setContentsMargins( { } );
     auto font9pt = ModifyFont( selectTab->font( ), pointSize );
-    //tabs->addTab( welcomeTab, "Welcome" ); welcomeTab->setFont( font9pt );
-    tabs->addTab( selectTab,  "Select"  ); selectTab ->setFont( font9pt );
-    tabs->addTab( prepareTab, "Prepare" ); prepareTab->setFont( font9pt );
-    tabs->addTab( printTab,   "Print"   ); printTab  ->setFont( font9pt );
-    tabs->addTab( statusTab,  "Status"  ); statusTab ->setFont( font9pt );
+    //tabs->addTab( welcomeTab,  "Welcome"  ); welcomeTab ->setFont( font9pt );
+    tabs->addTab( selectTab,   "Select"   ); selectTab  ->setFont( font9pt );
+    tabs->addTab( prepareTab,  "Prepare"  ); prepareTab ->setFont( font9pt );
+    tabs->addTab( printTab,    "Print"    ); printTab   ->setFont( font9pt );
+    tabs->addTab( statusTab,   "Status"   ); statusTab  ->setFont( font9pt );
+    tabs->addTab( advancedTab, "Advanced" ); advancedTab->setFont( font9pt );
     tabs->setCurrentIndex( +TabIndex::Select/*+TabIndex::Welcome*/ );
 
     setCentralWidget( tabs );

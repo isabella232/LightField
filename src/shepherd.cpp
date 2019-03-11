@@ -10,7 +10,8 @@ namespace {
 
     char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/LightField/stdio-shepherd";
 
-    QRegularExpression PositionReportMatcher { "^X:(\\d+\\.\\d\\d) Y:(\\d+\\.\\d\\d) Z:(\\d+\\.\\d\\d) E:(\\d+\\.\\d\\d) Count X:(\\d+) Y:(\\d+) Z:(\\d+)", QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression PositionReportMatcher    { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression TemperatureReportMatcher { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
 
 }
 
@@ -182,6 +183,11 @@ void Shepherd::handleFromPrinter( QString const& input ) {
         auto cz = match.captured( 7 ).toDouble( );
         debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
         emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
+    } else if ( auto match = TemperatureReportMatcher.match( input ); match.hasMatch( ) ) {
+        auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
+        auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
+        auto bedPwm                = match.captured( 6 ).toInt( );
+        emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     }
 }
 

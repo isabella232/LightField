@@ -46,6 +46,7 @@ namespace {
         "Prepare",
         "Print",
         "Status",
+        "Advanced",
     };
 
     char const* SwipeDirectionStrings[] {
@@ -152,7 +153,7 @@ char const* ToString( PendingCommand const value ) {
 
 char const* ToString( TabIndex const value ) {
 #if defined _DEBUG
-    if ( ( value >= TabIndex::Select/*Welcome*/ ) && ( value <= TabIndex::Status ) ) {
+    if ( ( value >= TabIndex::Select/*Welcome*/ ) && ( value <= TabIndex::Advanced ) ) {
 #endif
         return TabIndexStrings[static_cast<int>( value )];
 #if defined _DEBUG
