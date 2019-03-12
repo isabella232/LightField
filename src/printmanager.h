@@ -83,9 +83,6 @@ private slots:
 
     void stepB2_start( );
     void stepB2_completed( );
-
-    void stepB2_start( );
-    void stepB2_completed( );
     void stepB2_failed( QProcess::ProcessError const error );
 
     void stepB3_start( );
