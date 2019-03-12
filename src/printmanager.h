@@ -78,29 +78,34 @@ private slots:
     void stepA4_start( );
     void stepA4_completed( );
 
-
     void stepB1_start( );
-    void stepB1_completed( );
-    void stepB1_failed( QProcess::ProcessError const error );
+    void stepB1_completed( bool const success );
 
     void stepB2_start( );
     void stepB2_completed( );
 
+    void stepB2_start( );
+    void stepB2_completed( );
+    void stepB2_failed( QProcess::ProcessError const error );
+
     void stepB3_start( );
     void stepB3_completed( );
-    void stepB3_failed( QProcess::ProcessError const error );
 
     void stepB4_start( );
     void stepB4_completed( );
+    void stepB4_failed( QProcess::ProcessError const error );
 
     void stepB5_start( );
-    void stepB5_completed( bool const success );
+    void stepB5_completed( );
 
     void stepB6_start( );
     void stepB6_completed( bool const success );
 
     void stepB7_start( );
-    void stepB7_completed( );
+    void stepB7_completed( bool const success );
+
+    void stepB8_start( );
+    void stepB8_completed( );
 
 
     void stepC1_start( );

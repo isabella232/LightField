@@ -18,7 +18,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): QWidget( parent ) {
     _timer->setInterval( TemperaturePollInterval );
     _timer->setSingleShot( false );
     _timer->setTimerType( Qt::PreciseTimer );
-    _timer->start( );
+    //_timer->start( );
 
     setLayout( WrapWidgetsInVBox( { _currentTemperature, _targetTemperature, _pwm, nullptr } ) );
 }
@@ -60,17 +60,17 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
 }
 
 void AdvancedTab::printManager_printStarting( ) {
-    _timer->stop( );
+    //_timer->stop( );
 }
 
 void AdvancedTab::printManager_printComplete( bool const success ) {
-    _timer->start( );
+    //_timer->start( );
 }
 
 void AdvancedTab::printManager_printAborted( ) {
-    _timer->start( );
+    //_timer->start( );
 }
 
 void AdvancedTab::timer_pollTemperature( ) {
-    _shepherd->doSend( QString { "M105" } );
+    //_shepherd->doSend( QString { "M105" } );
 }
