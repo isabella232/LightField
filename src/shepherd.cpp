@@ -280,9 +280,13 @@ void Shepherd::handleInput( QString const& input ) {
         }
 
         auto pieces = splitLine( line );
-        debug( "+ Shepherd::handleInput: '%s'\n", pieces[0].toUtf8( ).data( ) );
+        debug( "+ Shepherd::handleInput: '%s' [%d]\n", pieces[0].toUtf8( ).data( ), pieces.count( ) );
         if ( pieces[0] == "ok" ) {
-            debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+            if ( pieces.count( ) > 1 ) {
+                debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+            } else {
+                debug( "  + ok\n" );
+            }
         } else if ( pieces[0] == "fail" ) {
             debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
             if ( g_settings.ignoreShepherdFailures ) {
