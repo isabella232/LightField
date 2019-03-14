@@ -89,7 +89,10 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
 
         QDomDocument layerDoc = _CloneDocRoot( skeletonDoc );
-        layerDoc.documentElement( ).appendChild( element->cloneNode( true ) );
+        auto docElt = layerDoc.documentElement( );
+        docElt.appendChild( element->cloneNode( true ) );
+        docElt.setAttribute( "width",  QString( "%1" ).arg( mmWidth,  0, 'f', 2 ) );
+        docElt.setAttribute( "height", QString( "%1" ).arg( mmHeight, 0, 'f', 2 ) );
 
         QFile data( QString( "%1/%2.svg" ).arg( outputDirectory ).arg( currentLayer++, 6, 10, DigitZero ) );
         if ( data.open( QFile::WriteOnly | QFile::Truncate ) ) {
