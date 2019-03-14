@@ -284,11 +284,15 @@ void Shepherd::handleInput( QString const& input ) {
             }
         } else if ( pieces[0] == "fail" ) {
             debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+#if defined _DEBUG
             if ( g_settings.ignoreShepherdFailures ) {
                 handleCommandFailAlternate( pieces );
             } else {
                 handleCommandFail( pieces );
             }
+#else
+            handleCommandFail( pieces );
+#endif // defined _DEBUG
         } else if ( pieces[0] == "warning" ) {
             debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "info" ) {
