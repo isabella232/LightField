@@ -44,6 +44,10 @@ public slots:
         _process.terminate( );
     }
 
+    void setProcessChannelMode( QProcess::ProcessChannelMode const mode ) {
+        _process.setProcessChannelMode( mode );
+    }
+
 protected slots:
 
 private slots:

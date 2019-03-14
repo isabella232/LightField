@@ -111,6 +111,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
 void SvgRenderer::renderLayer( ) {
     debug( "+ SvgRenderer::renderLayer: currentLayer: %d; PNG size: %d×%d\n", currentLayer, pxWidth, pxHeight );
+    pr->setProcessChannelMode( QProcess::ForwardedChannels );
     pr->start(
         QString     { "gm" },
         QStringList {
