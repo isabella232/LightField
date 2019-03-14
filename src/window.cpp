@@ -266,7 +266,7 @@ void Window::prepareTab_renderComplete( bool const success ) {
 }
 
 void Window::prepareTab_preparePrinterStarted( ) {
-    debug( "+ Window::prepareTab_preparePrinterStarted" );
+    debug( "+ Window::prepareTab_preparePrinterStarted\n" );
     _isPrinterPrepared = false;
 }
 

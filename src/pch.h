@@ -61,10 +61,11 @@ struct passwd {
 };
 
 extern int access( char const* pathName, int mode );
-extern int clock_gettime( int clk_id, struct timespec* tp );
+extern int clock_gettime( int clk_id, timespec* tp );
 extern int getpid( );
-extern int getpwuid_r( int uid, struct passwd* pwd, char* buf, size_t buflen, struct passwd** result );
+extern int getpwuid_r( int uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
 extern int getuid( );
+extern struct tm* gmtime_r( time_t const* timep, tm* result );
 extern int mkdir( char const* pathName, int mode );
 extern char* strsignal( int sig );
 

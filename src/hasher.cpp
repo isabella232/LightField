@@ -3,7 +3,7 @@
 #include "hasher.h"
 
 void Hasher::_hash( QString const fileName ) {
-    QFile file { fileName, this };
+    QFile file { fileName };
     if ( file.open( QIODevice::ReadOnly ) ) {
         QCryptographicHash hasher { QCryptographicHash::Md5 };
         hasher.addData( &file );

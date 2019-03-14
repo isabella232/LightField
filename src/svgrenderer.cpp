@@ -110,11 +110,12 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 }
 
 void SvgRenderer::renderLayer( ) {
-    debug( "+ SvgRenderer::renderLayer: currentLayer: %d\n", currentLayer );
+    debug( "+ SvgRenderer::renderLayer: currentLayer: %d; PNG size: %d×%d\n", currentLayer, pxWidth, pxHeight );
     pr->start(
         QString     { "gm" },
         QStringList {
             QString( "convert"     ),
+            QString( "-verbose"    ),
             QString( "-antialias"  ),
             QString( "-density"    ), QString( "400" ),
             QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
