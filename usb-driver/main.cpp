@@ -20,7 +20,7 @@ int main(int argc, char ** argv){
 		if(setpower){
 			DLPC350_SetLedEnables(false, false, false, true); //enable blue channel only
 			DLPC350_SetLedCurrents(0, 0, 255-powerlevel); //set blue channel power level
-			DLPC350_SetLongAxisImageFlip(true);
+			DLPC350_SetLongAxisImageFlip(false);
 			DLPC350_SetShortAxisImageFlip(false);
 		}
 		DLPC350_GetLedCurrents(&r, &g, &b);
