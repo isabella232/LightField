@@ -343,6 +343,8 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         QStringList {
             _printJob->modelFileName,
             QString( "--export-svg" ),
+            QString( "--first-layer-height" ),
+            QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
             QString( "--layer-height" ),
             QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
             QString( "--output" ),
