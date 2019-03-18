@@ -8,7 +8,7 @@
 
 namespace {
 
-    char const* ShepherdBaseDirectory = "/home/lumen/Volumetric/LightField/stdio-shepherd";
+    char const* ShepherdBaseDirectory = "/usr/share/lightfield/libexec/stdio-shepherd";
 
     QRegularExpression PositionReportMatcher    { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
