@@ -11,7 +11,7 @@
 #include "utils.h"
 
 //#include "welcometab.h"
-#include "selecttab.h"
+#include "filetab.h"
 #include "preparetab.h"
 #include "printtab.h"
 #include "statustab.h"
@@ -48,14 +48,14 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 #endif // _DEBUG
 
     //welcomeTab = new WelcomeTab;
-    selectTab   = new SelectTab;
+    fileTab     = new FileTab;
     prepareTab  = new PrepareTab;
     printTab    = new PrintTab;
     statusTab   = new StatusTab;
     advancedTab = new AdvancedTab;
 
     //QObject::connect( this, &Window::printJobChanged, welcomeTab, &WelcomeTab::setPrintJob );
-    QObject::connect( this, &Window::printJobChanged, selectTab,  &SelectTab::setPrintJob  );
+    QObject::connect( this, &Window::printJobChanged, fileTab,    &FileTab::setPrintJob    );
     QObject::connect( this, &Window::printJobChanged, prepareTab, &PrepareTab::setPrintJob );
     QObject::connect( this, &Window::printJobChanged, printTab,   &PrintTab::setPrintJob   );
     QObject::connect( this, &Window::printJobChanged, statusTab,  &StatusTab::setPrintJob  );
@@ -64,7 +64,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     emit printJobChanged( printJob );
 
     //QObject::connect( this, &Window::shepherdChanged, welcomeTab,  &WelcomeTab::setShepherd  );
-    QObject::connect( this, &Window::shepherdChanged, selectTab,   &SelectTab::setShepherd   );
+    QObject::connect( this, &Window::shepherdChanged, fileTab,     &FileTab::setShepherd     );
     QObject::connect( this, &Window::shepherdChanged, prepareTab,  &PrepareTab::setShepherd  );
     QObject::connect( this, &Window::shepherdChanged, printTab,    &PrintTab::setShepherd    );
     QObject::connect( this, &Window::shepherdChanged, statusTab,   &StatusTab::setShepherd   );
@@ -88,10 +88,10 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     // "Select" tab
     //
 
-    selectTab->setContentsMargins( { } );
-    selectTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( selectTab, &SelectTab::modelSelected,        this, &Window::selectTab_modelSelected        );
-    QObject::connect( selectTab, &SelectTab::modelSelectionFailed, this, &Window::selectTab_modelSelectionFailed );
+    fileTab->setContentsMargins( { } );
+    fileTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect( fileTab, &FileTab::modelSelected,        this, &Window::fileTab_modelSelected        );
+    QObject::connect( fileTab, &FileTab::modelSelectionFailed, this, &Window::fileTab_modelSelectionFailed );
 
     //
     // "Prepare" tab
@@ -139,14 +139,14 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     double pointSize = tabs->font( ).pointSizeF( );
     tabs->setFont( ModifyFont( tabs->font( ), 22.0 ) );
     tabs->setContentsMargins( { } );
-    auto font9pt = ModifyFont( selectTab->font( ), pointSize );
+    auto font9pt = ModifyFont( fileTab->font( ), pointSize );
     //tabs->addTab( welcomeTab,  "Welcome"  ); welcomeTab ->setFont( font9pt );
-    tabs->addTab( selectTab,   "Select"   ); selectTab  ->setFont( font9pt );
+    tabs->addTab( fileTab,     "File"     ); fileTab    ->setFont( font9pt );
     tabs->addTab( prepareTab,  "Prepare"  ); prepareTab ->setFont( font9pt );
     tabs->addTab( printTab,    "Print"    ); printTab   ->setFont( font9pt );
     tabs->addTab( statusTab,   "Status"   ); statusTab  ->setFont( font9pt );
     tabs->addTab( advancedTab, "Advanced" ); advancedTab->setFont( font9pt );
-    tabs->setCurrentIndex( +TabIndex::Select/*+TabIndex::Welcome*/ );
+    tabs->setCurrentIndex( +TabIndex::File/*+TabIndex::Welcome*/ );
 
     setCentralWidget( tabs );
 }
@@ -191,9 +191,9 @@ void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
     // TODO restart shepherd if not expected
 }
 
-void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
+void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     debug(
-        "+ Window::selectTab_modelSelected:\n"
+        "+ Window::fileTab_modelSelected:\n"
         "  + file name:        '%s'\n"
         "  + vertex count:     %5zu\n"
         "  + X min, max, size: %.2f..%.2f, %.2f\n"
@@ -219,13 +219,13 @@ void Window::selectTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     printJob->z               = modelSelection->z;
     printJob->estimatedVolume = modelSelection->estimatedVolume;
     printJob->modelFileName   = modelSelection->fileName;
-    if ( tabs->currentIndex( ) == +TabIndex::Select ) {
+    if ( tabs->currentIndex( ) == +TabIndex::File ) {
         tabs->setCurrentIndex( +TabIndex::Prepare );
     }
 }
 
-void Window::selectTab_modelSelectionFailed( ) {
-    debug( "+ Window::selectTab_modelSelectionFailed\n" );
+void Window::fileTab_modelSelectionFailed( ) {
+    debug( "+ Window::fileTab_modelSelectionFailed\n" );
     prepareTab->resetState( );
     prepareTab->setSliceButtonEnabled( false );
     if ( !_isModelRendered ) {

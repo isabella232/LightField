@@ -153,7 +153,7 @@ char const* ToString( PendingCommand const value ) {
 
 char const* ToString( TabIndex const value ) {
 #if defined _DEBUG
-    if ( ( value >= TabIndex::Select/*Welcome*/ ) && ( value <= TabIndex::Advanced ) ) {
+    if ( ( value >= TabIndex::File/*Welcome*/ ) && ( value <= TabIndex::Advanced ) ) {
 #endif
         return TabIndexStrings[static_cast<int>( value )];
 #if defined _DEBUG

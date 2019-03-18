@@ -25,7 +25,7 @@ SOURCES +=                     \
     ../src/processrunner.cpp   \
     ../src/signalhandler.cpp   \
     ../src/welcometab.cpp      \
-    ../src/selecttab.cpp       \
+    ../src/filetab.cpp         \
     ../src/preparetab.cpp      \
     ../src/printtab.cpp        \
     ../src/statustab.cpp       \
@@ -53,7 +53,7 @@ HEADERS  += \
     ../src/processrunner.h   \
     ../src/signalhandler.h   \
     ../src/welcometab.h      \
-    ../src/selecttab.h       \
+    ../src/filetab.h         \
     ../src/preparetab.h      \
     ../src/printtab.h        \
     ../src/statustab.h       \

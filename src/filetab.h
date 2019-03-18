@@ -24,14 +24,14 @@ public:
 
 };
 
-class SelectTab: public QWidget {
+class FileTab: public QWidget {
 
     Q_OBJECT
 
 public:
 
-    SelectTab( QWidget* parent = nullptr );
-    virtual ~SelectTab( ) override;
+    FileTab( QWidget* parent = nullptr );
+    virtual ~FileTab( ) override;
 
     Shepherd* shepherd( ) const { return _shepherd; }
 
