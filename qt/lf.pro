@@ -63,7 +63,7 @@ HEADERS  += \
     ../src/gesturelistview.h \
     ../src/hasher.h
 
-CONFIG += c++17
+CONFIG += c++1z
 CONFIG += precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
