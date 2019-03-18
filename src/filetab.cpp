@@ -52,7 +52,6 @@ FileTab::FileTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->setMovement( QListView::Static );
     _availableFilesListView->setResizeMode( QListView::Fixed );
     _availableFilesListView->setViewMode( QListView::ListMode );
-    _availableFilesListView->setWrapping( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->grabGesture( Qt::SwipeGesture );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &FileTab::availableFilesListView_clicked );
