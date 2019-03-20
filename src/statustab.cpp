@@ -40,7 +40,7 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     jobStateLabel->setText( "Print job:" );
     jobStateLabel->setBuddy( jobStateDisplay );
 
-    jobStateDisplay->setText( "not printing" );
+    jobStateDisplay->setText( "idle" );
     jobStateDisplay->setFont( boldFont );
 
     currentLayerLabel->setText( "Current layer:" );
@@ -227,9 +227,12 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
 
-    jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
     _updatePrintTimeInfo->stop( );
+
+    jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
+    currentLayerDisplay->clear( );
     estimatedTimeLeftDisplay->clear( );
+    percentageCompleteDisplay->clear( );
     currentLayerImage->clear( );
 
     emit printComplete( );
@@ -238,9 +241,12 @@ void StatusTab::printManager_printComplete( bool const success ) {
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
 
-    jobStateDisplay->setText( QString( "print aborted" ) );
     _updatePrintTimeInfo->stop( );
+
+    jobStateDisplay->setText( QString( "print aborted" ) );
+    currentLayerDisplay->clear( );
     estimatedTimeLeftDisplay->clear( );
+    percentageCompleteDisplay->clear( );
     currentLayerImage->clear( );
 
     emit printComplete( );
