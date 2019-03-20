@@ -411,6 +411,7 @@ void PrintManager::abort( ) {
     if ( _lampOn ) {
         QProcess::startDetached( SetpowerCommand, { "0" } );
         _lampOn = false;
+        emit lampStatusChange( false );
     }
 
     stepC1_start( );
