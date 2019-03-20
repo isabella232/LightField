@@ -13,7 +13,8 @@ import time
 
 from threading import Thread
 
-sys.path.append( '/home/lumen/Volumetric/printrun' )
+sys.path.append( '/usr/share/lightfield/libexec/printrun' )
+
 import printer
 
 csv.register_dialect( 'StdioPrinterDriverCustom', delimiter = ' ', doublequote = False, escapechar = '\\', lineterminator = '\n', quotechar = '"', quoting = csv.QUOTE_MINIMAL, skipinitialspace = False )

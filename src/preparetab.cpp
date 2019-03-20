@@ -269,17 +269,30 @@ void PrepareTab::navigateLast_clicked( bool ) {
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
-    debug( "+ PrepareTab::sliceButton_clicked: kicking off hasher\n" );
+    debug( "+ PrepareTab::sliceButton_clicked: pre-sliced? %s\n", ToString( _preSliced ) );
 
-    _hasher = new Hasher;
-    QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
-    _hasher->hash( _printJob->modelFileName );
+    QDir jobDir { _printJob->jobWorkingDirectory };
+    jobDir.removeRecursively( );
+    jobDir.mkdir( _printJob->jobWorkingDirectory );
 
-    sliceStatus->setText( "hashing" );
+    sliceStatus->setText( "starting" );
     imageGeneratorStatus->setText( "waiting" );
-    currentSliceImage->clear( );
-    navigateCurrentLabel->setText( "0/0" );
-    _setNavigationButtonsEnabled( false );
+
+    slicerProcess = new QProcess( this );
+    QObject::connect( slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
+    QObject::connect( slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
+    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
+    slicerProcess->start(
+        QString     { "slic3r" },
+        QStringList {
+            _printJob->modelFileName,
+            QString( "--export-svg" ),
+            QString( "--first-layer-height" ), QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
+            QString( "--layer-height" ),       QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
+            QString( "--output" ),             _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName
+        }
+    );
+
     emit sliceStarted( );
 }
 
@@ -295,7 +308,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _hasher->deleteLater( );
     _hasher = nullptr;
 
-    auto baseName = GetFileBaseName( _printJob->modelFileName );
+    sliceStatus->setText( "idle" );
 
     debug(
         "  + model filename:        '%s'\n"
@@ -305,52 +318,31 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         _printJob->jobWorkingDirectory.toUtf8( ).data( )
     );
 
-    if ( 0 != ::mkdir( _printJob->jobWorkingDirectory.toUtf8( ).data( ), 0700 ) ) {
-        error_t err = errno;
-        if ( EEXIST != err ) {
-            debug( "  + unable to create job working directory: %s [%d]\n", strerror( err ), err );
-            emit sliceComplete( false );
-            return;
-        }
-
-        if ( _checkPreSlicedFiles( ) ) {
-            sliceStatus->setText( "skipped" );
-            imageGeneratorStatus->setText( "skipped" );
-
-            int fieldWidth = ceil( log10( _printJob->layerCount ) );
-            navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
-            _setNavigationButtonsEnabled( true );
-
-            emit sliceComplete( true );
-            emit renderStarted( );
-            emit renderComplete( true );
-            return;
-        }
-    }
-
     QDir jobDir { _printJob->jobWorkingDirectory };
-    for ( auto entryName : jobDir.entryList( ) ) {
-        jobDir.remove( entryName );
+    if ( jobDir.exists( ) ) {
+        debug( "  + job directory already exists, checking sliced model\n" );
+        _preSliced = _checkPreSlicedFiles( );
+        if ( _preSliced ) {
+            debug( "  + presliced model is good\n" );
+        } else {
+            debug( "  + presliced model is NOT good\n" );
+            jobDir.removeRecursively( );
+        }
+    } else {
+        debug( "  + job directory does not exist\n" );
+        _preSliced = false;
     }
 
-    sliceStatus->setText( "starting" );
-    slicerProcess = new QProcess( this );
-    QObject::connect( slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
-    QObject::connect( slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
-    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
-    slicerProcess->start(
-        QString     { "slic3r" },
-        QStringList {
-            _printJob->modelFileName,
-            QString( "--export-svg" ),
-            QString( "--first-layer-height" ),
-            QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
-            QString( "--layer-height" ),
-            QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
-            QString( "--output" ),
-            _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName
-        }
-    );
+    _setNavigationButtonsEnabled( _preSliced );
+    sliceButton->setEnabled( true );
+    if ( _preSliced ) {
+        navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
+        sliceButton->setText( "Reslice" );
+        emit alreadySliced( );
+    } else {
+        navigateCurrentLabel->setText( "0/0" );
+        sliceButton->setText( "Slice" );
+    }
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -432,6 +424,8 @@ void PrepareTab::svgRenderer_done( bool const success ) {
     svgRenderer = nullptr;
 
     _setNavigationButtonsEnabled( true );
+    sliceButton->setText( "Reslice" );
+    _preSliced = true;
 
     emit renderComplete( success );
 }
@@ -513,8 +507,8 @@ void PrepareTab::_shepherd_resinLoadMoveToComplete( bool const success ) {
     emit preparePrinterComplete( true );
 }
 
-void PrepareTab::setPrepareButtonEnabled( bool const value ) {
-    _prepareButton->setEnabled( value );
+void PrepareTab::setPrepareButtonEnabled( bool const enabled ) {
+    _prepareButton->setEnabled( enabled );
 }
 
 void PrepareTab::setPrintJob( PrintJob* printJob ) {
@@ -530,12 +524,23 @@ void PrepareTab::setShepherd( Shepherd* newShepherd ) {
     _shepherd = newShepherd;
 }
 
-void PrepareTab::setSliceButtonEnabled( bool const value ) {
-    sliceButton->setEnabled( value );
+void PrepareTab::setSliceButtonEnabled( bool const enabled ) {
+    sliceButton->setEnabled( enabled );
 }
 
 void PrepareTab::resetState( ) {
     sliceStatus->setText( "idle" );
     imageGeneratorStatus->setText( "idle" );
     currentSliceImage->clear( );
+    navigateCurrentLabel->setText( "0/0" );
+    _setNavigationButtonsEnabled( false );
+}
+
+void PrepareTab::modelSelected( ) {
+    resetState( );
+    sliceButton->setEnabled( false );
+
+    _hasher = new Hasher;
+    QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
+    _hasher->hash( _printJob->modelFileName );
 }

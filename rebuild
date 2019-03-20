@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
+if [ -z "${BUILDDIR}" ]
+then
+    export BUILDDIR="/home/lumen/Volumetric/LightField/build"
+fi
+
 rebuild () {
-    local BUILD=debug BUILDDIR="/home/lumen/Volumetric/LightField/build" CLEAN= NUKE= QMAKE=
+    local BUILD=debug
+    local CLEAN=
+    local NUKE=
+    local QMAKE=
+
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
 	cat <<HERE
 Usage: $0 [-cnqrx] [--clean|--nuke-first|--qmake-anyway|--release]
@@ -47,7 +56,7 @@ HERE
     fi
 
     local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-    if [ -n "${LASTBUILDMODE}" -a "${BUILD}" != "${LASTBUILDMODE}" ]
+    if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
     then
 	echo Switching from ${LASTBUILDMODE} to ${BUILD}.
 	NUKE=yes

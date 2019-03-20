@@ -17,7 +17,7 @@ set (PROJECT_VERSION "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_PATCH
 
 if(WIN32)
 # Set the Qt5 path
-set (Qt5_DIR "D:\\\\Qt\\\\5.12.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set (Qt5_DIR "F:\\\\Qt\\\\5.12.1\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(lf)
@@ -44,7 +44,7 @@ src/svgrenderer.cpp
 src/processrunner.cpp
 src/signalhandler.cpp
 src/welcometab.cpp
-src/selecttab.cpp
+src/filetab.cpp
 src/preparetab.cpp
 src/printtab.cpp
 src/statustab.cpp
@@ -73,7 +73,7 @@ src/svgrenderer.h
 src/processrunner.h
 src/signalhandler.h
 src/welcometab.h
-src/selecttab.h
+src/filetab.h
 src/preparetab.h
 src/printtab.h
 src/statustab.h

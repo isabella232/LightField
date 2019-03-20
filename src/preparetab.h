@@ -32,6 +32,7 @@ private:
     Hasher*                _hasher                     { };
     int                    _visibleLayer               { };
     int                    _renderedLayers             { };
+    bool                   _preSliced                  { };
 
     QLabel*                layerThicknessLabel         { new QLabel       };
     QRadioButton*          layerThickness50Button      { new QRadioButton };
@@ -83,14 +84,18 @@ signals:
     void preparePrinterStarted( );
     void preparePrinterComplete( bool const success );
 
+    void alreadySliced( );
+
 public slots:
 
-    void setPrepareButtonEnabled( bool const value );
+    void setPrepareButtonEnabled( bool const enabled );
     void setPrintJob( PrintJob* printJob );
     void setShepherd( Shepherd* shepherd );
-    void setSliceButtonEnabled( bool const value );
+    void setSliceButtonEnabled( bool const enabled );
 
     void resetState( );
+
+    void modelSelected( );
 
 protected slots:
 

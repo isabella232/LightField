@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "selecttab.h"
+#include "filetab.h"
 
 #include "canvas.h"
 #include "loader.h"
@@ -17,8 +17,8 @@ namespace {
 
 }
 
-SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
-    debug( "+ SelectTab::`ctor: construct at %p\n", this );
+FileTab::FileTab( QWidget* parent ): QWidget( parent ) {
+    debug( "+ FileTab::`ctor: construct at %p\n", this );
 
     _userMediaPath = MediaRootPath + Slash + GetUserName( );
     debug( "  + user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
@@ -33,14 +33,14 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _libraryFsModel->setNameFilterDisables( false );
     _libraryFsModel->setNameFilters( { { "*.stl" } } );
     _libraryFsModel->setRootPath( StlModelLibraryPath );
-    QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::libraryFsModel_directoryLoaded );
+    QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
     _usbFsModel->setFilter( QDir::Files );
     _usbFsModel->setNameFilterDisables( false );
     _usbFsModel->setNameFilters( { { "*.stl" } } );
-    QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &SelectTab::usbFsModel_directoryLoaded );
+    QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
 
-    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &SelectTab::_checkUsbPath );
+    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTab::_checkUsbPath );
     _fsWatcher->addPath( MediaRootPath );
 
     _checkUserMediaPath( );
@@ -52,14 +52,13 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _availableFilesListView->setMovement( QListView::Static );
     _availableFilesListView->setResizeMode( QListView::Fixed );
     _availableFilesListView->setViewMode( QListView::ListMode );
-    _availableFilesListView->setWrapping( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->grabGesture( Qt::SwipeGesture );
-    QObject::connect( _availableFilesListView, &QListView::clicked, this, &SelectTab::availableFilesListView_clicked );
+    QObject::connect( _availableFilesListView, &QListView::clicked, this, &FileTab::availableFilesListView_clicked );
 
     _toggleLocationButton->setEnabled( false );
     _toggleLocationButton->setText( "Show USB stick" );
-    QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &SelectTab::toggleLocationButton_clicked );
+    QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
 
     _availableFilesLayout->setContentsMargins( { } );
     _availableFilesLayout->addWidget( _toggleLocationButton,   0, 0 );
@@ -73,7 +72,7 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     _selectButton->setFixedSize( MainButtonSize );
     _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0 ) );
     _selectButton->setText( "Select" );
-    QObject::connect( _selectButton, &QPushButton::clicked, this, &SelectTab::selectButton_clicked );
+    QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
@@ -108,34 +107,34 @@ SelectTab::SelectTab( QWidget* parent ): QWidget( parent ) {
     setLayout( _layout );
 }
 
-SelectTab::~SelectTab( ) {
-    debug( "+ SelectTab::`dtor: destruct at %p\n", this );
+FileTab::~FileTab( ) {
+    debug( "+ FileTab::`dtor: destruct at %p\n", this );
 }
 
-void SelectTab::libraryFsModel_directoryLoaded( QString const& name ) {
-    debug( "+ SelectTab::libraryFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
+    debug( "+ FileTab::libraryFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     if ( _modelsLocation == ModelsLocation::Library ) {
         _libraryFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
     }
 }
 
-void SelectTab::usbFsModel_directoryLoaded( QString const& name ) {
-    debug( "+ SelectTab::usbFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+void FileTab::usbFsModel_directoryLoaded( QString const& name ) {
+    debug( "+ FileTab::usbFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
     if ( _modelsLocation == ModelsLocation::Usb ) {
         _usbFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
     }
 }
 
-void SelectTab::fsWatcher_directoryChanged( QString const& path ) {
-    debug( "+ SelectTab::fsWatcher_directoryChanged: path '%s'\n", path.toUtf8( ).data( ) );
+void FileTab::fsWatcher_directoryChanged( QString const& path ) {
+    debug( "+ FileTab::fsWatcher_directoryChanged: path '%s'\n", path.toUtf8( ).data( ) );
 
     _checkUserMediaPath( );
 }
 
-void SelectTab::usbRetryTimer_timeout( ) {
-    debug( "+ SelectTab::usbRetryTimer_timeout: retry count is %d\n", _usbRetryCount );
+void FileTab::usbRetryTimer_timeout( ) {
+    debug( "+ FileTab::usbRetryTimer_timeout: retry count is %d\n", _usbRetryCount );
 
     _checkUserMediaPath( );
 
@@ -145,7 +144,7 @@ void SelectTab::usbRetryTimer_timeout( ) {
 
     --_usbRetryCount;
     if ( _usbRetryCount < 1 ) {
-        debug( "+ SelectTab::usbRetryTimer_timeout: out of retries, giving up\n" );
+        debug( "+ FileTab::usbRetryTimer_timeout: out of retries, giving up\n" );
         _stopUsbRetry( );
 
         if ( _modelsLocation == ModelsLocation::Usb ) {
@@ -159,12 +158,12 @@ void SelectTab::usbRetryTimer_timeout( ) {
         }
         _toggleLocationButton->setEnabled( false );
     } else {
-        debug( "+ SelectTab::usbRetryTimer_timeout: %d more retries\n", _usbRetryCount );
+        debug( "+ FileTab::usbRetryTimer_timeout: %d more retries\n", _usbRetryCount );
     }
 }
 
-void SelectTab::_checkUserMediaPath( ) {
-    debug( "+ SelectTab::_checkUserMediaPath\n" );
+void FileTab::_checkUserMediaPath( ) {
+    debug( "+ FileTab::_checkUserMediaPath\n" );
 
     QFileInfo userMediaPathInfo { _userMediaPath };
     if ( !userMediaPathInfo.exists( ) ) {
@@ -187,8 +186,8 @@ void SelectTab::_checkUserMediaPath( ) {
     _checkUsbPath( );
 }
 
-void SelectTab::_checkUsbPath( ) {
-    debug( "+ SelectTab::_checkUsbPath\n" );
+void FileTab::_checkUsbPath( ) {
+    debug( "+ FileTab::_checkUsbPath\n" );
 
     QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
     if ( dirname.isEmpty( ) ) {
@@ -214,24 +213,24 @@ void SelectTab::_checkUsbPath( ) {
     _toggleLocationButton->setEnabled( true );
 }
 
-void SelectTab::_startUsbRetry( ) {
-    debug( "+ SelectTab::_startUsbRetry\n" );
+void FileTab::_startUsbRetry( ) {
+    debug( "+ FileTab::_startUsbRetry\n" );
     if ( !_usbRetryTimer->isActive( ) ) {
-        QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &SelectTab::usbRetryTimer_timeout );
+        QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &FileTab::usbRetryTimer_timeout );
         _usbRetryCount = 5;
         _usbRetryTimer->start( );
     }
 }
 
-void SelectTab::_stopUsbRetry( ) {
-    debug( "+ SelectTab::_stopUsbRetry\n" );
+void FileTab::_stopUsbRetry( ) {
+    debug( "+ FileTab::_stopUsbRetry\n" );
     _usbRetryCount = 0;
     QObject::disconnect( _usbRetryTimer, nullptr, this, nullptr );
     _usbRetryTimer->stop( );
-    debug( "+ SelectTab::_stopUsbRetry: timer stopped\n" );
+    debug( "+ FileTab::_stopUsbRetry: timer stopped\n" );
 }
 
-void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
+void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
     int indexRow = index.row( );
     if ( _selectedRow == indexRow ) {
         return;
@@ -239,7 +238,7 @@ void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
     _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ), };
     _selectedRow    = indexRow;
-    debug( "+ SelectTab::availableFilesListView_clicked: selection changed to row %d, file name '%s'\n", _selectedRow, _modelSelection.fileName.toUtf8( ).data( ) );
+    debug( "+ FileTab::availableFilesListView_clicked: selection changed to row %d, file name '%s'\n", _selectedRow, _modelSelection.fileName.toUtf8( ).data( ) );
 
     _selectButton->setEnabled( false );
     _availableFilesListView->setEnabled( false );
@@ -257,9 +256,9 @@ void SelectTab::availableFilesListView_clicked( QModelIndex const& index ) {
     }
 }
 
-void SelectTab::availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture ) {
+void FileTab::availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture ) {
     debug(
-        "+ SelectTab::availableFilesListView_swipeGesture:\n"
+        "+ FileTab::availableFilesListView_swipeGesture:\n"
         "  + state:               %s [%d]\n"
         "  + horizontal direction %s [%d]\n"
         "  + vertical direction   %s [%d]\n"
@@ -300,7 +299,7 @@ void SelectTab::availableFilesListView_swipeGesture( QGestureEvent* event, QSwip
     }
 }
 
-void SelectTab::toggleLocationButton_clicked( bool ) {
+void FileTab::toggleLocationButton_clicked( bool ) {
     if ( _modelsLocation == ModelsLocation::Library ) {
         _showUsbStick( );
     } else {
@@ -308,16 +307,16 @@ void SelectTab::toggleLocationButton_clicked( bool ) {
     }
 }
 
-void SelectTab::selectButton_clicked( bool ) {
-    debug( "+ SelectTab::selectButton_clicked\n" );
+void FileTab::selectButton_clicked( bool ) {
+    debug( "+ FileTab::selectButton_clicked\n" );
     auto selection = new ModelSelectionInfo( _modelSelection );
     emit modelSelected( selection );
     delete selection;
 }
 
-void SelectTab::loader_gotMesh( Mesh* m ) {
+void FileTab::loader_gotMesh( Mesh* m ) {
     if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0].unicode( ) == L':' ) ) {
-        debug( "+ SelectTab::loader_gotMesh: file name '%s' is empty or resource name\n", _modelSelection.fileName.toUtf8( ).data( ) );
+        debug( "+ FileTab::loader_gotMesh: file name '%s' is empty or resource name\n", _modelSelection.fileName.toUtf8( ).data( ) );
         return;
     }
 
@@ -325,7 +324,7 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     m->bounds( _modelSelection.vertexCount, _modelSelection.x, _modelSelection.y, _modelSelection.z );
 
     debug(
-        "+ SelectTab::loader_gotMesh:\n"
+        "+ FileTab::loader_gotMesh:\n"
         "  + file name:         '%s'\n"
         "  + count of vertices: %5zu\n"
         "  + X range:           %12.6f .. %12.6f, %12.6f\n"
@@ -365,10 +364,10 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     }
 
     _processRunner = new ProcessRunner( this );
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &SelectTab::processRunner_succeeded               );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &SelectTab::processRunner_failed                  );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &SelectTab::processRunner_readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &SelectTab::processRunner_readyReadStandardError  );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &FileTab::processRunner_succeeded               );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &FileTab::processRunner_failed                  );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &FileTab::processRunner_readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &FileTab::processRunner_readyReadStandardError  );
 
     _processRunner->start(
         { "slic3r" },
@@ -379,8 +378,8 @@ void SelectTab::loader_gotMesh( Mesh* m ) {
     );
 }
 
-void SelectTab::loader_ErrorBadStl( ) {
-    debug( "+ SelectTab::loader_ErrorBadStl\n" );
+void FileTab::loader_ErrorBadStl( ) {
+    debug( "+ FileTab::loader_ErrorBadStl\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "This <code>.stl</code> file is invalid or corrupted.<br>"
@@ -391,8 +390,8 @@ void SelectTab::loader_ErrorBadStl( ) {
     emit modelSelectionFailed( );
 }
 
-void SelectTab::loader_ErrorEmptyMesh( ) {
-    debug( "+ SelectTab::loader_ErrorEmptyMesh\n" );
+void FileTab::loader_ErrorEmptyMesh( ) {
+    debug( "+ FileTab::loader_ErrorEmptyMesh\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "This file is syntactically correct<br>"
@@ -403,8 +402,8 @@ void SelectTab::loader_ErrorEmptyMesh( ) {
     emit modelSelectionFailed( );
 }
 
-void SelectTab::loader_ErrorMissingFile( ) {
-    debug( "+ SelectTab::loader_ErrorMissingFile\n" );
+void FileTab::loader_ErrorMissingFile( ) {
+    debug( "+ FileTab::loader_ErrorMissingFile\n" );
     QMessageBox::critical( this, "Error",
         "<b>Error:</b><br>"
         "The target file is missing."
@@ -414,16 +413,16 @@ void SelectTab::loader_ErrorMissingFile( ) {
     emit modelSelectionFailed( );
 }
 
-void SelectTab::loader_Finished( ) {
-    debug( "+ SelectTab::loader_Finished\n" );
+void FileTab::loader_Finished( ) {
+    debug( "+ FileTab::loader_Finished\n" );
     _availableFilesListView->setEnabled( true );
     _canvas->clear_status( );
     _loader->deleteLater( );
     _loader = nullptr;
 }
 
-void SelectTab::processRunner_succeeded( ) {
-    debug( "+ SelectTab::processRunner_succeeded\n" );
+void FileTab::processRunner_succeeded( ) {
+    debug( "+ FileTab::processRunner_succeeded\n" );
 
     bool gotVolume = false;
     for ( auto line : _slicerBuffer.split( QRegularExpression { QString { "\\r?\\n" } } ) ) {
@@ -447,48 +446,48 @@ void SelectTab::processRunner_succeeded( ) {
     _slicerBuffer.clear( );
 }
 
-void SelectTab::processRunner_failed( QProcess::ProcessError const error ) {
-    debug( "SelectTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
+void FileTab::processRunner_failed( QProcess::ProcessError const error ) {
+    debug( "FileTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
     _slicerBuffer.clear( );
     emit modelSelectionFailed( );
 }
 
-void SelectTab::processRunner_readyReadStandardOutput( QString const& data ) {
-    debug( "+ SelectTab::processRunner_readyReadStandardOutput: %d bytes from slic3r\n", data.length( ) );
+void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
+    debug( "+ FileTab::processRunner_readyReadStandardOutput: %d bytes from slic3r\n", data.length( ) );
     _slicerBuffer += data;
 }
 
-void SelectTab::processRunner_readyReadStandardError( QString const& data ) {
+void FileTab::processRunner_readyReadStandardError( QString const& data ) {
     debug(
-        "+ SelectTab::processRunner_readyReadStandardError: %d bytes from slic3r:\n"
+        "+ FileTab::processRunner_readyReadStandardError: %d bytes from slic3r:\n"
         "%s",
         data.length( ),
         data.toUtf8( ).data( )
     );
 }
 
-bool SelectTab::_loadModel( QString const& fileName ) {
-    debug( "+ SelectTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
+bool FileTab::_loadModel( QString const& fileName ) {
+    debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     if ( _loader ) {
-        debug( "+ SelectTab::_loadModel: loader object exists, not loading\n" );
+        debug( "+ FileTab::_loadModel: loader object exists, not loading\n" );
         return false;
     }
 
     _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
 
     _loader = new Loader( fileName, this );
-    connect( _loader, &Loader::got_mesh,           this,    &SelectTab::loader_gotMesh          );
-    connect( _loader, &Loader::error_bad_stl,      this,    &SelectTab::loader_ErrorBadStl      );
-    connect( _loader, &Loader::error_empty_mesh,   this,    &SelectTab::loader_ErrorEmptyMesh   );
-    connect( _loader, &Loader::error_missing_file, this,    &SelectTab::loader_ErrorMissingFile );
-    connect( _loader, &Loader::finished,           this,    &SelectTab::loader_Finished         );
+    connect( _loader, &Loader::got_mesh,           this,    &FileTab::loader_gotMesh          );
+    connect( _loader, &Loader::error_bad_stl,      this,    &FileTab::loader_ErrorBadStl      );
+    connect( _loader, &Loader::error_empty_mesh,   this,    &FileTab::loader_ErrorEmptyMesh   );
+    connect( _loader, &Loader::error_missing_file, this,    &FileTab::loader_ErrorMissingFile );
+    connect( _loader, &Loader::finished,           this,    &FileTab::loader_Finished         );
 
     _selectButton->setEnabled( false );
     _loader->start( );
     return true;
 }
 
-void SelectTab::_showLibrary( ) {
+void FileTab::_showLibrary( ) {
     _modelsLocation = ModelsLocation::Library;
     _currentFsModel = _libraryFsModel;
 
@@ -499,7 +498,7 @@ void SelectTab::_showLibrary( ) {
     _toggleLocationButton->setText( "Show USB stick" );
 }
 
-void SelectTab::_showUsbStick( ) {
+void FileTab::_showUsbStick( ) {
     _modelsLocation = ModelsLocation::Usb;
     _currentFsModel = _usbFsModel;
 
@@ -510,12 +509,12 @@ void SelectTab::_showUsbStick( ) {
     _toggleLocationButton->setText( "Show library" );
 }
 
-void SelectTab::setPrintJob( PrintJob* printJob ) {
+void FileTab::setPrintJob( PrintJob* printJob ) {
     debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
     _printJob = printJob;
 }
 
-void SelectTab::setShepherd( Shepherd* newShepherd ) {
+void FileTab::setShepherd( Shepherd* newShepherd ) {
     if ( _shepherd ) {
         QObject::disconnect( _shepherd, nullptr, this, nullptr );
     }

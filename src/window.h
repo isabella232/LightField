@@ -9,7 +9,7 @@ class PrintManager;
 class PrintJob;
 
 //class WelcomeTab;
-class SelectTab;
+class FileTab;
 class PrepareTab;
 class PrintTab;
 class StatusTab;
@@ -17,7 +17,7 @@ class AdvancedTab;
 
 enum class TabIndex {
     //Welcome,
-    Select,
+    File,
     Prepare,
     Print,
     Status,
@@ -50,7 +50,7 @@ private:
 
     QTabWidget*   tabs               { new QTabWidget };
     //WelcomeTab*   welcomeTab;
-    SelectTab*    selectTab;
+    FileTab*      fileTab;
     PrepareTab*   prepareTab;
     PrintTab*     printTab;
     StatusTab*    statusTab;
@@ -80,8 +80,8 @@ private slots:
 
     void tabs_currentChanged( int index );
 
-    void selectTab_modelSelected( ModelSelectionInfo* modelSelection );
-    void selectTab_modelSelectionFailed( );
+    void fileTab_modelSelected( ModelSelectionInfo* modelSelection );
+    void fileTab_modelSelectionFailed( );
 
     void prepareTab_sliceStarted( );
     void prepareTab_sliceComplete( bool const success );
@@ -89,6 +89,7 @@ private slots:
     void prepareTab_renderComplete( bool const success );
     void prepareTab_preparePrinterStarted( );
     void prepareTab_preparePrinterComplete( bool const success );
+    void prepareTab_alreadySliced( );
 
     void printTab_printButtonClicked( );
 

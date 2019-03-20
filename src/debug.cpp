@@ -9,7 +9,7 @@ FILE* OriginalStderr { stderr };
 
 namespace {
 
-    char const* DebugLogPath = "/home/lumen/Volumetric/debug";
+    char const* DebugLogPath = "/var/log/lightfield";
 
     class DebugManager {
 

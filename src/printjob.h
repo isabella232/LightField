@@ -19,8 +19,8 @@ public:
     int        layerCount              {     };
     int        layerThickness          { 100 }; // unit: µm
     double     exposureTime            { 1.0 }; // unit: s
-    double     exposureTimeScaleFactor { 1.0 }; // unit: for first two layers
-    int        powerLevel              { 127 }; // unit: 0..255
+    double     exposureTimeScaleFactor { 1.0 }; // for first two layers
+    int        powerLevel              { 128 }; // range: 0..255
 
 };
 

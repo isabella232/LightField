@@ -5,8 +5,7 @@ import time
 
 from threading import Thread
 
-sys.path.append('/home/lumen/Volumetric/printrun')
-sys.path.append('/home/lumen/Volumetric/TouchPrint/App')
+sys.path.append('/usr/share/lightfield/libexec/printrun')
 
 from Util.constants import MOTOR_AXIS
 
