@@ -89,6 +89,7 @@ private slots:
     void prepareTab_renderComplete( bool const success );
     void prepareTab_preparePrinterStarted( );
     void prepareTab_preparePrinterComplete( bool const success );
+    void prepareTab_alreadySliced( );
 
     void printTab_printButtonClicked( );
 

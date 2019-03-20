@@ -106,6 +106,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( prepareTab, &PrepareTab::renderComplete,         this, &Window::prepareTab_renderComplete         );
     QObject::connect( prepareTab, &PrepareTab::preparePrinterStarted,  this, &Window::prepareTab_preparePrinterStarted  );
     QObject::connect( prepareTab, &PrepareTab::preparePrinterComplete, this, &Window::prepareTab_preparePrinterComplete );
+    QObject::connect( prepareTab, &PrepareTab::alreadySliced,          this, &Window::prepareTab_alreadySliced          );
 
     //
     // "Print" tab
@@ -211,17 +212,17 @@ void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     _isModelRendered = false;
     debug( "  + isModelRendered set to false.\n" );
 
-    prepareTab->resetState( );
-    prepareTab->setSliceButtonEnabled( true );
     printJob->vertexCount     = modelSelection->vertexCount;
     printJob->x               = modelSelection->x;
     printJob->y               = modelSelection->y;
     printJob->z               = modelSelection->z;
     printJob->estimatedVolume = modelSelection->estimatedVolume;
     printJob->modelFileName   = modelSelection->fileName;
+
     if ( tabs->currentIndex( ) == +TabIndex::File ) {
         tabs->setCurrentIndex( +TabIndex::Prepare );
     }
+    prepareTab->modelSelected( );
 }
 
 void Window::fileTab_modelSelectionFailed( ) {
@@ -281,6 +282,15 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
 
     printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     if ( success && ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
+        tabs->setCurrentIndex( +TabIndex::Print );
+    }
+}
+
+void Window::prepareTab_alreadySliced( ) {
+    debug( "  + Window::prepareTab_alreadySliced\n" );
+    _isModelRendered = true;
+    printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    if ( ( tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
         tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
