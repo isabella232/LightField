@@ -114,7 +114,7 @@ void PrintManager::stepA1_start( ) {
     debug( "+ PrintManager::stepA1_start: raising build platform to %.2f mm\n", PrinterMaximumZ );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA1_completed );
-    _shepherd->doMoveTo( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
 void PrintManager::stepA1_completed( bool const success ) {
@@ -151,7 +151,7 @@ void PrintManager::stepA3_start( ) {
     debug( "+ PrintManager::stepA3_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA3_completed );
-    _shepherd->doMoveTo( firstLayerHeight );
+    _shepherd->doMoveAbsolute( firstLayerHeight );
 }
 
 void PrintManager::stepA3_completed( bool const success ) {
@@ -301,7 +301,7 @@ void PrintManager::stepB6_start( ) {
         debug( "+ PrintManager::stepB6_start: raising build platform by %.2f mm\n", LiftDistance );
 
         QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
-        _shepherd->doMove( LiftDistance );
+        _shepherd->doMoveRelative( LiftDistance );
 
         emit startingLayer( _currentLayer );
     }
@@ -327,7 +327,7 @@ void PrintManager::stepB7_start( ) {
     debug( "+ PrintManager::stepB7_start: lowering build platform by %.2f mm\n", moveDistance );
 
     QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB7_completed );
-    _shepherd->doMove( moveDistance );
+    _shepherd->doMoveRelative( moveDistance );
 }
 
 void PrintManager::stepB7_completed( bool const success ) {
@@ -364,7 +364,7 @@ void PrintManager::stepC1_start( ) {
     debug( "+ PrintManager::stepC1_start: raising build platform to maximum Z\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
-    _shepherd->doMoveTo( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
 void PrintManager::stepC1_completed( bool const success ) {

@@ -329,14 +329,14 @@ void Shepherd::start( ) {
     }
 }
 
-void Shepherd::doMove( float const relativeDistance ) {
-    if ( getReady( "doMove", PendingCommand::move, 4 ) ) {
+void Shepherd::doMoveRelative( float const relativeDistance ) {
+    if ( getReady( "doMoveRelative", PendingCommand::move, 4 ) ) {
         _process->write( QString( "move %1\n" ).arg( relativeDistance, 0, 'f', 2 ).toUtf8( ) );
     }
 }
 
-void Shepherd::doMoveTo( float const absolutePosition ) {
-    if ( getReady( "doMoveTo", PendingCommand::moveTo, 4 ) ) {
+void Shepherd::doMoveAbsolute( float const absolutePosition ) {
+    if ( getReady( "doMoveAbsolute", PendingCommand::moveTo, 4 ) ) {
         _process->write( QString( "moveTo %1\n" ).arg( absolutePosition, 0, 'f', 2 ).toUtf8( ) );
     }
 }

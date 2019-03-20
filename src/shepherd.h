@@ -20,8 +20,8 @@ public:
 
     void start( );
 
-    void doMove( float const relativeDistance );
-    void doMoveTo( float const absolutePosition );
+    void doMoveRelative( float const relativeDistance );
+    void doMoveAbsolute( float const absolutePosition );
     void doHome( );
     void doSend( QString cmd );
     void doSend( QStringList cmds );
