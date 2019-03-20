@@ -26,44 +26,49 @@ protected:
 
 private:
 
-    QLabel*       printerStateLabel          { new QLabel      };
-    QLabel*       printerStateDisplay        { new QLabel      };
-    QLabel*       projectorLampStateLabel    { new QLabel      };
-    QLabel*       projectorLampStateDisplay  { new QLabel      };
-    QLabel*       jobStateLabel              { new QLabel      };
-    QLabel*       jobStateDisplay            { new QLabel      };
-    QLabel*       currentLayerLabel          { new QLabel      };
-    QLabel*       currentLayerDisplay        { new QLabel      };
-    QLabel*       elapsedTimeLabel           { new QLabel      };
-    QLabel*       elapsedTimeDisplay         { new QLabel      };
-    QLabel*       estimatedTimeLeftLabel     { new QLabel      };
-    QLabel*       estimatedTimeLeftDisplay   { new QLabel      };
-    QLabel*       percentageCompleteLabel    { new QLabel      };
-    QLabel*       percentageCompleteDisplay  { new QLabel      };
-    QWidget*      progressControlsContainer  { new QWidget     };
-    QVBoxLayout*  progressControlsLayout     { new QVBoxLayout };
+    QLabel*                printerStateLabel          { new QLabel      };
+    QLabel*                printerStateDisplay        { new QLabel      };
+    QLabel*                projectorLampStateLabel    { new QLabel      };
+    QLabel*                projectorLampStateDisplay  { new QLabel      };
+    QLabel*                jobStateLabel              { new QLabel      };
+    QLabel*                jobStateDisplay            { new QLabel      };
+    QLabel*                currentLayerLabel          { new QLabel      };
+    QLabel*                currentLayerDisplay        { new QLabel      };
+    QLabel*                elapsedTimeLabel           { new QLabel      };
+    QLabel*                elapsedTimeDisplay         { new QLabel      };
+    QLabel*                estimatedTimeLeftLabel     { new QLabel      };
+    QLabel*                estimatedTimeLeftDisplay   { new QLabel      };
+    QLabel*                percentageCompleteLabel    { new QLabel      };
+    QLabel*                percentageCompleteDisplay  { new QLabel      };
+    QWidget*               progressControlsContainer  { new QWidget     };
+    QVBoxLayout*           progressControlsLayout     { new QVBoxLayout };
 
-    QLabel*       currentLayerImage          { new QLabel      };
-    QVBoxLayout*  currentLayerLayout         {                 };
-    QGroupBox*    currentLayerGroup          { new QGroupBox   };
+    QLabel*                currentLayerImage          { new QLabel      };
+    QVBoxLayout*           currentLayerLayout         {                 };
+    QGroupBox*             currentLayerGroup          { new QGroupBox   };
 
-    QLabel*       loadPrintSolutionLabel     { new QLabel      };
-    QPushButton*  printSolutionLoadedButton  { new QPushButton };
-    QGroupBox*    loadPrintSolutionGroup     { new QGroupBox   };
+    QLabel*                loadPrintSolutionLabel     { new QLabel      };
+    QPushButton*           printSolutionLoadedButton  { new QPushButton };
+    QGroupBox*             loadPrintSolutionGroup     { new QGroupBox   };
 
-    QPushButton*  stopButton                 { new QPushButton };
+    QPushButton*           stopButton                 { new QPushButton };
 
-    QGridLayout*  _layout                    { new QGridLayout };
-    QTimer*       _updatePrintTimeInfo       { };
+    QGridLayout*           _layout                    { new QGridLayout };
+    QTimer*                _updatePrintTimeInfo       { };
 
-    PrintJob*     _printJob                  { };
-    PrintManager* _printManager              { };
-    Shepherd*     _shepherd                  { };
-    bool          _isPrinterOnline           { };
-    bool          _isFirstOnlineTaskDone     { };
-    double        _printJobStartTime         { };
-    QPalette      _stopButtonEnabledPalette  { };
-    QPalette      _stopButtonDisabledPalette { };
+    PrintJob*              _printJob                  { };
+    PrintManager*          _printManager              { };
+    Shepherd*              _shepherd                  { };
+    bool                   _isPrinterOnline           { };
+    bool                   _isFirstOnlineTaskDone     { };
+    QPalette               _stopButtonEnabledPalette  { };
+    QPalette               _stopButtonDisabledPalette { };
+
+    double                 _printJobStartTime         { };
+    double                 _currentLayerStartTime     { };
+    double                 _previousLayerStartTime    { };
+    double                 _estimatedPrintJobTime     { };
+    std::vector<double>    _layerElapsedTimes         { };
 
     std::function<void( )> _initialShowEventFunc;
 

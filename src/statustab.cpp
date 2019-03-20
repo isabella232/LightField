@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <numeric>
+
 #include "statustab.h"
 
 #include "printjob.h"
@@ -192,27 +194,27 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
     currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
 
+    _previousLayerStartTime = _currentLayerStartTime;
+    _currentLayerStartTime  = GetBootTimeClock( );
+
     if ( 0 == layer ) {
-        _printJobStartTime = GetBootTimeClock( );
+        _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
+    } else {
+        auto delta = _currentLayerStartTime - _previousLayerStartTime;
+        debug( "  + layer time: %.3f\n", delta );
+        _layerElapsedTimes.emplace_back( delta );
+
+        auto average = std::accumulate<std::vector<double>::iterator, double>( _layerElapsedTimes.begin( ), _layerElapsedTimes.end( ), 0 ) / _layerElapsedTimes.size( );
+        debug( "  + average:    %.3f\n", average );
+
+        _estimatedPrintJobTime = average * _printJob->layerCount;
+        debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
+    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) + 1 ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
+
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
-    //debug(
-    //    "  + projector window size:    %s\n"
-    //    "  + pixmap original size:     %s\n"
-    //    "  + current layer image size: %s\n"
-    //    "",
-    //    ToString( PngDisplayWindowSize ).toUtf8( ).data( ),
-    //    ToString( pixmap.size( ) ).toUtf8( ).data( ),
-    //    ToString( currentLayerImage->size( ) ).toUtf8( ).data( )
-    //);
-    //pixmap = pixmap.scaled(
-    //    static_cast<double>( pixmap.width( )  ) / static_cast<double>( PngDisplayWindowSize.width( )  ) * static_cast<double>( currentLayerImage->width( )  ) + 0.5,
-    //    static_cast<double>( pixmap.height( ) ) / static_cast<double>( PngDisplayWindowSize.height( ) ) * static_cast<double>( currentLayerImage->height( ) ) + 0.5,
-    //    Qt::KeepAspectRatio, Qt::SmoothTransformation
-    //);
-    //debug( "  + pixmap scaled size:       %s\n", ToString( pixmap.size( ) ).toUtf8( ).data( ) );
     if ( ( pixmap.width( ) > currentLayerImage->width( ) ) || ( pixmap.height( ) > currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -269,20 +271,10 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
         return;
     }
 
-    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) + 1 ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
-
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n", delta );
     elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
-
-    auto currentLayer = _printManager->currentLayer( );
-    if ( currentLayer < 4 ) {
-        return;
-    }
-
-    double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
-    debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
-    estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTime ) );
+    estimatedTimeLeftDisplay->setText( TimeDeltaToString( _estimatedPrintJobTime - delta ) );
 }
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
