@@ -45,7 +45,7 @@ AdvancedTab::~AdvancedTab( ) {
 
 void AdvancedTab::_pauseTimer( ) {
     QObject::disconnect( _timer, nullptr, this, nullptr );
-    _timer->start( );
+    _timer->stop( );
 }
 
 void AdvancedTab::_resumeTimer( ) {
