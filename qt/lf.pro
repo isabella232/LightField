@@ -1,11 +1,11 @@
 QT += core gui opengl widgets xml
 
-TARGET = lf
+TARGET   = lf
 TEMPLATE = app
 
-# Bump optimization up to -O3 in release builds
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Winvalid-pch
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
 
 SOURCES +=                     \
     ../src/debug.cpp           \
@@ -63,11 +63,13 @@ HEADERS  += \
     ../src/gesturelistview.h \
     ../src/hasher.h
 
-CONFIG += c++1z
-CONFIG += precompile_header
+CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
-RESOURCES += ../gl/gl.qrc ../breeze/breeze.qrc
+RESOURCES += \
+    ../breeze/breeze.qrc \
+    ../images/images.qrc \
+    ../gl/gl.qrc
 
 linux {
     target.path = /usr/bin
@@ -79,13 +81,5 @@ static {
 }
 
 debug {
-    QMAKE_CXXFLAGS_DEBUG += -D_DEBUG
-}
-
-release {
-    QMAKE_CXXFLAGS_RELEASE += -DNDEBUG
-}
-
-warn_on {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess -Wno-unused-parameter
 }

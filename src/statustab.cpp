@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <numeric>
+
 #include "statustab.h"
 
 #include "printjob.h"
@@ -25,118 +27,127 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
 
     auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
 
-    printerStateLabel->setText( "Printer state:" );
-    printerStateLabel->setBuddy( printerStateDisplay );
+    _printerStateLabel->setText( "Printer state:" );
 
-    printerStateDisplay->setText( "offline" );
-    printerStateDisplay->setFont( boldFont );
+    _printerStateDisplay->setFont( boldFont );
+    _printerStateDisplay->setText( "offline" );
 
-    projectorLampStateLabel->setText( "Projector state:" );
-    projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
+    _projectorLampStateLabel->setText( "Projector state:" );
 
-    projectorLampStateDisplay->setText( "off" );
-    projectorLampStateDisplay->setFont( boldFont );
+    _projectorLampStateDisplay->setFont( boldFont );
+    _projectorLampStateDisplay->setText( "off" );
 
-    jobStateLabel->setText( "Print job:" );
-    jobStateLabel->setBuddy( jobStateDisplay );
+    _jobStateLabel->setText( "Print job:" );
 
-    jobStateDisplay->setText( "idle" );
-    jobStateDisplay->setFont( boldFont );
+    _jobStateDisplay->setFont( boldFont );
+    _jobStateDisplay->setText( "idle" );
 
-    currentLayerLabel->setText( "Current layer:" );
-    currentLayerLabel->setBuddy( currentLayerDisplay );
+    _currentLayerLabel->setText( "Current layer:" );
 
-    currentLayerDisplay->setFont( boldFont );
+    _currentLayerDisplay->setFont( boldFont );
 
-    elapsedTimeLabel->setText( "Elapsed time:" );
-    elapsedTimeLabel->setBuddy( elapsedTimeDisplay );
+    _elapsedTimeLabel->setText( "Elapsed time:" );
 
-    elapsedTimeDisplay->setFont( boldFont );
+    _elapsedTimeDisplay->setFont( boldFont );
 
-    estimatedTimeLeftLabel->setText( "Time left:" );
-    estimatedTimeLeftLabel->setBuddy( elapsedTimeDisplay );
+    _estimatedTimeLeftLabel->setText( "Time left:" );
 
-    estimatedTimeLeftDisplay->setFont( boldFont );
+    _estimatedTimeLeftDisplay->setFont( boldFont );
 
-    percentageCompleteLabel->setText( "Percentage completed:" );
-    percentageCompleteLabel->setBuddy( elapsedTimeDisplay );
+    _percentageCompleteLabel->setText( "Percent complete:" );
 
-    percentageCompleteDisplay->setFont( boldFont );
+    _percentageCompleteDisplay->setFont( boldFont );
 
 
-    loadPrintSolutionLabel->setAlignment( Qt::AlignHCenter );
-    loadPrintSolutionLabel->setTextFormat( Qt::RichText );
-    loadPrintSolutionLabel->setWordWrap( true );
+    _loadPrintSolutionLabel->setAlignment( Qt::AlignHCenter );
+    _loadPrintSolutionLabel->setTextFormat( Qt::RichText );
+    _loadPrintSolutionLabel->setWordWrap( true );
 
-    printSolutionLoadedButton->setText( "Continue" );
-    QObject::connect( printSolutionLoadedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
+    _printSolutionLoadedButton->setText( "Continue" );
+    QObject::connect( _printSolutionLoadedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
 
-    loadPrintSolutionGroup->setTitle( "Dispense print solution" );
-    loadPrintSolutionGroup->setContentsMargins( { } );
-    loadPrintSolutionGroup->setEnabled( false );
-    loadPrintSolutionGroup->setFixedWidth( MainButtonSize.width( ) );
-    loadPrintSolutionGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    loadPrintSolutionGroup->setLayout( WrapWidgetsInVBox( { nullptr, loadPrintSolutionLabel, nullptr, printSolutionLoadedButton, nullptr } ) );
-
-
-    progressControlsLayout->setContentsMargins( { } );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { printerStateLabel,       nullptr, printerStateDisplay       } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { projectorLampStateLabel, nullptr, projectorLampStateDisplay } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { jobStateLabel,           nullptr, jobStateDisplay           } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { currentLayerLabel,       nullptr, currentLayerDisplay       } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { elapsedTimeLabel,        nullptr, elapsedTimeDisplay        } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { estimatedTimeLeftLabel,  nullptr, estimatedTimeLeftDisplay  } ) );
-    progressControlsLayout->addLayout( WrapWidgetsInHBox( { percentageCompleteLabel, nullptr, percentageCompleteDisplay } ) );
-    progressControlsLayout->addWidget( loadPrintSolutionGroup );
-    progressControlsLayout->addStretch( );
-
-    progressControlsContainer->setContentsMargins( { } );
-    progressControlsContainer->setLayout( progressControlsLayout );
-    progressControlsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _loadPrintSolutionGroup->setTitle( "Dispense print solution" );
+    _loadPrintSolutionGroup->setContentsMargins( { } );
+    _loadPrintSolutionGroup->setEnabled( false );
+    _loadPrintSolutionGroup->setFixedWidth( MainButtonSize.width( ) );
+    _loadPrintSolutionGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _loadPrintSolutionGroup->setLayout( WrapWidgetsInVBox( { nullptr, _loadPrintSolutionLabel, nullptr, _printSolutionLoadedButton, nullptr } ) );
 
 
-    currentLayerImage->setAlignment( Qt::AlignCenter );
-    currentLayerImage->setContentsMargins( { } );
-    currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
+    _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
+    _warningUvImage  = new QPixmap { QString { ":images/warning-uv.png"  } };
 
-    currentLayerLayout = WrapWidgetInVBox( currentLayerImage );
-    currentLayerLayout->setAlignment( Qt::AlignCenter );
-    currentLayerLayout->setContentsMargins( { } );
+    _warningHotLabel->setAlignment( Qt::AlignCenter );
+    _warningHotLabel->setContentsMargins( { } );
+    _warningHotLabel->setFixedSize( 43, 43 );
+    _warningHotLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
-    currentLayerGroup->setTitle( "Current layer" );
-    currentLayerGroup->setContentsMargins( { } );
-    currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
-    currentLayerGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentLayerGroup->setLayout( currentLayerLayout );
+    _warningUvLabel->setAlignment( Qt::AlignCenter );
+    _warningUvLabel->setContentsMargins( { } );
+    _warningUvLabel->setFixedSize( 43, 43 );
+    _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+
+    _progressControlsLayout->setContentsMargins( { } );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _printerStateLabel,       nullptr, _printerStateDisplay       } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _projectorLampStateLabel, nullptr, _projectorLampStateDisplay } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _jobStateLabel,           nullptr, _jobStateDisplay           } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentLayerLabel,       nullptr, _currentLayerDisplay       } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _elapsedTimeLabel,        nullptr, _elapsedTimeDisplay        } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _estimatedTimeLeftLabel,  nullptr, _estimatedTimeLeftDisplay  } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _percentageCompleteLabel, nullptr, _percentageCompleteDisplay } ) );
+    _progressControlsLayout->addWidget( _loadPrintSolutionGroup );
+    _progressControlsLayout->addStretch( );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
+    _progressControlsLayout->addStretch( );
+
+    _progressControlsContainer->setContentsMargins( { } );
+    _progressControlsContainer->setLayout( _progressControlsLayout );
+    _progressControlsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+
+    _currentLayerImage->setAlignment( Qt::AlignCenter );
+    _currentLayerImage->setContentsMargins( { } );
+    _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
+
+    _currentLayerLayout = WrapWidgetInVBox( _currentLayerImage );
+    _currentLayerLayout->setAlignment( Qt::AlignCenter );
+    _currentLayerLayout->setContentsMargins( { } );
+
+    _currentLayerGroup->setTitle( "Current layer" );
+    _currentLayerGroup->setContentsMargins( { } );
+    _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _currentLayerGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentLayerGroup->setLayout( _currentLayerLayout );
 
 
     {
-        _stopButtonEnabledPalette  =  stopButton->palette( );
+        _stopButtonEnabledPalette  =  _stopButton->palette( );
         _stopButtonDisabledPalette = _stopButtonEnabledPalette;
         _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
         _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
     }
-    stopButton->setEnabled( false );
-    stopButton->setFixedSize( MainButtonSize );
-    stopButton->setFont( ModifyFont( stopButton->font( ), 22.25, QFont::Bold ) );
-    stopButton->setText( "STOP" );
-    QObject::connect( stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
+    _stopButton->setEnabled( false );
+    _stopButton->setFixedSize( MainButtonSize );
+    _stopButton->setFont( ModifyFont( _stopButton->font( ), 22.25, QFont::Bold ) );
+    _stopButton->setText( "STOP" );
+    QObject::connect( _stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( progressControlsContainer, 0, 0, 1, 1 );
-    _layout->addWidget( stopButton,                1, 0, 1, 1 );
-    _layout->addWidget( currentLayerGroup,         0, 1, 2, 1 );
+    _layout->addWidget( _progressControlsContainer, 0, 0, 1, 1 );
+    _layout->addWidget( _stopButton,                1, 0, 1, 1 );
+    _layout->addWidget( _currentLayerGroup,         0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
+
+    setLayout( _layout );
 
     _updatePrintTimeInfo = new QTimer( this );
     _updatePrintTimeInfo->setInterval( 1000 );
     _updatePrintTimeInfo->setSingleShot( false );
     _updatePrintTimeInfo->setTimerType( Qt::PreciseTimer );
     QObject::connect( _updatePrintTimeInfo, &QTimer::timeout, this, &StatusTab::updatePrintTimeInfo_timeout );
-
-    setLayout( _layout );
 }
 
 StatusTab::~StatusTab( ) {
@@ -152,14 +163,27 @@ void StatusTab::showEvent( QShowEvent* event ) {
 }
 
 void StatusTab::_initialShowEvent( ) {
-    currentLayerImage->setFixedWidth( currentLayerImage->width( ) );
-    currentLayerImage->setFixedHeight( currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    _currentLayerImage->setFixedWidth( _currentLayerImage->width( ) );
+    _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+
+    debug(
+        "+ StatusTab::_initialShowEvent:\n"
+        "  + warningHotImage size: %s\n"
+        "  + warningUvImage size:  %s\n"
+        "  + _warningHotLabel size: %s\n"
+        "  + _warningUvLabel size:  %s\n"
+        "",
+        ToString( _warningHotImage->size( ) ).toUtf8( ).data( ),
+        ToString( _warningUvImage ->size( ) ).toUtf8( ).data( ),
+        ToString(  _warningHotLabel->size( ) ).toUtf8( ).data( ),
+        ToString(   _warningUvLabel->size( ) ).toUtf8( ).data( )
+    );
 }
 
 void StatusTab::printer_online( ) {
     debug( "+ StatusTab::printer_online\n" );
     _isPrinterOnline = true;
-    printerStateDisplay->setText( "online" );
+    _printerStateDisplay->setText( "online" );
 
     if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
         return;
@@ -173,7 +197,7 @@ void StatusTab::printer_online( ) {
 void StatusTab::printer_offline( ) {
     debug( "+ StatusTab::printer_offline\n" );
     _isPrinterOnline = false;
-    printerStateDisplay->setText( "offline" );
+    _printerStateDisplay->setText( "offline" );
 }
 
 void StatusTab::stopButton_clicked( bool ) {
@@ -184,44 +208,49 @@ void StatusTab::stopButton_clicked( bool ) {
 
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
-    jobStateDisplay->setText( "print started" );
-    estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
+    _jobStateDisplay->setText( "print started" );
+    _estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
+    _currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
+
+    _previousLayerStartTime = _currentLayerStartTime;
+    _currentLayerStartTime  = GetBootTimeClock( );
 
     if ( 0 == layer ) {
-        _printJobStartTime = GetBootTimeClock( );
+        _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
+    } else {
+        auto delta = _currentLayerStartTime - _previousLayerStartTime;
+        debug( "  + layer time: %.3f\n", delta );
+        _layerElapsedTimes.emplace_back( delta );
+
+        auto average = std::accumulate<std::vector<double>::iterator, double>( _layerElapsedTimes.begin( ), _layerElapsedTimes.end( ), 0 ) / _layerElapsedTimes.size( );
+        debug( "  + average:    %.3f\n", average );
+
+        _estimatedPrintJobTime = average * _printJob->layerCount;
+        debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
+    _percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) + 1 ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
+
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
-    //debug(
-    //    "  + projector window size:    %s\n"
-    //    "  + pixmap original size:     %s\n"
-    //    "  + current layer image size: %s\n"
-    //    "",
-    //    ToString( PngDisplayWindowSize ).toUtf8( ).data( ),
-    //    ToString( pixmap.size( ) ).toUtf8( ).data( ),
-    //    ToString( currentLayerImage->size( ) ).toUtf8( ).data( )
-    //);
-    //pixmap = pixmap.scaled(
-    //    static_cast<double>( pixmap.width( )  ) / static_cast<double>( PngDisplayWindowSize.width( )  ) * static_cast<double>( currentLayerImage->width( )  ) + 0.5,
-    //    static_cast<double>( pixmap.height( ) ) / static_cast<double>( PngDisplayWindowSize.height( ) ) * static_cast<double>( currentLayerImage->height( ) ) + 0.5,
-    //    Qt::KeepAspectRatio, Qt::SmoothTransformation
-    //);
-    //debug( "  + pixmap scaled size:       %s\n", ToString( pixmap.size( ) ).toUtf8( ).data( ) );
-    if ( ( pixmap.width( ) > currentLayerImage->width( ) ) || ( pixmap.height( ) > currentLayerImage->height( ) ) ) {
-        pixmap = pixmap.scaled( currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
+        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
-    currentLayerImage->setPixmap( pixmap );
+    _currentLayerImage->setPixmap( pixmap );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
     debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
-    projectorLampStateDisplay->setText( QString( on ? "ON" : "off" ) );
+    _projectorLampStateDisplay->setText( QString( on ? "ON" : "off" ) );
+    if ( on ) {
+        _warningUvLabel->setPixmap( *_warningUvImage );
+    } else {
+        _warningUvLabel->clear( );
+    }
 }
 
 void StatusTab::printManager_printComplete( bool const success ) {
@@ -229,11 +258,11 @@ void StatusTab::printManager_printComplete( bool const success ) {
 
     _updatePrintTimeInfo->stop( );
 
-    jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
-    currentLayerDisplay->clear( );
-    estimatedTimeLeftDisplay->clear( );
-    percentageCompleteDisplay->clear( );
-    currentLayerImage->clear( );
+    _jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
+    _currentLayerDisplay->clear( );
+    _estimatedTimeLeftDisplay->clear( );
+    _percentageCompleteDisplay->clear( );
+    _currentLayerImage->clear( );
 
     emit printComplete( );
 }
@@ -243,13 +272,21 @@ void StatusTab::printManager_printAborted( ) {
 
     _updatePrintTimeInfo->stop( );
 
-    jobStateDisplay->setText( QString( "print aborted" ) );
-    currentLayerDisplay->clear( );
-    estimatedTimeLeftDisplay->clear( );
-    percentageCompleteDisplay->clear( );
-    currentLayerImage->clear( );
+    _jobStateDisplay->setText( QString( "print aborted" ) );
+    _currentLayerDisplay->clear( );
+    _estimatedTimeLeftDisplay->clear( );
+    _percentageCompleteDisplay->clear( );
+    _currentLayerImage->clear( );
 
     emit printComplete( );
+}
+
+void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const /*bedTargetTemperature*/, int const /*bedPwm*/ ) {
+    if ( bedCurrentTemperature >= 30.0 ) {
+        _warningHotLabel->setPixmap( *_warningHotImage );
+    } else {
+        _warningHotLabel->clear( );
+    }
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
@@ -269,29 +306,19 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
         return;
     }
 
-    percentageCompleteDisplay->setText( QString( "%1%" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) + 1 ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
-
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n", delta );
-    elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
-
-    auto currentLayer = _printManager->currentLayer( );
-    if ( currentLayer < 4 ) {
-        return;
-    }
-
-    double estimatedTime = delta / ( _printManager->currentLayer( ) / _printJob->layerCount );
-    debug( "+ StatusTab::updatePrintTimeInfo_timeout: estimated time %f\n", delta );
-    estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTime ) );
+    _elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
+    _estimatedTimeLeftDisplay->setText( TimeDeltaToString( _estimatedPrintJobTime - delta ) );
 }
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
-    loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
-    loadPrintSolutionGroup->setEnabled( true );
+    _loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
+    _loadPrintSolutionGroup->setEnabled( true );
 }
 
 void StatusTab::printSolutionLoadedButton_clicked( bool ) {
-    loadPrintSolutionGroup->setEnabled( false );
+    _loadPrintSolutionGroup->setEnabled( false );
 
     _printManager->printSolutionLoaded( );
 }
@@ -333,6 +360,6 @@ void StatusTab::setShepherd( Shepherd* newShepherd ) {
 }
 
 void StatusTab::setStopButtonEnabled( bool value ) {
-    stopButton->setEnabled( value );
-    stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );
+    _stopButton->setEnabled( value );
+    _stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );
 }

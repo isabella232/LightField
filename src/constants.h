@@ -13,9 +13,10 @@ QString extern const JobWorkingDirectoryPath;
 QString extern const SlicedSvgFileName;
 QString extern const SetpowerCommand;
 
+QChar   extern const Slash;
 QChar   extern const DigitZero;
 QChar   extern const FigureSpace;
-QChar   extern const Slash;
+QChar   extern const EmDash;
 
 double         const PrinterMaximumX          = 64.0;
 double         const PrinterMaximumY          = 40.0;

@@ -20,15 +20,31 @@ protected:
 
 private:
 
-    PrintJob*     _printJob           { };
-    PrintManager* _printManager       { };
-    Shepherd*     _shepherd           { };
+    PrintJob*     _printJob                { };
+    PrintManager* _printManager            { };
+    Shepherd*     _shepherd                { };
 
-    QLabel*       _currentTemperature { new QLabel };
-    QLabel*       _targetTemperature  { new QLabel };
-    QLabel*       _pwm                { new QLabel };
+    QLabel*       _currentTemperatureLabel { new QLabel  };
+    QLabel*       _targetTemperatureLabel  { new QLabel  };
+    QLabel*       _pwmLabel                { new QLabel  };
+    QLabel*       _zPositionLabel          { new QLabel  };
 
-    QTimer*       _timer              { new QTimer };
+    QLabel*       _currentTemperature      { new QLabel  };
+    QLabel*       _targetTemperature       { new QLabel  };
+    QLabel*       _pwm                     { new QLabel  };
+    QLabel*       _zPosition               { new QLabel  };
+
+    QWidget*      _leftColumn              { new QWidget };
+    QWidget*      _rightColumn             { new QWidget };
+
+    QVBoxLayout*  _leftColumnLayout        { };
+    QVBoxLayout*  _rightColumnLayout       { };
+    QHBoxLayout*  _layout                  { };
+
+    QTimer*       _timer                   { };
+
+    void _pauseTimer( );
+    void _resumeTimer( );
 
 signals:
 
@@ -37,6 +53,7 @@ public slots:
     void setPrintManager( PrintManager* printManager );
     void setShepherd( Shepherd* shepherd );
 
+    void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void printManager_printStarting( );

@@ -3,7 +3,7 @@
 #include "welcometab.h"
 
 WelcomeTab::WelcomeTab( QWidget* parent ): QWidget( parent ) {
-    _logoLabel->setPixmap( QPixmap( QString( ":lf/dark-logo.png" ) ) );
+    _logoLabel->setPixmap( QPixmap( QString( ":images/dark-logo.png" ) ) );
     _versionLabel->setText( QString( "1.0.0" ) );
 
     _layout->addStretch( );
