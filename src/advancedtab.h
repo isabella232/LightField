@@ -24,17 +24,24 @@ private:
     PrintManager* _printManager            { };
     Shepherd*     _shepherd                { };
 
-    QLabel*       _currentTemperatureLabel { new QLabel };
-    QLabel*       _targetTemperatureLabel  { new QLabel };
-    QLabel*       _pwmLabel                { new QLabel };
-    QLabel*       _zPositionLabel          { new QLabel };
+    QLabel*       _currentTemperatureLabel { new QLabel  };
+    QLabel*       _targetTemperatureLabel  { new QLabel  };
+    QLabel*       _pwmLabel                { new QLabel  };
+    QLabel*       _zPositionLabel          { new QLabel  };
 
-    QLabel*       _currentTemperature      { new QLabel };
-    QLabel*       _targetTemperature       { new QLabel };
-    QLabel*       _pwm                     { new QLabel };
-    QLabel*       _zPosition               { new QLabel };
+    QLabel*       _currentTemperature      { new QLabel  };
+    QLabel*       _targetTemperature       { new QLabel  };
+    QLabel*       _pwm                     { new QLabel  };
+    QLabel*       _zPosition               { new QLabel  };
 
-    QTimer*       _timer                   { new QTimer };
+    QWidget*      _leftColumn              { new QWidget };
+    QWidget*      _rightColumn             { new QWidget };
+
+    QVBoxLayout*  _leftColumnLayout        { };
+    QVBoxLayout*  _rightColumnLayout       { };
+    QHBoxLayout*  _layout                  { };
+
+    QTimer*       _timer                   { };
 
     void _pauseTimer( );
     void _resumeTimer( );

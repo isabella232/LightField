@@ -14,29 +14,52 @@ namespace {
 }
 
 AdvancedTab::AdvancedTab( QWidget* parent ): QWidget( parent ) {
-    _currentTemperatureLabel->setText( "Current temperature:"   );
-    _targetTemperatureLabel ->setText( "Target temperature:"    );
-    _pwmLabel               ->setText( "Heater PWM duty cycle:" );
-    _zPositionLabel         ->setText( "Z position:"            );
+    _currentTemperatureLabel->setText( "Current temperature:" );
+    _targetTemperatureLabel ->setText( "Target temperature:"  );
+    _pwmLabel               ->setText( "Heater PWM:"          );
+    _zPositionLabel         ->setText( "Z position:"          );
 
     _currentTemperature->setAlignment( Qt::AlignRight );
     _targetTemperature ->setAlignment( Qt::AlignRight );
     _pwm               ->setAlignment( Qt::AlignRight );
     _zPosition         ->setAlignment( Qt::AlignRight );
 
+    _currentTemperature->setText( EmDash );
+    _targetTemperature ->setText( EmDash );
+    _pwm               ->setText( EmDash );
+    _zPosition         ->setText( EmDash );
+
+    _leftColumnLayout  = new QVBoxLayout { this };
+    _leftColumnLayout->setContentsMargins( { } );
+    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperature } ) );
+    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperature  } ) );
+    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _pwmLabel,                nullptr, _pwm                } ) );
+    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _zPositionLabel,          nullptr, _zPosition          } ) );
+    _leftColumnLayout->addStretch( );
+
+    _leftColumn->setContentsMargins( { } );
+    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _leftColumn->setFixedWidth( MainButtonSize.width( ) );
+    _leftColumn->setLayout( _leftColumnLayout );
+
+    _rightColumnLayout = new QVBoxLayout { this };
+    _rightColumnLayout->setContentsMargins( { } );
+
+    _rightColumn->setContentsMargins( { } );
+    _rightColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _rightColumn->setFixedWidth( MaximalRightHandPaneSize.width( ) );
+    _rightColumn->setLayout( _rightColumnLayout );
+
+    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
+    _layout->setContentsMargins( { } );
+
+    setLayout( _layout );
+
+    _timer = new QTimer { this };
     _timer->setInterval( TemperaturePollInterval );
     _timer->setSingleShot( false );
     _timer->setTimerType( Qt::PreciseTimer );
     _resumeTimer( );
-
-    auto layout = new QVBoxLayout( this );
-    layout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperature } ) );
-    layout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperature  } ) );
-    layout->addLayout( WrapWidgetsInHBox( { _pwmLabel,                nullptr, _pwm                } ) );
-    layout->addLayout( WrapWidgetsInHBox( { _zPositionLabel,          nullptr, _zPosition          } ) );
-    layout->addStretch( );
-
-    setLayout( layout );
 }
 
 AdvancedTab::~AdvancedTab( ) {
