@@ -157,8 +157,6 @@ void FileTab::usbRetryTimer_timeout( ) {
             emit modelSelectionFailed( );
         }
         _toggleLocationButton->setEnabled( false );
-    } else {
-        debug( "+ FileTab::usbRetryTimer_timeout: %d more retries\n", _usbRetryCount );
     }
 }
 
@@ -223,11 +221,9 @@ void FileTab::_startUsbRetry( ) {
 }
 
 void FileTab::_stopUsbRetry( ) {
-    debug( "+ FileTab::_stopUsbRetry\n" );
-    _usbRetryCount = 0;
+    debug( "+ FileTab::_stopUsbRetry: stopping timer\n" );
     QObject::disconnect( _usbRetryTimer, nullptr, this, nullptr );
     _usbRetryTimer->stop( );
-    debug( "+ FileTab::_stopUsbRetry: timer stopped\n" );
 }
 
 void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {

@@ -51,18 +51,25 @@ private:
     QPushButton*           printSolutionLoadedButton  { new QPushButton };
     QGroupBox*             loadPrintSolutionGroup     { new QGroupBox   };
 
+    QLabel*                warningHotLabel            { new QLabel      };
+    QLabel*                warningUvLabel             { new QLabel      };
+
     QPushButton*           stopButton                 { new QPushButton };
 
     QGridLayout*           _layout                    { new QGridLayout };
     QTimer*                _updatePrintTimeInfo       { };
+
+    QPixmap*               _warningHotImage           { };
+    QPixmap*               _warningUvImage            { };
+
+    QPalette               _stopButtonEnabledPalette  { };
+    QPalette               _stopButtonDisabledPalette { };
 
     PrintJob*              _printJob                  { };
     PrintManager*          _printManager              { };
     Shepherd*              _shepherd                  { };
     bool                   _isPrinterOnline           { };
     bool                   _isFirstOnlineTaskDone     { };
-    QPalette               _stopButtonEnabledPalette  { };
-    QPalette               _stopButtonDisabledPalette { };
 
     double                 _printJobStartTime         { };
     double                 _currentLayerStartTime     { };
@@ -94,6 +101,8 @@ public slots:
     void printManager_lampStatusChange( bool const on );
     void printManager_printComplete( bool const success );
     void printManager_printAborted( );
+
+    void shepherd_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void initializationCommands_sendComplete( bool const success );
 

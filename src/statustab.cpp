@@ -28,40 +28,33 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
 
     printerStateLabel->setText( "Printer state:" );
-    printerStateLabel->setBuddy( printerStateDisplay );
 
-    printerStateDisplay->setText( "offline" );
     printerStateDisplay->setFont( boldFont );
+    printerStateDisplay->setText( "offline" );
 
     projectorLampStateLabel->setText( "Projector state:" );
-    projectorLampStateLabel->setBuddy( projectorLampStateDisplay );
 
-    projectorLampStateDisplay->setText( "off" );
     projectorLampStateDisplay->setFont( boldFont );
+    projectorLampStateDisplay->setText( "off" );
 
     jobStateLabel->setText( "Print job:" );
-    jobStateLabel->setBuddy( jobStateDisplay );
 
-    jobStateDisplay->setText( "idle" );
     jobStateDisplay->setFont( boldFont );
+    jobStateDisplay->setText( "idle" );
 
     currentLayerLabel->setText( "Current layer:" );
-    currentLayerLabel->setBuddy( currentLayerDisplay );
 
     currentLayerDisplay->setFont( boldFont );
 
     elapsedTimeLabel->setText( "Elapsed time:" );
-    elapsedTimeLabel->setBuddy( elapsedTimeDisplay );
 
     elapsedTimeDisplay->setFont( boldFont );
 
     estimatedTimeLeftLabel->setText( "Time left:" );
-    estimatedTimeLeftLabel->setBuddy( elapsedTimeDisplay );
 
     estimatedTimeLeftDisplay->setFont( boldFont );
 
-    percentageCompleteLabel->setText( "Percentage completed:" );
-    percentageCompleteLabel->setBuddy( elapsedTimeDisplay );
+    percentageCompleteLabel->setText( "Percent complete:" );
 
     percentageCompleteDisplay->setFont( boldFont );
 
@@ -81,6 +74,20 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     loadPrintSolutionGroup->setLayout( WrapWidgetsInVBox( { nullptr, loadPrintSolutionLabel, nullptr, printSolutionLoadedButton, nullptr } ) );
 
 
+    _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
+    _warningUvImage  = new QPixmap { QString { ":images/warning-uv.png"  } };
+
+    warningHotLabel->setAlignment( Qt::AlignCenter );
+    warningHotLabel->setContentsMargins( { } );
+    warningHotLabel->setFixedSize( 43, 43 );
+    warningHotLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+    warningUvLabel->setAlignment( Qt::AlignCenter );
+    warningUvLabel->setContentsMargins( { } );
+    warningUvLabel->setFixedSize( 43, 43 );
+    warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+
     progressControlsLayout->setContentsMargins( { } );
     progressControlsLayout->addLayout( WrapWidgetsInHBox( { printerStateLabel,       nullptr, printerStateDisplay       } ) );
     progressControlsLayout->addLayout( WrapWidgetsInHBox( { projectorLampStateLabel, nullptr, projectorLampStateDisplay } ) );
@@ -90,6 +97,8 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     progressControlsLayout->addLayout( WrapWidgetsInHBox( { estimatedTimeLeftLabel,  nullptr, estimatedTimeLeftDisplay  } ) );
     progressControlsLayout->addLayout( WrapWidgetsInHBox( { percentageCompleteLabel, nullptr, percentageCompleteDisplay } ) );
     progressControlsLayout->addWidget( loadPrintSolutionGroup );
+    progressControlsLayout->addStretch( );
+    progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, warningHotLabel, nullptr, warningUvLabel, nullptr } ) );
     progressControlsLayout->addStretch( );
 
     progressControlsContainer->setContentsMargins( { } );
@@ -132,13 +141,13 @@ StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
+    setLayout( _layout );
+
     _updatePrintTimeInfo = new QTimer( this );
     _updatePrintTimeInfo->setInterval( 1000 );
     _updatePrintTimeInfo->setSingleShot( false );
     _updatePrintTimeInfo->setTimerType( Qt::PreciseTimer );
     QObject::connect( _updatePrintTimeInfo, &QTimer::timeout, this, &StatusTab::updatePrintTimeInfo_timeout );
-
-    setLayout( _layout );
 }
 
 StatusTab::~StatusTab( ) {
@@ -156,6 +165,19 @@ void StatusTab::showEvent( QShowEvent* event ) {
 void StatusTab::_initialShowEvent( ) {
     currentLayerImage->setFixedWidth( currentLayerImage->width( ) );
     currentLayerImage->setFixedHeight( currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+
+    debug(
+        "+ StatusTab::_initialShowEvent:\n"
+        "  + warningHotImage size: %s\n"
+        "  + warningUvImage size:  %s\n"
+        "  + warningHotLabel size: %s\n"
+        "  + warningUvLabel size:  %s\n"
+        "",
+        ToString( _warningHotImage->size( ) ).toUtf8( ).data( ),
+        ToString( _warningUvImage ->size( ) ).toUtf8( ).data( ),
+        ToString(  warningHotLabel->size( ) ).toUtf8( ).data( ),
+        ToString(   warningUvLabel->size( ) ).toUtf8( ).data( )
+    );
 }
 
 void StatusTab::printer_online( ) {
@@ -224,6 +246,11 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 void StatusTab::printManager_lampStatusChange( bool const on ) {
     debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
     projectorLampStateDisplay->setText( QString( on ? "ON" : "off" ) );
+    if ( on ) {
+        warningUvLabel->setPixmap( *_warningUvImage );
+    } else {
+        warningUvLabel->clear( );
+    }
 }
 
 void StatusTab::printManager_printComplete( bool const success ) {
@@ -252,6 +279,14 @@ void StatusTab::printManager_printAborted( ) {
     currentLayerImage->clear( );
 
     emit printComplete( );
+}
+
+void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const /*bedTargetTemperature*/, int const /*bedPwm*/ ) {
+    if ( bedCurrentTemperature >= 30.0 ) {
+        warningHotLabel->setPixmap( *_warningHotImage );
+    } else {
+        warningHotLabel->clear( );
+    }
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
