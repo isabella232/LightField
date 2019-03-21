@@ -15,7 +15,7 @@ public:
     virtual ~StatusTab( ) override;
 
     bool isStopButtonEnabled( ) {
-        return stopButton->isEnabled( );
+        return _stopButton->isEnabled( );
     }
 
     Shepherd* shepherd( ) const { return _shepherd; }
@@ -26,35 +26,35 @@ protected:
 
 private:
 
-    QLabel*                printerStateLabel          { new QLabel      };
-    QLabel*                printerStateDisplay        { new QLabel      };
-    QLabel*                projectorLampStateLabel    { new QLabel      };
-    QLabel*                projectorLampStateDisplay  { new QLabel      };
-    QLabel*                jobStateLabel              { new QLabel      };
-    QLabel*                jobStateDisplay            { new QLabel      };
-    QLabel*                currentLayerLabel          { new QLabel      };
-    QLabel*                currentLayerDisplay        { new QLabel      };
-    QLabel*                elapsedTimeLabel           { new QLabel      };
-    QLabel*                elapsedTimeDisplay         { new QLabel      };
-    QLabel*                estimatedTimeLeftLabel     { new QLabel      };
-    QLabel*                estimatedTimeLeftDisplay   { new QLabel      };
-    QLabel*                percentageCompleteLabel    { new QLabel      };
-    QLabel*                percentageCompleteDisplay  { new QLabel      };
-    QWidget*               progressControlsContainer  { new QWidget     };
-    QVBoxLayout*           progressControlsLayout     { new QVBoxLayout };
+    QLabel*                _printerStateLabel         { new QLabel      };
+    QLabel*                _printerStateDisplay       { new QLabel      };
+    QLabel*                _projectorLampStateLabel   { new QLabel      };
+    QLabel*                _projectorLampStateDisplay { new QLabel      };
+    QLabel*                _jobStateLabel             { new QLabel      };
+    QLabel*                _jobStateDisplay           { new QLabel      };
+    QLabel*                _currentLayerLabel         { new QLabel      };
+    QLabel*                _currentLayerDisplay       { new QLabel      };
+    QLabel*                _elapsedTimeLabel          { new QLabel      };
+    QLabel*                _elapsedTimeDisplay        { new QLabel      };
+    QLabel*                _estimatedTimeLeftLabel    { new QLabel      };
+    QLabel*                _estimatedTimeLeftDisplay  { new QLabel      };
+    QLabel*                _percentageCompleteLabel   { new QLabel      };
+    QLabel*                _percentageCompleteDisplay { new QLabel      };
+    QWidget*               _progressControlsContainer { new QWidget     };
+    QVBoxLayout*           _progressControlsLayout    { new QVBoxLayout };
 
-    QLabel*                currentLayerImage          { new QLabel      };
-    QVBoxLayout*           currentLayerLayout         {                 };
-    QGroupBox*             currentLayerGroup          { new QGroupBox   };
+    QLabel*                _currentLayerImage         { new QLabel      };
+    QVBoxLayout*           _currentLayerLayout        {                 };
+    QGroupBox*             _currentLayerGroup         { new QGroupBox   };
 
-    QLabel*                loadPrintSolutionLabel     { new QLabel      };
-    QPushButton*           printSolutionLoadedButton  { new QPushButton };
-    QGroupBox*             loadPrintSolutionGroup     { new QGroupBox   };
+    QLabel*                _loadPrintSolutionLabel    { new QLabel      };
+    QPushButton*           _printSolutionLoadedButton { new QPushButton };
+    QGroupBox*             _loadPrintSolutionGroup    { new QGroupBox   };
 
-    QLabel*                warningHotLabel            { new QLabel      };
-    QLabel*                warningUvLabel             { new QLabel      };
+    QLabel*                _warningHotLabel           { new QLabel      };
+    QLabel*                _warningUvLabel            { new QLabel      };
 
-    QPushButton*           stopButton                 { new QPushButton };
+    QPushButton*           _stopButton                { new QPushButton };
 
     QGridLayout*           _layout                    { new QGridLayout };
     QTimer*                _updatePrintTimeInfo       { };
