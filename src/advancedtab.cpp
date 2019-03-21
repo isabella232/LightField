@@ -81,6 +81,7 @@ void AdvancedTab::setPrintManager( PrintManager* printManager ) {
 
 void AdvancedTab::printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz ) {
     debug( "AdvancedTab::printer_positionReport: px %.2f mm, cx %d counts\n", px, cx );
+    _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
