@@ -1,4 +1,5 @@
 #ifndef __TABBASE_H__
+#define __TABBASE_H__
 
 class PrintJob;
 class Shepherd;
