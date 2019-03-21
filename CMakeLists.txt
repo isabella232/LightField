@@ -43,6 +43,7 @@ src/pngdisplayer.cpp
 src/svgrenderer.cpp
 src/processrunner.cpp
 src/signalhandler.cpp
+src/tabbase.cpp
 src/welcometab.cpp
 src/filetab.cpp
 src/preparetab.cpp
@@ -72,6 +73,7 @@ src/pngdisplayer.h
 src/svgrenderer.h
 src/processrunner.h
 src/signalhandler.h
+src/tabbase.h
 src/welcometab.h
 src/filetab.h
 src/preparetab.h
