@@ -70,13 +70,16 @@ private slots:
     void stepA1_completed( bool const success );
 
     void stepA2_start( );
-    void stepA2_completed( );
+    void stepA2_completed( bool const success );
 
     void stepA3_start( );
-    void stepA3_completed( bool const success );
+    void stepA3_completed( );
 
     void stepA4_start( );
-    void stepA4_completed( );
+    void stepA4_completed( bool const success );
+
+    void stepA5_start( );
+    void stepA5_completed( );
 
     void stepB1_start( );
     void stepB1_completed( );
