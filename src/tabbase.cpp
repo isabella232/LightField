@@ -3,6 +3,7 @@
 #include "tabbase.h"
 
 #include "printjob.h"
+#include "printmanager.h"
 #include "shepherd.h"
 
 TabBase::TabBase( QWidget* parent ): QWidget( parent ) {
@@ -18,12 +19,16 @@ void TabBase::setPrintJob( PrintJob* printJob ) {
     _printJob = printJob;
 }
 
-void TabBase::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
+void TabBase::setPrintManager( PrintManager* printManager ) {
+    _disconnectPrintManager( );
+    _printManager = printManager;
+    _connectPrintManager( );
+}
 
-    _shepherd = newShepherd;
+void TabBase::setShepherd( Shepherd* shepherd ) {
+    _disconnectShepherd( );
+    _shepherd = shepherd;
+    _connectShepherd( );
 }
 
 void TabBase::_disconnectShepherd( ) {
@@ -31,5 +36,13 @@ void TabBase::_disconnectShepherd( ) {
 }
 
 void TabBase::_connectShepherd( ) {
+    /*empty*/
+}
+
+void TabBase::_disconnectPrintManager( ) {
+    QObject::disconnect( _printManager, nullptr, this, nullptr );
+}
+
+void TabBase::_connectPrintManager( ) {
     /*empty*/
 }
