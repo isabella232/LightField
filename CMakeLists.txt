@@ -44,12 +44,12 @@ src/svgrenderer.cpp
 src/processrunner.cpp
 src/signalhandler.cpp
 src/tabbase.cpp
-src/welcometab.cpp
 src/filetab.cpp
 src/preparetab.cpp
 src/printtab.cpp
 src/statustab.cpp
 src/advancedtab.cpp
+src/maintenancetab.cpp
 src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
@@ -74,12 +74,12 @@ src/svgrenderer.h
 src/processrunner.h
 src/signalhandler.h
 src/tabbase.h
-src/welcometab.h
 src/filetab.h
 src/preparetab.h
 src/printtab.h
 src/statustab.h
 src/advancedtab.h
+src/maintenancetab.h
 src/constants.h
 src/utils.h
 src/gesturelistview.h
