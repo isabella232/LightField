@@ -8,20 +8,20 @@ class Shepherd;
 class PrintManager;
 class PrintJob;
 
-//class WelcomeTab;
 class FileTab;
 class PrepareTab;
 class PrintTab;
 class StatusTab;
 class AdvancedTab;
+class MaintenanceTab;
 
 enum class TabIndex {
-    //Welcome,
     File,
     Prepare,
     Print,
     Status,
     Advanced,
+    Maintenance,
 };
 
 inline int operator+( TabIndex value ) {
@@ -40,24 +40,24 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    virtual void showEvent( QShowEvent* event ) override;
+    virtual void showEvent( QShowEvent* event )   override;
 
 private:
 
-    PrintJob*     printJob;
-    PrintManager* printManager       { };
-    Shepherd*     shepherd;
+    Shepherd*              _shepherd             { };
+    PrintJob*              _printJob             { };
+    PrintManager*          _printManager         { };
 
-    QTabWidget*   tabs               { new QTabWidget };
-    //WelcomeTab*   welcomeTab;
-    FileTab*      fileTab;
-    PrepareTab*   prepareTab;
-    PrintTab*     printTab;
-    StatusTab*    statusTab;
-    AdvancedTab*  advancedTab;
+    QTabWidget*            _tabs                 { new QTabWidget };
+    FileTab*               _fileTab;
+    PrepareTab*            _prepareTab;
+    PrintTab*              _printTab;
+    StatusTab*             _statusTab;
+    AdvancedTab*           _advancedTab;
+    MaintenanceTab*        _maintenanceTab;
 
-    bool          _isPrinterPrepared { };
-    bool          _isModelRendered   { };
+    bool                   _isPrinterPrepared    { };
+    bool                   _isModelRendered      { };
 
     std::function<void( )> _initialShowEventFunc;
 
@@ -65,8 +65,9 @@ private:
 
 signals:
 
-    void printJobChanged( PrintJob* newJob );
-    void shepherdChanged( Shepherd* newShepherd );
+    void printJobChanged( PrintJob* printJob );
+    void printManagerChanged( PrintManager* printManager );
+    void shepherdChanged( Shepherd* shepherd );
 
 public slots:
 

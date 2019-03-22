@@ -1,12 +1,12 @@
 #ifndef __PREPARETAB_H__
 #define __PREPARETAB_H__
 
+#include "tabbase.h"
+
 class Hasher;
-class PrintJob;
-class Shepherd;
 class SvgRenderer;
 
-class PrepareTab: public QWidget {
+class PrepareTab: public TabBase {
 
     Q_OBJECT
 
@@ -15,61 +15,54 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    bool      isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
-    bool      isSliceButtonEnabled( )   const { return sliceButton->isEnabled( );    }
-    Shepherd* shepherd( )               const { return _shepherd;                    }
+    bool isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
+    bool isSliceButtonEnabled( )   const { return _sliceButton->isEnabled( );   }
 
 protected:
 
-    virtual void showEvent( QShowEvent* ev ) override;
-
 private:
 
-    PrintJob*              _printJob                   { };
-    Shepherd*              _shepherd                   { };
-    QProcess*              slicerProcess               { };
-    SvgRenderer*           svgRenderer                 { };
-    Hasher*                _hasher                     { };
-    int                    _visibleLayer               { };
-    int                    _renderedLayers             { };
-    bool                   _preSliced                  { };
+    QProcess*              _slicerProcess               { };
+    SvgRenderer*           _svgRenderer                 { };
+    Hasher*                _hasher                      { };
+    int                    _visibleLayer                { };
+    int                    _renderedLayers              { };
+    bool                   _preSliced                   { };
 
-    QLabel*                layerThicknessLabel         { new QLabel       };
-    QRadioButton*          layerThickness50Button      { new QRadioButton };
-    QRadioButton*          layerThickness100Button     { new QRadioButton };
-    QVBoxLayout*           layerThicknessButtonsLayout { new QVBoxLayout  };
+    QLabel*                _layerThicknessLabel         { new QLabel       };
+    QRadioButton*          _layerThickness50Button      { new QRadioButton };
+    QRadioButton*          _layerThickness100Button     { new QRadioButton };
+    QVBoxLayout*           _layerThicknessButtonsLayout { new QVBoxLayout  };
 
-    QLabel*                sliceStatusLabel            { new QLabel       };
-    QLabel*                sliceStatus                 { new QLabel       };
-    QLabel*                imageGeneratorStatusLabel   { new QLabel       };
-    QLabel*                imageGeneratorStatus        { new QLabel       };
+    QLabel*                _sliceStatusLabel            { new QLabel       };
+    QLabel*                _sliceStatus                 { new QLabel       };
+    QLabel*                _imageGeneratorStatusLabel   { new QLabel       };
+    QLabel*                _imageGeneratorStatus        { new QLabel       };
 
-    QGroupBox*             _prepareGroup               { new QGroupBox    };
-    QLabel*                _prepareMessage             { new QLabel       };
-    QProgressBar*          _prepareProgress            { new QProgressBar };
-    QPushButton*           _prepareButton              { new QPushButton  };
-    QVBoxLayout*           _prepareLayout              { new QVBoxLayout  };
+    QGroupBox*             _prepareGroup                { new QGroupBox    };
+    QLabel*                _prepareMessage              { new QLabel       };
+    QProgressBar*          _prepareProgress             { new QProgressBar };
+    QPushButton*           _prepareButton               { new QPushButton  };
+    QVBoxLayout*           _prepareLayout               { new QVBoxLayout  };
 
-    QVBoxLayout*           optionsLayout               { new QVBoxLayout  };
-    QWidget*               optionsContainer            { new QWidget      };
-    QPushButton*           sliceButton                 { new QPushButton  };
+    QVBoxLayout*           _optionsLayout               { new QVBoxLayout  };
+    QWidget*               _optionsContainer            { new QWidget      };
+    QPushButton*           _sliceButton                 { new QPushButton  };
 
-    QGroupBox*             currentSliceGroup           { new QGroupBox    };
-    QLabel*                currentSliceImage           { new QLabel       };
-    QVBoxLayout*           currentSliceLayout          { new QVBoxLayout  };
+    QGroupBox*             _currentSliceGroup           { new QGroupBox    };
+    QLabel*                _currentSliceImage           { new QLabel       };
+    QVBoxLayout*           _currentSliceLayout          { new QVBoxLayout  };
 
-    QPushButton*           navigateFirst               { new QPushButton  };
-    QPushButton*           navigatePrevious            { new QPushButton  };
-    QLabel*                navigateCurrentLabel        { new QLabel       };
-    QPushButton*           navigateNext                { new QPushButton  };
-    QPushButton*           navigateLast                { new QPushButton  };
-    QHBoxLayout*           navigationLayout            {                  };
+    QPushButton*           _navigateFirst               { new QPushButton  };
+    QPushButton*           _navigatePrevious            { new QPushButton  };
+    QLabel*                _navigateCurrentLabel        { new QLabel       };
+    QPushButton*           _navigateNext                { new QPushButton  };
+    QPushButton*           _navigateLast                { new QPushButton  };
+    QHBoxLayout*           _navigationLayout            {                  };
 
-    QGridLayout*           _layout                     { new QGridLayout  };
+    QGridLayout*           _layout                      { new QGridLayout  };
 
-    std::function<void( )> _initialShowEventFunc;
-
-    void _initialShowEvent( );
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
     bool _checkPreSlicedFiles( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
@@ -89,12 +82,9 @@ signals:
 public slots:
 
     void setPrepareButtonEnabled( bool const enabled );
-    void setPrintJob( PrintJob* printJob );
-    void setShepherd( Shepherd* shepherd );
     void setSliceButtonEnabled( bool const enabled );
 
     void resetState( );
-
     void modelSelected( );
 
 protected slots:
@@ -121,10 +111,10 @@ private slots:
     void svgRenderer_layerComplete( int const currentLayer );
     void svgRenderer_done( bool const success );
 
-    void _prepareButton_clicked( bool );
-    void _shepherd_homeComplete( bool const success );
-    void _adjustBuildPlatform_complete( bool );
-    void _shepherd_resinLoadMoveToComplete( bool const success );
+    void prepareButton_clicked( bool );
+    void shepherd_homeComplete( bool const success );
+    void adjustBuildPlatform_complete( bool );
+    void shepherd_resinLoadMoveToComplete( bool const success );
 
 };
 

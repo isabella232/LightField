@@ -1,6 +1,8 @@
 #ifndef __TABBASE_H__
 #define __TABBASE_H__
 
+using namespace std::placeholders;
+
 class PrintJob;
 class PrintManager;
 class Shepherd;
@@ -20,15 +22,22 @@ public:
 
 protected:
 
-    Shepherd*     _shepherd     { };
     PrintJob*     _printJob     { };
     PrintManager* _printManager { };
+    Shepherd*     _shepherd     { };
 
-    virtual void _disconnectShepherd( );
-    virtual void _connectShepherd( );
+    std::function<void( QShowEvent* event )> _initialShowEventFunc;
+
+    virtual void _initialShowEvent( QShowEvent* event );
+
+    virtual void _disconnectPrintJob( );
+    virtual void _connectPrintJob( );
 
     virtual void _disconnectPrintManager( );
     virtual void _connectPrintManager( );
+
+    virtual void _disconnectShepherd( );
+    virtual void _connectShepherd( );
 
 private:
 
@@ -36,9 +45,9 @@ signals:
 
 public slots:
 
-    void setPrintJob( PrintJob* printJob );
-    void setPrintManager( PrintManager* printManager );
-    void setShepherd( Shepherd* shepherd );
+    virtual void setPrintJob( PrintJob* printJob );
+    virtual void setPrintManager( PrintManager* printManager );
+    virtual void setShepherd( Shepherd* shepherd );
 
 protected slots:
 

@@ -22,8 +22,8 @@ namespace {
 
 }
 
-StatusTab::StatusTab( QWidget* parent ): QWidget( parent ) {
-    _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this );
+StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
+    _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this, _1 );
 
     auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
 
@@ -154,15 +154,7 @@ StatusTab::~StatusTab( ) {
     /*empty*/
 }
 
-void StatusTab::showEvent( QShowEvent* event ) {
-    if ( _initialShowEventFunc ) {
-        _initialShowEventFunc( );
-        _initialShowEventFunc = nullptr;
-    }
-    event->ignore( );
-}
-
-void StatusTab::_initialShowEvent( ) {
+void StatusTab::_initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedWidth( _currentLayerImage->width( ) );
     _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
 
@@ -178,6 +170,8 @@ void StatusTab::_initialShowEvent( ) {
         ToString(  _warningHotLabel->size( ) ).toUtf8( ).data( ),
         ToString(   _warningUvLabel->size( ) ).toUtf8( ).data( )
     );
+
+    event->accept( );
 }
 
 void StatusTab::printer_online( ) {
@@ -323,19 +317,7 @@ void StatusTab::printSolutionLoadedButton_clicked( bool ) {
     _printManager->printSolutionLoaded( );
 }
 
-void StatusTab::setPrintJob( PrintJob* printJob ) {
-    debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
-    _printJob = printJob;
-}
-
-void StatusTab::setPrintManager( PrintManager* printManager ) {
-    debug( "+ StatusTab::setPrintManager: old %p, new %p\n", _printManager, printManager );
-    if ( _printManager ) {
-        QObject::disconnect( _printManager, nullptr, this, nullptr );
-    }
-
-    _printManager = printManager;
-
+void StatusTab::_connectPrintManager( ) {
     if ( _printManager ) {
         QObject::connect( _printManager, &PrintManager::printStarting,            this, &StatusTab::printManager_printStarting            );
         QObject::connect( _printManager, &PrintManager::printComplete,            this, &StatusTab::printManager_printComplete            );
@@ -346,13 +328,7 @@ void StatusTab::setPrintManager( PrintManager* printManager ) {
     }
 }
 
-void StatusTab::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
-
-    _shepherd = newShepherd;
-
+void StatusTab::_connectShepherd( ) {
     if ( _shepherd ) {
         QObject::connect( _shepherd, &Shepherd::printer_online,  this, &StatusTab::printer_online  );
         QObject::connect( _shepherd, &Shepherd::printer_offline, this, &StatusTab::printer_offline );

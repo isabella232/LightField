@@ -15,8 +15,9 @@ TabBase::~TabBase( ) {
 }
 
 void TabBase::setPrintJob( PrintJob* printJob ) {
-    debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
+    _disconnectPrintJob( );
     _printJob = printJob;
+    _connectPrintJob( );
 }
 
 void TabBase::setPrintManager( PrintManager* printManager ) {
@@ -31,11 +32,15 @@ void TabBase::setShepherd( Shepherd* shepherd ) {
     _connectShepherd( );
 }
 
-void TabBase::_disconnectShepherd( ) {
-    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+void TabBase::_initialShowEvent( QShowEvent* event ) {
+    /*empty*/
 }
 
-void TabBase::_connectShepherd( ) {
+void TabBase::_disconnectPrintJob( ) {
+    /*empty*/
+}
+
+void TabBase::_connectPrintJob( ) {
     /*empty*/
 }
 
@@ -44,5 +49,13 @@ void TabBase::_disconnectPrintManager( ) {
 }
 
 void TabBase::_connectPrintManager( ) {
+    /*empty*/
+}
+
+void TabBase::_disconnectShepherd( ) {
+    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+}
+
+void TabBase::_connectShepherd( ) {
     /*empty*/
 }

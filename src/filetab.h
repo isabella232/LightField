@@ -1,15 +1,14 @@
-#ifndef __SELECTTAB_H__
-#define __SELECTTAB_H__
+#ifndef __FILETAB_H__
+#define __FILETAB_H__
 
+#include "tabbase.h"
 #include "coordinate.h"
 #include "gesturelistview.h"
 
 class Canvas;
 class Loader;
 class Mesh;
-class PrintJob;
 class ProcessRunner;
-class Shepherd;
 
 class ModelSelectionInfo {
 
@@ -24,7 +23,7 @@ public:
 
 };
 
-class FileTab: public QWidget {
+class FileTab: public TabBase {
 
     Q_OBJECT
 
@@ -32,8 +31,6 @@ public:
 
     FileTab( QWidget* parent = nullptr );
     virtual ~FileTab( ) override;
-
-    Shepherd* shepherd( ) const { return _shepherd; }
 
 protected:
 
@@ -44,8 +41,6 @@ private:
         Usb
     };
 
-    Shepherd*           _shepherd                { };
-    PrintJob*           _printJob                { };
     ProcessRunner*      _processRunner           { };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
@@ -95,9 +90,6 @@ signals:
 
 public slots:
 
-    void setPrintJob( PrintJob* printJob );
-    void setShepherd( Shepherd* shepherd );
-
 protected slots:
 
 private slots:
@@ -122,4 +114,4 @@ private slots:
 
 };
 
-#endif // __SELECTTAB_H__
+#endif // __FILETAB_H__

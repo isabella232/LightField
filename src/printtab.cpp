@@ -3,6 +3,7 @@
 #include "printtab.h"
 
 #include "printjob.h"
+#include "printmanager.h"
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
@@ -27,107 +28,107 @@ namespace {
 
 }
 
-PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
+PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
 
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
 
 
-    exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
-    exposureTimeLabel->setText( "Exposure time (seconds):" );
-    exposureTimeLabel->setBuddy( exposureTimeSlider );
+    _exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
+    _exposureTimeLabel->setText( "Exposure time (seconds):" );
+    _exposureTimeLabel->setBuddy( _exposureTimeSlider );
 
-    exposureTimeValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
-    exposureTimeValue->setFont( boldFont );
+    _exposureTimeValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
+    _exposureTimeValue->setFont( boldFont );
 
-    exposureTimeValueLayout = WrapWidgetsInHBox( { exposureTimeLabel, nullptr, exposureTimeValue } );
-    exposureTimeValueLayout->setContentsMargins( { } );
+    _exposureTimeValueLayout = WrapWidgetsInHBox( { _exposureTimeLabel, nullptr, _exposureTimeValue } );
+    _exposureTimeValueLayout->setContentsMargins( { } );
 
-    exposureTimeSlider->setMinimum( 1 );
-    exposureTimeSlider->setMaximum( 40 );
-    exposureTimeSlider->setOrientation( Qt::Horizontal );
-    exposureTimeSlider->setTickInterval( 2 );
-    exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( exposureTimeSlider, &QDial::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
-
-
-    exposureTimeLayout->setContentsMargins( { } );
-    exposureTimeLayout->addLayout( exposureTimeValueLayout );
-    exposureTimeLayout->addWidget( exposureTimeSlider );
+    _exposureTimeSlider->setMinimum( 1 );
+    _exposureTimeSlider->setMaximum( 40 );
+    _exposureTimeSlider->setOrientation( Qt::Horizontal );
+    _exposureTimeSlider->setTickInterval( 2 );
+    _exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
+    QObject::connect( _exposureTimeSlider, &QDial::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
 
-    exposureTimeScaleFactorLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
-    exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
-    exposureTimeScaleFactorLabel->setBuddy( exposureTimeScaleFactorSlider );
-
-    exposureTimeScaleFactorValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
-    exposureTimeScaleFactorValue->setFont( boldFont );
-
-    exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { exposureTimeScaleFactorLabel, nullptr, exposureTimeScaleFactorValue } );
-    exposureTimeScaleFactorValueLayout->setContentsMargins( { } );
-
-    exposureTimeScaleFactorSlider->setMinimum( 1 );
-    exposureTimeScaleFactorSlider->setMaximum( 5 );
-    exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
-    exposureTimeScaleFactorSlider->setTickInterval( 1 );
-    exposureTimeScaleFactorSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
+    _exposureTimeLayout->setContentsMargins( { } );
+    _exposureTimeLayout->addLayout( _exposureTimeValueLayout );
+    _exposureTimeLayout->addWidget( _exposureTimeSlider );
 
 
-    exposureTimeScaleFactorLayout->setContentsMargins( { } );
-    exposureTimeScaleFactorLayout->addLayout( exposureTimeScaleFactorValueLayout );
-    exposureTimeScaleFactorLayout->addWidget( exposureTimeScaleFactorSlider );
+    _exposureTimeScaleFactorLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
+    _exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
+    _exposureTimeScaleFactorLabel->setBuddy( _exposureTimeScaleFactorSlider );
+
+    _exposureTimeScaleFactorValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
+    _exposureTimeScaleFactorValue->setFont( boldFont );
+
+    _exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { _exposureTimeScaleFactorLabel, nullptr, _exposureTimeScaleFactorValue } );
+    _exposureTimeScaleFactorValueLayout->setContentsMargins( { } );
+
+    _exposureTimeScaleFactorSlider->setMinimum( 1 );
+    _exposureTimeScaleFactorSlider->setMaximum( 5 );
+    _exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
+    _exposureTimeScaleFactorSlider->setTickInterval( 1 );
+    _exposureTimeScaleFactorSlider->setTickPosition( QSlider::TicksBothSides );
+    QObject::connect( _exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
 
 
-    exposureLayout->addLayout( exposureTimeLayout,            0, 0 );
-    exposureLayout->addLayout( exposureTimeScaleFactorLayout, 0, 2 );
-    exposureLayout->setRowStretch( 0, 1 );
-    exposureLayout->setRowStretch( 1, 1 );
-    exposureLayout->setColumnStretch( 0, 8 );
-    exposureLayout->setColumnStretch( 1, 1 );
-    exposureLayout->setColumnStretch( 2, 4 );
+    _exposureTimeScaleFactorLayout->setContentsMargins( { } );
+    _exposureTimeScaleFactorLayout->addLayout( _exposureTimeScaleFactorValueLayout );
+    _exposureTimeScaleFactorLayout->addWidget( _exposureTimeScaleFactorSlider );
 
 
-    powerLevelLabel->setText( "Projector power level:" );
-    powerLevelLabel->setBuddy( powerLevelSlider );
-
-    powerLevelValue->setAlignment( Qt::AlignRight );
-    powerLevelValue->setFont( boldFont );
-
-    powerLevelValueLayout = WrapWidgetsInHBox( { powerLevelLabel, nullptr, powerLevelValue } );
-    powerLevelValueLayout->setContentsMargins( { } );
-
-    powerLevelSlider->setMinimum( 20 );
-    powerLevelSlider->setMaximum( 100 );
-    powerLevelSlider->setOrientation( Qt::Horizontal );
-    powerLevelSlider->setTickInterval( 1 );
-    powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
+    _exposureLayout->addLayout( _exposureTimeLayout,            0, 0 );
+    _exposureLayout->addLayout( _exposureTimeScaleFactorLayout, 0, 2 );
+    _exposureLayout->setRowStretch( 0, 1 );
+    _exposureLayout->setRowStretch( 1, 1 );
+    _exposureLayout->setColumnStretch( 0, 8 );
+    _exposureLayout->setColumnStretch( 1, 1 );
+    _exposureLayout->setColumnStretch( 2, 4 );
 
 
-    optionsLayout->setContentsMargins( { } );
-    optionsLayout->addLayout( exposureLayout );
-    optionsLayout->addLayout( powerLevelValueLayout );
-    optionsLayout->addWidget( powerLevelSlider );
-    optionsLayout->addStretch( );
+    _powerLevelLabel->setText( "Projector power level:" );
+    _powerLevelLabel->setBuddy( _powerLevelSlider );
 
-    optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    optionsContainer->setLayout( optionsLayout );
+    _powerLevelValue->setAlignment( Qt::AlignRight );
+    _powerLevelValue->setFont( boldFont );
 
-    printButton->setEnabled( false );
-    printButton->setFixedSize( MainButtonSize );
-    printButton->setFont( ModifyFont( printButton->font( ), 22.0 ) );
-    printButton->setText( "Print" );
-    QObject::connect( printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
+    _powerLevelValueLayout = WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } );
+    _powerLevelValueLayout->setContentsMargins( { } );
+
+    _powerLevelSlider->setMinimum( 20 );
+    _powerLevelSlider->setMaximum( 100 );
+    _powerLevelSlider->setOrientation( Qt::Horizontal );
+    _powerLevelSlider->setTickInterval( 1 );
+    _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
+    QObject::connect( _powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
+
+
+    _optionsLayout->setContentsMargins( { } );
+    _optionsLayout->addLayout( _exposureLayout );
+    _optionsLayout->addLayout( _powerLevelValueLayout );
+    _optionsLayout->addWidget( _powerLevelSlider );
+    _optionsLayout->addStretch( );
+
+    _optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _optionsContainer->setLayout( _optionsLayout );
+
+    _printButton->setEnabled( false );
+    _printButton->setFixedSize( MainButtonSize );
+    _printButton->setFont( ModifyFont( _printButton->font( ), 22.0 ) );
+    _printButton->setText( "Print" );
+    QObject::connect( _printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
     _raiseOrLowerButton->setText( "Raise Build Platform" );
     _raiseOrLowerButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-    QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::_raiseOrLowerButton_clicked );
+    QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::raiseOrLowerButton_clicked );
 
     _homeButton->setText( "Home" );
     _homeButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-    QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::_homeButton_clicked );
+    QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::homeButton_clicked );
 
     _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -135,8 +136,8 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,  0, 0, 1, 2 );
-    _layout->addWidget( printButton,       1, 0, 1, 1 );
+    _layout->addWidget( _optionsContainer,  0, 0, 1, 2 );
+    _layout->addWidget( _printButton,       1, 0, 1, 1 );
     _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -146,15 +147,6 @@ PrintTab::PrintTab( QWidget* parent ): QWidget( parent ) {
 
 PrintTab::~PrintTab( ) {
     /*empty*/
-}
-
-void PrintTab::showEvent( QShowEvent* event ) {
-    if ( _initialShowEventFunc ) {
-        _initialShowEventFunc( event );
-        _initialShowEventFunc = nullptr;
-    } else {
-        event->ignore( );
-    }
 }
 
 void PrintTab::_initialShowEvent( QShowEvent* event ) {
@@ -171,17 +163,17 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
 void PrintTab::exposureTimeSlider_valueChanged( int value ) {
     _printJob->exposureTime = value / 2.0;
-    exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 }
 
 void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
     _printJob->exposureTimeScaleFactor = value;
-    exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( value ) );
+    _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( value ) );
 }
 
 void PrintTab::powerLevelSlider_valueChanged( int value ) {
     _printJob->powerLevel = value / 100.0 * 255.0 + 0.5;
-    powerLevelValue->setText( QString( "%1%" ).arg( value ) );
+    _powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 }
 
 void PrintTab::printButton_clicked( bool ) {
@@ -189,8 +181,8 @@ void PrintTab::printButton_clicked( bool ) {
     emit printButtonClicked( );
 }
 
-void PrintTab::_raiseOrLowerButton_clicked( bool ) {
-    debug( "+ PrintTab::_raiseOrLowerButton_clicked: build platform state %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
+void PrintTab::raiseOrLowerButton_clicked( bool ) {
+    debug( "+ PrintTab::raiseOrLowerButton_clicked: build platform state %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
     setAdjustmentButtonsEnabled( false );
 
     switch ( _buildPlatformState ) {
@@ -245,8 +237,8 @@ void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
-void PrintTab::_homeButton_clicked( bool ) {
-    debug( "+ PrintTab::_homeButton_clicked\n" );
+void PrintTab::homeButton_clicked( bool ) {
+    debug( "+ PrintTab::homeButton_clicked\n" );
     setAdjustmentButtonsEnabled( false );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintTab::home_homeComplete );
@@ -266,30 +258,19 @@ void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
 
 void PrintTab::setPrintButtonEnabled( bool const value ) {
     debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
-    printButton->setEnabled( value );
+    _printButton->setEnabled( value );
 }
 
-void PrintTab::setPrintJob( PrintJob* printJob ) {
-    debug( "+ PrintTab::setPrintJob: printJob %p\n", printJob );
-    _printJob = printJob;
-
+void PrintTab::_connectPrintJob( ) {
     int value = _printJob->exposureTime / 0.5;
     _printJob->exposureTime = value / 2.0;
-    exposureTimeSlider->setValue( value );
-    exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    _exposureTimeSlider->setValue( value );
+    _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
 
     debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
-    exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
-    exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
+    _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
+    _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
 
-    powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
-    powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
-}
-
-void PrintTab::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
-
-    _shepherd = newShepherd;
+    _powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
+    _powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
 }

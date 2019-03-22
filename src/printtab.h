@@ -1,6 +1,8 @@
 #ifndef __PRINTTAB_H__
 #define __PRINTTAB_H__
 
+#include "tabbase.h"
+
 enum class BuildPlatformState {
     Lowered,
     Raising,
@@ -8,10 +10,7 @@ enum class BuildPlatformState {
     Lowering,
 };
 
-class PrintJob;
-class Shepherd;
-
-class PrintTab: public QWidget {
+class PrintTab: public TabBase {
 
     Q_OBJECT
 
@@ -20,55 +19,49 @@ public:
     PrintTab( QWidget* parent = nullptr );
     virtual ~PrintTab( ) override;
 
-    bool      isPrintButtonEnabled( ) const { return printButton->isEnabled( ); }
-    PrintJob* printJob( )             const { return _printJob;                 }
-    Shepherd* shepherd( )             const { return _shepherd;                 }
+    bool isPrintButtonEnabled( ) const { return _printButton->isEnabled( ); }
 
 protected:
 
-    void showEvent( QShowEvent* event );
-
 private:
 
-    BuildPlatformState _buildPlatformState                { BuildPlatformState::Lowered };
-    PrintJob*          _printJob                          { };
-    Shepherd*          _shepherd                          { };
+    BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
-    QLabel*            exposureTimeLabel                  { new QLabel      };
-    QLabel*            exposureTimeValue                  { new QLabel      };
-    QHBoxLayout*       exposureTimeValueLayout            {                 };
-    QSlider*           exposureTimeSlider                 { new QSlider     };
+    QLabel*            _exposureTimeLabel                  { new QLabel      };
+    QLabel*            _exposureTimeValue                  { new QLabel      };
+    QHBoxLayout*       _exposureTimeValueLayout            {                 };
+    QSlider*           _exposureTimeSlider                 { new QSlider     };
 
-    QLabel*            exposureTimeScaleFactorValue       { new QLabel      };
-    QLabel*            exposureTimeScaleFactorLabel       { new QLabel      };
-    QHBoxLayout*       exposureTimeScaleFactorValueLayout {                 };
-    QSlider*           exposureTimeScaleFactorSlider      { new QSlider     };
+    QLabel*            _exposureTimeScaleFactorValue       { new QLabel      };
+    QLabel*            _exposureTimeScaleFactorLabel       { new QLabel      };
+    QHBoxLayout*       _exposureTimeScaleFactorValueLayout {                 };
+    QSlider*           _exposureTimeScaleFactorSlider      { new QSlider     };
 
-    QVBoxLayout*       exposureTimeLayout                 { new QVBoxLayout };
-    QVBoxLayout*       exposureTimeScaleFactorLayout      { new QVBoxLayout };
+    QVBoxLayout*       _exposureTimeLayout                 { new QVBoxLayout };
+    QVBoxLayout*       _exposureTimeScaleFactorLayout      { new QVBoxLayout };
 
-    QGridLayout*       exposureLayout                     { new QGridLayout };
+    QGridLayout*       _exposureLayout                     { new QGridLayout };
 
-    QLabel*            powerLevelLabel                    { new QLabel      };
-    QLabel*            powerLevelValue                    { new QLabel      };
-    QHBoxLayout*       powerLevelValueLayout              {                 };
-    QSlider*           powerLevelSlider                   { new QSlider     };
+    QLabel*            _powerLevelLabel                    { new QLabel      };
+    QLabel*            _powerLevelValue                    { new QLabel      };
+    QHBoxLayout*       _powerLevelValueLayout              {                 };
+    QSlider*           _powerLevelSlider                   { new QSlider     };
 
-    QVBoxLayout*       optionsLayout                      { new QVBoxLayout };
-    QWidget*           optionsContainer                   { new QWidget     };
+    QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
+    QWidget*           _optionsContainer                   { new QWidget     };
 
-    QPushButton*       printButton                        { new QPushButton };
+    QPushButton*       _printButton                        { new QPushButton };
 
-    QPushButton*       _raiseOrLowerButton                { new QPushButton };
-    QPushButton*       _homeButton                        { new QPushButton };
+    QPushButton*       _raiseOrLowerButton                 { new QPushButton };
+    QPushButton*       _homeButton                         { new QPushButton };
 
-    QGroupBox*         _adjustmentsGroup                  { new QGroupBox   };
+    QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
-    QGridLayout*       _layout                            { new QGridLayout };
+    QGridLayout*       _layout                             { new QGridLayout };
 
-    std::function<void( QShowEvent* )> _initialShowEventFunc;
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
 
-    void _initialShowEvent( QShowEvent* event );
+    virtual void _connectPrintJob( ) override;
 
 signals:
 
@@ -78,8 +71,6 @@ public slots:
 
     void setAdjustmentButtonsEnabled( bool const value );
     void setPrintButtonEnabled( bool const value );
-    void setPrintJob( PrintJob* printJob );
-    void setShepherd( Shepherd* shepherd );
 
     void raiseBuildPlatform_moveToComplete( bool const success );
     void lowerBuildPlatform_moveToComplete( bool const success );
@@ -93,8 +84,8 @@ private slots:
     void exposureTimeScaleFactorSlider_valueChanged( int value );
     void powerLevelSlider_valueChanged( int value );
     void printButton_clicked( bool );
-    void _raiseOrLowerButton_clicked( bool );
-    void _homeButton_clicked( bool );
+    void raiseOrLowerButton_clicked( bool );
+    void homeButton_clicked( bool );
 
 };
 

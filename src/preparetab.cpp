@@ -9,40 +9,40 @@
 #include "svgrenderer.h"
 #include "utils.h"
 
-PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
-    _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this );
+PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
+    _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this, _1 );
 
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
     auto font12pt = ModifyFont( origFont, 12.0 );
     auto font22pt = ModifyFont( origFont, 22.0 );
 
-    layerThicknessLabel->setText( "Layer height:" );
+    _layerThicknessLabel->setText( "Layer height:" );
 
-    layerThickness100Button->setChecked( true );
-    layerThickness100Button->setFont( font12pt );
-    layerThickness100Button->setText( "Standard res (100 µm)" );
-    QObject::connect( layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
+    _layerThickness100Button->setChecked( true );
+    _layerThickness100Button->setFont( font12pt );
+    _layerThickness100Button->setText( "Standard res (100 µm)" );
+    QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
-    layerThickness50Button->setText( "High res (50 µm)" );
-    layerThickness50Button->setFont( font12pt );
-    QObject::connect( layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
+    _layerThickness50Button->setText( "High res (50 µm)" );
+    _layerThickness50Button->setFont( font12pt );
+    QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
-    layerThicknessButtonsLayout->setContentsMargins( { } );
-    layerThicknessButtonsLayout->addWidget( layerThickness100Button );
-    layerThicknessButtonsLayout->addWidget( layerThickness50Button  );
+    _layerThicknessButtonsLayout->setContentsMargins( { } );
+    _layerThicknessButtonsLayout->addWidget( _layerThickness100Button );
+    _layerThicknessButtonsLayout->addWidget( _layerThickness50Button  );
 
-    sliceStatusLabel->setText( "Slicer:" );
-    sliceStatusLabel->setBuddy( sliceStatus );
+    _sliceStatusLabel->setText( "Slicer:" );
+    _sliceStatusLabel->setBuddy( _sliceStatus );
 
-    sliceStatus->setText( "idle" );
-    sliceStatus->setFont( boldFont );
+    _sliceStatus->setText( "idle" );
+    _sliceStatus->setFont( boldFont );
 
-    imageGeneratorStatusLabel->setText( "Image generator:" );
-    imageGeneratorStatusLabel->setBuddy( imageGeneratorStatus );
+    _imageGeneratorStatusLabel->setText( "Image generator:" );
+    _imageGeneratorStatusLabel->setBuddy( _imageGeneratorStatus );
 
-    imageGeneratorStatus->setText( "idle" );
-    imageGeneratorStatus->setFont( boldFont );
+    _imageGeneratorStatus->setText( "idle" );
+    _imageGeneratorStatus->setFont( boldFont );
 
     _prepareMessage->setAlignment( Qt::AlignCenter );
     _prepareMessage->setTextFormat( Qt::RichText );
@@ -66,66 +66,66 @@ PrepareTab::PrepareTab( QWidget* parent ): QWidget( parent ) {
     _prepareButton->setFixedSize( MainButtonSize );
     _prepareButton->setFont( font22pt );
     _prepareButton->setText( QString( "Prepare" ) );
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
+    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
 
-    optionsLayout->setContentsMargins( { } );
-    optionsLayout->addWidget( layerThicknessLabel );
-    optionsLayout->addLayout( layerThicknessButtonsLayout );
-    optionsLayout->addLayout( WrapWidgetsInHBox( { sliceStatusLabel,          nullptr, sliceStatus          } ) );
-    optionsLayout->addLayout( WrapWidgetsInHBox( { imageGeneratorStatusLabel, nullptr, imageGeneratorStatus } ) );
-    optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
+    _optionsLayout->setContentsMargins( { } );
+    _optionsLayout->addWidget( _layerThicknessLabel );
+    _optionsLayout->addLayout( _layerThicknessButtonsLayout );
+    _optionsLayout->addLayout( WrapWidgetsInHBox( { _sliceStatusLabel,          nullptr, _sliceStatus          } ) );
+    _optionsLayout->addLayout( WrapWidgetsInHBox( { _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus } ) );
+    _optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
 
-    optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    optionsContainer->setLayout( optionsLayout );
+    _optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _optionsContainer->setLayout( _optionsLayout );
 
-    sliceButton->setEnabled( false );
-    sliceButton->setFixedSize( MainButtonSize );
-    sliceButton->setFont( font22pt );
-    sliceButton->setText( "Slice" );
-    QObject::connect( sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
+    _sliceButton->setEnabled( false );
+    _sliceButton->setFixedSize( MainButtonSize );
+    _sliceButton->setFont( font22pt );
+    _sliceButton->setText( "Slice" );
+    QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    currentSliceImage->setAlignment( Qt::AlignCenter );
-    currentSliceImage->setContentsMargins( { } );
-    currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
+    _currentSliceImage->setAlignment( Qt::AlignCenter );
+    _currentSliceImage->setContentsMargins( { } );
+    _currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
     auto fontAwesome = origFont;
     fontAwesome.setFamily( "FontAwesome" );
-    for ( auto button : { navigateFirst, navigatePrevious, navigateNext, navigateLast } ) {
+    for ( auto button : { _navigateFirst, _navigatePrevious, _navigateNext, _navigateLast } ) {
         button->setFont( fontAwesome );
     }
 
-    navigateFirst   ->setText( QString( L'\uF049' ) );
-    navigatePrevious->setText( QString( L'\uF04A' ) );
-    navigateNext    ->setText( QString( L'\uF04E' ) );
-    navigateLast    ->setText( QString( L'\uF050' ) );
+    _navigateFirst   ->setText( QString( L'\uF049' ) );
+    _navigatePrevious->setText( QString( L'\uF04A' ) );
+    _navigateNext    ->setText( QString( L'\uF04E' ) );
+    _navigateLast    ->setText( QString( L'\uF050' ) );
 
-    QObject::connect( navigateFirst,    &QPushButton::clicked, this, &PrepareTab::navigateFirst_clicked    );
-    QObject::connect( navigatePrevious, &QPushButton::clicked, this, &PrepareTab::navigatePrevious_clicked );
-    QObject::connect( navigateNext,     &QPushButton::clicked, this, &PrepareTab::navigateNext_clicked     );
-    QObject::connect( navigateLast,     &QPushButton::clicked, this, &PrepareTab::navigateLast_clicked     );
+    QObject::connect( _navigateFirst,    &QPushButton::clicked, this, &PrepareTab::navigateFirst_clicked    );
+    QObject::connect( _navigatePrevious, &QPushButton::clicked, this, &PrepareTab::navigatePrevious_clicked );
+    QObject::connect( _navigateNext,     &QPushButton::clicked, this, &PrepareTab::navigateNext_clicked     );
+    QObject::connect( _navigateLast,     &QPushButton::clicked, this, &PrepareTab::navigateLast_clicked     );
 
-    navigateCurrentLabel->setAlignment( Qt::AlignCenter );
-    navigateCurrentLabel->setText( "0/0" );
+    _navigateCurrentLabel->setAlignment( Qt::AlignCenter );
+    _navigateCurrentLabel->setText( "0/0" );
 
-    navigationLayout = WrapWidgetsInHBox( { nullptr, navigateFirst, navigatePrevious, navigateCurrentLabel, navigateNext, navigateLast, nullptr } );
-    navigationLayout->setAlignment( Qt::AlignCenter );
+    _navigationLayout = WrapWidgetsInHBox( { nullptr, _navigateFirst, _navigatePrevious, _navigateCurrentLabel, _navigateNext, _navigateLast, nullptr } );
+    _navigationLayout->setAlignment( Qt::AlignCenter );
 
     _setNavigationButtonsEnabled( false );
 
-    currentSliceLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
-    currentSliceLayout->setContentsMargins( { } );
-    currentSliceLayout->addWidget( currentSliceImage );
-    currentSliceLayout->addLayout( navigationLayout );
+    _currentSliceLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
+    _currentSliceLayout->setContentsMargins( { } );
+    _currentSliceLayout->addWidget( _currentSliceImage );
+    _currentSliceLayout->addLayout( _navigationLayout );
 
-    currentSliceGroup->setTitle( "Current layer" );
-    currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
-    currentSliceGroup->setLayout( currentSliceLayout );
+    _currentSliceGroup->setTitle( "Current layer" );
+    _currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _currentSliceGroup->setLayout( _currentSliceLayout );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( sliceButton,       1, 0, 1, 1 );
-    _layout->addWidget( currentSliceGroup, 0, 1, 2, 1 );
+    _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( _currentSliceGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -138,17 +138,10 @@ PrepareTab::~PrepareTab( ) {
     /*empty*/
 }
 
-void PrepareTab::showEvent( QShowEvent* ev ) {
-    if ( _initialShowEventFunc ) {
-        _initialShowEventFunc( );
-        _initialShowEventFunc = nullptr;
-    }
-    ev->ignore( );
-}
-
-void PrepareTab::_initialShowEvent( ) {
-    currentSliceImage->setFixedWidth( currentSliceImage->width( ) );
-    currentSliceImage->setFixedHeight( currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
+void PrepareTab::_initialShowEvent( QShowEvent* event ) {
+    _currentSliceImage->setFixedWidth( _currentSliceImage->width( ) );
+    _currentSliceImage->setFixedHeight( _currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
+    event->accept( );
 }
 
 bool PrepareTab::_checkPreSlicedFiles( ) {
@@ -223,21 +216,21 @@ void PrepareTab::layerThickness100Button_clicked( bool checked ) {
 }
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
-    navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
-    navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
-    navigateNext    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
-    navigateLast    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
+    _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
+    _navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
+    _navigateNext    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
+    _navigateLast    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
-    if ( ( pixmap.width( ) > currentSliceImage->width( ) ) || ( pixmap.height( ) > currentSliceImage->height( ) ) ) {
-        pixmap = pixmap.scaled( currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    if ( ( pixmap.width( ) > _currentSliceImage->width( ) ) || ( pixmap.height( ) > _currentSliceImage->height( ) ) ) {
+        pixmap = pixmap.scaled( _currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
-    currentSliceImage->setPixmap( pixmap );
+    _currentSliceImage->setPixmap( pixmap );
 
     int fieldWidth = ceil( log10( _printJob->layerCount ) );
-    navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+    _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
 }
 
 void PrepareTab::navigateFirst_clicked( bool ) {
@@ -275,14 +268,14 @@ void PrepareTab::sliceButton_clicked( bool ) {
     jobDir.removeRecursively( );
     jobDir.mkdir( _printJob->jobWorkingDirectory );
 
-    sliceStatus->setText( "starting" );
-    imageGeneratorStatus->setText( "waiting" );
+    _sliceStatus->setText( "starting" );
+    _imageGeneratorStatus->setText( "waiting" );
 
-    slicerProcess = new QProcess( this );
-    QObject::connect( slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
-    QObject::connect( slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
-    QObject::connect( slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
-    slicerProcess->start(
+    _slicerProcess = new QProcess( this );
+    QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
+    QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
+    QObject::connect( _slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
+    _slicerProcess->start(
         QString     { "slic3r" },
         QStringList {
             _printJob->modelFileName,
@@ -308,7 +301,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _hasher->deleteLater( );
     _hasher = nullptr;
 
-    sliceStatus->setText( "idle" );
+    _sliceStatus->setText( "idle" );
 
     debug(
         "  + model filename:        '%s'\n"
@@ -334,14 +327,14 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     }
 
     _setNavigationButtonsEnabled( _preSliced );
-    sliceButton->setEnabled( true );
+    _sliceButton->setEnabled( true );
     if ( _preSliced ) {
-        navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
-        sliceButton->setText( "Reslice" );
+        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
+        _sliceButton->setText( "Reslice" );
         emit alreadySliced( );
     } else {
-        navigateCurrentLabel->setText( "0/0" );
-        sliceButton->setText( "Slice" );
+        _navigateCurrentLabel->setText( "0/0" );
+        _sliceButton->setText( "Slice" );
     }
 }
 
@@ -350,51 +343,51 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
 
     if ( QProcess::FailedToStart == error ) {
         debug( "  + slicer process failed to start\n" );
-        sliceStatus->setText( "failed to start" );
+        _sliceStatus->setText( "failed to start" );
     } else if ( QProcess::Crashed == error ) {
-        debug( "  + slicer process crashed? state is %s [%d]\n", ToString( slicerProcess->state( ) ), slicerProcess->state( ) );
-        if ( slicerProcess->state( ) != QProcess::NotRunning ) {
-            slicerProcess->kill( );
+        debug( "  + slicer process crashed? state is %s [%d]\n", ToString( _slicerProcess->state( ) ), _slicerProcess->state( ) );
+        if ( _slicerProcess->state( ) != QProcess::NotRunning ) {
+            _slicerProcess->kill( );
             debug( "  + slicer terminated\n" );
         }
-        sliceStatus->setText( "crashed" );
+        _sliceStatus->setText( "crashed" );
     }
 }
 
 void PrepareTab::slicerProcessStarted( ) {
     debug( "+ PrepareTab::slicerProcessStarted\n" );
-    sliceStatus->setText( "started" );
+    _sliceStatus->setText( "started" );
 }
 
 void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    QObject::disconnect( slicerProcess, nullptr, this, nullptr );
+    QObject::disconnect( _slicerProcess, nullptr, this, nullptr );
 
     debug( "+ PrepareTab::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
-    slicerProcess->deleteLater( );
-    slicerProcess = nullptr;
+    _slicerProcess->deleteLater( );
+    _slicerProcess = nullptr;
 
     if ( exitStatus == QProcess::CrashExit ) {
         debug( "  + slicer process crashed?\n" );
-        sliceStatus->setText( "crashed" );
+        _sliceStatus->setText( "crashed" );
         emit sliceComplete( false );
         return;
     } else if ( ( exitStatus == QProcess::NormalExit ) && ( exitCode != 0 ) ) {
         debug( "  + slicer process failed\n" );
-        sliceStatus->setText( "failed" );
+        _sliceStatus->setText( "failed" );
         emit sliceComplete( false );
         return;
     }
 
-    sliceStatus->setText( "finished" );
+    _sliceStatus->setText( "finished" );
 
     emit sliceComplete( true );
 
-    svgRenderer = new SvgRenderer;
-    QObject::connect( svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
-    QObject::connect( svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
-    QObject::connect( svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
-    svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
+    _svgRenderer = new SvgRenderer;
+    QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
+    QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
+    QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
+    _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
 
     emit renderStarted( );
 }
@@ -404,12 +397,12 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
     _printJob->layerCount = totalLayers;
 
     int fieldWidth = ceil( log10( _printJob->layerCount ) );
-    navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+    _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
 }
 
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
     _renderedLayers = currentLayer;
-    imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
+    _imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
 
     if ( 0 == ( currentLayer % 5 ) ) {
         _visibleLayer = currentLayer;
@@ -418,19 +411,19 @@ void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
 }
 
 void PrepareTab::svgRenderer_done( bool const success ) {
-    imageGeneratorStatus->setText( success ? "finished" : "failed" );
+    _imageGeneratorStatus->setText( success ? "finished" : "failed" );
 
-    svgRenderer->deleteLater( );
-    svgRenderer = nullptr;
+    _svgRenderer->deleteLater( );
+    _svgRenderer = nullptr;
 
     _setNavigationButtonsEnabled( true );
-    sliceButton->setText( "Reslice" );
+    _sliceButton->setText( "Reslice" );
     _preSliced = true;
 
     emit renderComplete( success );
 }
 
-void PrepareTab::_prepareButton_clicked( bool ) {
+void PrepareTab::prepareButton_clicked( bool ) {
     debug( "+ PrepareTab::_prepareButton_clicked\n" );
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
@@ -441,13 +434,13 @@ void PrepareTab::_prepareButton_clicked( bool ) {
     _prepareButton->setText( QString( "Continue" ) );
     _prepareButton->setEnabled( false );
 
-    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::_shepherd_homeComplete );
+    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::shepherd_homeComplete );
     _shepherd->doHome( );
 
     emit preparePrinterStarted( );
 }
 
-void PrepareTab::_shepherd_homeComplete( bool const success ) {
+void PrepareTab::shepherd_homeComplete( bool const success ) {
     debug( "+ PrepareTab::_shepherd_homeComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
@@ -465,11 +458,11 @@ void PrepareTab::_shepherd_homeComplete( bool const success ) {
 
     _prepareMessage->setText( QString( "Adjust the build platform position, then tap <b>Continue</b>." ) );
 
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_adjustBuildPlatform_complete );
+    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
     _prepareButton->setEnabled( true );
 }
 
-void PrepareTab::_adjustBuildPlatform_complete( bool ) {
+void PrepareTab::adjustBuildPlatform_complete( bool ) {
     debug( "+ PrepareTab::_adjustBuildPlatform_complete\n" );
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
@@ -478,11 +471,11 @@ void PrepareTab::_adjustBuildPlatform_complete( bool ) {
     _prepareMessage->setText( QString( "Raising the build platform..." ) );
     _prepareProgress->show( );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::_shepherd_resinLoadMoveToComplete );
+    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::shepherd_resinLoadMoveToComplete );
     _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
-void PrepareTab::_shepherd_resinLoadMoveToComplete( bool const success ) {
+void PrepareTab::shepherd_resinLoadMoveToComplete( bool const success ) {
     debug( "+ PrepareTab::_shepherd_resinLoadMoveToComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
@@ -500,7 +493,7 @@ void PrepareTab::_shepherd_resinLoadMoveToComplete( bool const success ) {
 
     _prepareMessage->setText( QString( "Preparation completed." ) );
 
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::_prepareButton_clicked );
+    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
     _prepareButton->setText( "Prepare" );
     _prepareButton->setEnabled( true );
 
@@ -511,34 +504,21 @@ void PrepareTab::setPrepareButtonEnabled( bool const enabled ) {
     _prepareButton->setEnabled( enabled );
 }
 
-void PrepareTab::setPrintJob( PrintJob* printJob ) {
-    debug( "+ PrepareTab::setPrintJob: printJob %p\n", printJob );
-    _printJob = printJob;
-}
-
-void PrepareTab::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
-
-    _shepherd = newShepherd;
-}
-
 void PrepareTab::setSliceButtonEnabled( bool const enabled ) {
-    sliceButton->setEnabled( enabled );
+    _sliceButton->setEnabled( enabled );
 }
 
 void PrepareTab::resetState( ) {
-    sliceStatus->setText( "idle" );
-    imageGeneratorStatus->setText( "idle" );
-    currentSliceImage->clear( );
-    navigateCurrentLabel->setText( "0/0" );
+    _sliceStatus->setText( "idle" );
+    _imageGeneratorStatus->setText( "idle" );
+    _currentSliceImage->clear( );
+    _navigateCurrentLabel->setText( "0/0" );
     _setNavigationButtonsEnabled( false );
 }
 
 void PrepareTab::modelSelected( ) {
     resetState( );
-    sliceButton->setEnabled( false );
+    _sliceButton->setEnabled( false );
 
     _hasher = new Hasher;
     QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );

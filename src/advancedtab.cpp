@@ -13,7 +13,7 @@ namespace {
 
 }
 
-AdvancedTab::AdvancedTab( QWidget* parent ): QWidget( parent ) {
+AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _currentTemperatureLabel->setText( "Current temperature:" );
     _targetTemperatureLabel ->setText( "Target temperature:"  );
     _pwmLabel               ->setText( "Heater PWM:"          );
@@ -76,29 +76,16 @@ void AdvancedTab::_resumeTimer( ) {
     _timer->start( );
 }
 
-void AdvancedTab::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
-
-    _shepherd = newShepherd;
-
-    if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &AdvancedTab::printer_temperatureReport );
-    }
+void AdvancedTab::_connectPrintManager( ) {
+    QObject::connect( _printManager, &PrintManager::printStarting, this, &AdvancedTab::printManager_printStarting );
+    QObject::connect( _printManager, &PrintManager::printComplete, this, &AdvancedTab::printManager_printComplete );
+    QObject::connect( _printManager, &PrintManager::printAborted,  this, &AdvancedTab::printManager_printAborted  );
 }
 
-void AdvancedTab::setPrintManager( PrintManager* printManager ) {
-    if ( _printManager ) {
-        QObject::disconnect( _printManager, nullptr, this, nullptr );
-    }
-
-    _printManager = printManager;
-
-    if ( _printManager ) {
-        QObject::connect( _printManager, &PrintManager::printStarting, this, &AdvancedTab::printManager_printStarting );
-        QObject::connect( _printManager, &PrintManager::printComplete, this, &AdvancedTab::printManager_printComplete );
-        QObject::connect( _printManager, &PrintManager::printAborted,  this, &AdvancedTab::printManager_printAborted  );
+void AdvancedTab::_connectShepherd( ) {
+    if ( _shepherd ) {
+        QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &AdvancedTab::printer_positionReport    );
+        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &AdvancedTab::printer_temperatureReport );
     }
 }
 

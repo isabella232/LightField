@@ -1,11 +1,9 @@
 #ifndef __STATUSTAB_H__
 #define __STATUSTAB_H__
 
-class PrintJob;
-class PrintManager;
-class Shepherd;
+#include "tabbase.h"
 
-class StatusTab: public QWidget {
+class StatusTab: public TabBase {
 
     Q_OBJECT
 
@@ -18,11 +16,7 @@ public:
         return _stopButton->isEnabled( );
     }
 
-    Shepherd* shepherd( ) const { return _shepherd; }
-
 protected:
-
-    virtual void showEvent( QShowEvent* ) override;
 
 private:
 
@@ -77,9 +71,9 @@ private:
     double                 _estimatedPrintJobTime     { };
     std::vector<double>    _layerElapsedTimes         { };
 
-    std::function<void( )> _initialShowEventFunc;
-
-    void _initialShowEvent( );
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+    virtual void _connectPrintManager( )                    override;
+    virtual void _connectShepherd( )                        override;
 
 signals:
 
@@ -88,9 +82,6 @@ signals:
 
 public slots:
 
-    void setPrintJob( PrintJob* printJob );
-    void setPrintManager( PrintManager* printManager );
-    void setShepherd( Shepherd* shepherd );
     void setStopButtonEnabled( bool value );
 
     void printer_online( );

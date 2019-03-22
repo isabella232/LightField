@@ -17,7 +17,7 @@ namespace {
 
 }
 
-FileTab::FileTab( QWidget* parent ): QWidget( parent ) {
+FileTab::FileTab( QWidget* parent ): TabBase( parent ) {
     debug( "+ FileTab::`ctor: construct at %p\n", this );
 
     _userMediaPath = MediaRootPath + Slash + GetUserName( );
@@ -503,17 +503,4 @@ void FileTab::_showUsbStick( ) {
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
     _toggleLocationButton->setText( "Show library" );
-}
-
-void FileTab::setPrintJob( PrintJob* printJob ) {
-    debug( "+ StatusTab::setPrintJob: printJob %p\n", printJob );
-    _printJob = printJob;
-}
-
-void FileTab::setShepherd( Shepherd* newShepherd ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    }
-
-    _shepherd = newShepherd;
 }
