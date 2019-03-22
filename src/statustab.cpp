@@ -304,7 +304,9 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f\n", delta );
     _elapsedTimeDisplay->setText( TimeDeltaToString( delta ) );
-    _estimatedTimeLeftDisplay->setText( TimeDeltaToString( _estimatedPrintJobTime - delta ) );
+    if ( _printManager->currentLayer( ) > 2 ) {
+        _estimatedTimeLeftDisplay->setText( TimeDeltaToString( _estimatedPrintJobTime - delta ) );
+    }
 }
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
