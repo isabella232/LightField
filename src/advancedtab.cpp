@@ -7,12 +7,6 @@
 #include "shepherd.h"
 #include "utils.h"
 
-namespace {
-
-    auto TemperaturePollInterval = 5000; // ms
-
-}
-
 AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _currentTemperatureLabel->setText( "Current temperature:" );
     _targetTemperatureLabel ->setText( "Target temperature:"  );
@@ -54,32 +48,10 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _layout->setContentsMargins( { } );
 
     setLayout( _layout );
-
-    _timer = new QTimer { this };
-    _timer->setInterval( TemperaturePollInterval );
-    _timer->setSingleShot( false );
-    _timer->setTimerType( Qt::PreciseTimer );
-    _resumeTimer( );
 }
 
 AdvancedTab::~AdvancedTab( ) {
     /*empty*/
-}
-
-void AdvancedTab::_pauseTimer( ) {
-    QObject::disconnect( _timer, nullptr, this, nullptr );
-    _timer->stop( );
-}
-
-void AdvancedTab::_resumeTimer( ) {
-    QObject::connect( _timer, &QTimer::timeout, this, &AdvancedTab::timer_pollTemperature );
-    _timer->start( );
-}
-
-void AdvancedTab::_connectPrintManager( ) {
-    QObject::connect( _printManager, &PrintManager::printStarting, this, &AdvancedTab::printManager_printStarting );
-    QObject::connect( _printManager, &PrintManager::printComplete, this, &AdvancedTab::printManager_printComplete );
-    QObject::connect( _printManager, &PrintManager::printAborted,  this, &AdvancedTab::printManager_printAborted  );
 }
 
 void AdvancedTab::_connectShepherd( ) {
@@ -109,23 +81,4 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _pwm               ->setText( QString( "%1"    ).arg( bedPwm                           ) );
-}
-
-void AdvancedTab::printManager_printStarting( ) {
-    debug( "+ AdvancedTab::printManager_printStarting: pausing timer\n" );
-    _pauseTimer( );
-}
-
-void AdvancedTab::printManager_printComplete( bool const success ) {
-    debug( "+ AdvancedTab::printManager_printComplete: resuming timer\n" );
-    _resumeTimer( );
-}
-
-void AdvancedTab::printManager_printAborted( ) {
-    debug( "+ AdvancedTab::printManager_printAborted: resuming timer\n" );
-    _resumeTimer( );
-}
-
-void AdvancedTab::timer_pollTemperature( ) {
-    _shepherd->doSend( QString { "M105" } );
 }

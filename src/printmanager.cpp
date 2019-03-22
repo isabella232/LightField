@@ -19,7 +19,6 @@
 //
 // For each layer:
 //
-// B1. Poll printer temperature.
 // B2. Start projection: "setpower ${powerLevel}".
 // B3. Pause for layer projection time (first two layers: scaled by scale factor)
 // B4. Stop projection: "setpower 0".
@@ -181,22 +180,6 @@ void PrintManager::stepA4_completed( ) {
     _stopAndCleanUpTimer( _preProjectionTimer );
 
     emit startingLayer( _currentLayer );
-
-    stepB2_start( );
-}
-
-// B1. Poll printer temperature.
-void PrintManager::stepB1_start( ) {
-    debug( "+ PrintManager::stepB1_start: polling printer temperature\n" );
-
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepB1_completed );
-    _shepherd->doSend( QString { "M105" } );
-}
-
-void PrintManager::stepB1_completed( bool const success ) {
-    debug( "+ PrintManager::stepB1_completed: action %s\n", SucceededString( success ) );
-
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepB1_completed );
 
     stepB2_start( );
 }

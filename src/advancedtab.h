@@ -14,7 +14,6 @@ public:
 
 protected:
 
-    virtual void _connectPrintManager( ) override;
     virtual void _connectShepherd( )     override;
 
 private:
@@ -36,11 +35,6 @@ private:
     QVBoxLayout* _rightColumnLayout       { };
     QHBoxLayout* _layout                  { };
 
-    QTimer*      _timer                   { };
-
-    void _pauseTimer( );
-    void _resumeTimer( );
-
 signals:
 
 public slots:
@@ -48,15 +42,9 @@ public slots:
     void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
-    void printManager_printStarting( );
-    void printManager_printComplete( bool const success );
-    void printManager_printAborted( );
-
 protected slots:
 
 private slots:
-
-    void timer_pollTemperature( );
 
 };
 
