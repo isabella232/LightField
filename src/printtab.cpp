@@ -31,8 +31,7 @@ namespace {
 PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
 
-    auto origFont = font( );
-    auto boldFont = ModifyFont( origFont, QFont::Bold );
+    auto boldFont = ModifyFont( font( ), QFont::Bold );
 
 
     _exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
@@ -49,7 +48,7 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _exposureTimeSlider->setOrientation( Qt::Horizontal );
     _exposureTimeSlider->setTickInterval( 2 );
     _exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _exposureTimeSlider, &QDial::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
+    QObject::connect( _exposureTimeSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
 
     _exposureTimeLayout->setContentsMargins( { } );
@@ -101,7 +100,7 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setOrientation( Qt::Horizontal );
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
 
     _printSpeedLabel->setText( "Print speed:" );
@@ -117,7 +116,7 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _printSpeedSlider->setOrientation( Qt::Horizontal );
     _printSpeedSlider->setTickInterval( 25 );
     _printSpeedSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _printSpeedSlider, &QDial::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
+    QObject::connect( _printSpeedSlider, &QSlider::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
 
 
     _optionsLayout->setContentsMargins( { } );
