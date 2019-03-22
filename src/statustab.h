@@ -59,9 +59,6 @@ private:
     QPalette               _stopButtonEnabledPalette  { };
     QPalette               _stopButtonDisabledPalette { };
 
-    PrintJob*              _printJob                  { };
-    PrintManager*          _printManager              { };
-    Shepherd*              _shepherd                  { };
     bool                   _isPrinterOnline           { };
     bool                   _isFirstOnlineTaskDone     { };
 
