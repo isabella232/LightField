@@ -28,6 +28,7 @@ protected:
 
     std::function<void( QShowEvent* event )> _initialShowEventFunc;
 
+    virtual void showEvent( QShowEvent* event ) override;
     virtual void _initialShowEvent( QShowEvent* event );
 
     virtual void _disconnectPrintJob( );
