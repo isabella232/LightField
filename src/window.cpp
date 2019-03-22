@@ -298,10 +298,9 @@ void Window::prepareTab_alreadySliced( ) {
 }
 
 void Window::printTab_printButtonClicked( ) {
-    debug( "+ Window::printTab_printButtonClicked\n" );
     _tabs->setCurrentIndex( +TabIndex::Status );
-
     debug(
+        "+ Window::printTab_printButtonClicked\n"
         "  + Print job:\n"
         "    + modelFileName:       '%s'\n"
         "    + jobWorkingDirectory: '%s'\n"
