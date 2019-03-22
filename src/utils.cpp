@@ -52,6 +52,18 @@ QFont ModifyFont( QFont const& font_, double const pointSizeF, QFont::Weight con
     return font;
 }
 
+QFont ModifyFont( QFont const& font_, QFont::Weight const weight ) {
+    auto font { font_ };
+    font.setWeight( weight );
+    return font;
+}
+
+QFont ModifyFont( QFont const& font_, QString const& familyName ) {
+    auto font { font_ };
+    font.setFamily( familyName );
+    return font;
+}
+
 QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color ) {
     auto palette { palette_ };
     palette.setColor( group, role, color );

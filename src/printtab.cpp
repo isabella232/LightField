@@ -32,7 +32,7 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
 
     auto origFont = font( );
-    auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
+    auto boldFont = ModifyFont( origFont, QFont::Bold );
 
 
     _exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );

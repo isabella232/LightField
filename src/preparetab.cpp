@@ -12,10 +12,11 @@
 PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this, _1 );
 
-    auto origFont = font( );
-    auto boldFont = ModifyFont( origFont, origFont.pointSizeF( ), QFont::Bold );
-    auto font12pt = ModifyFont( origFont, 12.0 );
-    auto font22pt = ModifyFont( origFont, 22.0 );
+    auto origFont    = font( );
+    auto boldFont    = ModifyFont( origFont, QFont::Bold );
+    auto font12pt    = ModifyFont( origFont, 12.0 );
+    auto font22pt    = ModifyFont( origFont, 22.0 );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
     _layerThicknessLabel->setText( "Layer height:" );
 
@@ -89,8 +90,6 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
-    auto fontAwesome = origFont;
-    fontAwesome.setFamily( "FontAwesome" );
     for ( auto button : { _navigateFirst, _navigatePrevious, _navigateNext, _navigateLast } ) {
         button->setFont( fontAwesome );
     }

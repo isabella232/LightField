@@ -26,7 +26,7 @@ namespace {
 StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this, _1 );
 
-    auto boldFont = ModifyFont( font( ), font( ).pointSizeF( ), QFont::Bold );
+    auto boldFont = ModifyFont( font( ), QFont::Bold );
 
     _printerStateLabel->setText( "Printer state:" );
 
