@@ -37,7 +37,6 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
 
     _exposureTimeLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
     _exposureTimeLabel->setText( "Exposure time (seconds):" );
-    _exposureTimeLabel->setBuddy( _exposureTimeSlider );
 
     _exposureTimeValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
     _exposureTimeValue->setFont( boldFont );
@@ -60,7 +59,6 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
 
     _exposureTimeScaleFactorLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
     _exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
-    _exposureTimeScaleFactorLabel->setBuddy( _exposureTimeScaleFactorSlider );
 
     _exposureTimeScaleFactorValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
     _exposureTimeScaleFactorValue->setFont( boldFont );
@@ -91,7 +89,6 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
 
 
     _powerLevelLabel->setText( "Projector power level:" );
-    _powerLevelLabel->setBuddy( _powerLevelSlider );
 
     _powerLevelValue->setAlignment( Qt::AlignRight );
     _powerLevelValue->setFont( boldFont );
@@ -107,10 +104,28 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _powerLevelSlider, &QDial::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
 
+    _printSpeedLabel->setText( "Print speed:" );
+
+    _printSpeedValue->setAlignment( Qt::AlignRight );
+    _printSpeedValue->setFont( boldFont );
+
+    _printSpeedValueLayout = WrapWidgetsInHBox( { _printSpeedLabel, nullptr, _printSpeedValue } );
+    _printSpeedValueLayout->setContentsMargins( { } );
+
+    _printSpeedSlider->setMinimum( 50 );
+    _printSpeedSlider->setMaximum( 200 );
+    _printSpeedSlider->setOrientation( Qt::Horizontal );
+    _printSpeedSlider->setTickInterval( 25 );
+    _printSpeedSlider->setTickPosition( QSlider::TicksBothSides );
+    QObject::connect( _printSpeedSlider, &QDial::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
+
+
     _optionsLayout->setContentsMargins( { } );
     _optionsLayout->addLayout( _exposureLayout );
     _optionsLayout->addLayout( _powerLevelValueLayout );
     _optionsLayout->addWidget( _powerLevelSlider );
+    _optionsLayout->addLayout( _printSpeedValueLayout );
+    _optionsLayout->addWidget( _printSpeedSlider );
     _optionsLayout->addStretch( );
 
     _optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -136,8 +151,8 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( _optionsContainer,  0, 0, 1, 2 );
-    _layout->addWidget( _printButton,       1, 0, 1, 1 );
+    _layout->addWidget( _optionsContainer, 0, 0, 1, 2 );
+    _layout->addWidget( _printButton,      1, 0, 1, 1 );
     _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -174,6 +189,11 @@ void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
 void PrintTab::powerLevelSlider_valueChanged( int value ) {
     _printJob->powerLevel = value / 100.0 * 255.0 + 0.5;
     _powerLevelValue->setText( QString( "%1%" ).arg( value ) );
+}
+
+void PrintTab::printSpeedSlider_valueChanged( int value ) {
+    _printJob->printSpeed = value;
+    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( value ) );
 }
 
 void PrintTab::printButton_clicked( bool ) {
@@ -262,10 +282,12 @@ void PrintTab::setPrintButtonEnabled( bool const value ) {
 }
 
 void PrintTab::_connectPrintJob( ) {
-    int value = _printJob->exposureTime / 0.5;
-    _printJob->exposureTime = value / 2.0;
-    _exposureTimeSlider->setValue( value );
-    _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    {
+        int value = _printJob->exposureTime / 0.5;
+        _printJob->exposureTime = value / 2.0;
+        _exposureTimeSlider->setValue( value );
+        _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    }
 
     debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
     _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
@@ -273,4 +295,7 @@ void PrintTab::_connectPrintJob( ) {
 
     _powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
     _powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
+
+    _printSpeedSlider->setValue( _printJob->printSpeed );
+    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
 }

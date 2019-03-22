@@ -47,6 +47,11 @@ private:
     QHBoxLayout*       _powerLevelValueLayout              {                 };
     QSlider*           _powerLevelSlider                   { new QSlider     };
 
+    QLabel*            _printSpeedLabel                    { new QLabel      };
+    QLabel*            _printSpeedValue                    { new QLabel      };
+    QHBoxLayout*       _printSpeedValueLayout              {                 };
+    QSlider*           _printSpeedSlider                   { new QSlider     };
+
     QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
     QWidget*           _optionsContainer                   { new QWidget     };
 
@@ -83,6 +88,7 @@ private slots:
     void exposureTimeSlider_valueChanged( int value );
     void exposureTimeScaleFactorSlider_valueChanged( int value );
     void powerLevelSlider_valueChanged( int value );
+    void printSpeedSlider_valueChanged( int value );
     void printButton_clicked( bool );
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );
