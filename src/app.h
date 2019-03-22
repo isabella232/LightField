@@ -7,6 +7,7 @@ enum class Theme {
     unknown,
     Light,
     Dark,
+    None,
 };
 
 class AppSettings {
@@ -37,6 +38,7 @@ private:
     Window* window;
 
     void parseCommandLine( );
+    void setTheme( );
 
 };
 

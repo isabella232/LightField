@@ -18,6 +18,7 @@ namespace {
         QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                },
         QCommandLineOption {               "k",            "Ignore stdio-shepherd failures."                                         },
         QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
+        QCommandLineOption {               "m",            "Don't set a theme, light *or* dark."                                     },
     };
 
     QList<std::function<void( )>> commandLineActions {
@@ -42,6 +43,9 @@ namespace {
         },
         [] ( ) { // -l or --light
             g_settings.theme = Theme::Light;
+        },
+        [] ( ) { // -m
+            g_settings.theme = Theme::None;
         },
     };
 
@@ -72,6 +76,21 @@ void App::parseCommandLine( ) {
     }
 }
 
+void App::setTheme( ) {
+    if ( g_settings.theme == Theme::None ) {
+        return;
+    }
+
+    QFile file;
+    if ( g_settings.theme == Theme::Dark ) {
+        file.setFileName( ":/dark.qss" );
+    } else if ( g_settings.theme == Theme::Light ) {
+        file.setFileName( ":/light.qss" );
+    }
+    file.open( QFile::ReadOnly | QFile::Text );
+    setStyleSheet( QTextStream { &file }.readAll( ) );
+}
+
 App::App( int& argc, char *argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationName( "Volumetric" );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
@@ -86,12 +105,7 @@ App::App( int& argc, char *argv[] ): QApplication( argc, argv ) {
     QGuiApplication::setFont( font );
 
     parseCommandLine( );
-
-    if ( g_settings.theme == Theme::Dark ) {
-        QFile file { ":/dark.qss" };
-        file.open( QFile::ReadOnly | QFile::Text );
-        setStyleSheet( QTextStream { &file }.readAll( ) );
-    }
+    setTheme( );
 
     if ( 0 != ::mkdir( JobWorkingDirectoryPath.toUtf8( ).data( ), 0700 ) ) {
         error_t err = errno;
