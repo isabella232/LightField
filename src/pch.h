@@ -56,6 +56,10 @@ int const F_OK = 0;
 
 int const CLOCK_BOOTTIME = 7;
 
+#define SIGHUP   1
+#define SIGQUIT  3
+#define SIGUSR1 10
+
 struct passwd {
     char* pw_name;
 };
