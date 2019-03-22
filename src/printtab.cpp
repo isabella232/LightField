@@ -134,7 +134,7 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _printButton->setEnabled( false );
     _printButton->setFixedSize( MainButtonSize );
     _printButton->setFont( ModifyFont( _printButton->font( ), 22.0 ) );
-    _printButton->setText( "Print" );
+    _printButton->setText( "Print…" );
     QObject::connect( _printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
     _raiseOrLowerButton->setText( "Raise Build Platform" );
