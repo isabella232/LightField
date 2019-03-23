@@ -110,7 +110,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _projectorFloodlightButton, &QPushButton::clicked, this, &AdvancedTab::projectorFloodlightButton_clicked );
 
     _projectorFloodlightButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _projectorFloodlightButtonLabel->setText( "Print bed heating" );
+    _projectorFloodlightButtonLabel->setText( "Projector floodlight" );
 
     _projectorFloodlightButtonLayout = WrapWidgetsInHBox( { _projectorFloodlightButton, _projectorFloodlightButtonLabel, nullptr } );
     _projectorFloodlightButtonLayout->setContentsMargins( { } );
