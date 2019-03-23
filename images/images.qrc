@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="images/">
-        <file>dark-logo.png</file>
+        <file>transparent-dark-logo.png</file>
         <file>warning-hot.png</file>
         <file>warning-uv.png</file>
     </qresource>
