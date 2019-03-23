@@ -2,11 +2,16 @@
 
 #include "maintenancetab.h"
 
+#include "app.h"
 #include "utils.h"
 
 MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
     _logoLabel->setAlignment( Qt::AlignCenter );
-    _logoLabel->setPixmap( QPixmap( QString( ":images/dark-logo.png" ) ) );
+    if ( g_settings.theme == Theme::Dark ) {
+        _logoLabel->setPixmap( QPixmap( QString( ":images/dark-logo.png" ) ) );
+    } else {
+        _logoLabel->setPixmap( QPixmap( QString( ":images/light-logo.png" ) ) );
+    }
 
     _versionLabel->setAlignment( Qt::AlignCenter );
     _versionLabel->setFont( ModifyFont( font( ), 16.0 ) );
