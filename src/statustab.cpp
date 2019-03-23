@@ -26,7 +26,10 @@ namespace {
 StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
     _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this, _1 );
 
-    auto boldFont = ModifyFont( font( ), QFont::Bold );
+    auto origFont = font( );
+    auto boldFont = ModifyFont( origFont, QFont::Bold );
+    auto font22pt = ModifyFont( origFont, 22.0 );
+
 
     _printerStateLabel->setText( "Printer state:" );
 
@@ -124,20 +127,29 @@ StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
 
 
     {
-        _stopButtonEnabledPalette  =  _stopButton->palette( );
+        _stopButtonEnabledPalette  = _stopButton->palette( );
         _stopButtonDisabledPalette = _stopButtonEnabledPalette;
         _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
         _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
     }
     _stopButton->setEnabled( false );
     _stopButton->setFixedSize( MainButtonSize );
-    _stopButton->setFont( ModifyFont( _stopButton->font( ), 22.25, QFont::Bold ) );
+    _stopButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
+    _stopButton->setVisible( true );
     _stopButton->setText( "STOP" );
     QObject::connect( _stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
+
+    _reprintButton->setEnabled( false );
+    _reprintButton->setFixedSize( MainButtonSize );
+    _reprintButton->setFont( font22pt );
+    _reprintButton->setVisible( false );
+    _reprintButton->setText( "Reprint" );
+    QObject::connect( _reprintButton, &QPushButton::clicked, this, &StatusTab::reprintButton_clicked );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _progressControlsContainer, 0, 0, 1, 1 );
     _layout->addWidget( _stopButton,                1, 0, 1, 1 );
+    _layout->addWidget( _reprintButton,             1, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup,         0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -161,15 +173,15 @@ void StatusTab::_initialShowEvent( QShowEvent* event ) {
 
     debug(
         "+ StatusTab::_initialShowEvent:\n"
-        "  + warningHotImage size: %s\n"
-        "  + warningUvImage size:  %s\n"
+        "  + _warningHotImage size: %s\n"
+        "  + _warningUvImage size:  %s\n"
         "  + _warningHotLabel size: %s\n"
         "  + _warningUvLabel size:  %s\n"
         "",
         ToString( _warningHotImage->size( ) ).toUtf8( ).data( ),
-        ToString( _warningUvImage ->size( ) ).toUtf8( ).data( ),
-        ToString(  _warningHotLabel->size( ) ).toUtf8( ).data( ),
-        ToString(   _warningUvLabel->size( ) ).toUtf8( ).data( )
+        ToString(  _warningUvImage->size( ) ).toUtf8( ).data( ),
+        ToString( _warningHotLabel->size( ) ).toUtf8( ).data( ),
+        ToString(  _warningUvLabel->size( ) ).toUtf8( ).data( )
     );
 
     event->accept( );
@@ -201,8 +213,17 @@ void StatusTab::stopButton_clicked( bool ) {
     emit stopButtonClicked( );
 }
 
+void StatusTab::reprintButton_clicked( bool ) {
+    debug( "+ StatusTab::reprintButton_clicked\n" );
+    emit reprintButtonClicked( );
+}
+
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
+
+    _reprintButton->setVisible( false );
+    _stopButton->setVisible( true );
+
     _jobStateDisplay->setText( "print started" );
     _estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
 }
@@ -251,6 +272,9 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
 
+    _stopButton->setVisible( false );
+    _reprintButton->setVisible( true );
+
     _updatePrintTimeInfo->stop( );
 
     _jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
@@ -264,6 +288,9 @@ void StatusTab::printManager_printComplete( bool const success ) {
 
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
+
+    _stopButton->setVisible( false );
+    _reprintButton->setVisible( true );
 
     _updatePrintTimeInfo->stop( );
 
@@ -341,4 +368,8 @@ void StatusTab::_connectShepherd( ) {
 void StatusTab::setStopButtonEnabled( bool value ) {
     _stopButton->setEnabled( value );
     _stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );
+}
+
+void StatusTab::setReprintButtonEnabled( bool value ) {
+    _reprintButton->setEnabled( value );
 }

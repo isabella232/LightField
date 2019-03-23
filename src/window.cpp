@@ -39,7 +39,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
-    _initialShowEventFunc = std::bind( &Window::_initialShowEvent, this );
+    //_initialShowEventFunc = std::bind( &Window::_initialShowEvent, this );
 
 #if defined _DEBUG
     if ( g_settings.pretendPrinterIsPrepared ) {
@@ -53,8 +53,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     _statusTab      = new StatusTab;
     _advancedTab    = new AdvancedTab;
     _maintenanceTab = new MaintenanceTab;
-    _printJob       = new PrintJob;
-    _shepherd       = new Shepherd { parent };
 
     QObject::connect( this, &Window::printJobChanged,     _fileTab,        &FileTab::setPrintJob            );
     QObject::connect( this, &Window::printJobChanged,     _prepareTab,     &PrepareTab::setPrintJob         );
@@ -80,6 +78,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
     QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
+
+    _printJob = new PrintJob;
+    _shepherd = new Shepherd { parent };
 
     _shepherd->start( );
 
@@ -124,8 +125,9 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
 
     _statusTab->setContentsMargins( { } );
     _statusTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _statusTab, &StatusTab::stopButtonClicked, this, &Window::statusTab_stopButtonClicked );
-    QObject::connect( _statusTab, &StatusTab::printComplete,     this, &Window::statusTab_cleanUpAfterPrint );
+    QObject::connect( _statusTab, &StatusTab::stopButtonClicked,    this, &Window::statusTab_stopButtonClicked    );
+    QObject::connect( _statusTab, &StatusTab::reprintButtonClicked, this, &Window::statusTab_reprintButtonClicked );
+    QObject::connect( _statusTab, &StatusTab::printComplete,        this, &Window::statusTab_cleanUpAfterPrint    );
 
     //
     // "Advanced" tab
@@ -138,10 +140,11 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     // Tab widget
     //
 
-    QObject::connect( _tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
     double pointSize = _tabs->font( ).pointSizeF( );
-    _tabs->setFont( ModifyFont( _tabs->font( ), 22.0 ) );
     _tabs->setContentsMargins( { } );
+    _tabs->setFont( ModifyFont( _tabs->font( ), 22.0 ) );
+    QObject::connect( _tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
+
     auto font9pt = ModifyFont( _fileTab->font( ), pointSize );
     _tabs->addTab( _fileTab,        "File"        ); _fileTab       ->setFont( font9pt );
     _tabs->addTab( _prepareTab,     "Prepare"     ); _prepareTab    ->setFont( font9pt );
@@ -168,16 +171,51 @@ void Window::closeEvent( QCloseEvent* event ) {
     event->accept( );
 }
 
-void Window::showEvent( QShowEvent* event ) {
-    //if ( _initialShowEventFunc ) {
-    //    _initialShowEventFunc( );
-    //    _initialShowEventFunc = nullptr;
-    //} else {
-        event->ignore( );
-    //}
-}
+//void Window::showEvent( QShowEvent* event ) {
+//    if ( _initialShowEventFunc ) {
+//        _initialShowEventFunc( );
+//        _initialShowEventFunc = nullptr;
+//    } else {
+//        event->ignore( );
+//    }
+//}
+//
+//void Window::_initialShowEvent( ) {
+//}
 
-void Window::_initialShowEvent( ) {
+void Window::_startPrinting( ) {
+    _tabs->setCurrentIndex( +TabIndex::Status );
+    debug(
+        "+ Window::_startPrinting\n"
+        "  + Print job:\n"
+        "    + modelFileName:       '%s'\n"
+        "    + jobWorkingDirectory: '%s'\n"
+        "    + layerCount:          %d\n"
+        "    + layerThickness:      %d\n"
+        "    + exposureTime:        %f\n"
+        "    + powerLevel:          %d\n"
+        "",
+        _printJob->modelFileName.toUtf8( ).data( ),
+        _printJob->jobWorkingDirectory.toUtf8( ).data( ),
+        _printJob->layerCount,
+        _printJob->layerThickness,
+        _printJob->exposureTime,
+        _printJob->powerLevel
+    );
+
+    PrintJob* newJob = new PrintJob( *_printJob );
+    _printManager = new PrintManager( _shepherd, this );
+
+    _statusTab->setPrintManager( _printManager );
+    _printManager->print( _printJob );
+
+    _printJob = newJob;
+    emit printJobChanged( _printJob );
+
+    _prepareTab->setPrepareButtonEnabled( false );
+    _printTab->setPrintButtonEnabled( false );
+    _statusTab->setStopButtonEnabled( true );
+    _statusTab->setReprintButtonEnabled( false );
 }
 
 void Window::shepherd_started( ) {
@@ -233,6 +271,7 @@ void Window::fileTab_modelSelectionFailed( ) {
     _prepareTab->setSliceButtonEnabled( false );
     if ( !_isModelRendered ) {
         _printTab->setPrintButtonEnabled( false );
+        _statusTab->setReprintButtonEnabled( false );
     }
 }
 
@@ -243,6 +282,7 @@ void Window::prepareTab_sliceStarted( ) {
 
     _prepareTab->setSliceButtonEnabled( false );
     _printTab->setPrintButtonEnabled( false );
+    _statusTab->setReprintButtonEnabled( false );
 }
 
 void Window::prepareTab_sliceComplete( bool const success ) {
@@ -263,6 +303,7 @@ void Window::prepareTab_renderComplete( bool const success ) {
 
     _prepareTab->setSliceButtonEnabled( true );
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     if ( success && ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
         _tabs->setCurrentIndex( +TabIndex::Print );
     }
@@ -283,6 +324,7 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
     debug( "  + isPrinterPrepared set to %s.\n", ToString( success ) );
 
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     if ( success && ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
         _tabs->setCurrentIndex( +TabIndex::Print );
     }
@@ -292,43 +334,14 @@ void Window::prepareTab_alreadySliced( ) {
     debug( "  + Window::prepareTab_alreadySliced\n" );
     _isModelRendered = true;
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     if ( ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
         _tabs->setCurrentIndex( +TabIndex::Print );
     }
 }
 
 void Window::printTab_printButtonClicked( ) {
-    _tabs->setCurrentIndex( +TabIndex::Status );
-    debug(
-        "+ Window::printTab_printButtonClicked\n"
-        "  + Print job:\n"
-        "    + modelFileName:       '%s'\n"
-        "    + jobWorkingDirectory: '%s'\n"
-        "    + layerCount:          %d\n"
-        "    + layerThickness:      %d\n"
-        "    + exposureTime:        %f\n"
-        "    + powerLevel:          %d\n"
-        "",
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->jobWorkingDirectory.toUtf8( ).data( ),
-        _printJob->layerCount,
-        _printJob->layerThickness,
-        _printJob->exposureTime,
-        _printJob->powerLevel
-    );
-
-    PrintJob* newJob = new PrintJob( *_printJob );
-    _printManager = new PrintManager( _shepherd, this );
-
-    _statusTab->setPrintManager( _printManager );
-    _printManager->print( _printJob );
-
-    _printJob = newJob;
-    emit printJobChanged( _printJob );
-
-    _prepareTab->setPrepareButtonEnabled( false );
-    _printTab->setPrintButtonEnabled( false );
-    _statusTab->setStopButtonEnabled( true );
+    _startPrinting( );
 }
 
 void Window::tabs_currentChanged( int index ) {
@@ -343,6 +356,10 @@ void Window::statusTab_stopButtonClicked( ) {
     }
 }
 
+void Window::statusTab_reprintButtonClicked( ) {
+    _startPrinting( );
+}
+
 void Window::statusTab_cleanUpAfterPrint( ) {
     debug( "+ Window::statusTab_cleanUpAfterPrint\n" );
     if ( _printManager ) {
@@ -354,6 +371,7 @@ void Window::statusTab_cleanUpAfterPrint( ) {
     debug( "+ Window::statusTab_cleanUpAfterPrint: is model rendered? %s; is printer prepared? %s\n", ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );
     _prepareTab->setPrepareButtonEnabled( true );
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
+    _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     _statusTab->setStopButtonEnabled( false );
 }
 

@@ -49,6 +49,7 @@ private:
     QLabel*                _warningUvLabel            { new QLabel      };
 
     QPushButton*           _stopButton                { new QPushButton };
+    QPushButton*           _reprintButton             { new QPushButton };
 
     QGridLayout*           _layout                    { new QGridLayout };
     QTimer*                _updatePrintTimeInfo       { };
@@ -75,11 +76,13 @@ private:
 signals:
 
     void stopButtonClicked( );
+    void reprintButtonClicked( );
     void printComplete( );
 
 public slots:
 
     void setStopButtonEnabled( bool value );
+    void setReprintButtonEnabled( bool value );
 
     void printer_online( );
     void printer_offline( );
@@ -101,6 +104,7 @@ protected slots:
 private slots:
 
     void stopButton_clicked( bool );
+    void reprintButton_clicked( bool );
     void printManager_requestLoadPrintSolution( );
     void printSolutionLoadedButton_clicked( bool );
 

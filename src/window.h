@@ -40,7 +40,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    virtual void showEvent( QShowEvent* event )   override;
+    //virtual void showEvent( QShowEvent* event )   override;
 
 private:
 
@@ -59,9 +59,11 @@ private:
     bool                   _isPrinterPrepared    { };
     bool                   _isModelRendered      { };
 
-    std::function<void( )> _initialShowEventFunc;
+    //std::function<void( )> _initialShowEventFunc;
 
-    void _initialShowEvent( );
+    //void _initialShowEvent( );
+
+    void _startPrinting( );
 
 signals:
 
@@ -95,6 +97,7 @@ private slots:
     void printTab_printButtonClicked( );
 
     void statusTab_stopButtonClicked( );
+    void statusTab_reprintButtonClicked( );
     void statusTab_cleanUpAfterPrint( );
 
     void signalHandler_signalReceived( int const signalNumber );
