@@ -93,18 +93,63 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedTemperatureValue->setEnabled( false );
     _bedTemperatureValueLayout->setEnabled( false );
 
-
     _bedTemperatureLayout->addLayout( _bedHeatingButtonLayout );
     _bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
     _bedTemperatureLayout->addWidget( _bedTemperatureSlider );
+
 
     _bedHeatingGroup->setContentsMargins( { } );
     _bedHeatingGroup->setLayout( _bedTemperatureLayout );
 
 
-    _rightColumnLayout = new QVBoxLayout { this };
-    _rightColumnLayout->addWidget( _bedHeatingGroup );
-    _rightColumnLayout->addStretch( );
+    _projectorFloodlightButton->setCheckable( true );
+    _projectorFloodlightButton->setChecked( false );
+    _projectorFloodlightButton->setFont( fontAwesome );
+    _projectorFloodlightButton->setFixedSize( 37, 38 );
+    _projectorFloodlightButton->setText( FA_Times );
+    QObject::connect( _projectorFloodlightButton, &QPushButton::clicked, this, &AdvancedTab::projectorFloodlightButton_clicked );
+
+    _projectorFloodlightButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _projectorFloodlightButtonLabel->setText( "Print bed heating" );
+
+    _projectorFloodlightButtonLayout = WrapWidgetsInHBox( { _projectorFloodlightButton, _projectorFloodlightButtonLabel, nullptr } );
+    _projectorFloodlightButtonLayout->setContentsMargins( { } );
+
+    _powerLevelLabel->setText( "Projector power level:" );
+
+    _powerLevelValue->setAlignment( Qt::AlignRight );
+    _powerLevelValue->setFont( boldFont );
+    _powerLevelValue->setText( "50%" );
+
+    _powerLevelValueLayout = WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } );
+    _powerLevelValueLayout->setContentsMargins( { } );
+
+    _powerLevelSlider->setEnabled( false );
+    _powerLevelSlider->setMinimum( 20 );
+    _powerLevelSlider->setMaximum( 100 );
+    _powerLevelSlider->setOrientation( Qt::Horizontal );
+    _powerLevelSlider->setPageStep( 5 );
+    _powerLevelSlider->setSingleStep( 1 );
+    _powerLevelSlider->setTickInterval( 1 );
+    _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
+    _powerLevelSlider->setValue( 50 );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &AdvancedTab::powerLevelSlider_valueChanged );
+
+    _powerLevelLayout->addLayout( _projectorFloodlightButtonLayout );
+    _powerLevelLayout->addLayout( _powerLevelValueLayout );
+    _powerLevelLayout->addWidget( _powerLevelSlider );
+
+    _powerLevelLabel->setEnabled( false );
+    _powerLevelSlider->setEnabled( false );
+    _powerLevelValue->setEnabled( false );
+    _powerLevelValueLayout->setEnabled( false );
+
+
+    _projectorFloodlightGroup->setContentsMargins( { } );
+    _projectorFloodlightGroup->setLayout( _powerLevelLayout );
+
+
+    _rightColumnLayout = WrapWidgetsInVBox( { _bedHeatingGroup, _projectorFloodlightGroup, nullptr } );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
@@ -171,6 +216,20 @@ void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
 
     _shepherd->doSend( QString { "M104 S%d" }.arg( value ) );
+}
+
+void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
+    _projectorFloodlightButton->setText( checked ? FA_Check : FA_Times );
+    _powerLevelLabel->setEnabled( checked );
+    _powerLevelSlider->setEnabled( checked );
+    _powerLevelValue->setEnabled( checked );
+    _powerLevelValueLayout->setEnabled( checked );
+    QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( checked ? _powerLevelSlider->value( ) : 0 ) } );
+}
+
+void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
+    _powerLevelLabel->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
+    QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? _powerLevelSlider->value( ) : 0 ) } );
 }
 
 void AdvancedTab::shepherd_sendComplete( bool const success ) {
