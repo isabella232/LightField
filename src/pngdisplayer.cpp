@@ -22,8 +22,13 @@ PngDisplayer::~PngDisplayer( ) {
     debug( "+ destruct PngDisplayer at %p\n", this );
 }
 
-bool PngDisplayer::load( QString const& fileName ) {
+void PngDisplayer::clear( ) {
+    _label->clear( );
+}
+
+bool PngDisplayer::setImageFileName( QString const& fileName ) {
     if ( !_png.load( fileName ) ) {
+        _label->clear( );
         return false;
     }
 
@@ -31,6 +36,6 @@ bool PngDisplayer::load( QString const& fileName ) {
     return true;
 }
 
-void PngDisplayer::clear( ) {
-    _label->clear( );
+void PngDisplayer::setPixmap( QPixmap const& pixmap ) {
+    _label->setPixmap( pixmap );
 }

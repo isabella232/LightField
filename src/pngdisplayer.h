@@ -10,14 +10,15 @@ public:
     PngDisplayer( QWidget* parent = nullptr );
     virtual ~PngDisplayer( ) override;
 
-    bool load( QString const& fileName );
     void clear( );
+    bool setImageFileName( QString const& fileName );
+    void setPixmap( QPixmap const& pixmap );
 
 protected:
 
 private:
 
-    QLabel* _label { new QLabel  };
+    QLabel* _label { new QLabel };
     QPixmap _png;
 
 signals:
