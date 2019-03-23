@@ -1,8 +1,7 @@
 <RCC>
     <qresource prefix="images/">
-	<file>dark-logo.png</file>
-	<file>light-logo.png</file>
-	<file>warning-hot.png</file>
-	<file>warning-uv.png</file>
+        <file>dark-logo.png</file>
+        <file>warning-hot.png</file>
+        <file>warning-uv.png</file>
     </qresource>
 </RCC>
