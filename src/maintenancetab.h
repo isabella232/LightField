@@ -14,15 +14,37 @@ public:
 
 protected:
 
+    virtual void _initialShowEvent( QShowEvent* event ) override;
+
 private:
 
-    QLabel*      _logoLabel      { new QLabel      };
-    QLabel*      _versionLabel   { new QLabel      };
+    QLabel*      _logoLabel                { new QLabel      };
+    QLabel*      _versionLabel             { new QLabel      };
 
-    QPushButton* _restartButton  { new QPushButton };
-    QPushButton* _shutDownButton { new QPushButton };
+    QPushButton* _restartButton            { new QPushButton };
+    QPushButton* _shutDownButton           { new QPushButton };
 
-    QVBoxLayout* _layout         {                 };
+    QVBoxLayout* _mainLayout               {                 };
+    QWidget*     _mainContent              { new QWidget     };
+
+
+    QLabel*      _confirmRestartLabel      { new QLabel      };
+    QPushButton* _confirmRestartYesButton  { new QPushButton };
+    QPushButton* _confirmRestartNoButton   { new QPushButton };
+
+    QVBoxLayout* _confirmRestartLayout     {                 };
+    QWidget*     _confirmRestartContent    { new QWidget     };
+
+
+    QLabel*      _confirmShutdownLabel     { new QLabel      };
+    QPushButton* _confirmShutdownYesButton { new QPushButton };
+    QPushButton* _confirmShutdownNoButton  { new QPushButton };
+
+    QVBoxLayout* _confirmShutdownLayout    {                 };
+    QWidget*     _confirmShutdownContent   { new QWidget     };
+
+
+    QVBoxLayout* _layout                   {                 };
 
 signals:
 
@@ -34,6 +56,10 @@ private slots:
 
     void restartButton_clicked( bool );
     void shutDownButton_clicked( bool );
+    void confirmRestartYesButton_clicked( bool );
+    void confirmRestartNoButton_clicked( bool );
+    void confirmShutdownYesButton_clicked( bool );
+    void confirmShutdownNoButton_clicked( bool );
 
 };
 
