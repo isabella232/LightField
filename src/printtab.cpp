@@ -46,7 +46,9 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _exposureTimeSlider->setMinimum( 1 );
     _exposureTimeSlider->setMaximum( 40 );
     _exposureTimeSlider->setOrientation( Qt::Horizontal );
-    _exposureTimeSlider->setTickInterval( 2 );
+    _exposureTimeSlider->setPageStep( 10 );
+    _exposureTimeSlider->setSingleStep( 2 );
+    _exposureTimeSlider->setTickInterval( 5 );
     _exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _exposureTimeSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
@@ -68,6 +70,8 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _exposureTimeScaleFactorSlider->setMinimum( 1 );
     _exposureTimeScaleFactorSlider->setMaximum( 5 );
     _exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
+    _exposureTimeScaleFactorSlider->setPageStep( 2 );
+    _exposureTimeScaleFactorSlider->setSingleStep( 1 );
     _exposureTimeScaleFactorSlider->setTickInterval( 1 );
     _exposureTimeScaleFactorSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
@@ -98,6 +102,8 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setMinimum( 20 );
     _powerLevelSlider->setMaximum( 100 );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
+    _powerLevelSlider->setPageStep( 5 );
+    _powerLevelSlider->setSingleStep( 1 );
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
@@ -114,7 +120,9 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _printSpeedSlider->setMinimum( 50 );
     _printSpeedSlider->setMaximum( 200 );
     _printSpeedSlider->setOrientation( Qt::Horizontal );
-    _printSpeedSlider->setTickInterval( 25 );
+    _printSpeedSlider->setPageStep( 50 );
+    _printSpeedSlider->setSingleStep( 25 );
+    _printSpeedSlider->setTickInterval( 10 );
     _printSpeedSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _printSpeedSlider, &QSlider::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
 
