@@ -14,10 +14,15 @@ public:
 
 protected:
 
-    //virtual void _connectPrintManager( ) override;
-    //virtual void _connectShepherd( )     override;
-
 private:
+
+    QLabel*      _logoLabel      { new QLabel      };
+    QLabel*      _versionLabel   { new QLabel      };
+
+    QPushButton* _restartButton  { new QPushButton };
+    QPushButton* _shutDownButton { new QPushButton };
+
+    QVBoxLayout* _layout         {                 };
 
 signals:
 
@@ -26,6 +31,9 @@ public slots:
 protected slots:
 
 private slots:
+
+    void restartButton_clicked( bool );
+    void shutDownButton_clicked( bool );
 
 };
 

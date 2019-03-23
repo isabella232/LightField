@@ -95,6 +95,7 @@ App::App( int& argc, char *argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationName( "Volumetric" );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
+    QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION );
 
     QProcess::startDetached( SetpowerCommand, { "0" } );
 

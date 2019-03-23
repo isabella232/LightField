@@ -4,8 +4,8 @@ TARGET   = lf
 TEMPLATE = app
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Winvalid-pch
-QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -DLIGHTFIELD_VERSION=\\\"1.0.1\\\" -Winvalid-pch
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -DLIGHTFIELD_VERSION=\\\"1.0.1\\\" -Winvalid-pch
 
 SOURCES +=                     \
     ../src/debug.cpp           \
