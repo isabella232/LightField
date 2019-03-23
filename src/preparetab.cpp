@@ -94,10 +94,10 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
         button->setFont( fontAwesome );
     }
 
-    _navigateFirst   ->setText( QString( L'\uF049' ) );
-    _navigatePrevious->setText( QString( L'\uF04A' ) );
-    _navigateNext    ->setText( QString( L'\uF04E' ) );
-    _navigateLast    ->setText( QString( L'\uF050' ) );
+    _navigateFirst   ->setText( FA_FastBackward );
+    _navigatePrevious->setText( FA_Backward     );
+    _navigateNext    ->setText( FA_Forward      );
+    _navigateLast    ->setText( FA_FastForward  );
 
     QObject::connect( _navigateFirst,    &QPushButton::clicked, this, &PrepareTab::navigateFirst_clicked    );
     QObject::connect( _navigatePrevious, &QPushButton::clicked, this, &PrepareTab::navigatePrevious_clicked );

@@ -17,3 +17,10 @@ QChar          const Slash                    { L'/'      };
 QChar          const DigitZero                { L'0'      };
 QChar          const FigureSpace              { L'\u2007' };
 QChar          const EmDash                   { L'\u2014' };
+
+QChar          const FA_Check                 { L'\uF00C' };
+QChar          const FA_Times                 { L'\uF00D' };
+QChar          const FA_FastBackward          { L'\uF049' };
+QChar          const FA_Backward              { L'\uF04A' };
+QChar          const FA_Forward               { L'\uF04E' };
+QChar          const FA_FastForward           { L'\uF050' };

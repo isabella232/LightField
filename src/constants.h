@@ -18,6 +18,13 @@ QChar   extern const DigitZero;
 QChar   extern const FigureSpace;
 QChar   extern const EmDash;
 
+QChar   extern const FA_Check;
+QChar   extern const FA_Times;
+QChar   extern const FA_FastBackward;
+QChar   extern const FA_Backward;
+QChar   extern const FA_Forward;
+QChar   extern const FA_FastForward;
+
 double         const PrinterMaximumX          = 64.0;
 double         const PrinterMaximumY          = 40.0;
 double         const PrinterMaximumZ          = 70.0;

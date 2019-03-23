@@ -12,9 +12,6 @@ namespace {
 
     auto DefaultPrintBedTemperature = 30;
 
-    QChar FA_Check { L'\uF00C' };
-    QChar FA_Times { L'\uF00D' };
-
 }
 
 AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
