@@ -18,31 +18,34 @@ protected:
 
 private:
 
-    QLabel*      _currentTemperatureLabel        { new QLabel      };
-    QLabel*      _targetTemperatureLabel         { new QLabel      };
-    QLabel*      _pwmLabel                       { new QLabel      };
-    QLabel*      _zPositionLabel                 { new QLabel      };
+    QLabel*      _currentTemperatureLabel   { new QLabel      };
+    QLabel*      _targetTemperatureLabel    { new QLabel      };
+    QLabel*      _pwmLabel                  { new QLabel      };
+    QLabel*      _zPositionLabel            { new QLabel      };
 
-    QLabel*      _currentTemperature             { new QLabel      };
-    QLabel*      _targetTemperature              { new QLabel      };
-    QLabel*      _pwm                            { new QLabel      };
-    QLabel*      _zPosition                      { new QLabel      };
+    QLabel*      _currentTemperature        { new QLabel      };
+    QLabel*      _targetTemperature         { new QLabel      };
+    QLabel*      _pwm                       { new QLabel      };
+    QLabel*      _zPosition                 { new QLabel      };
 
-    QPushButton* _printBedHeatingButton          { new QPushButton };
-    QLabel*      _printBedHeatingLabel           { new QLabel      };
-    QHBoxLayout* _printBedHeatingLayout          {                 };
+    QPushButton* _bedHeatingButton          { new QPushButton };
+    QLabel*      _bedHeatingButtonLabel     { new QLabel      };
+    QHBoxLayout* _bedHeatingButtonLayout    {                 };
 
-    QLabel*      _printBedTemperatureLabel       { new QLabel      };
-    QLabel*      _printBedTemperatureValue       { new QLabel      };
-    QHBoxLayout* _printBedTemperatureValueLayout {                 };
-    QSlider*     _printBedTemperatureSlider      { new QSlider     };
+    QLabel*      _bedTemperatureLabel       { new QLabel      };
+    QLabel*      _bedTemperatureValue       { new QLabel      };
+    QHBoxLayout* _bedTemperatureValueLayout {                 };
+    QSlider*     _bedTemperatureSlider      { new QSlider     };
+    QVBoxLayout* _bedTemperatureLayout      { new QVBoxLayout };
 
-    QWidget*     _leftColumn                     { new QWidget     };
-    QGroupBox*   _rightColumn                    { new QGroupBox   };
+    QGroupBox*   _bedHeatingGroup           { new QGroupBox   };
 
-    QVBoxLayout* _leftColumnLayout               { };
-    QVBoxLayout* _rightColumnLayout              { };
-    QHBoxLayout* _layout                         { };
+    QWidget*     _leftColumn                { new QWidget     };
+    QGroupBox*   _rightColumn               { new QGroupBox   };
+
+    QVBoxLayout* _leftColumnLayout          { };
+    QVBoxLayout* _rightColumnLayout         { };
+    QHBoxLayout* _layout                    { };
 
 signals:
 

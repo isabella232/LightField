@@ -59,46 +59,54 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _leftColumn->setLayout( _leftColumnLayout );
 
 
-    _printBedHeatingButton->setCheckable( true );
-    _printBedHeatingButton->setChecked( false );
-    _printBedHeatingButton->setFont( fontAwesome );
-    _printBedHeatingButton->setFixedSize( 37, 38 );
-    _printBedHeatingButton->setText( FA_Times );
-    QObject::connect( _printBedHeatingButton, &QPushButton::clicked, this, &AdvancedTab::printBedHeatingButton_clicked );
+    _bedHeatingButton->setCheckable( true );
+    _bedHeatingButton->setChecked( false );
+    _bedHeatingButton->setFont( fontAwesome );
+    _bedHeatingButton->setFixedSize( 37, 38 );
+    _bedHeatingButton->setText( FA_Times );
+    QObject::connect( _bedHeatingButton, &QPushButton::clicked, this, &AdvancedTab::printBedHeatingButton_clicked );
 
-    _printBedHeatingLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _printBedHeatingLabel->setText( "Print bed heating" );
+    _bedHeatingButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _bedHeatingButtonLabel->setText( "Print bed heating" );
 
-    _printBedHeatingLayout = WrapWidgetsInHBox( { _printBedHeatingButton, _printBedHeatingLabel, nullptr } );
-    _printBedHeatingLayout->setContentsMargins( { } );
+    _bedHeatingButtonLayout = WrapWidgetsInHBox( { _bedHeatingButton, _bedHeatingButtonLabel, nullptr } );
+    _bedHeatingButtonLayout->setContentsMargins( { } );
 
-    _printBedTemperatureLabel->setText( "Print bed temperature:" );
+    _bedTemperatureLabel->setText( "Print bed temperature:" );
 
-    _printBedTemperatureValue->setAlignment( Qt::AlignRight );
-    _printBedTemperatureValue->setFont( boldFont );
-    _printBedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
+    _bedTemperatureValue->setAlignment( Qt::AlignRight );
+    _bedTemperatureValue->setFont( boldFont );
+    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
 
-    _printBedTemperatureValueLayout = WrapWidgetsInHBox( { _printBedTemperatureLabel, nullptr, _printBedTemperatureValue } );
-    _printBedTemperatureValueLayout->setContentsMargins( { } );
+    _bedTemperatureValueLayout = WrapWidgetsInHBox( { _bedTemperatureLabel, nullptr, _bedTemperatureValue } );
+    _bedTemperatureValueLayout->setContentsMargins( { } );
 
-    _printBedTemperatureSlider->setMinimum( 30 );
-    _printBedTemperatureSlider->setMaximum( 50 );
-    _printBedTemperatureSlider->setOrientation( Qt::Horizontal );
-    _printBedTemperatureSlider->setTickInterval( 1 );
-    _printBedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
-    _printBedTemperatureSlider->setValue( DefaultPrintBedTemperature );
-    QObject::connect( _printBedTemperatureSlider, &QSlider::valueChanged, this, &AdvancedTab::printBedTemperatureSlider_valueChanged );
+    _bedTemperatureSlider->setMinimum( 30 );
+    _bedTemperatureSlider->setMaximum( 50 );
+    _bedTemperatureSlider->setOrientation( Qt::Horizontal );
+    _bedTemperatureSlider->setPageStep( 5 );
+    _bedTemperatureSlider->setSingleStep( 1 );
+    _bedTemperatureSlider->setTickInterval( 5 );
+    _bedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
+    _bedTemperatureSlider->setValue( DefaultPrintBedTemperature );
+    QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged, this, &AdvancedTab::printBedTemperatureSlider_valueChanged );
 
-    _printBedTemperatureLabel->setEnabled( false );
-    _printBedTemperatureSlider->setEnabled( false );
-    _printBedTemperatureValue->setEnabled( false );
-    _printBedTemperatureValueLayout->setEnabled( false );
+    _bedTemperatureLabel->setEnabled( false );
+    _bedTemperatureSlider->setEnabled( false );
+    _bedTemperatureValue->setEnabled( false );
+    _bedTemperatureValueLayout->setEnabled( false );
+
+
+    _bedTemperatureLayout->addLayout( _bedHeatingButtonLayout );
+    _bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
+    _bedTemperatureLayout->addWidget( _bedTemperatureSlider );
+
+    _bedHeatingGroup->setContentsMargins( { } );
+    _bedHeatingGroup->setLayout( _bedTemperatureLayout );
 
 
     _rightColumnLayout = new QVBoxLayout { this };
-    _rightColumnLayout->addLayout( _printBedHeatingLayout );
-    _rightColumnLayout->addLayout( _printBedTemperatureValueLayout );
-    _rightColumnLayout->addWidget( _printBedTemperatureSlider );
+    _rightColumnLayout->addWidget( _bedHeatingGroup );
     _rightColumnLayout->addStretch( );
 
     _rightColumn->setContentsMargins( { } );
@@ -148,14 +156,14 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
 }
 
 void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
-    _printBedHeatingButton->setText( checked ? FA_Check : FA_Times );
-    _printBedTemperatureLabel->setEnabled( checked );
-    _printBedTemperatureSlider->setEnabled( checked );
-    _printBedTemperatureValue->setEnabled( checked );
-    _printBedTemperatureValueLayout->setEnabled( checked );
+    _bedHeatingButton->setText( checked ? FA_Check : FA_Times );
+    _bedTemperatureLabel->setEnabled( checked );
+    _bedTemperatureSlider->setEnabled( checked );
+    _bedTemperatureValue->setEnabled( checked );
+    _bedTemperatureValueLayout->setEnabled( checked );
 
     if ( checked ) {
-        _shepherd->doSend( QString { "M104 S%d" }.arg( _printBedTemperatureSlider->value( ) ) );
+        _shepherd->doSend( QString { "M104 S%d" }.arg( _bedTemperatureSlider->value( ) ) );
     } else {
         _shepherd->doSend( QString { "M104" } );
     }
@@ -163,7 +171,7 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
 
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
-    _printBedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
+    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
 
     _shepherd->doSend( QString { "M104 S%d" }.arg( value ) );
 }
