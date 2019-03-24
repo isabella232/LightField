@@ -65,8 +65,9 @@ FileTab::FileTab( QWidget* parent ): TabBase( parent ) {
     _availableFilesLayout->addWidget( _availableFilesLabel,    1, 0 );
     _availableFilesLayout->addWidget( _availableFilesListView, 2, 0 );
 
-    _availableFilesContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _availableFilesContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
+    _availableFilesContainer->setFixedWidth( MainButtonSize.width( ) );
 
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );

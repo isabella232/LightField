@@ -76,8 +76,9 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _optionsLayout->addLayout( WrapWidgetsInHBox( { _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus } ) );
     _optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
 
-    _optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( _optionsLayout );
+    _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
 
     _sliceButton->setEnabled( false );
     _sliceButton->setFixedSize( MainButtonSize );
