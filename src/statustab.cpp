@@ -16,7 +16,6 @@ namespace {
 
     QStringList const PrinterInitializationCommands {
         "M18",
-        //"M140 S40",
         "M106",
         "M155 S5",
     };
@@ -107,7 +106,8 @@ StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
 
     _progressControlsContainer->setContentsMargins( { } );
     _progressControlsContainer->setLayout( _progressControlsLayout );
-    _progressControlsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _progressControlsContainer->setFixedWidth( MainButtonSize.width( ) );
+    _progressControlsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
 
     _currentLayerImage->setAlignment( Qt::AlignCenter );
@@ -170,19 +170,6 @@ StatusTab::~StatusTab( ) {
 void StatusTab::_initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedWidth( _currentLayerImage->width( ) );
     _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
-
-    debug(
-        "+ StatusTab::_initialShowEvent:\n"
-        "  + _warningHotImage size: %s\n"
-        "  + _warningUvImage size:  %s\n"
-        "  + _warningHotLabel size: %s\n"
-        "  + _warningUvLabel size:  %s\n"
-        "",
-        ToString( _warningHotImage->size( ) ).toUtf8( ).data( ),
-        ToString(  _warningUvImage->size( ) ).toUtf8( ).data( ),
-        ToString( _warningHotLabel->size( ) ).toUtf8( ).data( ),
-        ToString(  _warningUvLabel->size( ) ).toUtf8( ).data( )
-    );
 
     event->accept( );
 }
