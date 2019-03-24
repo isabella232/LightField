@@ -21,10 +21,12 @@ private:
     QLabel*      _logoLabel                { new QLabel      };
     QLabel*      _versionLabel             { new QLabel      };
 
+    QLabel*      _copyrightsLabel          { new QLabel      };
+
     QPushButton* _restartButton            { new QPushButton };
     QPushButton* _shutDownButton           { new QPushButton };
 
-    QVBoxLayout* _mainLayout               {                 };
+    QVBoxLayout* _mainLayout               { new QVBoxLayout };
     QWidget*     _mainContent              { new QWidget     };
 
 

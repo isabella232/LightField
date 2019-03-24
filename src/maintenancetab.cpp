@@ -18,12 +18,40 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
     //
 
     _logoLabel->setAlignment( Qt::AlignCenter );
+    _logoLabel->setContentsMargins( { } );
     _logoLabel->setPixmap( QPixmap { QString { ":images/transparent-dark-logo.png" } } );
-
+    _logoLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
 
     _versionLabel->setAlignment( Qt::AlignCenter );
-    _versionLabel->setFont( font16pt );
-    _versionLabel->setText( QString { "Version " } + QCoreApplication::applicationVersion( ) );
+    _versionLabel->setContentsMargins( { } );
+    _versionLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    _versionLabel->setTextFormat( Qt::RichText );
+    _versionLabel->setText(
+        QString {
+            "<span style='font-size: 22pt;'>%1</span><br>"
+            "<span style='font-size: 16pt;'>Version %2</span><br>"
+            "<span>© 2019 Volumetric, Inc.</span>"
+        }
+        .arg( QCoreApplication::applicationName( ) )
+        .arg( QCoreApplication::applicationVersion( ) )
+    );
+
+    auto versionInfoLayout = WrapWidgetsInHBox( { _logoLabel, _versionLabel } );
+    versionInfoLayout->setContentsMargins( { } );
+
+
+    _copyrightsLabel->setAlignment( Qt::AlignCenter );
+    _copyrightsLabel->setTextFormat( Qt::RichText );
+    _copyrightsLabel->setText( QString {
+        "Based on <a href='https://github.com/mkeeter/fstl' style='color: white;'>fstl</a> by <a href='https://www.mattkeeter.com/' style='color: white;'>Matthew Keeter</a>.<br>"
+        "© 2014-2018 Matthew Keeter. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
+        "Includes code derived from <a href='https://github.com/kliment/Printrun' style='color: white;'>Printrun</a> by <a href='https://0xfb.com/' style='color: white;'>Kliment Yanev</a>.<br>"
+        "© 2011-2019 Kliment Yanev. Licensed under the terms of the <a href='https://opensource.org/licenses/GPL-3.0' style='color: white;'>GNU General Purpose License v3</a>.<br>"
+        "<a href='https://github.com/Alexhuszagh/BreezeStyleSheets' style='color: white;'>BreezeStyleSheets</a> by <a href='https://github.com/Alexhuszagh/' style='color: white;'>Alex Huszagh</a>, based on <a href='https://github.com/ColinDuquesnoy/QDarkStyleSheet' style='color: white;'>QDarkStyleSheet</a> by <a href='https://github.com/ColinDuquesnoy' style='color: white;'>Colin Duquesnoy</a>.<br>"
+        "© 2013-2018 Colin Duquesnoy. © 2015-2018 Alex Huszagh. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
+        "<a href='https://github.com/JulietaUla/Montserrat' style='color: white;'>Montserrat</a> typeface by <a href='https://github.com/JulietaUla' style='color: white;'>Julieta Ulanovsky</a>.<br>"
+        "© 2011 The Montserrat Project Authors. Licensed under the terms of the <a href='https://github.com/JulietaUla/Montserrat/raw/master/OFL.txt' style='color: white;'>SIL Open Font License</a>."
+    } );
 
 
     _restartButton->setFont( font16pt );
@@ -38,7 +66,9 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
     mainButtonsLayout->setContentsMargins( { } );
 
 
-    _mainLayout = WrapWidgetsInVBox( { _logoLabel, _versionLabel, nullptr } );
+    _mainLayout->addLayout( versionInfoLayout );
+    _mainLayout->addWidget( _copyrightsLabel );
+    _mainLayout->addStretch( );
     _mainLayout->addLayout( mainButtonsLayout );
     _mainLayout->setAlignment( Qt::AlignCenter );
     _mainLayout->setContentsMargins( { } );
@@ -56,6 +86,7 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
     _confirmRestartLabel->setAlignment( Qt::AlignCenter );
     _confirmRestartLabel->setFont( font22pt );
     _confirmRestartLabel->setText( "Are you sure you want to restart?" );
+
 
     _confirmRestartYesButton->setFont( font16pt );
     _confirmRestartYesButton->setText( "Yes" );
