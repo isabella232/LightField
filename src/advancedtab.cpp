@@ -43,7 +43,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _zPosition         ->setText( EmDash );
 
 
-    _leftColumnLayout  = new QVBoxLayout { this };
+    _leftColumnLayout = new QVBoxLayout { this };
+    _leftColumnLayout->setContentsMargins( { } );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperature } ) );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperature  } ) );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _pwmLabel,                nullptr, _pwm                } ) );
@@ -81,7 +82,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedTemperatureSlider->setMinimum( 30 );
     _bedTemperatureSlider->setMaximum( 50 );
     _bedTemperatureSlider->setOrientation( Qt::Horizontal );
-    _bedTemperatureSlider->setPageStep( 5 );
+    _bedTemperatureSlider->setPageStep( 1 );
     _bedTemperatureSlider->setSingleStep( 1 );
     _bedTemperatureSlider->setTickInterval( 5 );
     _bedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
@@ -128,7 +129,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setMinimum( 20 );
     _powerLevelSlider->setMaximum( 100 );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 5 );
+    _powerLevelSlider->setPageStep( 1 );
     _powerLevelSlider->setSingleStep( 1 );
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
@@ -228,7 +229,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 }
 
 void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
-    _powerLevelLabel->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
+    _powerLevelValue->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
     QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? _powerLevelSlider->value( ) : 0 ) } );
 }
 
