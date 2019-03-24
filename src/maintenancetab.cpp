@@ -43,13 +43,13 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
     _copyrightsLabel->setAlignment( Qt::AlignCenter );
     _copyrightsLabel->setTextFormat( Qt::RichText );
     _copyrightsLabel->setText( QString {
-        "Based on <a href='https://github.com/mkeeter/fstl' style='color: white;'>fstl</a> by <a href='https://www.mattkeeter.com/' style='color: white;'>Matthew Keeter</a>.<br>"
+        "Based on <a href='https://github.com/mkeeter/fstl/' style='color: white;'>fstl</a> by <a href='https://www.mattkeeter.com/' style='color: white;'>Matthew Keeter</a>.<br>"
         "© 2014-2018 Matthew Keeter. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
-        "Includes code derived from <a href='https://github.com/kliment/Printrun' style='color: white;'>Printrun</a> by <a href='https://0xfb.com/' style='color: white;'>Kliment Yanev</a>.<br>"
+        "Includes code derived from <a href='https://github.com/kliment/Printrun/' style='color: white;'>Printrun</a> by <a href='https://0xfb.com/' style='color: white;'>Kliment Yanev</a>.<br>"
         "© 2011-2019 Kliment Yanev. Licensed under the terms of the <a href='https://opensource.org/licenses/GPL-3.0' style='color: white;'>GNU General Purpose License v3</a>.<br>"
-        "<a href='https://github.com/Alexhuszagh/BreezeStyleSheets' style='color: white;'>BreezeStyleSheets</a> by <a href='https://github.com/Alexhuszagh/' style='color: white;'>Alex Huszagh</a>, based on <a href='https://github.com/ColinDuquesnoy/QDarkStyleSheet' style='color: white;'>QDarkStyleSheet</a> by <a href='https://github.com/ColinDuquesnoy' style='color: white;'>Colin Duquesnoy</a>.<br>"
-        "© 2013-2018 Colin Duquesnoy. © 2015-2018 Alex Huszagh. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
-        "<a href='https://github.com/JulietaUla/Montserrat' style='color: white;'>Montserrat</a> typeface by <a href='https://github.com/JulietaUla' style='color: white;'>Julieta Ulanovsky</a>.<br>"
+        "<a href='https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle/' style='color: white;'>Dark theme</a> by <a href='https://github.com/Jorgen-VikingGod/' style='color: white;'>Jürgen Skrotzky</a>.<br>"
+        "© 2017-2018 Jürgen Skrotzky. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
+        "<a href='https://github.com/JulietaUla/Montserrat/' style='color: white;'>Montserrat</a> typeface by <a href='https://github.com/JulietaUla' style='color: white;'>Julieta Ulanovsky</a>.<br>"
         "© 2011 The Montserrat Project Authors. Licensed under the terms of the <a href='https://github.com/JulietaUla/Montserrat/raw/master/OFL.txt' style='color: white;'>SIL Open Font License</a>."
     } );
 
