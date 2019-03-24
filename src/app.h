@@ -4,10 +4,8 @@
 class Window;
 
 enum class Theme {
-    unknown,
-    Light,
     Dark,
-    None,
+    Light,
 };
 
 class AppSettings {
@@ -17,10 +15,10 @@ public:
     QPoint pngDisplayWindowPosition { 0,   0 };
     QPoint mainWindowPosition       { 0, 800 };
 
-    Theme  theme                    { Theme::Dark };
-    bool   frameless                { false       };
-    bool   pretendPrinterIsPrepared { false       };
-    bool   ignoreShepherdFailures   { false       };
+    Theme  theme                    {        };
+    bool   frameless                { false  };
+    bool   pretendPrinterIsPrepared { false  };
+    bool   ignoreShepherdFailures   { false  };
 
 };
 
@@ -36,7 +34,7 @@ public:
 private:
 
     DebugManager* _debugManager;
-    Window* _window;
+    Window*       _window;
 
     void _parseCommandLine( );
     void _setTheme( );

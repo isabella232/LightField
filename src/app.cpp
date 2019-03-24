@@ -10,6 +10,8 @@ AppSettings g_settings;
 
 namespace {
 
+    QCommandLineParser commandLineParser;
+
     QList<QCommandLineOption> commandLineOptions {
         QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                     },
 #if defined _DEBUG
@@ -23,7 +25,8 @@ namespace {
 
     QList<std::function<void( )>> commandLineActions {
         [] ( ) { // -? or --help
-            /* empty - handled elsewhere */
+            ::fputs( commandLineParser.helpText( ).toUtf8( ).data( ), stderr );
+            ::exit( 0 );
         },
 #if defined _DEBUG
         [] ( ) { // -h
@@ -48,30 +51,19 @@ namespace {
 }
 
 void App::_parseCommandLine( ) {
-    QCommandLineParser parser;
+    commandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
+    commandLineParser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
+    commandLineParser.addOptions( commandLineOptions );
+    commandLineParser.process( *this );
 
-    parser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
-    parser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
-    parser.addOptions( commandLineOptions );
-    parser.process( *this );
-
-    if ( parser.isSet( commandLineOptions[0] ) ) { // -? or --help
-        ::fputs( parser.helpText( ).toUtf8( ).data( ), stderr );
-        ::exit( 0 );
-    }
-
-    for ( auto i = 1; i < commandLineOptions.count( ); ++i ) {
-        if ( parser.isSet( commandLineOptions[i] ) ) {
+    for ( auto i = 0; i < commandLineOptions.count( ); ++i ) {
+        if ( commandLineParser.isSet( commandLineOptions[i] ) ) {
             commandLineActions[i]( );
         }
     }
 }
 
 void App::_setTheme( ) {
-    if ( g_settings.theme == Theme::None ) {
-        return;
-    }
-
     QFile file;
     if ( g_settings.theme == Theme::Dark ) {
         file.setFileName( ":/dark.qss" );
@@ -94,9 +86,9 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QProcess::startDetached( SetpowerCommand, { "0" } );
 
     _parseCommandLine( );
+    _debugManager = new DebugManager;
     _setTheme( );
 
-    _debugManager = new DebugManager;
     _window = new Window;
     _window->show( );
 }
