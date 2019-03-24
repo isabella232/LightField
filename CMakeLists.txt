@@ -86,7 +86,7 @@ src/gesturelistview.h
 src/hasher.h)
 
 #set project resources and icon resource
-set(Project_Resources images/images.qrc gl/gl.qrc breeze/breeze.qrc)
+set(Project_Resources images/images.qrc gl/gl.qrc)
 
 #set Policy CMP0072 FindOpenGL behavior
 set(OpenGL_GL_PREFERENCE GLVND)

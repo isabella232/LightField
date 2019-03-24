@@ -69,7 +69,6 @@ CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \
-    ../breeze/breeze.qrc \
     ../images/images.qrc \
     ../gl/gl.qrc
 
