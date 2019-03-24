@@ -16,7 +16,7 @@ namespace {
 
 }
 
-SignalHandler* g_signalHandler;
+SignalHandler* g_signalHandler { };
 
 SignalHandler::SignalHandler( QObject* parent ): QObject( parent ) {
     if ( ::socketpair( AF_UNIX, SOCK_STREAM, 0, signalFds ) ) {

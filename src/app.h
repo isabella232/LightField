@@ -35,10 +35,11 @@ public:
 
 private:
 
-    Window* window;
+    DebugManager* _debugManager;
+    Window* _window;
 
-    void parseCommandLine( );
-    void setTheme( );
+    void _parseCommandLine( );
+    void _setTheme( );
 
 };
 

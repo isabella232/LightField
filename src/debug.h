@@ -1,6 +1,25 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+class DebugManager {
+
+    DebugManager( DebugManager const& ) = delete;
+    DebugManager( DebugManager&& ) = delete;
+    DebugManager& operator=( DebugManager const& ) = delete;
+    DebugManager& operator=( DebugManager&& ) = delete;
+
+public:
+
+#if defined _DEBUG
+    DebugManager( );
+    ~DebugManager( );
+#else
+    DebugManager( )  { /*empty*/ }
+    ~DebugManager( ) { /*empty*/ }
+#endif //defined _DEBUG
+
+};
+
 #if defined _DEBUG
 void debug( char const* str );
 
