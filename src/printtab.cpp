@@ -41,19 +41,18 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _exposureTimeValue->setFont( boldFont );
 
     _exposureTimeValueLayout = WrapWidgetsInHBox( { _exposureTimeLabel, nullptr, _exposureTimeValue } );
-    _exposureTimeValueLayout->setContentsMargins( { } );
+
 
     _exposureTimeSlider->setMinimum( 1 );
     _exposureTimeSlider->setMaximum( 40 );
     _exposureTimeSlider->setOrientation( Qt::Horizontal );
-    _exposureTimeSlider->setPageStep( 10 );
-    _exposureTimeSlider->setSingleStep( 2 );
+    _exposureTimeSlider->setPageStep( 1 );
+    _exposureTimeSlider->setSingleStep( 1 );
     _exposureTimeSlider->setTickInterval( 5 );
     _exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _exposureTimeSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
 
-    _exposureTimeLayout->setContentsMargins( { } );
     _exposureTimeLayout->addLayout( _exposureTimeValueLayout );
     _exposureTimeLayout->addWidget( _exposureTimeSlider );
 
@@ -67,28 +66,24 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { _exposureTimeScaleFactorLabel, nullptr, _exposureTimeScaleFactorValue } );
     _exposureTimeScaleFactorValueLayout->setContentsMargins( { } );
 
+
     _exposureTimeScaleFactorSlider->setMinimum( 1 );
     _exposureTimeScaleFactorSlider->setMaximum( 5 );
     _exposureTimeScaleFactorSlider->setOrientation( Qt::Horizontal );
-    _exposureTimeScaleFactorSlider->setPageStep( 2 );
+    _exposureTimeScaleFactorSlider->setPageStep( 1 );
     _exposureTimeScaleFactorSlider->setSingleStep( 1 );
     _exposureTimeScaleFactorSlider->setTickInterval( 1 );
     _exposureTimeScaleFactorSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
 
 
-    _exposureTimeScaleFactorLayout->setContentsMargins( { } );
     _exposureTimeScaleFactorLayout->addLayout( _exposureTimeScaleFactorValueLayout );
     _exposureTimeScaleFactorLayout->addWidget( _exposureTimeScaleFactorSlider );
 
 
-    _exposureLayout->addLayout( _exposureTimeLayout,            0, 0 );
-    _exposureLayout->addLayout( _exposureTimeScaleFactorLayout, 0, 2 );
-    _exposureLayout->setRowStretch( 0, 1 );
-    _exposureLayout->setRowStretch( 1, 1 );
-    _exposureLayout->setColumnStretch( 0, 8 );
-    _exposureLayout->setColumnStretch( 1, 1 );
-    _exposureLayout->setColumnStretch( 2, 4 );
+    _exposureLayout->addLayout( _exposureTimeLayout,            8 );
+    _exposureLayout->addStretch( 1 );
+    _exposureLayout->addLayout( _exposureTimeScaleFactorLayout, 4 );
 
 
     _powerLevelLabel->setText( "Projector power level:" );
@@ -96,13 +91,10 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelValue->setAlignment( Qt::AlignRight );
     _powerLevelValue->setFont( boldFont );
 
-    _powerLevelValueLayout = WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } );
-    _powerLevelValueLayout->setContentsMargins( { } );
-
     _powerLevelSlider->setMinimum( 20 );
     _powerLevelSlider->setMaximum( 100 );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 5 );
+    _powerLevelSlider->setPageStep( 1 );
     _powerLevelSlider->setSingleStep( 1 );
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
@@ -114,24 +106,20 @@ PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
     _printSpeedValue->setAlignment( Qt::AlignRight );
     _printSpeedValue->setFont( boldFont );
 
-    _printSpeedValueLayout = WrapWidgetsInHBox( { _printSpeedLabel, nullptr, _printSpeedValue } );
-    _printSpeedValueLayout->setContentsMargins( { } );
-
     _printSpeedSlider->setMinimum( 50 );
     _printSpeedSlider->setMaximum( 200 );
     _printSpeedSlider->setOrientation( Qt::Horizontal );
-    _printSpeedSlider->setPageStep( 50 );
-    _printSpeedSlider->setSingleStep( 25 );
+    _printSpeedSlider->setPageStep( 10 );
+    _printSpeedSlider->setSingleStep( 10 );
     _printSpeedSlider->setTickInterval( 10 );
     _printSpeedSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _printSpeedSlider, &QSlider::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
 
 
-    _optionsLayout->setContentsMargins( { } );
     _optionsLayout->addLayout( _exposureLayout );
-    _optionsLayout->addLayout( _powerLevelValueLayout );
+    _optionsLayout->addLayout( WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } ) );
     _optionsLayout->addWidget( _powerLevelSlider );
-    _optionsLayout->addLayout( _printSpeedValueLayout );
+    _optionsLayout->addLayout( WrapWidgetsInHBox( { _printSpeedLabel, nullptr, _printSpeedValue } ) );
     _optionsLayout->addWidget( _printSpeedSlider );
     _optionsLayout->addStretch( );
 

@@ -30,26 +30,30 @@ private:
     QLabel*            _exposureTimeLabel                  { new QLabel      };
     QLabel*            _exposureTimeValue                  { new QLabel      };
     QHBoxLayout*       _exposureTimeValueLayout            {                 };
+
     QSlider*           _exposureTimeSlider                 { new QSlider     };
 
-    QLabel*            _exposureTimeScaleFactorValue       { new QLabel      };
+    QVBoxLayout*       _exposureTimeLayout                 { new QVBoxLayout };
+
+
     QLabel*            _exposureTimeScaleFactorLabel       { new QLabel      };
+    QLabel*            _exposureTimeScaleFactorValue       { new QLabel      };
     QHBoxLayout*       _exposureTimeScaleFactorValueLayout {                 };
+
     QSlider*           _exposureTimeScaleFactorSlider      { new QSlider     };
 
-    QVBoxLayout*       _exposureTimeLayout                 { new QVBoxLayout };
     QVBoxLayout*       _exposureTimeScaleFactorLayout      { new QVBoxLayout };
 
-    QGridLayout*       _exposureLayout                     { new QGridLayout };
+
+    QHBoxLayout*       _exposureLayout                     { new QHBoxLayout };
+
 
     QLabel*            _powerLevelLabel                    { new QLabel      };
     QLabel*            _powerLevelValue                    { new QLabel      };
-    QHBoxLayout*       _powerLevelValueLayout              {                 };
     QSlider*           _powerLevelSlider                   { new QSlider     };
 
     QLabel*            _printSpeedLabel                    { new QLabel      };
     QLabel*            _printSpeedValue                    { new QLabel      };
-    QHBoxLayout*       _printSpeedValueLayout              {                 };
     QSlider*           _printSpeedSlider                   { new QSlider     };
 
     QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
