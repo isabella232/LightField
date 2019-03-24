@@ -141,8 +141,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     //
 
     double pointSize = _tabs->font( ).pointSizeF( );
-    _tabs->setContentsMargins( { } );
-    _tabs->setFont( ModifyFont( _tabs->font( ), 22.0 ) );
+    _tabs->setFont( ModifyFont( _tabs->font( ), 20.0 ) );
     QObject::connect( _tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
     auto font9pt = ModifyFont( _fileTab->font( ), pointSize );
