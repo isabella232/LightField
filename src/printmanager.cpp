@@ -258,7 +258,7 @@ void PrintManager::stepB1_start( ) {
 
     QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
     if ( !_pngDisplayer->setImageFileName( pngFileName ) ) {
-        debug( "+ PrintManager::stepB1_start: PngDisplayer::load failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+        debug( "+ PrintManager::stepB1_start: PngDisplayer::setImageFileName failed for file %s\n", pngFileName.toUtf8( ).data( ) );
         this->abort( );
         return;
     }
