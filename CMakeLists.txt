@@ -17,7 +17,7 @@ set (PROJECT_VERSION "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_PATCH
 
 if(WIN32)
 # Set the Qt5 path
-set (Qt5_DIR "F:\\\\Qt\\\\5.12.1\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set (Qt5_DIR "F:\\\\Qt\\\\5.11.3\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(lf)

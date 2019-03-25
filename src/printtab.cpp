@@ -205,7 +205,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
         case BuildPlatformState::Raising:
             _buildPlatformState = BuildPlatformState::Raising;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
+            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
             _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
             break;
 
@@ -213,7 +213,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
         case BuildPlatformState::Lowering:
             _buildPlatformState = BuildPlatformState::Lowering;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
             _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0 );
             break;
 
@@ -224,7 +224,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
 
 void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
     debug( "+ PrintTab::raiseBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
@@ -239,7 +239,7 @@ void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
 
 void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
     debug( "+ PrintTab::lowerBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;

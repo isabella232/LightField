@@ -34,8 +34,8 @@ namespace {
 
     char const* PendingCommandStrings[] {
         "none",
-        "move",
-        "moveTo",
+        "moveRelative",
+        "moveAbsolute",
         "home",
         "send",
     };
