@@ -276,6 +276,8 @@ void StatusTab::printManager_printComplete( bool const success ) {
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
 
+    _loadPrintSolutionGroup->setEnabled( false );
+
     _stopButton->setVisible( false );
     _reprintButton->setVisible( true );
 
