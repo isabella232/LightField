@@ -262,7 +262,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
-    debug( "+ PrepareTab::sliceButton_clicked: pre-sliced? %s\n", ToString( _preSliced ) );
+    debug( "+ PrepareTab::sliceButton_clicked\n" );
 
     QDir jobDir { _printJob->jobWorkingDirectory };
     jobDir.removeRecursively( );
@@ -312,23 +312,25 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     );
 
     QDir jobDir { _printJob->jobWorkingDirectory };
+    bool preSliced;
+
     if ( jobDir.exists( ) ) {
         debug( "  + job directory already exists, checking sliced model\n" );
-        _preSliced = _checkPreSlicedFiles( );
-        if ( _preSliced ) {
-            debug( "  + presliced model is good\n" );
+        preSliced = _checkPreSlicedFiles( );
+        if ( preSliced ) {
+            debug( "  + pre-sliced model is good\n" );
         } else {
-            debug( "  + presliced model is NOT good\n" );
+            debug( "  + pre-sliced model is NOT good\n" );
             jobDir.removeRecursively( );
         }
     } else {
         debug( "  + job directory does not exist\n" );
-        _preSliced = false;
+        preSliced = false;
     }
 
-    _setNavigationButtonsEnabled( _preSliced );
+    _setNavigationButtonsEnabled( preSliced );
     _sliceButton->setEnabled( true );
-    if ( _preSliced ) {
+    if ( preSliced ) {
         _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
         emit alreadySliced( );
@@ -418,7 +420,6 @@ void PrepareTab::svgRenderer_done( bool const success ) {
 
     _setNavigationButtonsEnabled( true );
     _sliceButton->setText( "Reslice" );
-    _preSliced = true;
 
     emit renderComplete( success );
 }

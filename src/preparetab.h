@@ -27,7 +27,6 @@ private:
     Hasher*                _hasher                      { };
     int                    _visibleLayer                { };
     int                    _renderedLayers              { };
-    bool                   _preSliced                   { };
 
     QLabel*                _layerThicknessLabel         { new QLabel       };
     QRadioButton*          _layerThickness50Button      { new QRadioButton };
