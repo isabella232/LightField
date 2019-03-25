@@ -3,6 +3,8 @@
 
 #include "tabbase.h"
 
+class PngDisplayer;
+
 class AdvancedTab: public TabBase {
 
     Q_OBJECT
@@ -58,6 +60,8 @@ private:
     QVBoxLayout*   _leftColumnLayout                { };
     QVBoxLayout*   _rightColumnLayout               { };
     QHBoxLayout*   _layout                          { };
+
+    PngDisplayer*  _pngDisplayer                    { };
 
 signals:
 

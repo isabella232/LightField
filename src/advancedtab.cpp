@@ -2,6 +2,8 @@
 
 #include "advancedtab.h"
 
+#include "app.h"
+#include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
@@ -220,11 +222,37 @@ void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
 }
 
 void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
+    debug( "+ AdvancedTab::projectorFloodlightButton_clicked: checked? %s\n", ToString( checked ) );
+
     _projectorFloodlightButton->setText( checked ? FA_Check : FA_Times );
     _powerLevelLabel->setEnabled( checked );
     _powerLevelSlider->setEnabled( checked );
     _powerLevelValue->setEnabled( checked );
     _powerLevelValueLayout->setEnabled( checked );
+
+    if ( checked ) {
+        debug( "  + Creating PngDisplayer instance and showing a white field\n" );
+        if ( _pngDisplayer ) {
+            debug( "    + Deleting stale pngDisplayer?\n" );
+            _pngDisplayer->close( );
+            _pngDisplayer->deleteLater( );
+        }
+
+        _pngDisplayer = new PngDisplayer( );
+        _pngDisplayer->setFixedSize( PngDisplayWindowSize );
+        _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
+        _pngDisplayer->setImageFileName( ":images/white-field.png" );
+        _pngDisplayer->show( );
+    } else {
+        if ( _pngDisplayer ) {
+            debug( "  + Destroying PngDisplayer instance\n" );
+            _pngDisplayer->close( );
+            _pngDisplayer->deleteLater( );
+            _pngDisplayer = nullptr;
+        } else {
+            debug( "  + No PngDisplayer instance to destroy?\n" );
+        }
+    }
     QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( checked ? _powerLevelSlider->value( ) : 0 ) } );
 }
 

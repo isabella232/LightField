@@ -3,5 +3,6 @@
         <file>transparent-dark-logo.png</file>
         <file>warning-hot.png</file>
         <file>warning-uv.png</file>
+        <file>white-field.png</file>
     </qresource>
 </RCC>
