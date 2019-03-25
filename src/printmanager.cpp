@@ -130,7 +130,7 @@ void PrintManager::stepA1_start( ) {
     debug( "+ PrintManager::stepA1_start: Setting print speed to %d mm/min\n", _printJob->printSpeed );
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA1_completed );
-    _shepherd->doSend( QString { "G0 F%d" }.arg( _printJob->printSpeed ) );
+    _shepherd->doSend( QString { "G0 F%1" }.arg( _printJob->printSpeed ) );
 }
 
 void PrintManager::stepA1_completed( bool const success ) {
