@@ -148,12 +148,12 @@ void Shepherd::handleFromPrinter( QString const& input ) {
             auto pending = _pendingCommand;
             _pendingCommand = PendingCommand::none;
             switch ( pending ) {
-                case PendingCommand::move:
-                    emit action_moveComplete( true );
+                case PendingCommand::moveRelative:
+                    emit action_moveRelativeComplete( true );
                     break;
 
-                case PendingCommand::moveTo:
-                    emit action_moveToComplete( true );
+                case PendingCommand::moveAbsolute:
+                    emit action_moveAbsoluteComplete( true );
                     break;
 
                 case PendingCommand::home:
@@ -198,12 +198,12 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
     auto pending = _pendingCommand;
     _pendingCommand = PendingCommand::none;
     switch ( pending ) {
-        case PendingCommand::move:
-            emit action_moveComplete( false );
+        case PendingCommand::moveRelative:
+            emit action_moveRelativeComplete( false );
             break;
 
-        case PendingCommand::moveTo:
-            emit action_moveToComplete( false );
+        case PendingCommand::moveAbsolute:
+            emit action_moveAbsoluteComplete( false );
             break;
 
         case PendingCommand::home:
@@ -231,12 +231,12 @@ void Shepherd::handleCommandFailAlternate( QStringList const& input ) {
     auto pending = _pendingCommand;
     _pendingCommand = PendingCommand::none;
     switch ( pending ) {
-        case PendingCommand::move:
-            emit action_moveComplete( true );
+        case PendingCommand::moveRelative:
+            emit action_moveRelativeComplete( true );
             break;
 
-        case PendingCommand::moveTo:
-            emit action_moveToComplete( true );
+        case PendingCommand::moveAbsolute:
+            emit action_moveAbsoluteComplete( true );
             break;
 
         case PendingCommand::home:
@@ -329,13 +329,13 @@ void Shepherd::start( ) {
 }
 
 void Shepherd::doMoveRelative( float const relativeDistance ) {
-    if ( getReady( "doMoveRelative", PendingCommand::move, 4 ) ) {
+    if ( getReady( "doMoveRelative", PendingCommand::moveRelative, 4 ) ) {
         _process->write( QString( "move %1\n" ).arg( relativeDistance, 0, 'f', 2 ).toUtf8( ) );
     }
 }
 
 void Shepherd::doMoveAbsolute( float const absolutePosition ) {
-    if ( getReady( "doMoveAbsolute", PendingCommand::moveTo, 4 ) ) {
+    if ( getReady( "doMoveAbsolute", PendingCommand::moveAbsolute, 4 ) ) {
         _process->write( QString( "moveTo %1\n" ).arg( absolutePosition, 0, 'f', 2 ).toUtf8( ) );
     }
 }

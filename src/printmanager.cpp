@@ -156,14 +156,14 @@ void PrintManager::stepA2_start( ) {
 
     debug( "+ PrintManager::stepA2_start: raising build platform to %.2f mm\n", PrinterMaximumZ );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA2_completed );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA2_completed );
     _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
 void PrintManager::stepA2_completed( bool const success ) {
     debug( "+ PrintManager::stepA2_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA2_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA2_completed );
 
     if ( _printResult == PrintResult::Abort ) {
         _finishAbort( );
@@ -205,14 +205,14 @@ void PrintManager::stepA4_start( ) {
 
     debug( "+ PrintManager::stepA4_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA4_completed );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
     _shepherd->doMoveAbsolute( firstLayerHeight );
 }
 
 void PrintManager::stepA4_completed( bool const success ) {
     debug( "+ PrintManager::stepA4_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA4_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
 
     if ( _printResult == PrintResult::Abort ) {
         _finishAbort( );
@@ -379,7 +379,7 @@ void PrintManager::stepB5_start( ) {
     } else {
         debug( "+ PrintManager::stepB5_start: raising build platform by %.2f mm\n", LiftDistance );
 
-        QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB5_completed );
+        QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
         _shepherd->doMoveRelative( LiftDistance );
 
         emit startingLayer( _currentLayer );
@@ -389,7 +389,7 @@ void PrintManager::stepB5_start( ) {
 void PrintManager::stepB5_completed( bool const success ) {
     debug( "+ PrintManager::stepB5_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB5_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
 
     if ( _printResult == PrintResult::Abort ) {
         _finishAbort( );
@@ -410,14 +410,14 @@ void PrintManager::stepB6_start( ) {
     auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
     debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", moveDistance );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
+    QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
     _shepherd->doMoveRelative( moveDistance );
 }
 
 void PrintManager::stepB6_completed( bool const success ) {
     debug( "+ PrintManager::stepB6_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveComplete, this, &PrintManager::stepB6_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
 
     if ( _printResult == PrintResult::Abort ) {
         _finishAbort( );
@@ -459,14 +459,14 @@ void PrintManager::stepC1_start( ) {
 
     debug( "+ PrintManager::stepC1_start: raising build platform to maximum Z\n" );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
     _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
     debug( "+ PrintManager::stepC1_completed: action %s. print result %s\n", SucceededString( success ), PrintResultStrings[+_printResult] );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
 
     if ( PrintResult::Abort == _printResult ) {
         emit printAborted( );
