@@ -471,7 +471,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareMessage->setText( QString( "Raising the build platform..." ) );
     _prepareProgress->show( );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::shepherd_resinLoadMoveToComplete );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_resinLoadMoveToComplete );
     _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 

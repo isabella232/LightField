@@ -3,8 +3,8 @@
 
 enum class PendingCommand {
     none,
-    move,
-    moveTo,
+    moveRelative,
+    moveAbsolute,
     home,
     send,
 };
@@ -61,8 +61,8 @@ signals:
     void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
-    void action_moveComplete( bool const successful );
-    void action_moveToComplete( bool const successful );
+    void action_moveRelativeComplete( bool const successful );
+    void action_moveAbsoluteComplete( bool const successful );
     void action_homeComplete( bool const successful );
     void action_sendComplete( bool const successful );
 
