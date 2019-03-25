@@ -183,6 +183,12 @@ void Shepherd::handleFromPrinter( QString const& input ) {
         auto cz = match.captured( 7 ).toDouble( );
         debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
         emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
+    } else if ( auto match = TemperatureReportMatcher.match( input ); match.hasMatch( ) ) {
+        auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
+        auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
+        auto bedPwm                = match.captured( 6 ).toInt( );
+        debug( "+ Shepherd::handleFromPrinter: temperature report: current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
+        emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     }
 }
 
@@ -302,13 +308,6 @@ void Shepherd::handleInput( QString const& input ) {
             handleFromPrinter( pieces[1] );
         } else if ( pieces[0] == "to_printer" ) {
             debug( ">>> '%s'\n", pieces[1].toUtf8( ).data( ) );
-        } else if ( pieces[0] == "printer_temperature" ) {
-            if ( auto match = TemperatureReportMatcher.match( pieces[1] ); match.hasMatch( ) ) {
-                auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
-                auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
-                auto bedPwm                = match.captured( 6 ).toInt( );
-                emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
-            }
         } else if ( pieces[0] == "printer_online" ) {
             emit printer_online( );
         } else if ( pieces[0] == "printer_offline" ) {
