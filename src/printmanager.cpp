@@ -154,10 +154,10 @@ void PrintManager::stepA1_completed( bool const success ) {
 void PrintManager::stepA2_start( ) {
     _step = PrintStep::A2;
 
-    debug( "+ PrintManager::stepA2_start: raising build platform to %.2f mm\n", PrinterMaximumZ );
+    debug( "+ PrintManager::stepA2_start: raising build platform to %.2f mm\n", PrinterRaiseToMaxZHeight );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepA2_completed );
-    _shepherd->doMoveAbsolute( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
 }
 
 void PrintManager::stepA2_completed( bool const success ) {
@@ -460,7 +460,7 @@ void PrintManager::stepC1_start( ) {
     debug( "+ PrintManager::stepC1_start: raising build platform to maximum Z\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintManager::stepC1_completed );
-    _shepherd->doMoveAbsolute( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
 }
 
 void PrintManager::stepC1_completed( bool const success ) {

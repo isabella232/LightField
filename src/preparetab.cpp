@@ -473,7 +473,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrepareTab::shepherd_resinLoadMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
 }
 
 void PrepareTab::shepherd_resinLoadMoveToComplete( bool const success ) {

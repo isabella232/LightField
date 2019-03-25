@@ -206,7 +206,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Raising;
 
             QObject::connect( _shepherd, &Shepherd::action_moveToComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
-            _shepherd->doMoveAbsolute( PrinterMaximumZ );
+            _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
             break;
 
         case BuildPlatformState::Raised:

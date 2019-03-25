@@ -25,9 +25,10 @@ QChar   extern const FA_Backward;
 QChar   extern const FA_Forward;
 QChar   extern const FA_FastForward;
 
-double         const PrinterMaximumX          = 64.0;
-double         const PrinterMaximumY          = 40.0;
-double         const PrinterMaximumZ          = 70.0;
+double         const PrinterMaximumX          = 64.00;
+double         const PrinterMaximumY          = 40.00;
+double         const PrinterMaximumZ          = 40.00;
+double         const PrinterRaiseToMaxZHeight = 70.00;
 
 double         const AspectRatio5to3          =  5.0 /  3.0;
 double         const AspectRatio16to10        = 16.0 / 10.0;
