@@ -1,9 +1,9 @@
 #include "pch.h"
 
+#include "strings.h"
+
 #include "shepherd.h"
 #include "window.h"
-
-#include "strings.h"
 
 namespace {
 
@@ -63,6 +63,14 @@ namespace {
         "GestureUpdated",
         "GestureFinished",
         "GestureCanceled",
+    };
+
+    char const* UiStateStrings[] {
+        "Start",
+        "Selected",
+        "Sliced",
+        "PrintStarted",
+        "PrintFinished",
     };
 
 }
@@ -180,6 +188,18 @@ char const* ToString( Qt::GestureState const value ) {
     if ( ( value >= Qt::NoGesture ) && ( value <= Qt::GestureCanceled ) ) {
 #endif
         return GestureStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( UiState const value ) {
+#if defined _DEBUG
+    if ( ( value >= UiState::Start ) && ( value <= UiState::PrintFinished ) ) {
+#endif
+        return UiStateStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;
