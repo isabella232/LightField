@@ -47,6 +47,10 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     }
 #endif // _DEBUG
 
+    _printJob = new PrintJob;
+    _shepherd = new Shepherd { parent };
+    _shepherd->start( );
+
     _fileTab        = new FileTab;
     _prepareTab     = new PrepareTab;
     _printTab       = new PrintTab;
@@ -85,11 +89,6 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd,       &Shepherd::shepherd_started,     this,            &Window::shepherd_started        );
     QObject::connect( _shepherd,       &Shepherd::shepherd_startFailed, this,            &Window::shepherd_startFailed    );
     QObject::connect( _shepherd,       &Shepherd::shepherd_terminated,  this,            &Window::shepherd_terminated     );
-
-    _printJob = new PrintJob;
-
-    _shepherd = new Shepherd { parent };
-    _shepherd->start( );
 
     emit printJobChanged( _printJob );
     emit shepherdChanged( _shepherd );
