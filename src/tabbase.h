@@ -1,19 +1,13 @@
 #ifndef __TABBASE_H__
 #define __TABBASE_H__
 
+#include "uistate.h"
+
 using namespace std::placeholders;
 
 class PrintJob;
 class PrintManager;
 class Shepherd;
-
-enum class UiState {
-    Start,
-    Selected,
-    Sliced,
-    PrintStarted,
-    PrintFinished,
-};
 
 class TabBase: public QWidget {
 

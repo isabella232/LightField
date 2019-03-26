@@ -63,7 +63,8 @@ HEADERS  += \
     ../src/constants.h       \
     ../src/utils.h           \
     ../src/gesturelistview.h \
-    ../src/hasher.h
+    ../src/hasher.h          \
+    ../src/uistate.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
