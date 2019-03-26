@@ -40,7 +40,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    //virtual void showEvent( QShowEvent* event )   override;
+    //virtual void showEvent( QShowEvent* event ) override;
 
 private:
 
@@ -86,13 +86,13 @@ private slots:
     void fileTab_modelSelected( ModelSelectionInfo* modelSelection );
     void fileTab_modelSelectionFailed( );
 
+    void prepareTab_slicingNeeded( bool const needed );
     void prepareTab_sliceStarted( );
     void prepareTab_sliceComplete( bool const success );
     void prepareTab_renderStarted( );
     void prepareTab_renderComplete( bool const success );
     void prepareTab_preparePrinterStarted( );
     void prepareTab_preparePrinterComplete( bool const success );
-    void prepareTab_alreadySliced( );
 
     void printTab_printButtonClicked( );
 

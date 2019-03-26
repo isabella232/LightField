@@ -63,11 +63,13 @@ private:
 
     virtual void _initialShowEvent( QShowEvent* showEvent ) override;
     bool _checkPreSlicedFiles( );
+    bool _checkJobDirectory( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
 
 signals:
 
+    void slicingNeeded( bool const needed );
     void sliceStarted( );
     void sliceComplete( bool const success );
     void renderStarted( );
@@ -75,8 +77,6 @@ signals:
 
     void preparePrinterStarted( );
     void preparePrinterComplete( bool const success );
-
-    void alreadySliced( );
 
 public slots:
 

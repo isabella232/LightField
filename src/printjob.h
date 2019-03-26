@@ -14,6 +14,7 @@ public:
     double     estimatedVolume;                 // unit: µL
 
     QString    modelFileName;
+    QString    modelHash;
     QString    jobWorkingDirectory;
 
     int        layerCount              {     };

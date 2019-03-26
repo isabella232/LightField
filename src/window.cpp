@@ -109,7 +109,7 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::renderComplete,         this, &Window::prepareTab_renderComplete         );
     QObject::connect( _prepareTab, &PrepareTab::preparePrinterStarted,  this, &Window::prepareTab_preparePrinterStarted  );
     QObject::connect( _prepareTab, &PrepareTab::preparePrinterComplete, this, &Window::prepareTab_preparePrinterComplete );
-    QObject::connect( _prepareTab, &PrepareTab::alreadySliced,          this, &Window::prepareTab_alreadySliced          );
+    QObject::connect( _prepareTab, &PrepareTab::slicingNeeded,          this, &Window::prepareTab_slicingNeeded          );
 
     //
     // "Print" tab
@@ -329,12 +329,12 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
     }
 }
 
-void Window::prepareTab_alreadySliced( ) {
-    debug( "  + Window::prepareTab_alreadySliced\n" );
-    _isModelRendered = true;
+void Window::prepareTab_slicingNeeded( bool const needed ) {
+    debug( "+ Window::prepareTab_slicingNeeded: needed? %s\n", ToString( needed ) );
+    _isModelRendered = !needed;
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
+    if ( ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered && _isPrinterPrepared ) {
         _tabs->setCurrentIndex( +TabIndex::Print );
     }
 }

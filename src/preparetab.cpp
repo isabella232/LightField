@@ -18,13 +18,16 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     auto font22pt    = ModifyFont( origFont, 22.0 );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
+    _layerThicknessLabel->setEnabled( false );
     _layerThicknessLabel->setText( "Layer height:" );
 
+    _layerThickness100Button->setEnabled( false );
     _layerThickness100Button->setChecked( true );
     _layerThickness100Button->setFont( font12pt );
     _layerThickness100Button->setText( "Standard res (100 µm)" );
     QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
+    _layerThickness50Button->setEnabled( false );
     _layerThickness50Button->setText( "High res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
@@ -34,13 +37,11 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _layerThicknessButtonsLayout->addWidget( _layerThickness50Button  );
 
     _sliceStatusLabel->setText( "Slicer:" );
-    _sliceStatusLabel->setBuddy( _sliceStatus );
 
     _sliceStatus->setText( "idle" );
     _sliceStatus->setFont( boldFont );
 
     _imageGeneratorStatusLabel->setText( "Image generator:" );
-    _imageGeneratorStatusLabel->setBuddy( _imageGeneratorStatus );
 
     _imageGeneratorStatus->setText( "idle" );
     _imageGeneratorStatus->setFont( boldFont );
@@ -205,14 +206,59 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     return true;
 }
 
+bool PrepareTab::_checkJobDirectory( ) {
+    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + _printJob->modelHash + QString( "-%1" ).arg( _printJob->layerThickness );
+
+    debug(
+        "  + model filename:        '%s'\n"
+        "  + job working directory: '%s'\n"
+        "",
+        _printJob->modelFileName.toUtf8( ).data( ),
+        _printJob->jobWorkingDirectory.toUtf8( ).data( )
+    );
+
+    QDir jobDir { _printJob->jobWorkingDirectory };
+    bool preSliced;
+
+    if ( jobDir.exists( ) ) {
+        debug( "  + job directory already exists, checking sliced model\n" );
+        preSliced = _checkPreSlicedFiles( );
+        if ( preSliced ) {
+            debug( "  + pre-sliced model is good\n" );
+        } else {
+            debug( "  + pre-sliced model is NOT good\n" );
+            jobDir.removeRecursively( );
+        }
+    } else {
+        debug( "  + job directory does not exist\n" );
+        preSliced = false;
+    }
+
+    _setNavigationButtonsEnabled( preSliced );
+    setSliceButtonEnabled( true );
+    if ( preSliced ) {
+        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
+        _sliceButton->setText( "Reslice" );
+        return true;
+    } else {
+        _navigateCurrentLabel->setText( "0/0" );
+        _sliceButton->setText( "Slice" );
+        return false;
+    }
+}
+
 void PrepareTab::layerThickness50Button_clicked( bool checked ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
+
+    _checkJobDirectory( );
 }
 
 void PrepareTab::layerThickness100Button_clicked( bool checked ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
     _printJob->layerThickness = 100;
+
+    _checkJobDirectory( );
 }
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
@@ -297,47 +343,14 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         hash.toUtf8( ).data( )
     );
 
-    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash ) + QString( "-%1" ).arg( _printJob->layerThickness );
+    _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
+
+    _sliceStatus->setText( "idle" );
     _hasher->deleteLater( );
     _hasher = nullptr;
 
-    _sliceStatus->setText( "idle" );
-
-    debug(
-        "  + model filename:        '%s'\n"
-        "  + job working directory: '%s'\n"
-        "",
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->jobWorkingDirectory.toUtf8( ).data( )
-    );
-
-    QDir jobDir { _printJob->jobWorkingDirectory };
-    bool preSliced;
-
-    if ( jobDir.exists( ) ) {
-        debug( "  + job directory already exists, checking sliced model\n" );
-        preSliced = _checkPreSlicedFiles( );
-        if ( preSliced ) {
-            debug( "  + pre-sliced model is good\n" );
-        } else {
-            debug( "  + pre-sliced model is NOT good\n" );
-            jobDir.removeRecursively( );
-        }
-    } else {
-        debug( "  + job directory does not exist\n" );
-        preSliced = false;
-    }
-
-    _setNavigationButtonsEnabled( preSliced );
-    _sliceButton->setEnabled( true );
-    if ( preSliced ) {
-        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
-        _sliceButton->setText( "Reslice" );
-        emit alreadySliced( );
-    } else {
-        _navigateCurrentLabel->setText( "0/0" );
-        _sliceButton->setText( "Slice" );
-    }
+    bool goodJobDir = _checkJobDirectory( );
+    emit slicingNeeded( !goodJobDir );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -507,6 +520,9 @@ void PrepareTab::setPrepareButtonEnabled( bool const enabled ) {
 
 void PrepareTab::setSliceButtonEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
+    _layerThicknessLabel->setEnabled( enabled );
+    _layerThickness100Button->setEnabled( enabled );
+    _layerThickness50Button->setEnabled( enabled );
 }
 
 void PrepareTab::resetState( ) {
@@ -519,7 +535,7 @@ void PrepareTab::resetState( ) {
 
 void PrepareTab::modelSelected( ) {
     resetState( );
-    _sliceButton->setEnabled( false );
+    setSliceButtonEnabled( false );
 
     _hasher = new Hasher;
     QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
