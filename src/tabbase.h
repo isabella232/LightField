@@ -7,6 +7,14 @@ class PrintJob;
 class PrintManager;
 class Shepherd;
 
+enum class UiState {
+    Start,
+    Selected,
+    Sliced,
+    PrintStarted,
+    PrintFinished,
+};
+
 class TabBase: public QWidget {
 
     Q_OBJECT
@@ -16,6 +24,7 @@ public:
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
 
+    UiState       uiState( )      const { return _uiState;      }
     PrintJob*     printJob( )     const { return _printJob;     }
     PrintManager* printManager( ) const { return _printManager; }
     Shepherd*     shepherd( )     const { return _shepherd;     }
@@ -25,6 +34,7 @@ protected:
     PrintJob*     _printJob     { };
     PrintManager* _printManager { };
     Shepherd*     _shepherd     { };
+    UiState       _uiState      { };
 
     std::function<void( QShowEvent* event )> _initialShowEventFunc;
 
@@ -44,7 +54,11 @@ private:
 
 signals:
 
+    void uiStateChanged( UiState const state );
+
 public slots:
+
+    virtual void setUiState( UiState const state );
 
     virtual void setPrintJob( PrintJob* printJob );
     virtual void setPrintManager( PrintManager* printManager );

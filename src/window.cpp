@@ -54,34 +54,41 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     _advancedTab    = new AdvancedTab;
     _maintenanceTab = new MaintenanceTab;
 
-    QObject::connect( this, &Window::printJobChanged,     _fileTab,        &FileTab::setPrintJob            );
-    QObject::connect( this, &Window::printJobChanged,     _prepareTab,     &PrepareTab::setPrintJob         );
-    QObject::connect( this, &Window::printJobChanged,     _printTab,       &PrintTab::setPrintJob           );
-    QObject::connect( this, &Window::printJobChanged,     _statusTab,      &StatusTab::setPrintJob          );
-    QObject::connect( this, &Window::printJobChanged,     _advancedTab,    &AdvancedTab::setPrintJob        );
-    QObject::connect( this, &Window::printJobChanged,     _maintenanceTab, &MaintenanceTab::setPrintJob     );
+    QObject::connect( this,            &Window::printJobChanged,        _fileTab,        &FileTab::setPrintJob            );
+    QObject::connect( this,            &Window::printJobChanged,        _prepareTab,     &PrepareTab::setPrintJob         );
+    QObject::connect( this,            &Window::printJobChanged,        _printTab,       &PrintTab::setPrintJob           );
+    QObject::connect( this,            &Window::printJobChanged,        _statusTab,      &StatusTab::setPrintJob          );
+    QObject::connect( this,            &Window::printJobChanged,        _advancedTab,    &AdvancedTab::setPrintJob        );
+    QObject::connect( this,            &Window::printJobChanged,        _maintenanceTab, &MaintenanceTab::setPrintJob     );
+                                       
+    QObject::connect( this,            &Window::printManagerChanged,    _fileTab,        &FileTab::setPrintManager        );
+    QObject::connect( this,            &Window::printManagerChanged,    _prepareTab,     &PrepareTab::setPrintManager     );
+    QObject::connect( this,            &Window::printManagerChanged,    _printTab,       &PrintTab::setPrintManager       );
+    QObject::connect( this,            &Window::printManagerChanged,    _statusTab,      &StatusTab::setPrintManager      );
+    QObject::connect( this,            &Window::printManagerChanged,    _advancedTab,    &AdvancedTab::setPrintManager    );
+    QObject::connect( this,            &Window::printManagerChanged,    _maintenanceTab, &MaintenanceTab::setPrintManager );
+                                       
+    QObject::connect( this,            &Window::shepherdChanged,        _fileTab,        &FileTab::setShepherd            );
+    QObject::connect( this,            &Window::shepherdChanged,        _prepareTab,     &PrepareTab::setShepherd         );
+    QObject::connect( this,            &Window::shepherdChanged,        _printTab,       &PrintTab::setShepherd           );
+    QObject::connect( this,            &Window::shepherdChanged,        _statusTab,      &StatusTab::setShepherd          );
+    QObject::connect( this,            &Window::shepherdChanged,        _advancedTab,    &AdvancedTab::setShepherd        );
+    QObject::connect( this,            &Window::shepherdChanged,        _maintenanceTab, &MaintenanceTab::setShepherd     );
 
-    QObject::connect( this, &Window::printManagerChanged, _fileTab,        &FileTab::setPrintManager        );
-    QObject::connect( this, &Window::printManagerChanged, _prepareTab,     &PrepareTab::setPrintManager     );
-    QObject::connect( this, &Window::printManagerChanged, _printTab,       &PrintTab::setPrintManager       );
-    QObject::connect( this, &Window::printManagerChanged, _statusTab,      &StatusTab::setPrintManager      );
-    QObject::connect( this, &Window::printManagerChanged, _advancedTab,    &AdvancedTab::setPrintManager    );
-    QObject::connect( this, &Window::printManagerChanged, _maintenanceTab, &MaintenanceTab::setPrintManager );
+    QObject::connect( _fileTab,        &FileTab::uiStateChanged,        this,            &Window::uiStateChanged          );
+    QObject::connect( _prepareTab,     &PrepareTab::uiStateChanged,     this,            &Window::uiStateChanged          );
+    QObject::connect( _printTab,       &PrintTab::uiStateChanged,       this,            &Window::uiStateChanged          );
+    QObject::connect( _statusTab,      &StatusTab::uiStateChanged,      this,            &Window::uiStateChanged          );
+    QObject::connect( _advancedTab,    &AdvancedTab::uiStateChanged,    this,            &Window::uiStateChanged          );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::uiStateChanged, this,            &Window::uiStateChanged          );
 
-    QObject::connect( this, &Window::shepherdChanged,     _fileTab,        &FileTab::setShepherd            );
-    QObject::connect( this, &Window::shepherdChanged,     _prepareTab,     &PrepareTab::setShepherd         );
-    QObject::connect( this, &Window::shepherdChanged,     _printTab,       &PrintTab::setShepherd           );
-    QObject::connect( this, &Window::shepherdChanged,     _statusTab,      &StatusTab::setShepherd          );
-    QObject::connect( this, &Window::shepherdChanged,     _advancedTab,    &AdvancedTab::setShepherd        );
-    QObject::connect( this, &Window::shepherdChanged,     _maintenanceTab, &MaintenanceTab::setShepherd     );
-
-    QObject::connect( _shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
-    QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
-    QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
+    QObject::connect( _shepherd,       &Shepherd::shepherd_started,     this,            &Window::shepherd_started        );
+    QObject::connect( _shepherd,       &Shepherd::shepherd_startFailed, this,            &Window::shepherd_startFailed    );
+    QObject::connect( _shepherd,       &Shepherd::shepherd_terminated,  this,            &Window::shepherd_terminated     );
 
     _printJob = new PrintJob;
-    _shepherd = new Shepherd { parent };
 
+    _shepherd = new Shepherd { parent };
     _shepherd->start( );
 
     emit printJobChanged( _printJob );
@@ -215,6 +222,10 @@ void Window::_startPrinting( ) {
     _printTab->setPrintButtonEnabled( false );
     _statusTab->setStopButtonEnabled( true );
     _statusTab->setReprintButtonEnabled( false );
+}
+
+void Window::uiStateChanged( ) {
+    debug( "+ Window::uiStateChanged\n" );
 }
 
 void Window::shepherd_started( ) {

@@ -46,13 +46,13 @@ private:
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
     QFileSystemModel*   _currentFsModel          {                         };
+    QPushButton*        _toggleLocationButton    { new QPushButton         };
     GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };
-    QPushButton*        _toggleLocationButton    { new QPushButton         };
     QGridLayout*        _availableFilesLayout    { new QGridLayout         };
     QWidget*            _availableFilesContainer { new QWidget             };
     QLabel*             _dimensionsLabel         { new QLabel              };
-    QLabel*             _dimensionsErrorLabel    { new QLabel              };
+    QLabel*             _errorLabel              { new QLabel              };
     QHBoxLayout*        _dimensionsLayout        {                         };
     QPushButton*        _selectButton            { new QPushButton         };
     Canvas*             _canvas                  {                         };
@@ -72,7 +72,7 @@ private:
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
     QPointF             _swipeLastPoint          { };
 
-    bool _loadModel( QString const& filename );
+    void _loadModel( QString const& filename );
 
     void _checkUserMediaPath( );
     void _checkUsbPath( );
@@ -90,26 +90,34 @@ signals:
 
 public slots:
 
+    virtual void setUiState( UiState const state ) override;
+
 protected slots:
 
 private slots:
 
     void loader_gotMesh( Mesh* m );
-    void loader_ErrorBadStl( );
-    void loader_ErrorEmptyMesh( );
-    void loader_ErrorMissingFile( );
-    void loader_Finished( );
+    void loader_errorBadStl( );
+    void loader_errorEmptyMesh( );
+    void loader_errorMissingFile( );
+    void loader_finished( );
+
     void libraryFsModel_directoryLoaded( QString const& name );
     void usbFsModel_directoryLoaded( QString const& name );
+
     void availableFilesListView_clicked( QModelIndex const& index );
     void availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture );
     void toggleLocationButton_clicked( bool );
+
     void selectButton_clicked( bool );
+
     void processRunner_succeeded( );
     void processRunner_failed( QProcess::ProcessError const error );
     void processRunner_readyReadStandardOutput ( QString const& data );
     void processRunner_readyReadStandardError( QString const& data );
+
     void usbRetryTimer_timeout( );
+
     void fsWatcher_directoryChanged( QString const& path );
 
 };

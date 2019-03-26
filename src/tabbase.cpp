@@ -14,6 +14,10 @@ TabBase::~TabBase( ) {
     /*empty*/
 }
 
+void TabBase::setUiState( UiState const uiState ) {
+    _uiState = uiState;
+}
+
 void TabBase::setPrintJob( PrintJob* printJob ) {
     _disconnectPrintJob( );
     _printJob = printJob;

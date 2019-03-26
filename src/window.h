@@ -77,6 +77,8 @@ protected slots:
 
 private slots:
 
+    void uiStateChanged( );
+
     void shepherd_started( );
     void shepherd_startFailed( );
     void shepherd_terminated( bool const expected, bool const cleanExit );
