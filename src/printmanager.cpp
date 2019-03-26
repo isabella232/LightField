@@ -12,11 +12,12 @@
 //
 // Before printing:
 //
-// A1. Configure print speed.
-// A2. Raise the build platform to maximum Z.
-// A3. Prompt user to load recommended volume of print solution.
-// A4. Lower to first layer height.
-// A5. Wait for four seconds.
+// A1. Raise the build platform to maximum Z.
+// A2. Prompt user to dispense print solution.
+// A3. Lower to 50 mm.
+// A4. Configure print speed as per job.
+// A5. Lower to first layer height.
+// A6. Wait for four seconds.
 //
 // For each layer:
 //
@@ -30,7 +31,8 @@
 //
 // After printing, whether successful or not:
 //
-// C1. Raise the build platform to maximum Z.
+// C1. Configure print speed to 200 mm/min.
+// C2. Raise the build platform to maximum Z.
 //
 
 namespace {
@@ -47,6 +49,10 @@ namespace {
         "Abort",
     };
 
+    bool IsBadPrintResult( PrintResult const printResult ) {
+        return printResult < PrintResult::None;
+    }
+
 }
 
 PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
@@ -62,7 +68,7 @@ PrintManager::~PrintManager( ) {
     debug( "+ destruct PrintManager at %p\n", this );
 }
 
-QTimer* PrintManager::_makeAndStartTimer( int const interval, TimerExpiryFunc func ) {
+QTimer* PrintManager::_makeAndStartTimer( int const interval, void ( PrintManager::*func )( ) ) {
     auto timer = new QTimer( this );
     QObject::connect( timer, &QTimer::timeout, this, func );
     timer->setInterval( interval );
@@ -112,37 +118,25 @@ void PrintManager::_cleanUp( ) {
     }
 }
 
-void PrintManager::_finishAbort( ) {
-    debug( "+ PrintManager::_finishAbort\n" );
-    if ( _lampOn ) {
-        QProcess::startDetached( SetpowerCommand, { "0" } );
-        _lampOn = false;
-        emit lampStatusChange( false );
-    }
-
-    stepC1_start( );
-}
-
-// A1. Configure print speed.
+// A1. Raise the build platform to maximum Z.
 void PrintManager::stepA1_start( ) {
     _step = PrintStep::A1;
 
-    debug( "+ PrintManager::stepA1_start: Setting print speed to %d mm/min\n", _printJob->printSpeed );
+    debug( "+ PrintManager::stepA1_start: raising build platform to %.2f mm\n", PrinterRaiseToMaxZHeight );
 
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA1_completed );
-    _shepherd->doSend( QString { "G0 F%1" }.arg( _printJob->printSpeed ) );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA1_completed );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
 }
 
 void PrintManager::stepA1_completed( bool const success ) {
     debug( "+ PrintManager::stepA1_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA1_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA1_completed );
 
-    if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
-        return;
-    } else if ( !success ) {
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
         _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
         stepC1_start( );
         return;
     }
@@ -150,26 +144,19 @@ void PrintManager::stepA1_completed( bool const success ) {
     stepA2_start( );
 }
 
-// A2. Raise the build platform to maximum Z.
+// A2. Prompt user to dispense recommended volume of print solution.
 void PrintManager::stepA2_start( ) {
     _step = PrintStep::A2;
 
-    debug( "+ PrintManager::stepA2_start: raising build platform to %.2f mm\n", PrinterRaiseToMaxZHeight );
+    debug( "+ PrintManager::stepA2_start: waiting for user to dispense print solution\n" );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA2_completed );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+    emit requestLoadPrintSolution( );
 }
 
-void PrintManager::stepA2_completed( bool const success ) {
-    debug( "+ PrintManager::stepA2_completed: action %s\n", SucceededString( success ) );
-
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA2_completed );
+void PrintManager::stepA2_completed( ) {
+    debug( "+ PrintManager::stepA2_completed\n" );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
-        return;
-    } else if ( !success ) {
-        _printResult = PrintResult::Failure;
         stepC1_start( );
         return;
     }
@@ -177,48 +164,51 @@ void PrintManager::stepA2_completed( bool const success ) {
     stepA3_start( );
 }
 
-// A3. Prompt user to load recommended volume of print solution.
+// A3. Lower to 50 mm.
 void PrintManager::stepA3_start( ) {
     _step = PrintStep::A3;
 
-    debug( "+ PrintManager::stepA3_start: waiting for user to load print solution\n" );
+    debug( "+ PrintManager::stepA3_start: lowering build platform to 50 mm\n" );
 
-    emit requestLoadPrintSolution( );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA3_completed );
+    _shepherd->doMoveAbsolute( 50.00 );
 }
 
-void PrintManager::stepA3_completed( ) {
-    debug( "+ PrintManager::stepA3_completed\n" );
+void PrintManager::stepA3_completed( bool const success ) {
+    debug( "+ PrintManager::stepA3_completed: action %s\n", SucceededString( success ) );
 
-    if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA3_completed );
+
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
         return;
     }
 
     stepA4_start( );
 }
 
-// A4. Lower to first layer height.
+// A4. Configure print speed.
 void PrintManager::stepA4_start( ) {
     _step = PrintStep::A4;
 
-    auto firstLayerHeight = std::max( 100, _printJob->layerThickness ) / 1000.0;
+    debug( "+ PrintManager::stepA4_start: Setting print speed to %d mm/min\n", _printJob->printSpeed );
 
-    debug( "+ PrintManager::stepA4_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
-
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
-    _shepherd->doMoveAbsolute( firstLayerHeight );
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA4_completed );
+    _shepherd->doSend( QString { "G0 F%1" }.arg( _printJob->printSpeed ) );
 }
 
 void PrintManager::stepA4_completed( bool const success ) {
     debug( "+ PrintManager::stepA4_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA4_completed );
 
-    if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
-        return;
-    } else if ( !success ) {
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
         _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
         stepC1_start( );
         return;
     }
@@ -226,22 +216,50 @@ void PrintManager::stepA4_completed( bool const success ) {
     stepA5_start( );
 }
 
-// A5. Wait for four seconds.
+// A5. Lower to first layer height.
 void PrintManager::stepA5_start( ) {
     _step = PrintStep::A5;
 
-    debug( "+ PrintManager::stepA5_start: pausing for %d ms\n", PauseAfterPrintSolutionLoad );
+    auto firstLayerHeight = std::max( 100, _printJob->layerThickness ) / 1000.0;
 
-    _preProjectionTimer = _makeAndStartTimer( PauseAfterPrintSolutionLoad, &PrintManager::stepA5_completed );
+    debug( "+ PrintManager::stepA5_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA5_completed );
+    _shepherd->doMoveAbsolute( firstLayerHeight );
 }
 
-void PrintManager::stepA5_completed( ) {
-    debug( "+ PrintManager::stepA5_completed\n" );
+void PrintManager::stepA5_completed( bool const success ) {
+    debug( "+ PrintManager::stepA5_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA5_completed );
+
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
+        return;
+    }
+
+    stepA6_start( );
+}
+
+// A6. Wait for four seconds.
+void PrintManager::stepA6_start( ) {
+    _step = PrintStep::A6;
+
+    debug( "+ PrintManager::stepA6_start: pausing for %d ms\n", PauseAfterPrintSolutionLoad );
+
+    _preProjectionTimer = _makeAndStartTimer( PauseAfterPrintSolutionLoad, &PrintManager::stepA6_completed );
+}
+
+void PrintManager::stepA6_completed( ) {
+    debug( "+ PrintManager::stepA6_completed\n" );
 
     _stopAndCleanUpTimer( _preProjectionTimer );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
@@ -274,7 +292,7 @@ void PrintManager::stepB1_completed( ) {
     QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
@@ -304,7 +322,7 @@ void PrintManager::stepB2_completed( ) {
     _stopAndCleanUpTimer( _layerProjectionTimer );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
@@ -330,7 +348,7 @@ void PrintManager::stepB3_completed( ) {
     QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
@@ -359,7 +377,7 @@ void PrintManager::stepB4_completed( ) {
     _stopAndCleanUpTimer( _preLiftTimer );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
@@ -391,11 +409,10 @@ void PrintManager::stepB5_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
 
-    if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
-        return;
-    } else if ( !success ) {
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
         _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
         stepC1_start( );
         return;
     }
@@ -419,11 +436,10 @@ void PrintManager::stepB6_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
 
-    if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
-        return;
-    } else if ( !success ) {
+    if ( !success && !IsBadPrintResult( _printResult ) ) {
         _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
         stepC1_start( );
         return;
     }
@@ -446,27 +462,59 @@ void PrintManager::stepB7_completed( ) {
     _stopAndCleanUpTimer( _preProjectionTimer );
 
     if ( _printResult == PrintResult::Abort ) {
-        _finishAbort( );
+        stepC1_start( );
         return;
     }
 
     stepB1_start( );
 }
 
-// C1. Raise the build platform to maximum Z.
+// C1. Configure print speed.
 void PrintManager::stepC1_start( ) {
     _step = PrintStep::C1;
 
-    debug( "+ PrintManager::stepC1_start: raising build platform to maximum Z\n" );
+    if ( _lampOn ) {
+        debug( "+ PrintManager::stepC1_start: Turning off lamp\n" );
+        QProcess::startDetached( SetpowerCommand, { "0" } );
+        _lampOn = false;
+        emit lampStatusChange( false );
+    }
 
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+    debug( "+ PrintManager::stepC1_start: Setting print speed to 200 mm/min\n" );
+
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepC1_completed );
+    _shepherd->doSend( QString { "G0 F200" } );
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
-    debug( "+ PrintManager::stepC1_completed: action %s. print result %s\n", SucceededString( success ), PrintResultStrings[+_printResult] );
+    debug( "+ PrintManager::stepC1_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepC1_completed );
+
+    if ( success ) {
+        stepC2_start( );
+    } else {
+        _printResult = PrintResult::Failure;
+        stepC2_completed( false );
+    }
+
+    stepC2_start( );
+}
+
+// C2. Raise the build platform to maximum Z.
+void PrintManager::stepC2_start( ) {
+    _step = PrintStep::C2;
+
+    debug( "+ PrintManager::stepC2_start: raising build platform to maximum Z\n" );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC2_completed );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+}
+
+void PrintManager::stepC2_completed( bool const success ) {
+    debug( "+ PrintManager::stepC2_completed: action %s. print result %s\n", SucceededString( success ), PrintResultStrings[+_printResult] );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC2_completed );
 
     if ( PrintResult::Abort == _printResult ) {
         emit printAborted( );
@@ -505,9 +553,9 @@ void PrintManager::abort( ) {
     debug( "+ PrintManager::abort\n" );
 
     _printResult = PrintResult::Abort;
-    if ( _step == PrintStep::A3 ) {
+    if ( _step == PrintStep::A2 ) {
         debug( "  + Aborting print solution load prompt\n" );
-        stepA3_completed( );
+        stepA2_completed( );
         return;
     }
     if ( _step == PrintStep::none ) {
@@ -519,5 +567,5 @@ void PrintManager::abort( ) {
 }
 
 void PrintManager::printSolutionLoaded( ) {
-    stepA3_completed( );
+    stepA2_completed( );
 }
