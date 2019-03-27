@@ -36,18 +36,6 @@ void TabBase::setShepherd( Shepherd* shepherd ) {
     _connectShepherd( );
 }
 
-void TabBase::showEvent( QShowEvent* event ) {
-    if ( _initialShowEventFunc ) {
-        _initialShowEventFunc( event );
-    } else {
-        event->ignore( );
-    }
-}
-
-void TabBase::_initialShowEvent( QShowEvent* event ) {
-    /*empty*/
-}
-
 void TabBase::_disconnectPrintJob( ) {
     /*empty*/
 }

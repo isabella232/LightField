@@ -10,7 +10,7 @@ enum class BuildPlatformState {
     Lowering,
 };
 
-class PrintTab: public TabBase {
+class PrintTab: public InitialShowEventMixin<PrintTab, TabBase> {
 
     Q_OBJECT
 

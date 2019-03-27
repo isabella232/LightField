@@ -31,15 +31,13 @@ namespace {
 
 }
 
-Window::Window( QWidget *parent ): QMainWindow( parent ) {
+Window::Window( QWidget* parent ): QMainWindow/*InitialShowEventMixin<Window, QMainWindow>*/( parent ) {
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
     setFixedSize( MainWindowSize );
     move( g_settings.mainWindowPosition );
 
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
-
-    //_initialShowEventFunc = std::bind( &Window::_initialShowEvent, this );
 
 #if defined _DEBUG
     if ( g_settings.pretendPrinterIsPrepared ) {
@@ -57,6 +55,13 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     _statusTab      = new StatusTab;
     _advancedTab    = new AdvancedTab;
     _maintenanceTab = new MaintenanceTab;
+
+    _tabs.emplace_back( _fileTab        );
+    _tabs.emplace_back( _prepareTab     );
+    _tabs.emplace_back( _printTab       );
+    _tabs.emplace_back( _statusTab      );
+    _tabs.emplace_back( _advancedTab    );
+    _tabs.emplace_back( _maintenanceTab );
 
     QObject::connect( this,            &Window::printJobChanged,        _fileTab,        &FileTab::setPrintJob            );
     QObject::connect( this,            &Window::printJobChanged,        _prepareTab,     &PrepareTab::setPrintJob         );
@@ -146,20 +151,20 @@ Window::Window( QWidget *parent ): QMainWindow( parent ) {
     // Tab widget
     //
 
-    double pointSize = _tabs->font( ).pointSizeF( );
-    _tabs->setFont( ModifyFont( _tabs->font( ), 20.0 ) );
-    QObject::connect( _tabs, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
+    double pointSize = _tabWidget->font( ).pointSizeF( );
+    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), 20.0 ) );
+    QObject::connect( _tabWidget, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
     auto font9pt = ModifyFont( _fileTab->font( ), pointSize );
-    _tabs->addTab( _fileTab,        "File"        ); _fileTab       ->setFont( font9pt );
-    _tabs->addTab( _prepareTab,     "Prepare"     ); _prepareTab    ->setFont( font9pt );
-    _tabs->addTab( _printTab,       "Print"       ); _printTab      ->setFont( font9pt );
-    _tabs->addTab( _statusTab,      "Status"      ); _statusTab     ->setFont( font9pt );
-    _tabs->addTab( _advancedTab,    "Advanced"    ); _advancedTab   ->setFont( font9pt );
-    _tabs->addTab( _maintenanceTab, "Maintenance" ); _maintenanceTab->setFont( font9pt );
-    _tabs->setCurrentIndex( +TabIndex::File );
+    _tabWidget->addTab( _fileTab,        "File"        ); _fileTab       ->setFont( font9pt );
+    _tabWidget->addTab( _prepareTab,     "Prepare"     ); _prepareTab    ->setFont( font9pt );
+    _tabWidget->addTab( _printTab,       "Print"       ); _printTab      ->setFont( font9pt );
+    _tabWidget->addTab( _statusTab,      "Status"      ); _statusTab     ->setFont( font9pt );
+    _tabWidget->addTab( _advancedTab,    "Advanced"    ); _advancedTab   ->setFont( font9pt );
+    _tabWidget->addTab( _maintenanceTab, "Maintenance" ); _maintenanceTab->setFont( font9pt );
+    _tabWidget->setCurrentIndex( +TabIndex::File );
 
-    setCentralWidget( _tabs );
+    setCentralWidget( _tabWidget );
 }
 
 Window::~Window( ) {
@@ -176,20 +181,13 @@ void Window::closeEvent( QCloseEvent* event ) {
     event->accept( );
 }
 
-//void Window::showEvent( QShowEvent* event ) {
-//    if ( _initialShowEventFunc ) {
-//        _initialShowEventFunc( );
-//        _initialShowEventFunc = nullptr;
-//    } else {
-//        event->ignore( );
-//    }
-//}
-//
-//void Window::_initialShowEvent( ) {
+//void Window::_initialShowEvent( QShowEvent* event ) {
+//    debug( "+ Window::_initialShowEvent\n" );
+//    event->ignore( );
 //}
 
 void Window::_startPrinting( ) {
-    _tabs->setCurrentIndex( +TabIndex::Status );
+    _tabWidget->setCurrentIndex( +TabIndex::Status );
     debug(
         "+ Window::_startPrinting\n"
         "  + Print job:\n"
@@ -223,8 +221,13 @@ void Window::_startPrinting( ) {
     _statusTab->setReprintButtonEnabled( false );
 }
 
-void Window::uiStateChanged( ) {
-    debug( "+ Window::uiStateChanged\n" );
+void Window::uiStateChanged( UiState const state ) {
+    debug( "+ Window::uiStateChanged: %s => %s\n", ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    for ( auto tab : _tabs ) {
+        tab->setUiState( state );
+    }
 }
 
 void Window::shepherd_started( ) {
@@ -268,8 +271,8 @@ void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
     _printJob->estimatedVolume = modelSelection->estimatedVolume;
     _printJob->modelFileName   = modelSelection->fileName;
 
-    if ( _tabs->currentIndex( ) == +TabIndex::File ) {
-        _tabs->setCurrentIndex( +TabIndex::Prepare );
+    if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
+        _tabWidget->setCurrentIndex( +TabIndex::Prepare );
     }
     _prepareTab->modelSelected( );
 }
@@ -313,8 +316,8 @@ void Window::prepareTab_renderComplete( bool const success ) {
     _prepareTab->setSliceButtonEnabled( true );
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( success && ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isPrinterPrepared ) {
-        _tabs->setCurrentIndex( +TabIndex::Print );
+    if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
+        _tabWidget->setCurrentIndex( +TabIndex::Print );
     }
 }
 
@@ -334,8 +337,8 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
 
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( success && ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered ) {
-        _tabs->setCurrentIndex( +TabIndex::Print );
+    if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
+        _tabWidget->setCurrentIndex( +TabIndex::Print );
     }
 }
 
@@ -344,8 +347,8 @@ void Window::prepareTab_slicingNeeded( bool const needed ) {
     _isModelRendered = !needed;
     _printTab->setPrintButtonEnabled( _isModelRendered && _isPrinterPrepared );
     _statusTab->setReprintButtonEnabled( _isModelRendered && _isPrinterPrepared );
-    if ( ( _tabs->currentIndex( ) == +TabIndex::Prepare ) && _isModelRendered && _isPrinterPrepared ) {
-        _tabs->setCurrentIndex( +TabIndex::Print );
+    if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
+        _tabWidget->setCurrentIndex( +TabIndex::Print );
     }
 }
 

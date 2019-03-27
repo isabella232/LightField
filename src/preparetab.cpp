@@ -9,9 +9,7 @@
 #include "svgrenderer.h"
 #include "utils.h"
 
-PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
-    _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this, _1 );
-
+PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto font12pt    = ModifyFont( origFont, 12.0 );

@@ -22,9 +22,7 @@ namespace {
 
 }
 
-StatusTab::StatusTab( QWidget* parent ): TabBase( parent ) {
-    _initialShowEventFunc = std::bind( &StatusTab::_initialShowEvent, this, _1 );
-
+StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBase>( parent ) {
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, QFont::Bold );
     auto font22pt = ModifyFont( origFont, 22.0 );

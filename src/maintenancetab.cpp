@@ -6,9 +6,7 @@
 #include "strings.h"
 #include "utils.h"
 
-MaintenanceTab::MaintenanceTab( QWidget* parent ): TabBase( parent ) {
-    _initialShowEventFunc = std::bind( &MaintenanceTab::_initialShowEvent, this, _1 );
-
+MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<MaintenanceTab, TabBase>( parent ) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 16.0 );
     auto font22pt = ModifyFont( origFont, 22.0 );

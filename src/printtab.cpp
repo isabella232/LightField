@@ -8,8 +8,6 @@
 #include "strings.h"
 #include "utils.h"
 
-using namespace std::placeholders;
-
 namespace {
 
     char const* BuildPlatformStateStrings[] { "Lowered", "Raising", "Raised", "Lowering" };
@@ -28,9 +26,7 @@ namespace {
 
 }
 
-PrintTab::PrintTab( QWidget* parent ): TabBase( parent ) {
-    _initialShowEventFunc = std::bind( &PrintTab::_initialShowEvent, this, _1 );
-
+PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
 

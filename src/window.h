@@ -2,6 +2,8 @@
 #define __WINDOW_H__
 
 #include "coordinate.h"
+#include "tabbase.h"
+#include "uistate.h"
 
 class ModelSelectionInfo;
 class Shepherd;
@@ -28,7 +30,7 @@ inline int operator+( TabIndex value ) {
     return static_cast<int>( value );
 }
 
-class Window: public QMainWindow {
+class Window: public QMainWindow/*InitialShowEventMixin<Window, QMainWindow>*/ {
 
     Q_OBJECT
 
@@ -40,15 +42,16 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    //virtual void showEvent( QShowEvent* event ) override;
 
 private:
 
     Shepherd*              _shepherd             { };
     PrintJob*              _printJob             { };
     PrintManager*          _printManager         { };
+    UiState                _uiState              { };
 
-    QTabWidget*            _tabs                 { new QTabWidget };
+    QTabWidget*            _tabWidget            { new QTabWidget };
+
     FileTab*               _fileTab;
     PrepareTab*            _prepareTab;
     PrintTab*              _printTab;
@@ -59,9 +62,9 @@ private:
     bool                   _isPrinterPrepared    { };
     bool                   _isModelRendered      { };
 
-    //std::function<void( )> _initialShowEventFunc;
+    std::vector<TabBase*>  _tabs;
 
-    //void _initialShowEvent( );
+    //virtual void _initialShowEvent( QShowEvent* event ) override;
 
     void _startPrinting( );
 
@@ -77,7 +80,7 @@ protected slots:
 
 private slots:
 
-    void uiStateChanged( );
+    void uiStateChanged( UiState const state );
 
     void shepherd_started( );
     void shepherd_startFailed( );

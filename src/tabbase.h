@@ -1,9 +1,8 @@
 #ifndef __TABBASE_H__
 #define __TABBASE_H__
 
+#include "initialshoweventmixin.h"
 #include "uistate.h"
-
-using namespace std::placeholders;
 
 class PrintJob;
 class PrintManager;
@@ -29,11 +28,6 @@ protected:
     PrintManager* _printManager { };
     Shepherd*     _shepherd     { };
     UiState       _uiState      { };
-
-    std::function<void( QShowEvent* event )> _initialShowEventFunc;
-
-    virtual void showEvent( QShowEvent* event ) override;
-    virtual void _initialShowEvent( QShowEvent* event );
 
     virtual void _disconnectPrintJob( );
     virtual void _connectPrintJob( );

@@ -6,7 +6,7 @@
 class Hasher;
 class SvgRenderer;
 
-class PrepareTab: public TabBase {
+class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
     Q_OBJECT
 
@@ -22,46 +22,47 @@ protected:
 
 private:
 
-    QProcess*              _slicerProcess               { };
-    SvgRenderer*           _svgRenderer                 { };
-    Hasher*                _hasher                      { };
-    int                    _visibleLayer                { };
-    int                    _renderedLayers              { };
+    QProcess*     _slicerProcess               { };
+    SvgRenderer*  _svgRenderer                 { };
+    Hasher*       _hasher                      { };
+    int           _visibleLayer                { };
+    int           _renderedLayers              { };
 
-    QLabel*                _layerThicknessLabel         { new QLabel       };
-    QRadioButton*          _layerThickness50Button      { new QRadioButton };
-    QRadioButton*          _layerThickness100Button     { new QRadioButton };
-    QVBoxLayout*           _layerThicknessButtonsLayout { new QVBoxLayout  };
+    QLabel*       _layerThicknessLabel         { new QLabel       };
+    QRadioButton* _layerThickness50Button      { new QRadioButton };
+    QRadioButton* _layerThickness100Button     { new QRadioButton };
+    QVBoxLayout*  _layerThicknessButtonsLayout { new QVBoxLayout  };
 
-    QLabel*                _sliceStatusLabel            { new QLabel       };
-    QLabel*                _sliceStatus                 { new QLabel       };
-    QLabel*                _imageGeneratorStatusLabel   { new QLabel       };
-    QLabel*                _imageGeneratorStatus        { new QLabel       };
+    QLabel*       _sliceStatusLabel            { new QLabel       };
+    QLabel*       _sliceStatus                 { new QLabel       };
+    QLabel*       _imageGeneratorStatusLabel   { new QLabel       };
+    QLabel*       _imageGeneratorStatus        { new QLabel       };
 
-    QGroupBox*             _prepareGroup                { new QGroupBox    };
-    QLabel*                _prepareMessage              { new QLabel       };
-    QProgressBar*          _prepareProgress             { new QProgressBar };
-    QPushButton*           _prepareButton               { new QPushButton  };
-    QVBoxLayout*           _prepareLayout               { new QVBoxLayout  };
+    QGroupBox*    _prepareGroup                { new QGroupBox    };
+    QLabel*       _prepareMessage              { new QLabel       };
+    QProgressBar* _prepareProgress             { new QProgressBar };
+    QPushButton*  _prepareButton               { new QPushButton  };
+    QVBoxLayout*  _prepareLayout               { new QVBoxLayout  };
 
-    QVBoxLayout*           _optionsLayout               { new QVBoxLayout  };
-    QWidget*               _optionsContainer            { new QWidget      };
-    QPushButton*           _sliceButton                 { new QPushButton  };
+    QVBoxLayout*  _optionsLayout               { new QVBoxLayout  };
+    QWidget*      _optionsContainer            { new QWidget      };
+    QPushButton*  _sliceButton                 { new QPushButton  };
 
-    QGroupBox*             _currentSliceGroup           { new QGroupBox    };
-    QLabel*                _currentSliceImage           { new QLabel       };
-    QVBoxLayout*           _currentSliceLayout          { new QVBoxLayout  };
+    QGroupBox*    _currentSliceGroup           { new QGroupBox    };
+    QLabel*       _currentSliceImage           { new QLabel       };
+    QVBoxLayout*  _currentSliceLayout          { new QVBoxLayout  };
 
-    QPushButton*           _navigateFirst               { new QPushButton  };
-    QPushButton*           _navigatePrevious            { new QPushButton  };
-    QLabel*                _navigateCurrentLabel        { new QLabel       };
-    QPushButton*           _navigateNext                { new QPushButton  };
-    QPushButton*           _navigateLast                { new QPushButton  };
-    QHBoxLayout*           _navigationLayout            {                  };
+    QPushButton*  _navigateFirst               { new QPushButton  };
+    QPushButton*  _navigatePrevious            { new QPushButton  };
+    QLabel*       _navigateCurrentLabel        { new QLabel       };
+    QPushButton*  _navigateNext                { new QPushButton  };
+    QPushButton*  _navigateLast                { new QPushButton  };
+    QHBoxLayout*  _navigationLayout            {                  };
 
-    QGridLayout*           _layout                      { new QGridLayout  };
+    QGridLayout*  _layout                      { new QGridLayout  };
 
     virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+
     bool _checkPreSlicedFiles( );
     bool _checkJobDirectory( );
     void _setNavigationButtonsEnabled( bool const enabled );

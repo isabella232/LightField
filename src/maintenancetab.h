@@ -3,7 +3,7 @@
 
 #include "tabbase.h"
 
-class MaintenanceTab: public TabBase {
+class MaintenanceTab: public InitialShowEventMixin<MaintenanceTab, TabBase> {
 
     Q_OBJECT
 
