@@ -71,7 +71,8 @@ PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \
     ../images/images.qrc \
-    ../gl/gl.qrc
+    ../gl/gl.qrc         \
+    ../text/text.qrc
 
 linux {
     target.path = /usr/bin
