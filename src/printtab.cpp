@@ -261,6 +261,21 @@ void PrintTab::home_homeComplete( bool const success ) {
     setAdjustmentButtonsEnabled( true );
 }
 
+void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+            break;
+    }
+}
+
 void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
     debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
     _raiseOrLowerButton->setEnabled( value );

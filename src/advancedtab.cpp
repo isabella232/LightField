@@ -178,6 +178,21 @@ void AdvancedTab::_connectShepherd( ) {
     }
 }
 
+void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+            break;
+    }
+}
+
 void AdvancedTab::printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz ) {
     debug( "AdvancedTab::printer_positionReport: px %.2f mm, cx %.0f counts\n", px, cx );
     _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );

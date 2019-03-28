@@ -2,7 +2,7 @@
 #define __WINDOW_H__
 
 #include "coordinate.h"
-#include "tabbase.h"
+#include "tabindex.h"
 #include "uistate.h"
 
 class ModelSelectionInfo;
@@ -16,19 +16,6 @@ class PrintTab;
 class StatusTab;
 class AdvancedTab;
 class MaintenanceTab;
-
-enum class TabIndex {
-    File,
-    Prepare,
-    Print,
-    Status,
-    Advanced,
-    Maintenance,
-};
-
-inline int operator+( TabIndex value ) {
-    return static_cast<int>( value );
-}
 
 class Window: public QMainWindow/*InitialShowEventMixin<Window, QMainWindow>*/ {
 
@@ -45,24 +32,23 @@ protected:
 
 private:
 
-    Shepherd*              _shepherd             { };
-    PrintJob*              _printJob             { };
-    PrintManager*          _printManager         { };
-    UiState                _uiState              { };
+    Shepherd*           _shepherd          { };
+    PrintJob*           _printJob          { };
+    PrintManager*       _printManager      { };
+    UiState             _uiState           { };
+    ModelSelectionInfo* _modelSelection    { };
 
-    QTabWidget*            _tabWidget            { new QTabWidget };
+    QTabWidget*         _tabWidget         { new QTabWidget };
 
-    FileTab*               _fileTab;
-    PrepareTab*            _prepareTab;
-    PrintTab*              _printTab;
-    StatusTab*             _statusTab;
-    AdvancedTab*           _advancedTab;
-    MaintenanceTab*        _maintenanceTab;
+    FileTab*            _fileTab;
+    PrepareTab*         _prepareTab;
+    PrintTab*           _printTab;
+    StatusTab*          _statusTab;
+    AdvancedTab*        _advancedTab;
+    MaintenanceTab*     _maintenanceTab;
 
-    bool                   _isPrinterPrepared    { };
-    bool                   _isModelRendered      { };
-
-    std::vector<TabBase*>  _tabs;
+    bool                _isPrinterPrepared { };
+    bool                _isModelRendered   { };
 
     //virtual void _initialShowEvent( QShowEvent* event ) override;
 
@@ -80,7 +66,7 @@ protected slots:
 
 private slots:
 
-    void uiStateChanged( UiState const state );
+    void tab_uiStateChanged( TabIndex const sender, UiState const state );
 
     void shepherd_started( );
     void shepherd_startFailed( );
@@ -89,7 +75,6 @@ private slots:
     void tabs_currentChanged( int index );
 
     void fileTab_modelSelected( ModelSelectionInfo* modelSelection );
-    void fileTab_modelSelectionFailed( );
 
     void prepareTab_slicingNeeded( bool const needed );
     void prepareTab_sliceStarted( );

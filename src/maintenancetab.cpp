@@ -40,16 +40,7 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
     _copyrightsLabel->setAlignment( Qt::AlignCenter );
     _copyrightsLabel->setTextFormat( Qt::RichText );
-    _copyrightsLabel->setText( QString {
-        "Based on <a href='https://github.com/mkeeter/fstl/' style='color: white;'>fstl</a> by <a href='https://www.mattkeeter.com/' style='color: white;'>Matthew Keeter</a>.<br>"
-        "© 2014-2018 Matthew Keeter. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
-        "Includes code derived from <a href='https://github.com/kliment/Printrun/' style='color: white;'>Printrun</a> by <a href='https://0xfb.com/' style='color: white;'>Kliment Yanev</a>.<br>"
-        "© 2011-2019 Kliment Yanev. Licensed under the terms of the <a href='https://opensource.org/licenses/GPL-3.0' style='color: white;'>GNU General Purpose License v3</a>.<br>"
-        "<a href='https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle/' style='color: white;'>Dark theme</a> by <a href='https://github.com/Jorgen-VikingGod/' style='color: white;'>Jürgen Skrotzky</a>.<br>"
-        "© 2017-2018 Jürgen Skrotzky. Licensed under the terms of the <a href='https://opensource.org/licenses/MIT' style='color: white;'>MIT license</a>.<br>"
-        "<a href='https://github.com/JulietaUla/Montserrat/' style='color: white;'>Montserrat</a> typeface by <a href='https://github.com/JulietaUla' style='color: white;'>Julieta Ulanovsky</a>.<br>"
-        "© 2011 The Montserrat Project Authors. Licensed under the terms of the <a href='https://github.com/JulietaUla/Montserrat/raw/master/OFL.txt' style='color: white;'>SIL Open Font License</a>."
-    } );
+    _copyrightsLabel->setText( ReadWholeFile( ":text/copyright-message.txt" ) );
 
 
     _restartButton->setFont( font16pt );
@@ -172,6 +163,21 @@ void MaintenanceTab::_initialShowEvent( QShowEvent* event ) {
 void MaintenanceTab::restartButton_clicked( bool ) {
     _mainContent->setVisible( false );
     _confirmRestartContent->setVisible( true );
+}
+
+void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ MaintenanceTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+            break;
+    }
 }
 
 void MaintenanceTab::shutDownButton_clicked( bool ) {

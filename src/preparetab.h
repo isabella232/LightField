@@ -15,10 +15,14 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    bool isPrepareButtonEnabled( ) const { return _prepareButton->isEnabled( ); }
-    bool isSliceButtonEnabled( )   const { return _sliceButton->isEnabled( );   }
+    bool             isPrepareButtonEnabled( ) const          { return _prepareButton->isEnabled( ); }
+    bool             isSliceButtonEnabled( )   const          { return _sliceButton->isEnabled( );   }
+
+    virtual TabIndex tabIndex( )               const override { return TabIndex::Prepare;            }
 
 protected:
+
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
 
 private:
 
@@ -61,12 +65,11 @@ private:
 
     QGridLayout*  _layout                      { new QGridLayout  };
 
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
-
     bool _checkPreSlicedFiles( );
     bool _checkJobDirectory( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
+    void _setSliceControlsEnabled( bool const enabled );
 
 signals:
 
@@ -81,11 +84,7 @@ signals:
 
 public slots:
 
-    void setPrepareButtonEnabled( bool const enabled );
-    void setSliceButtonEnabled( bool const enabled );
-
-    void resetState( );
-    void modelSelected( );
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
 protected slots:
 
@@ -114,7 +113,7 @@ private slots:
     void prepareButton_clicked( bool );
     void shepherd_homeComplete( bool const success );
     void adjustBuildPlatform_complete( bool );
-    void shepherd_resinLoadMoveToComplete( bool const success );
+    void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
 
 };
 

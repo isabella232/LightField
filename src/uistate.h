@@ -2,11 +2,14 @@
 #define __UISTATE_H__
 
 enum class UiState {
-    Start,
-    Selected,
-    Sliced,
+    SelectStarted,
+    SelectCompleted,
+    SliceStarted,
+    SliceCompleted,
     PrintStarted,
-    PrintFinished,
+    PrintCompleted,
 };
+
+char const* ToString( UiState const value );
 
 #endif // !__UISTATE_H__

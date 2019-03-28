@@ -14,28 +14,6 @@ TabBase::~TabBase( ) {
     /*empty*/
 }
 
-void TabBase::setUiState( UiState const uiState ) {
-    _uiState = uiState;
-}
-
-void TabBase::setPrintJob( PrintJob* printJob ) {
-    _disconnectPrintJob( );
-    _printJob = printJob;
-    _connectPrintJob( );
-}
-
-void TabBase::setPrintManager( PrintManager* printManager ) {
-    _disconnectPrintManager( );
-    _printManager = printManager;
-    _connectPrintManager( );
-}
-
-void TabBase::setShepherd( Shepherd* shepherd ) {
-    _disconnectShepherd( );
-    _shepherd = shepherd;
-    _connectShepherd( );
-}
-
 void TabBase::_disconnectPrintJob( ) {
     /*empty*/
 }
@@ -58,4 +36,22 @@ void TabBase::_disconnectShepherd( ) {
 
 void TabBase::_connectShepherd( ) {
     /*empty*/
+}
+
+void TabBase::setPrintJob( PrintJob* printJob ) {
+    _disconnectPrintJob( );
+    _printJob = printJob;
+    _connectPrintJob( );
+}
+
+void TabBase::setPrintManager( PrintManager* printManager ) {
+    _disconnectPrintManager( );
+    _printManager = printManager;
+    _connectPrintManager( );
+}
+
+void TabBase::setShepherd( Shepherd* shepherd ) {
+    _disconnectShepherd( );
+    _shepherd = shepherd;
+    _connectShepherd( );
 }

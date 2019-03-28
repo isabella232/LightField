@@ -352,6 +352,21 @@ void StatusTab::_connectShepherd( ) {
     }
 }
 
+void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ StatusTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+            break;
+    }
+}
+
 void StatusTab::setStopButtonEnabled( bool value ) {
     _stopButton->setEnabled( value );
     _stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );

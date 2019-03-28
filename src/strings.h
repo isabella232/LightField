@@ -1,8 +1,6 @@
 #ifndef __STRINGS_H__
 #define __STRINGS_H__
 
-#include "uistate.h"
-
 //
 // Functions for converting various types to constant strings.
 //
@@ -20,8 +18,6 @@ char const* ToString( QProcess::ExitStatus          const value );
 char const* ToString( QSwipeGesture::SwipeDirection const value );
 
 char const* ToString( Qt::GestureState              const value );
-
-char const* ToString( UiState                       const value );
 
 //
 // Functions for converting various types to variable strings.

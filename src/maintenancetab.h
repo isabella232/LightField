@@ -12,6 +12,8 @@ public:
     MaintenanceTab( QWidget* parent = nullptr );
     virtual ~MaintenanceTab( ) override;
 
+    virtual TabIndex tabIndex( ) const override { return TabIndex::Maintenance; }
+
 protected:
 
     virtual void _initialShowEvent( QShowEvent* event ) override;
@@ -51,6 +53,8 @@ private:
 signals:
 
 public slots:
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
 protected slots:
 

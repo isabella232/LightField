@@ -16,7 +16,13 @@ public:
         return _stopButton->isEnabled( );
     }
 
+    virtual TabIndex tabIndex( ) const override { return TabIndex::Status; }
+
 protected:
+
+    virtual void _connectPrintManager( )                    override;
+    virtual void _connectShepherd( )                        override;
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
 
 private:
 
@@ -69,10 +75,6 @@ private:
     double              _estimatedPrintJobTime     { };
     std::vector<double> _layerElapsedTimes         { };
 
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
-    virtual void _connectPrintManager( )                    override;
-    virtual void _connectShepherd( )                        override;
-
 signals:
 
     void stopButtonClicked( );
@@ -80,6 +82,8 @@ signals:
     void printComplete( );
 
 public slots:
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setStopButtonEnabled( bool value );
     void setReprintButtonEnabled( bool value );

@@ -23,7 +23,7 @@ public:
 
 };
 
-class FileTab: public TabBase {
+class FileTab: public InitialShowEventMixin<FileTab, TabBase> {
 
     Q_OBJECT
 
@@ -32,7 +32,13 @@ public:
     FileTab( QWidget* parent = nullptr );
     virtual ~FileTab( ) override;
 
+    virtual TabIndex          tabIndex( )       const override { return TabIndex::File;   }
+
+    ModelSelectionInfo const* modelSelection( ) const          { return &_modelSelection; }
+
 protected:
+
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
 
 private:
 
@@ -86,11 +92,10 @@ private:
 signals:
 
     void modelSelected( ModelSelectionInfo* modelSelection );
-    void modelSelectionFailed( );
 
 public slots:
 
-    virtual void setUiState( UiState const state ) override;
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
 protected slots:
 

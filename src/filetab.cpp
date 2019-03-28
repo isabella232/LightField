@@ -17,9 +17,7 @@ namespace {
 
 }
 
-FileTab::FileTab( QWidget* parent ): TabBase( parent ) {
-    debug( "+ FileTab::`ctor: construct at %p\n", this );
-
+FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
     _userMediaPath = MediaRootPath + Slash + GetUserName( );
     debug( "  + user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
 
@@ -107,26 +105,30 @@ FileTab::FileTab( QWidget* parent ): TabBase( parent ) {
 }
 
 FileTab::~FileTab( ) {
-    debug( "+ FileTab::`dtor: destruct at %p\n", this );
+    /*empty*/
+}
+
+void FileTab::_initialShowEvent( QShowEvent* showEvent ) {
+    debug( "+ FileTab::_initialShowEvent\n" );
+    emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::_loadModel( QString const& fileName ) {
     debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
+    _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
+
     if ( _loader ) {
         QObject::disconnect( _loader, nullptr, this, nullptr );
         _loader->deleteLater( );
     }
-
-    _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
-
     _loader = new Loader( fileName, this );
+
     QObject::connect( _loader, &Loader::got_mesh,           this, &FileTab::loader_gotMesh          );
     QObject::connect( _loader, &Loader::error_bad_stl,      this, &FileTab::loader_errorBadStl      );
     QObject::connect( _loader, &Loader::error_empty_mesh,   this, &FileTab::loader_errorEmptyMesh   );
     QObject::connect( _loader, &Loader::error_missing_file, this, &FileTab::loader_errorMissingFile );
     QObject::connect( _loader, &Loader::finished,           this, &FileTab::loader_finished         );
 
-    _selectButton->setEnabled( false );
     _loader->start( );
 }
 
@@ -218,17 +220,21 @@ void FileTab::_showUsbStick( ) {
     _toggleLocationButton->setText( "Show library" );
 }
 
-void FileTab::setUiState( UiState const state ) {
-    switch ( state ) {
-        case UiState::Start:
-        case UiState::PrintStarted:
+void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ FileTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+            _modelSelection = { };
             _selectButton->setEnabled( false );
             break;
 
-        case UiState::Selected:
-        case UiState::Sliced:
-        case UiState::PrintFinished:
-            _selectButton->setEnabled( true );
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+            _selectButton->setEnabled( false );
             break;
     }
 }
@@ -272,8 +278,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _errorLabel->setText( "Model exceeds build volume!" );
 
-        _selectButton->setEnabled( false );
-        emit modelSelectionFailed( );
+        emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
         return;
     } else {
         _errorLabel->clear( );
@@ -306,27 +311,30 @@ void FileTab::loader_errorBadStl( ) {
     _dimensionsLabel->clear( );
     _errorLabel->setText( "Unable to read model." );
 
-    _selectButton->setEnabled( false );
-    emit modelSelectionFailed( );
+    emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::loader_errorEmptyMesh( ) {
     debug( "+ FileTab::loader_errorEmptyMesh\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Model is empty?" );
+    _errorLabel->setText( "Model is empty" );
 
-    _selectButton->setEnabled( false );
-    emit modelSelectionFailed( );
+    emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::loader_errorMissingFile( ) {
-    _selectButton->setEnabled( false );
-    emit modelSelectionFailed( );
+    debug( "+ FileTab::loader_errorMissingFile\n" );
+
+    _dimensionsLabel->clear( );
+    _errorLabel->setText( "Model file went missing" );
+
+    emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::loader_finished( ) {
     debug( "+ FileTab::loader_finished\n" );
+
     _availableFilesListView->setEnabled( true );
     _canvas->clear_status( );
     _loader->deleteLater( );
@@ -425,9 +433,8 @@ void FileTab::toggleLocationButton_clicked( bool ) {
 
 void FileTab::selectButton_clicked( bool ) {
     debug( "+ FileTab::selectButton_clicked\n" );
-    auto selection = new ModelSelectionInfo( _modelSelection );
-    emit modelSelected( selection );
-    delete selection;
+    emit modelSelected( &_modelSelection );
+    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
 }
 
 void FileTab::processRunner_succeeded( ) {
@@ -453,7 +460,7 @@ void FileTab::processRunner_succeeded( ) {
 void FileTab::processRunner_failed( QProcess::ProcessError const error ) {
     debug( "FileTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
     _slicerBuffer.clear( );
-    emit modelSelectionFailed( );
+    emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
@@ -487,8 +494,8 @@ void FileTab::usbRetryTimer_timeout( ) {
             _canvas->clear( );
             _dimensionsLabel->clear( );
             _errorLabel->clear( );
-            _selectButton->setEnabled( false );
-            emit modelSelectionFailed( );
+
+            emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
         }
 
         _toggleLocationButton->setEnabled( false );

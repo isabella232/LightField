@@ -2,6 +2,7 @@
 #define __TABBASE_H__
 
 #include "initialshoweventmixin.h"
+#include "tabindex.h"
 #include "uistate.h"
 
 class PrintJob;
@@ -17,10 +18,12 @@ public:
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
 
-    UiState       uiState( )      const { return _uiState;      }
-    PrintJob*     printJob( )     const { return _printJob;     }
-    PrintManager* printManager( ) const { return _printManager; }
-    Shepherd*     shepherd( )     const { return _shepherd;     }
+    PrintJob*        printJob( )     const { return _printJob;     }
+    PrintManager*    printManager( ) const { return _printManager; }
+    Shepherd*        shepherd( )     const { return _shepherd;     }
+    UiState          uiState( )      const { return _uiState;      }
+
+    virtual TabIndex tabIndex( )     const = 0;
 
 protected:
 
@@ -42,15 +45,14 @@ private:
 
 signals:
 
-    void uiStateChanged( UiState const state );
+    void uiStateChanged( TabIndex const sender, UiState const state );
 
 public slots:
-
-    virtual void setUiState( UiState const state );
 
     virtual void setPrintJob( PrintJob* printJob );
     virtual void setPrintManager( PrintManager* printManager );
     virtual void setShepherd( Shepherd* shepherd );
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) = 0;
 
 protected slots:
 

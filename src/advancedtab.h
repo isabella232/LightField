@@ -14,6 +14,8 @@ public:
     AdvancedTab( QWidget* parent = nullptr );
     virtual ~AdvancedTab( ) override;
 
+    virtual TabIndex tabIndex( ) const override { return TabIndex::Advanced; }
+
 protected:
 
     virtual void _connectShepherd( ) override;
@@ -66,6 +68,8 @@ private:
 signals:
 
 public slots:
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );

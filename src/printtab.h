@@ -19,9 +19,14 @@ public:
     PrintTab( QWidget* parent = nullptr );
     virtual ~PrintTab( ) override;
 
-    bool isPrintButtonEnabled( ) const { return _printButton->isEnabled( ); }
+    bool             isPrintButtonEnabled( ) const          { return _printButton->isEnabled( ); }
+
+    virtual TabIndex tabIndex( )             const override { return TabIndex::Print;            }
 
 protected:
+
+    virtual void _connectPrintJob( ) override;
+    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
 
 private:
 
@@ -68,15 +73,13 @@ private:
 
     QGridLayout*       _layout                             { new QGridLayout };
 
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
-
-    virtual void _connectPrintJob( ) override;
-
 signals:
 
     void printButtonClicked( );
 
 public slots:
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setAdjustmentButtonsEnabled( bool const value );
     void setPrintButtonEnabled( bool const value );
