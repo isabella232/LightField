@@ -4,6 +4,7 @@
 
 #include "statustab.h"
 
+#include "app.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
@@ -23,6 +24,10 @@ namespace {
 }
 
 StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBase>( parent ) {
+#if defined _DEBUG
+    _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
+#endif // _DEBUG
+
     auto origFont = font( );
     auto boldFont = ModifyFont( origFont, QFont::Bold );
     auto font22pt = ModifyFont( origFont, 22.0 );
@@ -125,24 +130,25 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
 
 
     {
-        _stopButtonEnabledPalette  = _stopButton->palette( );
-        _stopButtonDisabledPalette = _stopButtonEnabledPalette;
-        _stopButtonEnabledPalette.setColor( QPalette::Button,     Qt::red    );
-        _stopButtonEnabledPalette.setColor( QPalette::ButtonText, Qt::yellow );
+        auto palette = _stopButton->palette( );
+        palette.setColor( QPalette::Button,     Qt::red    );
+        palette.setColor( QPalette::ButtonText, Qt::yellow );
+        _stopButton->setPalette( palette );
     }
-    _stopButton->setEnabled( false );
+    _stopButton->setEnabled( true );
     _stopButton->setFixedSize( MainButtonSize );
     _stopButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
-    _stopButton->setVisible( true );
+    _stopButton->setVisible( false );
     _stopButton->setText( "STOP" );
     QObject::connect( _stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
 
     _reprintButton->setEnabled( false );
     _reprintButton->setFixedSize( MainButtonSize );
     _reprintButton->setFont( font22pt );
-    _reprintButton->setVisible( false );
-    _reprintButton->setText( "Reprint" );
+    _reprintButton->setVisible( true );
+    _reprintButton->setText( "Reprint..." );
     QObject::connect( _reprintButton, &QPushButton::clicked, this, &StatusTab::reprintButton_clicked );
+
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _progressControlsContainer, 0, 0, 1, 1 );
@@ -153,6 +159,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _layout->setRowStretch( 1, 1 );
 
     setLayout( _layout );
+
 
     _updatePrintTimeInfo = new QTimer( this );
     _updatePrintTimeInfo->setInterval( 1000 );
@@ -165,52 +172,84 @@ StatusTab::~StatusTab( ) {
     /*empty*/
 }
 
-void StatusTab::_initialShowEvent( QShowEvent* event ) {
+void StatusTab::_updateReprintButtonState( ) {
+    _reprintButton->setEnabled( _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
+}
+
+void StatusTab::initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedWidth( _currentLayerImage->width( ) );
     _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
 
     event->accept( );
 }
 
+void StatusTab::setModelRendered( bool const value ) {
+    _isModelRendered = value;
+    debug( "+ StatusTab::setModelRendered: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateReprintButtonState( );
+}
+
+void StatusTab::setPrinterPrepared( bool const value ) {
+    _isPrinterPrepared = value;
+    debug( "+ StatusTab::setPrinterPrepared: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateReprintButtonState( );
+}
+
+void StatusTab::clearPrinterPrepared( ) {
+    setPrinterPrepared( false );
+}
+
+void StatusTab::setPrinterAvailable( bool const value ) {
+    _isPrinterAvailable = value;
+    debug( "+ StatusTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateReprintButtonState( );
+}
+
 void StatusTab::printer_online( ) {
-    debug( "+ StatusTab::printer_online\n" );
     _isPrinterOnline = true;
+    debug( "+ StatusTab::printer_online: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
     _printerStateDisplay->setText( "online" );
 
     if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
         return;
     }
-
     debug( "+ StatusTab::printer_online: printer has come online for the first time; sending initialization commands\n" );
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
     _shepherd->doSend( PrinterInitializationCommands );
 }
 
 void StatusTab::printer_offline( ) {
-    debug( "+ StatusTab::printer_offline\n" );
     _isPrinterOnline = false;
+    debug( "+ StatusTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
     _printerStateDisplay->setText( "offline" );
 }
 
 void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
     _updatePrintTimeInfo->stop( );
-    emit stopButtonClicked( );
+    if ( _printManager ) {
+        _printManager->abort( );
+    }
 }
 
 void StatusTab::reprintButton_clicked( bool ) {
     debug( "+ StatusTab::reprintButton_clicked\n" );
-    emit reprintButtonClicked( );
+    emit printRequested( );
+    emit uiStateChanged( TabIndex::Status, UiState::PrintStarted );
 }
 
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
 
-    _reprintButton->setVisible( false );
-    _stopButton->setVisible( true );
+    _jobStateDisplay->setText( "waiting" );
+    _elapsedTimeDisplay->clear( );
 
-    _jobStateDisplay->setText( "print started" );
-    _estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
+    _layerElapsedTimes.clear( );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
@@ -221,6 +260,8 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     _currentLayerStartTime  = GetBootTimeClock( );
 
     if ( 0 == layer ) {
+        _jobStateDisplay->setText( "print started" );
+        _estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
         _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
     } else {
@@ -257,9 +298,6 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_printComplete( bool const success ) {
     debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
 
-    _stopButton->setVisible( false );
-    _reprintButton->setVisible( true );
-
     _updatePrintTimeInfo->stop( );
 
     _jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
@@ -268,16 +306,13 @@ void StatusTab::printManager_printComplete( bool const success ) {
     _percentageCompleteDisplay->clear( );
     _currentLayerImage->clear( );
 
-    emit printComplete( );
+    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
 }
 
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
 
     _loadPrintSolutionGroup->setEnabled( false );
-
-    _stopButton->setVisible( false );
-    _reprintButton->setVisible( true );
 
     _updatePrintTimeInfo->stop( );
 
@@ -287,7 +322,7 @@ void StatusTab::printManager_printAborted( ) {
     _percentageCompleteDisplay->clear( );
     _currentLayerImage->clear( );
 
-    emit printComplete( );
+    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
 }
 
 void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const /*bedTargetTemperature*/, int const /*bedPwm*/ ) {
@@ -361,17 +396,16 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
-        case UiState::PrintStarted:
         case UiState::PrintCompleted:
+            _stopButton->setVisible( false );
+            _reprintButton->setVisible( true );
+            break;
+
+        case UiState::PrintStarted:
+            _reprintButton->setVisible( false );
+            _stopButton->setVisible( true );
             break;
     }
-}
 
-void StatusTab::setStopButtonEnabled( bool value ) {
-    _stopButton->setEnabled( value );
-    _stopButton->setPalette( value ? _stopButtonEnabledPalette : _stopButtonDisabledPalette );
-}
-
-void StatusTab::setReprintButtonEnabled( bool value ) {
-    _reprintButton->setEnabled( value );
+    _updateReprintButtonState( );
 }

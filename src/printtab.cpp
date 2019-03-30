@@ -2,31 +2,18 @@
 
 #include "printtab.h"
 
+#include "app.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
 
-namespace {
-
-    char const* BuildPlatformStateStrings[] { "Lowered", "Raising", "Raised", "Lowering" };
-
-    char const* ToString( BuildPlatformState const value ) {
-#if defined _DEBUG
-        if ( ( value >= BuildPlatformState::Lowered ) && ( value <= BuildPlatformState::Lowering ) ) {
-#endif
-            return BuildPlatformStateStrings[static_cast<int>( value )];
-#if defined _DEBUG
-        } else {
-            return nullptr;
-        }
-#endif
-    }
-
-}
-
 PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
+#if defined _DEBUG
+    _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
+#endif // _DEBUG
+
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
 
@@ -155,7 +142,42 @@ PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::_initialShowEvent( QShowEvent* event ) {
+void PrintTab::_connectPrintJob( ) {
+    {
+        int value = _printJob->exposureTime / 0.5;
+        _printJob->exposureTime = value / 2.0;
+        _exposureTimeSlider->setValue( value );
+        _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    }
+
+    debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
+    _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
+    _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
+
+    _powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
+    _powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
+
+    _printSpeedSlider->setValue( _printJob->printSpeed );
+    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+}
+
+void PrintTab::_connectShepherd( ) {
+    QObject::connect( _shepherd, &Shepherd::printer_online,  this, &PrintTab::printer_online  );
+    QObject::connect( _shepherd, &Shepherd::printer_offline, this, &PrintTab::printer_offline );
+}
+
+void PrintTab::_setAdjustmentButtonsEnabled( bool const value ) {
+    debug( "+ PrintTab::_setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
+    _raiseOrLowerButton->setEnabled( value );
+    _homeButton        ->setEnabled( value );
+}
+
+void PrintTab::_updateUiState( ) {
+    _printButton->setEnabled( _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
+    _setAdjustmentButtonsEnabled( _isPrinterOnline && _isPrinterAvailable );
+}
+
+void PrintTab::initialShowEvent( QShowEvent* event ) {
     auto size = QSize {
         std::max( { _raiseOrLowerButton->width( ),  _homeButton->width( ),  } ),
         std::max( { _raiseOrLowerButton->height( ), _homeButton->height( ), } )
@@ -189,12 +211,12 @@ void PrintTab::printSpeedSlider_valueChanged( int value ) {
 
 void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
-    emit printButtonClicked( );
+    emit printRequested( );
+    emit uiStateChanged( TabIndex::Print, UiState::PrintStarted );
 }
 
 void PrintTab::raiseOrLowerButton_clicked( bool ) {
     debug( "+ PrintTab::raiseOrLowerButton_clicked: build platform state %s [%d]\n", ToString( _buildPlatformState ), _buildPlatformState );
-    setAdjustmentButtonsEnabled( false );
 
     switch ( _buildPlatformState ) {
         case BuildPlatformState::Lowered:
@@ -212,10 +234,10 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
             _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0 );
             break;
-
-        default:
-            return;
     }
+
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
 }
 
 void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
@@ -229,13 +251,11 @@ void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
     } else {
         _buildPlatformState = BuildPlatformState::Lowered;
     }
-
-    setAdjustmentButtonsEnabled( true );
 }
 
 void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
     debug( "+ PrintTab::lowerBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
@@ -245,24 +265,29 @@ void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
         _buildPlatformState = BuildPlatformState::Raised;
     }
 
-    setAdjustmentButtonsEnabled( true );
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 }
 
 void PrintTab::homeButton_clicked( bool ) {
     debug( "+ PrintTab::homeButton_clicked\n" );
-    setAdjustmentButtonsEnabled( false );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintTab::home_homeComplete );
     _shepherd->doHome( );
+
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
 }
 
 void PrintTab::home_homeComplete( bool const success ) {
     debug( "+ PrintTab::home_homeComplete: %s\n", success ? "succeeded" : "failed" );
-    setAdjustmentButtonsEnabled( true );
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 }
 
 void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s; PO? %s PA? %s PP? %s MR? %s\n", ToString( sender ), ToString( _uiState ), ToString( state ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
     _uiState = state;
 
     switch ( _uiState ) {
@@ -270,38 +295,57 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
+            break;
+
         case UiState::PrintStarted:
+            setPrinterAvailable( false );
+            emit printerAvailabilityChanged( false );
+            break;
+
         case UiState::PrintCompleted:
+            setPrinterAvailable( true );
+            emit printerAvailabilityChanged( true );
             break;
     }
+
+    _updateUiState( );
 }
 
-void PrintTab::setAdjustmentButtonsEnabled( bool const value ) {
-    debug( "+ PrintTab::setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
-    _raiseOrLowerButton->setEnabled( value );
-    _homeButton        ->setEnabled( value );
+void PrintTab::printer_online( ) {
+    _isPrinterOnline = true;
+    debug( "+ PrintTab::printer_online: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateUiState( );
 }
 
-void PrintTab::setPrintButtonEnabled( bool const value ) {
-    debug( "+ PrintTab::setPrintButtonEnabled: value %s\n", value ? "enabled" : "disabled" );
-    _printButton->setEnabled( value );
+void PrintTab::printer_offline( ) {
+    _isPrinterOnline = false;
+    debug( "+ PrintTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateUiState( );
 }
 
-void PrintTab::_connectPrintJob( ) {
-    {
-        int value = _printJob->exposureTime / 0.5;
-        _printJob->exposureTime = value / 2.0;
-        _exposureTimeSlider->setValue( value );
-        _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
-    }
+void PrintTab::setModelRendered( bool const value ) {
+    _isModelRendered = value;
+    debug( "+ PrintTab::setModelRendered: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
-    _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
-    _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
+    _updateUiState( );
+}
 
-    _powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
-    _powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
+void PrintTab::setPrinterPrepared( bool const value ) {
+    _isPrinterPrepared = value;
+    debug( "+ PrintTab::setPrinterPrepared: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    _printSpeedSlider->setValue( _printJob->printSpeed );
-    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+    _updateUiState( );
+}
+
+void PrintTab::clearPrinterPrepared( ) {
+    setPrinterPrepared( false );
+}
+
+void PrintTab::setPrinterAvailable( bool const value ) {
+    _isPrinterAvailable = value;
+    debug( "+ PrintTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+
+    _updateUiState( );
 }

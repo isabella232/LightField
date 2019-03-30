@@ -9,6 +9,10 @@ enum class PendingCommand {
     send,
 };
 
+inline int operator+( PendingCommand const value ) { return static_cast<int>( value ); }
+
+char const* ToString( PendingCommand const value );
+
 class Shepherd: public QObject {
 
     Q_OBJECT
@@ -79,7 +83,5 @@ private slots:
     void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 };
-
-char const* ToString( PendingCommand value );
 
 #endif // __SHEPHERD_H__

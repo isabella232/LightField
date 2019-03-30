@@ -10,6 +10,10 @@ enum class BuildPlatformState {
     Lowering,
 };
 
+inline constexpr int operator+( BuildPlatformState const value ) { return static_cast<int>( value ); }
+
+char const* ToString( BuildPlatformState const value );
+
 class PrintTab: public InitialShowEventMixin<PrintTab, TabBase> {
 
     Q_OBJECT
@@ -25,11 +29,16 @@ public:
 
 protected:
 
-    virtual void _connectPrintJob( ) override;
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+    virtual void _connectPrintJob( )                   override;
+    virtual void _connectShepherd( )                   override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 
+    bool               _isPrinterOnline                    { false };
+    bool               _isPrinterAvailable                 { true  };
+    bool               _isPrinterPrepared                  { false };
+    bool               _isModelRendered                    { false };
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
     QLabel*            _exposureTimeLabel                  { new QLabel      };
@@ -73,24 +82,34 @@ private:
 
     QGridLayout*       _layout                             { new QGridLayout };
 
+    void _setAdjustmentButtonsEnabled( bool const value );
+    void _updateUiState( );
+
 signals:
 
-    void printButtonClicked( );
+    void printerAvailabilityChanged( bool const available );
+    void printRequested( );
 
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void setAdjustmentButtonsEnabled( bool const value );
-    void setPrintButtonEnabled( bool const value );
+    void setModelRendered( bool const value );
+    void setPrinterPrepared( bool const value );
+    void clearPrinterPrepared( );
 
-    void raiseBuildPlatform_moveToComplete( bool const success );
-    void lowerBuildPlatform_moveToComplete( bool const success );
-    void home_homeComplete( bool const success );
+    void setPrinterAvailable( bool const value );
 
 protected slots:
 
 private slots:
+
+    void printer_online( );
+    void printer_offline( );
+
+    void raiseBuildPlatform_moveToComplete( bool const success );
+    void lowerBuildPlatform_moveToComplete( bool const success );
+    void home_homeComplete( bool const success );
 
     void exposureTimeSlider_valueChanged( int value );
     void exposureTimeScaleFactorSlider_valueChanged( int value );

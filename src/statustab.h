@@ -20,9 +20,9 @@ public:
 
 protected:
 
-    virtual void _connectPrintManager( )                    override;
-    virtual void _connectShepherd( )                        override;
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+    virtual void _connectPrintManager( )               override;
+    virtual void _connectShepherd( )                   override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -63,11 +63,11 @@ private:
     QPixmap*            _warningHotImage           { };
     QPixmap*            _warningUvImage            { };
 
-    QPalette            _stopButtonEnabledPalette  { };
-    QPalette            _stopButtonDisabledPalette { };
-
-    bool                _isPrinterOnline           { };
-    bool                _isFirstOnlineTaskDone     { };
+    bool                _isFirstOnlineTaskDone     { false };
+    bool                _isPrinterOnline           { false };
+    bool                _isPrinterAvailable        { true  };
+    bool                _isPrinterPrepared         { false };
+    bool                _isModelRendered           { false };
 
     double              _printJobStartTime         { };
     double              _currentLayerStartTime     { };
@@ -75,18 +75,24 @@ private:
     double              _estimatedPrintJobTime     { };
     std::vector<double> _layerElapsedTimes         { };
 
+    void _updateReprintButtonState( );
+
 signals:
 
-    void stopButtonClicked( );
-    void reprintButtonClicked( );
-    void printComplete( );
+    void printRequested( );
 
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void setStopButtonEnabled( bool value );
-    void setReprintButtonEnabled( bool value );
+    void setModelRendered( bool const value );
+    void setPrinterPrepared( bool const value );
+    void clearPrinterPrepared( );
+    void setPrinterAvailable( bool const value );
+
+protected slots:
+
+private slots:
 
     void printer_online( );
     void printer_offline( );
@@ -102,10 +108,6 @@ public slots:
     void initializationCommands_sendComplete( bool const success );
 
     void updatePrintTimeInfo_timeout( );
-
-protected slots:
-
-private slots:
 
     void stopButton_clicked( bool );
     void reprintButton_clicked( bool );

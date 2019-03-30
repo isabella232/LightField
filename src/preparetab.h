@@ -22,7 +22,8 @@ public:
 
 protected:
 
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+    virtual void _connectShepherd( )                   override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -31,6 +32,8 @@ private:
     Hasher*       _hasher                      { };
     int           _visibleLayer                { };
     int           _renderedLayers              { };
+    bool          _isPrinterOnline             { false };
+    bool          _isPrinterAvailable          { true  };
 
     QLabel*       _layerThicknessLabel         { new QLabel       };
     QRadioButton* _layerThickness50Button      { new QRadioButton };
@@ -70,25 +73,29 @@ private:
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
+    void _updatePrepareButtonState( );
 
 signals:
 
     void slicingNeeded( bool const needed );
-    void sliceStarted( );
-    void sliceComplete( bool const success );
-    void renderStarted( );
-    void renderComplete( bool const success );
 
     void preparePrinterStarted( );
     void preparePrinterComplete( bool const success );
+
+    void printerAvailabilityChanged( bool const available );
 
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
+    void setPrinterAvailable( bool const value );
+
 protected slots:
 
 private slots:
+
+    void printer_online( );
+    void printer_offline( );
 
     void layerThickness50Button_clicked( bool );
     void layerThickness100Button_clicked( bool );

@@ -19,6 +19,7 @@ namespace {
         QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows." },
         QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                },
         QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                  },
+        QCommandLineOption {               "m",            "Pretend printer is online."                                              },
 #endif // defined _DEBUG
         QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
     };
@@ -41,6 +42,9 @@ namespace {
         },
         [] ( ) { // -k
             g_settings.ignoreShepherdFailures = true;
+        },
+        [] ( ) { // -m
+            g_settings.pretendPrinterIsOnline = true;
         },
 #endif // defined _DEBUG
         [] ( ) { // -l or --light

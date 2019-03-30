@@ -10,6 +10,8 @@ enum class UiState {
     PrintCompleted,
 };
 
+inline int operator+( UiState const value ) { return static_cast<int>( value ); }
+
 char const* ToString( UiState const value );
 
 #endif // !__UISTATE_H__

@@ -146,7 +146,7 @@ MaintenanceTab::~MaintenanceTab( ) {
     /*empty*/
 }
 
-void MaintenanceTab::_initialShowEvent( QShowEvent* event ) {
+void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
     QSize newSize = _shutDownButton->size( );
     newSize.setWidth( newSize.width( ) + 20 );
 

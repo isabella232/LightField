@@ -16,7 +16,7 @@ public:
 
 protected:
 
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 

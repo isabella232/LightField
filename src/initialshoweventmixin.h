@@ -8,23 +8,23 @@ public:
 
     template<typename ParentType>
     InitialShowEventMixin( ParentType* parent ): Base( parent ) {
-        _initialShowEventFunc = std::bind( &InitialShowEventMixin<T, Base>::_initialShowEvent, this, std::placeholders::_1 );
+        initialShowEventFunc = std::bind( &InitialShowEventMixin<T, Base>::initialShowEvent, this, std::placeholders::_1 );
     }
 
 protected:
 
-    std::function<void( QShowEvent* event )> _initialShowEventFunc;
+    std::function<void( QShowEvent* event )> initialShowEventFunc;
 
     virtual void showEvent( QShowEvent* event ) override {
-        if ( _initialShowEventFunc ) {
-            _initialShowEventFunc( event );
-            _initialShowEventFunc = nullptr;
+        if ( initialShowEventFunc ) {
+            initialShowEventFunc( event );
+            initialShowEventFunc = nullptr;
         } else {
             event->ignore( );
         }
     }
 
-    virtual void _initialShowEvent( QShowEvent* event ) = 0;
+    virtual void initialShowEvent( QShowEvent* event ) = 0;
 
 };
 

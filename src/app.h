@@ -19,6 +19,7 @@ public:
     bool   frameless                { false  };
     bool   pretendPrinterIsPrepared { false  };
     bool   ignoreShepherdFailures   { false  };
+    bool   pretendPrinterIsOnline   { false  };
 
 };
 

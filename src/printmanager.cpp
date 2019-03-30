@@ -245,8 +245,6 @@ void PrintManager::stepA5_completed( ) {
         return;
     }
 
-    emit startingLayer( _currentLayer );
-
     stepB1_start( );
 }
 
@@ -266,6 +264,8 @@ void PrintManager::stepB1_start( ) {
     QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
     QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
     _setpowerProcess->start( SetpowerCommand, { QString( "%1" ).arg( _printJob->powerLevel ) } );
+
+    emit startingLayer( _currentLayer );
 }
 
 void PrintManager::stepB1_completed( ) {
@@ -381,8 +381,6 @@ void PrintManager::stepB5_start( ) {
 
         QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
         _shepherd->doMoveRelative( LiftDistance );
-
-        emit startingLayer( _currentLayer );
     }
 }
 

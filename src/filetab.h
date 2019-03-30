@@ -10,11 +10,32 @@ class Loader;
 class Mesh;
 class ProcessRunner;
 
+enum class ModelsLocation {
+    Library,
+    Usb
+};
+
+inline int operator+( ModelsLocation const value ) { return static_cast<int>( value ); }
+
+char const* ToString( ModelsLocation const value );
+
 class ModelSelectionInfo {
 
 public:
 
-    QString    fileName        { };
+    ModelSelectionInfo( ):
+        fileName ( )
+    {
+        /*empty*/
+    }
+
+    ModelSelectionInfo( QString const& fileName ):
+        fileName ( fileName )
+    {
+        /*empty*/
+    }
+
+    QString    fileName;
     size_t     vertexCount     { };
     Coordinate x               { };
     Coordinate y               { };
@@ -38,14 +59,9 @@ public:
 
 protected:
 
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
-
-    enum class ModelsLocation {
-        Library,
-        Usb
-    };
 
     ProcessRunner*      _processRunner           { };
 
@@ -68,6 +84,7 @@ private:
     QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
     QTimer*             _usbRetryTimer           { new QTimer              };
 
+    QString             _dimensionsText;
     int                 _selectedRow             { -1 };
     QString             _slicerBuffer;
     QString             _usbPath;

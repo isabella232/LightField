@@ -19,7 +19,14 @@ namespace {
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
     _userMediaPath = MediaRootPath + Slash + GetUserName( );
-    debug( "  + user media path '%s'\n", _userMediaPath.toUtf8( ).data( ) );
+    debug(
+        "+ FileTab::`ctor:\n"
+        "  + User media path:         '%s'\n"
+        "  + Model library directory: '%s'\n"
+        "",
+        _userMediaPath.toUtf8( ).data( ),
+        StlModelLibraryPath.toUtf8( ).data( )
+    );
 
     _usbRetryTimer->setInterval( 1000 );
     _usbRetryTimer->setSingleShot( false );
@@ -84,10 +91,12 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _canvas->setMinimumWidth( MaximalRightHandPaneSize.width( ) );
     _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
+    _errorLabel->setAlignment( Qt::AlignRight );
     _errorLabel->setPalette( ModifyPalette( _errorLabel->palette( ), QPalette::WindowText, Qt::red ) );
 
-    _dimensionsLayout = WrapWidgetsInHBox( { _dimensionsLabel, _errorLabel } );
-    _dimensionsLayout->setAlignment( Qt::AlignLeft );
+    _dimensionsLabel->setTextFormat( Qt::RichText );
+
+    _dimensionsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _errorLabel } );
     _dimensionsLayout->setContentsMargins( { } );
 
     _canvasLayout->setContentsMargins( { } );
@@ -108,8 +117,8 @@ FileTab::~FileTab( ) {
     /*empty*/
 }
 
-void FileTab::_initialShowEvent( QShowEvent* showEvent ) {
-    debug( "+ FileTab::_initialShowEvent\n" );
+void FileTab::initialShowEvent( QShowEvent* event ) {
+    debug( "+ FileTab::initialShowEvent\n" );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
@@ -226,7 +235,6 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     switch ( _uiState ) {
         case UiState::SelectStarted:
             _modelSelection = { };
-            _selectButton->setEnabled( false );
             break;
 
         case UiState::SelectCompleted:
@@ -234,14 +242,12 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
-            _selectButton->setEnabled( false );
             break;
     }
 }
 
 void FileTab::loader_gotMesh( Mesh* mesh ) {
     if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0].unicode( ) == L':' ) ) {
-        debug( "+ FileTab::loader_gotMesh: file name '%s' is empty or resource name\n", _modelSelection.fileName.toUtf8( ).data( ) );
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
         delete mesh;
@@ -253,11 +259,10 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
 
     debug(
         "+ FileTab::loader_gotMesh:\n"
-        "  + file name:         '%s'\n"
-        "  + count of vertices: %5zu\n"
-        "  + X range:           %12.6f .. %12.6f, %12.6f\n"
-        "  + Y range:           %12.6f .. %12.6f, %12.6f\n"
-        "  + Z range:           %12.6f .. %12.6f, %12.6f\n"
+        "  + count of vertices: %9zu\n"
+        "  + X range:               %12.6f .. %12.6f, %12.6f\n"
+        "  + Y range:               %12.6f .. %12.6f, %12.6f\n"
+        "  + Z range:               %12.6f .. %12.6f, %12.6f\n"
         "",
         _modelSelection.fileName.toUtf8( ).data( ),
         _modelSelection.vertexCount,
@@ -266,16 +271,16 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         _modelSelection.z.min, _modelSelection.z.max, _modelSelection.z.size
     );
 
-    {
-        auto sizeXstring = GroupDigits( QString( "%1" ).arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' );
-        auto sizeYstring = GroupDigits( QString( "%1" ).arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' );
-        auto sizeZstring = GroupDigits( QString( "%1" ).arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' );
-        _dimensionsLabel->setText( QString( "%1 mm × %2 mm × %3 mm" ).arg( sizeXstring ).arg( sizeYstring ).arg( sizeZstring ) );
-    }
+    _dimensionsText = QString { "%1 mm × %2 mm × %3 mm" }
+        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
+        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
+        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
+    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume...</i>" } );
 
     _canvas->load_mesh( mesh );
 
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
+        _dimensionsLabel->setText( _dimensionsText );
         _errorLabel->setText( "Model exceeds build volume!" );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
@@ -342,7 +347,7 @@ void FileTab::loader_finished( ) {
 }
 
 void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
-    debug( "+ FileTab::libraryFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+    debug( "+ FileTab::libraryFsModel_directoryLoaded\n" );
     if ( _modelsLocation == ModelsLocation::Library ) {
         _libraryFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
@@ -350,7 +355,7 @@ void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
 }
 
 void FileTab::usbFsModel_directoryLoaded( QString const& name ) {
-    debug( "+ FileTab::usbFsModel_directoryLoaded: name '%s'\n", name.toUtf8( ).data( ) );
+    debug( "+ FileTab::usbFsModel_directoryLoaded\n" );
     if ( _modelsLocation == ModelsLocation::Usb ) {
         _usbFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
@@ -363,9 +368,8 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
         return;
     }
 
-    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ), };
+    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ) };
     _selectedRow    = indexRow;
-    debug( "+ FileTab::availableFilesListView_clicked: selection changed to row %d, file name '%s'\n", _selectedRow, _modelSelection.fileName.toUtf8( ).data( ) );
 
     _selectButton->setEnabled( false );
     _availableFilesListView->setEnabled( false );
@@ -444,11 +448,20 @@ void FileTab::processRunner_succeeded( ) {
         auto match = VolumeLineMatcher.match( line );
         if ( match.hasMatch( ) ) {
             _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );
+
+            QString unit;
             if ( _modelSelection.estimatedVolume < 1000.0 ) {
-                _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 µL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume,          0, 'f', 2 ), ' ' ) ) );
+                unit = "µL";
             } else {
-                _dimensionsLabel->setText( _dimensionsLabel->text( ) + QString( "  •  %1 mL" ).arg( GroupDigits( QString( "%1" ).arg( _modelSelection.estimatedVolume / 1000.0, 0, 'f', 2 ), ' ' ) ) );
+                _modelSelection.estimatedVolume /= 1000.0;
+                unit = "mL";
             }
+            _dimensionsLabel->setText(
+                _dimensionsText + Space +
+                BlackDiamond + Space +
+                GroupDigits( QString{ "%1" }.arg( _modelSelection.estimatedVolume, 0, 'f', 2 ), ' ' ) + Space +
+                unit
+            );
             _selectButton->setEnabled( true );
             break;
         }
@@ -459,6 +472,7 @@ void FileTab::processRunner_succeeded( ) {
 
 void FileTab::processRunner_failed( QProcess::ProcessError const error ) {
     debug( "FileTab::processRunner_failed: error %s [%d]\n", ToString( error ), error );
+
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }

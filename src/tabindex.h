@@ -10,9 +10,7 @@ enum class TabIndex {
     Maintenance,
 };
 
-inline int operator+( TabIndex value ) {
-    return static_cast<int>( value );
-}
+inline int operator+( TabIndex const value ) { return static_cast<int>( value ); }
 
 char const* ToString( TabIndex const value );
 
