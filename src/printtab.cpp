@@ -183,6 +183,14 @@ void PrintTab::initialShowEvent( QShowEvent* event ) {
         std::max( { _raiseOrLowerButton->height( ), _homeButton->height( ), } )
     };
 
+    auto fm = _raiseOrLowerButton->fontMetrics( );
+    auto raiseSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, "Raise Build Platform" );
+    auto lowerSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, "Lower Build Platform" );
+    if ( lowerSize.width( ) > raiseSize.width( ) ) {
+        size.setWidth( size.width( ) + lowerSize.width( ) - raiseSize.width( ) );
+    }
+    size.setWidth( size.width( ) + 20 );
+
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
 
