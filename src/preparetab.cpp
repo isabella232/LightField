@@ -334,9 +334,9 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _imageGeneratorStatus->setText( "waiting" );
 
     _slicerProcess = new QProcess( this );
-    QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcessErrorOccurred );
-    QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcessStarted       );
-    QObject::connect( _slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcessFinished      );
+    QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
+    QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
+    QObject::connect( _slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcess_finished      );
     _slicerProcess->start(
         QString     { "slic3r" },
         QStringList {
@@ -370,8 +370,8 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     emit slicingNeeded( !goodJobDir );
 }
 
-void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
-    debug( "+ PrepareTab::slicerProcessErrorOccurred: error %s [%d]\n", ToString( error ), error );
+void PrepareTab::slicerProcess_errorOccurred( QProcess::ProcessError error ) {
+    debug( "+ PrepareTab::slicerProcess_errorOccurred: error %s [%d]\n", ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
         debug( "  + slicer process failed to start\n" );
@@ -386,15 +386,15 @@ void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
     }
 }
 
-void PrepareTab::slicerProcessStarted( ) {
-    debug( "+ PrepareTab::slicerProcessStarted\n" );
+void PrepareTab::slicerProcess_started( ) {
+    debug( "+ PrepareTab::slicerProcess_started\n" );
     _sliceStatus->setText( "started" );
 }
 
-void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
+void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     QObject::disconnect( _slicerProcess, nullptr, this, nullptr );
 
-    debug( "+ PrepareTab::slicerProcessFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+    debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     _slicerProcess->deleteLater( );
     _slicerProcess = nullptr;

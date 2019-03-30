@@ -109,9 +109,9 @@ private slots:
 
     void hasher_resultReady( QString const hash );
 
-    void slicerProcessErrorOccurred( QProcess::ProcessError error );
-    void slicerProcessStarted( );
-    void slicerProcessFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void slicerProcess_errorOccurred( QProcess::ProcessError error );
+    void slicerProcess_started( );
+    void slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void svgRenderer_layerCount( int const totalLayers );
     void svgRenderer_layerComplete( int const currentLayer );
