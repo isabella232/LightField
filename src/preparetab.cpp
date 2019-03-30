@@ -501,7 +501,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterMaximumZ );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
 }
 
 void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
