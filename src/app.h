@@ -20,6 +20,7 @@ public:
     bool   pretendPrinterIsPrepared { false  };
     bool   ignoreShepherdFailures   { false  };
     bool   pretendPrinterIsOnline   { false  };
+    bool   ignoreUsb                { false  };
 
 };
 

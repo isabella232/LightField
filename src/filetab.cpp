@@ -2,6 +2,7 @@
 
 #include "filetab.h"
 
+#include "app.h"
 #include "canvas.h"
 #include "loader.h"
 #include "mesh.h"
@@ -142,6 +143,12 @@ void FileTab::_loadModel( QString const& fileName ) {
 }
 
 void FileTab::_checkUserMediaPath( ) {
+#if defined _DEBUG
+    if ( g_settings.ignoreUsb ) {
+        return;
+    }
+#endif // defined _DEBUG
+
     debug( "+ FileTab::_checkUserMediaPath\n" );
 
     QFileInfo userMediaPathInfo { _userMediaPath };

@@ -14,20 +14,24 @@ namespace {
 
     QList<QCommandLineOption> commandLineOptions {
         QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                     },
+        QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
 #if defined _DEBUG
         QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                        },
         QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows." },
         QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                },
         QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                  },
         QCommandLineOption {               "m",            "Pretend printer is online."                                              },
+        QCommandLineOption {               "n",            "Ignore USB."                                                             },
 #endif // defined _DEBUG
-        QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
     };
 
     QList<std::function<void( )>> commandLineActions {
         [] ( ) { // -? or --help
             ::fputs( commandLineParser.helpText( ).toUtf8( ).data( ), stderr );
             ::exit( 0 );
+        },
+        [] ( ) { // -l or --light
+            g_settings.theme = Theme::Light;
         },
 #if defined _DEBUG
         [] ( ) { // -h
@@ -46,10 +50,10 @@ namespace {
         [] ( ) { // -m
             g_settings.pretendPrinterIsOnline = true;
         },
-#endif // defined _DEBUG
-        [] ( ) { // -l or --light
-            g_settings.theme = Theme::Light;
+        [] ( ) { // -n
+            g_settings.ignoreUsb = true;
         },
+#endif // defined _DEBUG
     };
 
 }
