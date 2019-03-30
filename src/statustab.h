@@ -3,7 +3,7 @@
 
 #include "tabbase.h"
 
-class StatusTab: public TabBase {
+class StatusTab: public InitialShowEventMixin<StatusTab, TabBase> {
 
     Q_OBJECT
 
@@ -16,73 +16,83 @@ public:
         return _stopButton->isEnabled( );
     }
 
+    virtual TabIndex tabIndex( ) const override { return TabIndex::Status; }
+
 protected:
+
+    virtual void _connectPrintManager( )               override;
+    virtual void _connectShepherd( )                   override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 
-    QLabel*                _printerStateLabel         { new QLabel      };
-    QLabel*                _printerStateDisplay       { new QLabel      };
-    QLabel*                _projectorLampStateLabel   { new QLabel      };
-    QLabel*                _projectorLampStateDisplay { new QLabel      };
-    QLabel*                _jobStateLabel             { new QLabel      };
-    QLabel*                _jobStateDisplay           { new QLabel      };
-    QLabel*                _currentLayerLabel         { new QLabel      };
-    QLabel*                _currentLayerDisplay       { new QLabel      };
-    QLabel*                _elapsedTimeLabel          { new QLabel      };
-    QLabel*                _elapsedTimeDisplay        { new QLabel      };
-    QLabel*                _estimatedTimeLeftLabel    { new QLabel      };
-    QLabel*                _estimatedTimeLeftDisplay  { new QLabel      };
-    QLabel*                _percentageCompleteLabel   { new QLabel      };
-    QLabel*                _percentageCompleteDisplay { new QLabel      };
-    QWidget*               _progressControlsContainer { new QWidget     };
-    QVBoxLayout*           _progressControlsLayout    { new QVBoxLayout };
+    QLabel*             _printerStateLabel         { new QLabel      };
+    QLabel*             _printerStateDisplay       { new QLabel      };
+    QLabel*             _projectorLampStateLabel   { new QLabel      };
+    QLabel*             _projectorLampStateDisplay { new QLabel      };
+    QLabel*             _jobStateLabel             { new QLabel      };
+    QLabel*             _jobStateDisplay           { new QLabel      };
+    QLabel*             _currentLayerLabel         { new QLabel      };
+    QLabel*             _currentLayerDisplay       { new QLabel      };
+    QLabel*             _elapsedTimeLabel          { new QLabel      };
+    QLabel*             _elapsedTimeDisplay        { new QLabel      };
+    QLabel*             _estimatedTimeLeftLabel    { new QLabel      };
+    QLabel*             _estimatedTimeLeftDisplay  { new QLabel      };
+    QLabel*             _percentageCompleteLabel   { new QLabel      };
+    QLabel*             _percentageCompleteDisplay { new QLabel      };
+    QWidget*            _progressControlsContainer { new QWidget     };
+    QVBoxLayout*        _progressControlsLayout    { new QVBoxLayout };
 
-    QLabel*                _currentLayerImage         { new QLabel      };
-    QVBoxLayout*           _currentLayerLayout        {                 };
-    QGroupBox*             _currentLayerGroup         { new QGroupBox   };
+    QLabel*             _currentLayerImage         { new QLabel      };
+    QVBoxLayout*        _currentLayerLayout        {                 };
+    QGroupBox*          _currentLayerGroup         { new QGroupBox   };
 
-    QLabel*                _loadPrintSolutionLabel    { new QLabel      };
-    QPushButton*           _printSolutionLoadedButton { new QPushButton };
-    QGroupBox*             _loadPrintSolutionGroup    { new QGroupBox   };
+    QLabel*             _loadPrintSolutionLabel    { new QLabel      };
+    QPushButton*        _printSolutionLoadedButton { new QPushButton };
+    QGroupBox*          _loadPrintSolutionGroup    { new QGroupBox   };
 
-    QLabel*                _warningHotLabel           { new QLabel      };
-    QLabel*                _warningUvLabel            { new QLabel      };
+    QLabel*             _warningHotLabel           { new QLabel      };
+    QLabel*             _warningUvLabel            { new QLabel      };
 
-    QPushButton*           _stopButton                { new QPushButton };
-    QPushButton*           _reprintButton             { new QPushButton };
+    QPushButton*        _stopButton                { new QPushButton };
+    QPushButton*        _reprintButton             { new QPushButton };
 
-    QGridLayout*           _layout                    { new QGridLayout };
-    QTimer*                _updatePrintTimeInfo       { };
+    QGridLayout*        _layout                    { new QGridLayout };
+    QTimer*             _updatePrintTimeInfo       { };
 
-    QPixmap*               _warningHotImage           { };
-    QPixmap*               _warningUvImage            { };
+    QPixmap*            _warningHotImage           { };
+    QPixmap*            _warningUvImage            { };
 
-    QPalette               _stopButtonEnabledPalette  { };
-    QPalette               _stopButtonDisabledPalette { };
+    bool                _isFirstOnlineTaskDone     { false };
+    bool                _isPrinterOnline           { false };
+    bool                _isPrinterAvailable        { true  };
+    bool                _isPrinterPrepared         { false };
+    bool                _isModelRendered           { false };
 
-    bool                   _isPrinterOnline           { };
-    bool                   _isFirstOnlineTaskDone     { };
+    double              _printJobStartTime         { };
+    double              _currentLayerStartTime     { };
+    double              _previousLayerStartTime    { };
+    double              _estimatedPrintJobTime     { };
+    std::vector<double> _layerElapsedTimes         { };
 
-    double                 _printJobStartTime         { };
-    double                 _currentLayerStartTime     { };
-    double                 _previousLayerStartTime    { };
-    double                 _estimatedPrintJobTime     { };
-    std::vector<double>    _layerElapsedTimes         { };
-
-    virtual void _initialShowEvent( QShowEvent* showEvent ) override;
-    virtual void _connectPrintManager( )                    override;
-    virtual void _connectShepherd( )                        override;
+    void _updateReprintButtonState( );
 
 signals:
 
-    void stopButtonClicked( );
-    void reprintButtonClicked( );
-    void printComplete( );
+    void printRequested( );
 
 public slots:
 
-    void setStopButtonEnabled( bool value );
-    void setReprintButtonEnabled( bool value );
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+
+    void setModelRendered( bool const value );
+    void setPrinterPrepared( bool const value );
+    void clearPrinterPrepared( );
+    void setPrinterAvailable( bool const value );
+
+protected slots:
+
+private slots:
 
     void printer_online( );
     void printer_offline( );
@@ -98,10 +108,6 @@ public slots:
     void initializationCommands_sendComplete( bool const success );
 
     void updatePrintTimeInfo_timeout( );
-
-protected slots:
-
-private slots:
 
     void stopButton_clicked( bool );
     void reprintButton_clicked( bool );

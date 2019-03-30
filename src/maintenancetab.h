@@ -3,7 +3,7 @@
 
 #include "tabbase.h"
 
-class MaintenanceTab: public TabBase {
+class MaintenanceTab: public InitialShowEventMixin<MaintenanceTab, TabBase> {
 
     Q_OBJECT
 
@@ -12,9 +12,11 @@ public:
     MaintenanceTab( QWidget* parent = nullptr );
     virtual ~MaintenanceTab( ) override;
 
+    virtual TabIndex tabIndex( ) const override { return TabIndex::Maintenance; }
+
 protected:
 
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -51,6 +53,8 @@ private:
 signals:
 
 public slots:
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
 protected slots:
 

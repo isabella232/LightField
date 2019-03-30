@@ -10,8 +10,9 @@ namespace {
 
     char const* ShepherdBaseDirectory = "/usr/share/lightfield/libexec/stdio-shepherd";
 
-    QRegularExpression PositionReportMatcher    { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
-    QRegularExpression TemperatureReportMatcher { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression TemperatureReportMatcher2 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
 
 }
 
@@ -43,6 +44,12 @@ void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
 void Shepherd::processStarted( ) {
     debug( "+ Shepherd::processStarted\n" );
     emit shepherd_started( );
+
+#if defined _DEBUG
+    if ( g_settings.pretendPrinterIsOnline ) {
+        emit printer_online( );
+    }
+#endif // defined _DEBUG
 }
 
 void Shepherd::processReadyReadStandardError( ) {
@@ -183,17 +190,23 @@ void Shepherd::handleFromPrinter( QString const& input ) {
         auto cz = match.captured( 7 ).toDouble( );
         debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
         emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
-    } else if ( auto match = TemperatureReportMatcher.match( input ); match.hasMatch( ) ) {
+    } else if ( auto match = TemperatureReportMatcher1.match( input ); match.hasMatch( ) ) {
         auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
         auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
         auto bedPwm                = match.captured( 6 ).toInt( );
-        debug( "+ Shepherd::handleFromPrinter: temperature report: current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
+        debug( "+ Shepherd::handleFromPrinter: temperature report (type 1): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
+        emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
+    } else if ( auto match = TemperatureReportMatcher2.match( input ); match.hasMatch( ) ) {
+        auto bedCurrentTemperature = match.captured( 1 ).toDouble( );
+        auto bedTargetTemperature  = match.captured( 2 ).toDouble( );
+        auto bedPwm                = match.captured( 3 ).toInt( );
+        debug( "+ Shepherd::handleFromPrinter: temperature report (type 2): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     }
 }
 
 void Shepherd::handleCommandFail( QStringList const& input ) {
-    debug( "+ Shepherd::handleCommandFail: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
+    debug( "+ Shepherd::handleCommandFail: input='%s' pendingCommand=%s [%d]\n", input.join( Space ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
 
     auto pending = _pendingCommand;
     _pendingCommand = PendingCommand::none;
@@ -226,7 +239,7 @@ void Shepherd::handleCommandFail( QStringList const& input ) {
 
 #if defined _DEBUG
 void Shepherd::handleCommandFailAlternate( QStringList const& input ) {
-    debug( "+ Shepherd::handleCommandFailAlternate: input='%s' pendingCommand=%s [%d]\n", input.join( QChar( ' ' ) ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
+    debug( "+ Shepherd::handleCommandFailAlternate: input='%s' pendingCommand=%s [%d]\n", input.join( Space ).toUtf8( ).data( ), ToString( _pendingCommand ), _pendingCommand );
 
     auto pending = _pendingCommand;
     _pendingCommand = PendingCommand::none;

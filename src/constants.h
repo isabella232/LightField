@@ -13,10 +13,12 @@ QString extern const JobWorkingDirectoryPath;
 QString extern const SlicedSvgFileName;
 QString extern const SetpowerCommand;
 
+QChar   extern const Space;
 QChar   extern const Slash;
 QChar   extern const DigitZero;
 QChar   extern const FigureSpace;
 QChar   extern const EmDash;
+QChar   extern const BlackDiamond;
 
 QChar   extern const FA_Check;
 QChar   extern const FA_Times;

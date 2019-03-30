@@ -34,4 +34,6 @@ inline QString RemoveFileExtension( QString const& fileName ) {
     return fileName.left( fileName.lastIndexOf( QChar( '.' ) ) );
 }
 
+QString ReadWholeFile( QString const& fileName );
+
 #endif // __UTILS_H__

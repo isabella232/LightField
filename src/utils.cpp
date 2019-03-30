@@ -141,3 +141,15 @@ QString TimeDeltaToString( double delta ) {
 
     return timeString;
 }
+
+QString ReadWholeFile( QString const& fileName ) {
+    QFile file { fileName };
+    QString result;
+
+    if ( file.open( QFile::ReadOnly | QFile::ExistingOnly ) ) {
+        auto fileContents = file.readAll( );
+        file.close( );
+        result = fileContents;
+    }
+    return result;
+}

@@ -15,13 +15,16 @@ enum class PrintResult {
 
 enum class PrintStep {
     none,
-    A1, A2, A3, A4, A5, A6,
+    A1, A2, A3, A4, A5,
     B1, B2, B3, B4, B5, B6, B7,
-    C1, C2,
+    C1, C2
 };
 
 inline constexpr int operator+( PrintResult const value ) { return static_cast<int>( value ); }
 inline constexpr int operator+( PrintStep   const value ) { return static_cast<int>( value ); }
+
+char const* ToString( PrintResult const value );
+char const* ToString( PrintStep   const value );
 
 class PrintManager: public QObject {
 

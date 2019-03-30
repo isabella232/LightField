@@ -172,9 +172,34 @@ AdvancedTab::~AdvancedTab( ) {
 
 void AdvancedTab::_connectShepherd( ) {
     if ( _shepherd ) {
+        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &AdvancedTab::printer_online            );
+        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &AdvancedTab::printer_offline           );
         QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &AdvancedTab::printer_positionReport    );
         QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &AdvancedTab::printer_temperatureReport );
         QObject::connect( _shepherd, &Shepherd::action_sendComplete,       this, &AdvancedTab::shepherd_sendComplete     );
+    }
+}
+
+void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+        case UiState::SelectCompleted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+            break;
+
+        case UiState::PrintStarted:
+            setPrinterAvailable( false );
+            emit printerAvailabilityChanged( false );
+            break;
+
+        case UiState::PrintCompleted:
+            setPrinterAvailable( true );
+            emit printerAvailabilityChanged( true );
+            break;
     }
 }
 
@@ -253,7 +278,11 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
             debug( "  + No PngDisplayer instance to destroy?\n" );
         }
     }
+
     QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( checked ? _powerLevelSlider->value( ) : 0 ) } );
+
+    setPrinterAvailable( !checked );
+    emit printerAvailabilityChanged( _isPrinterAvailable );
 }
 
 void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
@@ -263,4 +292,29 @@ void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
 
 void AdvancedTab::shepherd_sendComplete( bool const success ) {
     debug( "+ AdvancedTab::shepherd_sendComplete: action %s\n", ToString( success ) );
+}
+
+void AdvancedTab::_updateProjectorFloodlightGroup( ) {
+    _projectorFloodlightGroup->setEnabled( _isPrinterOnline && _isPrinterAvailable );
+}
+
+void AdvancedTab::printer_online( ) {
+    _isPrinterOnline = true;
+    debug( "+ AdvancedTab::printer_online: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateProjectorFloodlightGroup( );
+}
+
+void AdvancedTab::printer_offline( ) {
+    _isPrinterOnline = false;
+    debug( "+ AdvancedTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateProjectorFloodlightGroup( );
+}
+
+void AdvancedTab::setPrinterAvailable( bool const value ) {
+    _isPrinterAvailable = value;
+    debug( "+ AdvancedTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateProjectorFloodlightGroup( );
 }

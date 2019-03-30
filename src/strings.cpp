@@ -1,9 +1,12 @@
 #include "pch.h"
 
+#include "strings.h"
+
+#include "filetab.h"
+#include "printmanager.h"
+#include "printtab.h"
 #include "shepherd.h"
 #include "window.h"
-
-#include "strings.h"
 
 namespace {
 
@@ -54,7 +57,7 @@ namespace {
         "Left",
         "Right",
         "Up",
-        "Down"
+        "Down",
     };
 
     char const* GestureStateStrings[] {
@@ -63,6 +66,41 @@ namespace {
         "GestureUpdated",
         "GestureFinished",
         "GestureCanceled",
+    };
+
+    char const* UiStateStrings[] {
+        "SelectStarted",
+        "SelectCompleted",
+        "SliceStarted",
+        "SliceCompleted",
+        "PrintStarted",
+        "PrintCompleted",
+    };
+
+    char const* PrintResultStrings[] {
+        "None",
+        "Failure",
+        "Success",
+        "Abort",
+    };
+
+    char const* PrintStepStrings[] {
+        "none",
+        "A1", "A2", "A3", "A4", "A5",
+        "B1", "B2", "B3", "B4", "B5", "B6", "B7",
+        "C1", "C2"
+    };
+
+    char const* BuildPlatformStateStrings[] {
+        "Lowered",
+        "Raising",
+        "Raised",
+        "Lowering",
+    };
+
+    char const* ModelsLocationStrings[] {
+        "Library",
+        "Usb",
     };
 
 }
@@ -180,6 +218,66 @@ char const* ToString( Qt::GestureState const value ) {
     if ( ( value >= Qt::NoGesture ) && ( value <= Qt::GestureCanceled ) ) {
 #endif
         return GestureStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( UiState const value ) {
+#if defined _DEBUG
+    if ( ( value >= UiState::SelectStarted ) && ( value <= UiState::PrintCompleted ) ) {
+#endif
+        return UiStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( PrintResult const value ) {
+#if defined _DEBUG
+    if ( ( value >= PrintResult::None ) && ( value <= PrintResult::Abort ) ) {
+#endif
+        return PrintResultStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( PrintStep const value ) {
+#if defined _DEBUG
+    if ( ( value >= PrintStep::none ) && ( value <= PrintStep::C2 ) ) {
+#endif
+        return PrintStepStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( BuildPlatformState const value ) {
+#if defined _DEBUG
+    if ( ( value >= BuildPlatformState::Lowered ) && ( value <= BuildPlatformState::Lowering ) ) {
+#endif
+        return BuildPlatformStateStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( ModelsLocation const value ) {
+#if defined _DEBUG
+    if ( ( value >= ModelsLocation::Library ) && ( value <= ModelsLocation::Usb ) ) {
+#endif
+        return ModelsLocationStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;

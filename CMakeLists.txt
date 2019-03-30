@@ -83,10 +83,11 @@ src/maintenancetab.h
 src/constants.h
 src/utils.h
 src/gesturelistview.h
-src/hasher.h)
+src/hasher.h
+src/uistate.h)
 
 #set project resources and icon resource
-set(Project_Resources images/images.qrc gl/gl.qrc)
+set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)
 
 #set Policy CMP0072 FindOpenGL behavior
 set(OpenGL_GL_PREFERENCE GLVND)

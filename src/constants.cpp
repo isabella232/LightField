@@ -13,10 +13,12 @@ QString        const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-job
 QString        const SlicedSvgFileName        { "sliced.svg"                        };
 QString        const SetpowerCommand          { "setpower"                          };
 
+QChar          const Space                    { L' '      };
 QChar          const Slash                    { L'/'      };
 QChar          const DigitZero                { L'0'      };
 QChar          const FigureSpace              { L'\u2007' };
 QChar          const EmDash                   { L'\u2014' };
+QChar          const BlackDiamond             { L'\u25C6' };
 
 QChar          const FA_Check                 { L'\uF00C' };
 QChar          const FA_Times                 { L'\uF00D' };

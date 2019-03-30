@@ -9,22 +9,23 @@
 #include "svgrenderer.h"
 #include "utils.h"
 
-PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
-    _initialShowEventFunc = std::bind( &PrepareTab::_initialShowEvent, this, _1 );
-
+PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto font12pt    = ModifyFont( origFont, 12.0 );
     auto font22pt    = ModifyFont( origFont, 22.0 );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
+    _layerThicknessLabel->setEnabled( false );
     _layerThicknessLabel->setText( "Layer height:" );
 
+    _layerThickness100Button->setEnabled( false );
     _layerThickness100Button->setChecked( true );
     _layerThickness100Button->setFont( font12pt );
     _layerThickness100Button->setText( "Standard res (100 µm)" );
     QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
+    _layerThickness50Button->setEnabled( false );
     _layerThickness50Button->setText( "High res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
@@ -34,13 +35,11 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _layerThicknessButtonsLayout->addWidget( _layerThickness50Button  );
 
     _sliceStatusLabel->setText( "Slicer:" );
-    _sliceStatusLabel->setBuddy( _sliceStatus );
 
     _sliceStatus->setText( "idle" );
     _sliceStatus->setFont( boldFont );
 
     _imageGeneratorStatusLabel->setText( "Image generator:" );
-    _imageGeneratorStatusLabel->setBuddy( _imageGeneratorStatus );
 
     _imageGeneratorStatus->setText( "idle" );
     _imageGeneratorStatus->setFont( boldFont );
@@ -63,7 +62,7 @@ PrepareTab::PrepareTab( QWidget* parent ): TabBase( parent ) {
     _prepareGroup->setTitle( "Printer preparation" );
     _prepareGroup->setLayout( _prepareLayout );
 
-    _prepareButton->setEnabled( true );
+    _prepareButton->setEnabled( false );
     _prepareButton->setFixedSize( MainButtonSize );
     _prepareButton->setFont( font22pt );
     _prepareButton->setText( QString( "Prepare" ) );
@@ -138,7 +137,14 @@ PrepareTab::~PrepareTab( ) {
     /*empty*/
 }
 
-void PrepareTab::_initialShowEvent( QShowEvent* event ) {
+void PrepareTab::_connectShepherd( ) {
+    if ( _shepherd ) {
+        QObject::connect( _shepherd, &Shepherd::printer_online,  this, &PrepareTab::printer_online  );
+        QObject::connect( _shepherd, &Shepherd::printer_offline, this, &PrepareTab::printer_offline );
+    }
+}
+
+void PrepareTab::initialShowEvent( QShowEvent* event ) {
     _currentSliceImage->setFixedWidth( _currentSliceImage->width( ) );
     _currentSliceImage->setFixedHeight( _currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
     event->accept( );
@@ -151,17 +157,17 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     auto modelFile     = QFileInfo { _printJob->modelFileName                                   };
     auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
     if ( !modelFile.exists( ) ) {
-        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: model file does not exist\n" );
+        debug( "  + Fail: model file does not exist\n" );
         return false;
     }
     if ( !slicedSvgFile.exists( ) ) {
-        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: sliced SVG file does not exist\n" );
+        debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
     }
 
     auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
     if ( modelFile.lastModified( ) > slicedSvgFileLastModified ) {
-        debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: model file is newer than sliced SVG file\n" );
+        debug( "  + Fail: model file is newer than sliced SVG file\n" );
         return false;
     }
 
@@ -177,42 +183,87 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     //   and that there are no gaps in the numbering.
     for ( auto entry : jobDir.entryInfoList( ) ) {
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
-            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
+            debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
         }
 
         auto layerPngFile = QFileInfo { entry.path( ) + Slash + entry.completeBaseName( ) + QString( ".png" ) };
         if ( !layerPngFile.exists( ) ) {
-            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: layer PNG file %s does not exist\n", layerPngFile.fileName( ).toUtf8( ).data( ) );
+            debug( "  + Fail: layer PNG file %s does not exist\n", layerPngFile.fileName( ).toUtf8( ).data( ) );
             return false;
         }
         if ( entry.lastModified( ) > layerPngFile.lastModified( ) ) {
-            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: layer SVG file %s is newer than layer PNG file %s\n", entry.fileName( ).toUtf8( ).data( ), layerPngFile.fileName( ).toUtf8( ).data( ) );
+            debug( "  + Fail: layer SVG file %s is newer than layer PNG file %s\n", entry.fileName( ).toUtf8( ).data( ), layerPngFile.fileName( ).toUtf8( ).data( ) );
             return false;
         }
 
         layerNumber = RemoveFileExtension( entry.baseName( ) ).toInt( );
         if ( layerNumber != ( prevLayerNumber + 1 ) ) {
-            debug( "+ PrepareTab::_checkPreSlicedFiles: Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
+            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
             return false;
         }
         prevLayerNumber = layerNumber;
     }
 
     _printJob->layerCount = layerNumber + 1;
-    debug( "+ PrepareTab::_checkPreSlicedFiles: Success: %d layers\n", _printJob->layerCount );
+    debug( "  + Success: %d layers\n", _printJob->layerCount );
 
     return true;
+}
+
+bool PrepareTab::_checkJobDirectory( ) {
+    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + _printJob->modelHash + QString( "-%1" ).arg( _printJob->layerThickness );
+
+    debug(
+        "  + model filename:        '%s'\n"
+        "  + job working directory: '%s'\n"
+        "",
+        _printJob->modelFileName.toUtf8( ).data( ),
+        _printJob->jobWorkingDirectory.toUtf8( ).data( )
+    );
+
+    QDir jobDir { _printJob->jobWorkingDirectory };
+    bool preSliced;
+
+    if ( jobDir.exists( ) ) {
+        debug( "  + job directory already exists, checking sliced model\n" );
+        preSliced = _checkPreSlicedFiles( );
+        if ( preSliced ) {
+            debug( "  + pre-sliced model is good\n" );
+        } else {
+            debug( "  + pre-sliced model is NOT good\n" );
+            jobDir.removeRecursively( );
+        }
+    } else {
+        debug( "  + job directory does not exist; will create later\n" );
+        preSliced = false;
+    }
+
+    _setNavigationButtonsEnabled( preSliced );
+    _setSliceControlsEnabled( true );
+    if ( preSliced ) {
+        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
+        _sliceButton->setText( "Reslice" );
+        return true;
+    } else {
+        _navigateCurrentLabel->setText( "0/0" );
+        _sliceButton->setText( "Slice" );
+        return false;
+    }
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool checked ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
+
+    _checkJobDirectory( );
 }
 
 void PrepareTab::layerThickness100Button_clicked( bool checked ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
     _printJob->layerThickness = 100;
+
+    _checkJobDirectory( );
 }
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
@@ -231,6 +282,17 @@ void PrepareTab::_showLayerImage( int const layer ) {
 
     int fieldWidth = ceil( log10( _printJob->layerCount ) );
     _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+}
+
+void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
+    _sliceButton->setEnabled( enabled );
+    _layerThicknessLabel->setEnabled( enabled );
+    _layerThickness100Button->setEnabled( enabled );
+    _layerThickness50Button->setEnabled( enabled );
+}
+
+void PrepareTab::_updatePrepareButtonState( ) {
+    _prepareButton->setEnabled( _isPrinterOnline && _isPrinterAvailable );
 }
 
 void PrepareTab::navigateFirst_clicked( bool ) {
@@ -286,7 +348,8 @@ void PrepareTab::sliceButton_clicked( bool ) {
         }
     );
 
-    emit sliceStarted( );
+    _setSliceControlsEnabled( false );
+    emit uiStateChanged( TabIndex::Prepare, UiState::SliceStarted );
 }
 
 void PrepareTab::hasher_resultReady( QString const hash ) {
@@ -297,47 +360,14 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         hash.toUtf8( ).data( )
     );
 
-    _printJob->jobWorkingDirectory = JobWorkingDirectoryPath + Slash + ( hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash ) + QString( "-%1" ).arg( _printJob->layerThickness );
+    _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
+
+    _sliceStatus->setText( "idle" );
     _hasher->deleteLater( );
     _hasher = nullptr;
 
-    _sliceStatus->setText( "idle" );
-
-    debug(
-        "  + model filename:        '%s'\n"
-        "  + job working directory: '%s'\n"
-        "",
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->jobWorkingDirectory.toUtf8( ).data( )
-    );
-
-    QDir jobDir { _printJob->jobWorkingDirectory };
-    bool preSliced;
-
-    if ( jobDir.exists( ) ) {
-        debug( "  + job directory already exists, checking sliced model\n" );
-        preSliced = _checkPreSlicedFiles( );
-        if ( preSliced ) {
-            debug( "  + pre-sliced model is good\n" );
-        } else {
-            debug( "  + pre-sliced model is NOT good\n" );
-            jobDir.removeRecursively( );
-        }
-    } else {
-        debug( "  + job directory does not exist\n" );
-        preSliced = false;
-    }
-
-    _setNavigationButtonsEnabled( preSliced );
-    _sliceButton->setEnabled( true );
-    if ( preSliced ) {
-        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
-        _sliceButton->setText( "Reslice" );
-        emit alreadySliced( );
-    } else {
-        _navigateCurrentLabel->setText( "0/0" );
-        _sliceButton->setText( "Slice" );
-    }
+    bool goodJobDir = _checkJobDirectory( );
+    emit slicingNeeded( !goodJobDir );
 }
 
 void PrepareTab::slicerProcessErrorOccurred( QProcess::ProcessError error ) {
@@ -372,26 +402,23 @@ void PrepareTab::slicerProcessFinished( int exitCode, QProcess::ExitStatus exitS
     if ( exitStatus == QProcess::CrashExit ) {
         debug( "  + slicer process crashed?\n" );
         _sliceStatus->setText( "crashed" );
-        emit sliceComplete( false );
+        emit uiStateChanged( TabIndex::Prepare, UiState::SelectCompleted );
         return;
     } else if ( ( exitStatus == QProcess::NormalExit ) && ( exitCode != 0 ) ) {
         debug( "  + slicer process failed\n" );
         _sliceStatus->setText( "failed" );
-        emit sliceComplete( false );
+        emit uiStateChanged( TabIndex::Prepare, UiState::SelectCompleted );
         return;
     }
 
     _sliceStatus->setText( "finished" );
-
-    emit sliceComplete( true );
+    _imageGeneratorStatus->setText( "starting" );
 
     _svgRenderer = new SvgRenderer;
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
     _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
-
-    emit renderStarted( );
 }
 
 void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
@@ -418,14 +445,14 @@ void PrepareTab::svgRenderer_done( bool const success ) {
     _svgRenderer->deleteLater( );
     _svgRenderer = nullptr;
 
-    _setNavigationButtonsEnabled( true );
-    _sliceButton->setText( "Reslice" );
+    _setNavigationButtonsEnabled( success );
+    _sliceButton->setText( success ? "Reslice" : "Slice" );
 
-    emit renderComplete( success );
+    emit uiStateChanged( TabIndex::Prepare, success ? UiState::SliceCompleted : UiState::SelectCompleted );
 }
 
 void PrepareTab::prepareButton_clicked( bool ) {
-    debug( "+ PrepareTab::_prepareButton_clicked\n" );
+    debug( "+ PrepareTab::prepareButton_clicked\n" );
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
 
@@ -433,16 +460,17 @@ void PrepareTab::prepareButton_clicked( bool ) {
     _prepareProgress->show( );
 
     _prepareButton->setText( QString( "Continue" ) );
-    _prepareButton->setEnabled( false );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::shepherd_homeComplete );
     _shepherd->doHome( );
 
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
     emit preparePrinterStarted( );
 }
 
 void PrepareTab::shepherd_homeComplete( bool const success ) {
-    debug( "+ PrepareTab::_shepherd_homeComplete: success: %s\n", success ? "true" : "false" );
+    debug( "+ PrepareTab::shepherd_homeComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
     _prepareProgress->hide( );
@@ -464,7 +492,7 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 }
 
 void PrepareTab::adjustBuildPlatform_complete( bool ) {
-    debug( "+ PrepareTab::_adjustBuildPlatform_complete\n" );
+    debug( "+ PrepareTab::adjustBuildPlatform_complete\n" );
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
     _prepareButton->setEnabled( false );
@@ -472,12 +500,12 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareMessage->setText( QString( "Raising the build platform..." ) );
     _prepareProgress->show( );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_resinLoadMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
+    _shepherd->doMoveAbsolute( PrinterMaximumZ );
 }
 
-void PrepareTab::shepherd_resinLoadMoveToComplete( bool const success ) {
-    debug( "+ PrepareTab::_shepherd_resinLoadMoveToComplete: success: %s\n", success ? "true" : "false" );
+void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
+    debug( "+ PrepareTab::shepherd_raiseBuildPlatformMoveToComplete: success: %s\n", success ? "true" : "false" );
 
     QObject::disconnect( _shepherd, nullptr, this, nullptr );
     _prepareProgress->hide( );
@@ -498,30 +526,76 @@ void PrepareTab::shepherd_resinLoadMoveToComplete( bool const success ) {
     _prepareButton->setText( "Prepare" );
     _prepareButton->setEnabled( true );
 
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
     emit preparePrinterComplete( true );
 }
 
-void PrepareTab::setPrepareButtonEnabled( bool const enabled ) {
-    _prepareButton->setEnabled( enabled );
+void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ PrepareTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+
+    switch ( _uiState ) {
+        case UiState::SelectStarted:
+            _setSliceControlsEnabled( false );
+            break;
+
+        case UiState::SelectCompleted:
+            _setSliceControlsEnabled( false );
+
+            _sliceStatus->setText( "idle" );
+            _imageGeneratorStatus->setText( "idle" );
+            _currentSliceImage->clear( );
+            _navigateCurrentLabel->setText( "0/0" );
+            _setNavigationButtonsEnabled( false );
+
+            if ( _hasher ) {
+                _hasher->deleteLater( );
+            }
+            _hasher = new Hasher;
+            QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
+            _hasher->hash( _printJob->modelFileName );
+            break;
+
+        case UiState::SliceStarted:
+            _setSliceControlsEnabled( false );
+            break;
+
+        case UiState::SliceCompleted:
+            _setSliceControlsEnabled( true );
+            break;
+
+        case UiState::PrintStarted:
+            _setSliceControlsEnabled( false );
+            setPrinterAvailable( false );
+            emit printerAvailabilityChanged( false );
+            break;
+
+        case UiState::PrintCompleted:
+            _setSliceControlsEnabled( true );
+            setPrinterAvailable( true );
+            emit printerAvailabilityChanged( true );
+            break;
+    }
 }
 
-void PrepareTab::setSliceButtonEnabled( bool const enabled ) {
-    _sliceButton->setEnabled( enabled );
+void PrepareTab::printer_online( ) {
+    _isPrinterOnline = true;
+    debug( "+ PrepareTab::printer_online: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updatePrepareButtonState( );
 }
 
-void PrepareTab::resetState( ) {
-    _sliceStatus->setText( "idle" );
-    _imageGeneratorStatus->setText( "idle" );
-    _currentSliceImage->clear( );
-    _navigateCurrentLabel->setText( "0/0" );
-    _setNavigationButtonsEnabled( false );
+void PrepareTab::printer_offline( ) {
+    _isPrinterOnline = false;
+    debug( "+ PrepareTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updatePrepareButtonState( );
 }
 
-void PrepareTab::modelSelected( ) {
-    resetState( );
-    _sliceButton->setEnabled( false );
+void PrepareTab::setPrinterAvailable( bool const value ) {
+    _isPrinterAvailable = value;
+    debug( "+ PrepareTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
-    _hasher = new Hasher;
-    QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
-    _hasher->hash( _printJob->modelFileName );
+    _updatePrepareButtonState( );
 }
