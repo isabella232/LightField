@@ -9,27 +9,29 @@ namespace {
     FILE* DebugLog       { stderr };
     FILE* OriginalStderr { stderr };
 
-    char const* DebugLogPath = "/var/log/lightfield";
+    char const* DebugLogPaths[] {
+        "/var/log/lightfield/debug.log",
+        "/var/log/lightfield/debug.1.log",
+        "/var/log/lightfield/debug.2.log",
+        "/var/log/lightfield/debug.3.log",
+        "/var/log/lightfield/debug.4.log",
+        "/var/log/lightfield/debug.5.log",
+    };
 
 }
 
 DebugManager::DebugManager( ) {
-    ::mkdir( DebugLogPath, 0700 );
+    ::unlink( DebugLogPaths[5] );
+    ::rename( DebugLogPaths[4], DebugLogPaths[5] );
+    ::rename( DebugLogPaths[3], DebugLogPaths[4] );
+    ::rename( DebugLogPaths[2], DebugLogPaths[3] );
+    ::rename( DebugLogPaths[1], DebugLogPaths[2] );
+    ::rename( DebugLogPaths[0], DebugLogPaths[1] );
 
-    time_t currentTimeT = ::time( nullptr );
-
-    struct tm currentTm;
-    ::gmtime_r( &currentTimeT, &currentTm );
-
-    char timestamp[128] { };
-    ::strftime( timestamp, sizeof( timestamp ), "%Y%m%d%H%M%S", &currentTm );
-
-    QString debugLogFileName = QString( "%1/%2.log" ).arg( DebugLogPath ).arg( timestamp );
-
-    DebugLog = ::fopen( debugLogFileName.toUtf8( ).data( ), "wtx" );
+    DebugLog = ::fopen( DebugLogPaths[0], "wtx" );
     if ( !DebugLog ) {
         error_t err = errno;
-        fprintf( stderr, "failed to open debug log file %s.log: %s [%d]", timestamp, strerror( err ), err );
+        fprintf( stderr, "failed to open log file '%s': %s [%d]", DebugLogPaths[0], strerror( err ), err );
         DebugLog = stderr;
     } else {
         // save the original stderr
