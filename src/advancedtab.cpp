@@ -295,7 +295,7 @@ void AdvancedTab::shepherd_sendComplete( bool const success ) {
 }
 
 void AdvancedTab::_updateProjectorFloodlightGroup( ) {
-    _projectorFloodlightGroup->setEnabled( _isPrinterOnline && _isPrinterAvailable );
+    _projectorFloodlightGroup->setEnabled( ( _pngDisplayer != nullptr ) || ( _isPrinterOnline && _isPrinterAvailable ) );
 }
 
 void AdvancedTab::printer_online( ) {
