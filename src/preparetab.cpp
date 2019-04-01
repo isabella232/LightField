@@ -242,7 +242,7 @@ bool PrepareTab::_checkJobDirectory( ) {
     _setNavigationButtonsEnabled( preSliced );
     _setSliceControlsEnabled( true );
     if ( preSliced ) {
-        _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, ceil( log10( _printJob->layerCount ) ), 10, FigureSpace ).arg( _printJob->layerCount ) );
+        _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
         return true;
     } else {
@@ -280,8 +280,7 @@ void PrepareTab::_showLayerImage( int const layer ) {
     }
     _currentSliceImage->setPixmap( pixmap );
 
-    int fieldWidth = ceil( log10( _printJob->layerCount ) );
-    _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+    _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
 }
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
@@ -425,8 +424,7 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
     debug( "+ PrepareTab::svgRenderer_layerCount: totalLayers %d\n", totalLayers );
     _printJob->layerCount = totalLayers;
 
-    int fieldWidth = ceil( log10( _printJob->layerCount ) );
-    _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( 0, fieldWidth, 10, FigureSpace ).arg( _printJob->layerCount ) );
+    _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
 }
 
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
