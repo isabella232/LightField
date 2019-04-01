@@ -81,16 +81,22 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _loadPrintSolutionLabel->setTextFormat( Qt::RichText );
     _loadPrintSolutionLabel->setWordWrap( true );
 
+    _printSolutionLoadedButton->setFixedSize( MainButtonSize );
+    _printSolutionLoadedButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
     _printSolutionLoadedButton->setText( "Continue" );
     QObject::connect( _printSolutionLoadedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
 
     _loadPrintSolutionGroup->setTitle( "Dispense print solution" );
     _loadPrintSolutionGroup->setContentsMargins( { } );
-    _loadPrintSolutionGroup->setEnabled( false );
-    _loadPrintSolutionGroup->setFixedWidth( MainButtonSize.width( ) );
-    _loadPrintSolutionGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _loadPrintSolutionGroup->setLayout( WrapWidgetsInVBox( { nullptr, _loadPrintSolutionLabel, nullptr, _printSolutionLoadedButton, nullptr } ) );
-
+    _loadPrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _loadPrintSolutionGroup->setVisible( false );
+    {
+        auto buttonLayout            = WrapWidgetsInHBox( { nullptr, _printSolutionLoadedButton, nullptr } );
+        auto loadPrintSolutionLayout = WrapWidgetsInVBox( { nullptr, _loadPrintSolutionLabel, nullptr } );
+        loadPrintSolutionLayout->addLayout( buttonLayout );
+        loadPrintSolutionLayout->addStretch( );
+        _loadPrintSolutionGroup->setLayout( loadPrintSolutionLayout );
+    }
 
     _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
     _warningUvImage  = new QPixmap { QString { ":images/warning-uv.png"  } };
@@ -117,7 +123,6 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperatureDisplay } ) );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperatureDisplay  } ) );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _heaterStateLabel,        nullptr, _heaterStateDisplay        } ) );
-    _progressControlsLayout->addWidget( _loadPrintSolutionGroup );
     _progressControlsLayout->addStretch( );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
     _progressControlsLayout->addStretch( );
@@ -150,14 +155,12 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
         palette.setColor( QPalette::ButtonText, Qt::yellow );
         _stopButton->setPalette( palette );
     }
-    _stopButton->setEnabled( true );
     _stopButton->setFixedSize( MainButtonSize );
     _stopButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
     _stopButton->setVisible( false );
     _stopButton->setText( "STOP" );
     QObject::connect( _stopButton, &QPushButton::clicked, this, &StatusTab::stopButton_clicked );
 
-    _reprintButton->setEnabled( false );
     _reprintButton->setFixedSize( MainButtonSize );
     _reprintButton->setFont( font22pt );
     _reprintButton->setVisible( true );
@@ -170,6 +173,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _layout->addWidget( _stopButton,                1, 0, 1, 1 );
     _layout->addWidget( _reprintButton,             1, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup,         0, 1, 2, 1 );
+    _layout->addWidget( _loadPrintSolutionGroup,    0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -246,6 +250,7 @@ void StatusTab::printer_offline( ) {
 
 void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
+    _stopButton->setEnabled( false );
     _updatePrintTimeInfo->stop( );
     if ( _printManager ) {
         _printManager->abort( );
@@ -327,7 +332,8 @@ void StatusTab::printManager_printComplete( bool const success ) {
 void StatusTab::printManager_printAborted( ) {
     debug( "+ StatusTab::printManager_printAborted\n" );
 
-    _loadPrintSolutionGroup->setEnabled( false );
+    _loadPrintSolutionGroup->setVisible( false );
+    _currentLayerGroup->setVisible( true );
 
     _updatePrintTimeInfo->stop( );
 
@@ -379,13 +385,16 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 
 void StatusTab::printManager_requestLoadPrintSolution( ) {
     _loadPrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
-    _loadPrintSolutionGroup->setEnabled( true );
+
+    _currentLayerGroup->setVisible( false );
+    _loadPrintSolutionGroup->setVisible( true );
 }
 
 void StatusTab::printSolutionLoadedButton_clicked( bool ) {
-    _loadPrintSolutionGroup->setEnabled( false );
-
     _printManager->printSolutionLoaded( );
+
+    _currentLayerGroup->setVisible( true );
+    _loadPrintSolutionGroup->setVisible( false );
 }
 
 void StatusTab::_connectPrintManager( ) {
@@ -422,6 +431,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
         case UiState::PrintStarted:
             _reprintButton->setVisible( false );
+            _stopButton->setEnabled( true );
             _stopButton->setVisible( true );
             break;
     }
