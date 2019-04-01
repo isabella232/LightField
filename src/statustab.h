@@ -40,6 +40,12 @@ private:
     QLabel*             _estimatedTimeLeftDisplay  { new QLabel      };
     QLabel*             _percentageCompleteLabel   { new QLabel      };
     QLabel*             _percentageCompleteDisplay { new QLabel      };
+    QLabel*             _currentTemperatureLabel   { new QLabel      };
+    QLabel*             _currentTemperatureDisplay { new QLabel      };
+    QLabel*             _targetTemperatureLabel    { new QLabel      };
+    QLabel*             _targetTemperatureDisplay  { new QLabel      };
+    QLabel*             _heaterStateLabel          { new QLabel      };
+    QLabel*             _heaterStateDisplay        { new QLabel      };
     QWidget*            _progressControlsContainer { new QWidget     };
     QVBoxLayout*        _progressControlsLayout    { new QVBoxLayout };
 

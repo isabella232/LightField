@@ -64,6 +64,18 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
 
     _percentageCompleteDisplay->setFont( boldFont );
 
+    _currentTemperatureLabel->setText( "Current temperature:" );
+
+    _currentTemperatureDisplay->setFont( boldFont );
+
+    _targetTemperatureLabel->setText( "Target temperature:" );
+
+    _targetTemperatureDisplay->setFont( boldFont );
+
+    _heaterStateLabel->setText( "Heater state:" );
+
+    _heaterStateDisplay->setFont( boldFont );
+
 
     _loadPrintSolutionLabel->setAlignment( Qt::AlignHCenter );
     _loadPrintSolutionLabel->setTextFormat( Qt::RichText );
@@ -102,6 +114,9 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _elapsedTimeLabel,        nullptr, _elapsedTimeDisplay        } ) );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _estimatedTimeLeftLabel,  nullptr, _estimatedTimeLeftDisplay  } ) );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _percentageCompleteLabel, nullptr, _percentageCompleteDisplay } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperatureDisplay } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperatureDisplay  } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _heaterStateLabel,        nullptr, _heaterStateDisplay        } ) );
     _progressControlsLayout->addWidget( _loadPrintSolutionGroup );
     _progressControlsLayout->addStretch( );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
@@ -325,12 +340,16 @@ void StatusTab::printManager_printAborted( ) {
     emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
 }
 
-void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const /*bedTargetTemperature*/, int const /*bedPwm*/ ) {
+void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
     if ( bedCurrentTemperature >= 30.0 ) {
         _warningHotLabel->setPixmap( *_warningHotImage );
     } else {
         _warningHotLabel->clear( );
     }
+
+    _currentTemperatureDisplay->setText( QString { "%1 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ) );
+    _targetTemperatureDisplay ->setText( QString { "%1 °C" }.arg( bedTargetTemperature,  0, 'f', 1 ) );
+    _heaterStateDisplay       ->setText( ( bedPwm != 0 ) ? "ON" : "off" );
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
