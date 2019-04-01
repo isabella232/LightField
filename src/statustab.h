@@ -26,60 +26,60 @@ protected:
 
 private:
 
-    QLabel*             _printerStateLabel         { new QLabel      };
-    QLabel*             _printerStateDisplay       { new QLabel      };
-    QLabel*             _projectorLampStateLabel   { new QLabel      };
-    QLabel*             _projectorLampStateDisplay { new QLabel      };
-    QLabel*             _jobStateLabel             { new QLabel      };
-    QLabel*             _jobStateDisplay           { new QLabel      };
-    QLabel*             _currentLayerLabel         { new QLabel      };
-    QLabel*             _currentLayerDisplay       { new QLabel      };
-    QLabel*             _elapsedTimeLabel          { new QLabel      };
-    QLabel*             _elapsedTimeDisplay        { new QLabel      };
-    QLabel*             _estimatedTimeLeftLabel    { new QLabel      };
-    QLabel*             _estimatedTimeLeftDisplay  { new QLabel      };
-    QLabel*             _percentageCompleteLabel   { new QLabel      };
-    QLabel*             _percentageCompleteDisplay { new QLabel      };
-    QLabel*             _currentTemperatureLabel   { new QLabel      };
-    QLabel*             _currentTemperatureDisplay { new QLabel      };
-    QLabel*             _targetTemperatureLabel    { new QLabel      };
-    QLabel*             _targetTemperatureDisplay  { new QLabel      };
-    QLabel*             _heaterStateLabel          { new QLabel      };
-    QLabel*             _heaterStateDisplay        { new QLabel      };
-    QWidget*            _progressControlsContainer { new QWidget     };
-    QVBoxLayout*        _progressControlsLayout    { new QVBoxLayout };
+    QLabel*             _printerStateLabel            { new QLabel      };
+    QLabel*             _printerStateDisplay          { new QLabel      };
+    QLabel*             _projectorLampStateLabel      { new QLabel      };
+    QLabel*             _projectorLampStateDisplay    { new QLabel      };
+    QLabel*             _jobStateLabel                { new QLabel      };
+    QLabel*             _jobStateDisplay              { new QLabel      };
+    QLabel*             _currentLayerLabel            { new QLabel      };
+    QLabel*             _currentLayerDisplay          { new QLabel      };
+    QLabel*             _elapsedTimeLabel             { new QLabel      };
+    QLabel*             _elapsedTimeDisplay           { new QLabel      };
+    QLabel*             _estimatedTimeLeftLabel       { new QLabel      };
+    QLabel*             _estimatedTimeLeftDisplay     { new QLabel      };
+    QLabel*             _percentageCompleteLabel      { new QLabel      };
+    QLabel*             _percentageCompleteDisplay    { new QLabel      };
+    QLabel*             _currentTemperatureLabel      { new QLabel      };
+    QLabel*             _currentTemperatureDisplay    { new QLabel      };
+    QLabel*             _targetTemperatureLabel       { new QLabel      };
+    QLabel*             _targetTemperatureDisplay     { new QLabel      };
+    QLabel*             _heaterStateLabel             { new QLabel      };
+    QLabel*             _heaterStateDisplay           { new QLabel      };
+    QWidget*            _progressControlsContainer    { new QWidget     };
+    QVBoxLayout*        _progressControlsLayout       { new QVBoxLayout };
 
-    QLabel*             _currentLayerImage         { new QLabel      };
-    QVBoxLayout*        _currentLayerLayout        {                 };
-    QGroupBox*          _currentLayerGroup         { new QGroupBox   };
+    QLabel*             _currentLayerImage            { new QLabel      };
+    QVBoxLayout*        _currentLayerLayout           {                 };
+    QGroupBox*          _currentLayerGroup            { new QGroupBox   };
 
-    QLabel*             _loadPrintSolutionLabel    { new QLabel      };
-    QPushButton*        _printSolutionLoadedButton { new QPushButton };
-    QGroupBox*          _loadPrintSolutionGroup    { new QGroupBox   };
+    QLabel*             _dispensePrintSolutionLabel   { new QLabel      };
+    QPushButton*        _printSolutionDispensedButton { new QPushButton };
+    QGroupBox*          _dispensePrintSolutionGroup   { new QGroupBox   };
 
-    QLabel*             _warningHotLabel           { new QLabel      };
-    QLabel*             _warningUvLabel            { new QLabel      };
+    QLabel*             _warningHotLabel              { new QLabel      };
+    QLabel*             _warningUvLabel               { new QLabel      };
 
-    QPushButton*        _stopButton                { new QPushButton };
-    QPushButton*        _reprintButton             { new QPushButton };
+    QPushButton*        _stopButton                   { new QPushButton };
+    QPushButton*        _reprintButton                { new QPushButton };
 
-    QGridLayout*        _layout                    { new QGridLayout };
-    QTimer*             _updatePrintTimeInfo       { };
+    QGridLayout*        _layout                       { new QGridLayout };
+    QTimer*             _updatePrintTimeInfo          { };
 
-    QPixmap*            _warningHotImage           { };
-    QPixmap*            _warningUvImage            { };
+    QPixmap*            _warningHotImage              { };
+    QPixmap*            _warningUvImage               { };
 
-    bool                _isFirstOnlineTaskDone     { false };
-    bool                _isPrinterOnline           { false };
-    bool                _isPrinterAvailable        { true  };
-    bool                _isPrinterPrepared         { false };
-    bool                _isModelRendered           { false };
+    bool                _isFirstOnlineTaskDone        { false };
+    bool                _isPrinterOnline              { false };
+    bool                _isPrinterAvailable           { true  };
+    bool                _isPrinterPrepared            { false };
+    bool                _isModelRendered              { false };
 
-    double              _printJobStartTime         { };
-    double              _currentLayerStartTime     { };
-    double              _previousLayerStartTime    { };
-    double              _estimatedPrintJobTime     { };
-    std::vector<double> _layerElapsedTimes         { };
+    double              _printJobStartTime            { };
+    double              _currentLayerStartTime        { };
+    double              _previousLayerStartTime       { };
+    double              _estimatedPrintJobTime        { };
+    std::vector<double> _layerElapsedTimes            { };
 
     void _updateReprintButtonState( );
 
@@ -117,7 +117,7 @@ private slots:
 
     void stopButton_clicked( bool );
     void reprintButton_clicked( bool );
-    void printManager_requestLoadPrintSolution( );
+    void printManager_requestDispensePrintSolution( );
     void printSolutionLoadedButton_clicked( bool );
 
 };

@@ -150,7 +150,7 @@ void PrintManager::stepA2_start( ) {
 
     debug( "+ PrintManager::stepA2_start: waiting for user to dispense print solution\n" );
 
-    emit requestLoadPrintSolution( );
+    emit requestDispensePrintSolution( );
 }
 
 void PrintManager::stepA2_completed( ) {

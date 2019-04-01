@@ -63,7 +63,7 @@ private:
 
 signals:
 
-    void requestLoadPrintSolution( );
+    void requestDispensePrintSolution( );
     void printStarting( );
     void printComplete( bool const success );
     void printAborted( );
