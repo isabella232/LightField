@@ -47,7 +47,6 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _exposureTimeScaleFactorValue->setFont( boldFont );
 
     _exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { _exposureTimeScaleFactorLabel, nullptr, _exposureTimeScaleFactorValue } );
-    _exposureTimeScaleFactorValueLayout->setContentsMargins( { } );
 
 
     _exposureTimeScaleFactorSlider->setMinimum( 1 );
@@ -106,8 +105,9 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _optionsLayout->addWidget( _printSpeedSlider );
     _optionsLayout->addStretch( );
 
-    _optionsContainer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _optionsContainer->setLayout( _optionsLayout );
+    _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _optionsGroup->setLayout( _optionsLayout );
+    _optionsGroup->setTitle( "Print settings" );
 
     _printButton->setEnabled( false );
     _printButton->setFixedSize( MainButtonSize );
@@ -128,8 +128,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
 
-    _layout->setContentsMargins( { } );
-    _layout->addWidget( _optionsContainer, 0, 0, 1, 2 );
+    _layout->addWidget( _optionsGroup,     0, 0, 1, 2 );
     _layout->addWidget( _printButton,      1, 0, 1, 1 );
     _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
     _layout->setRowStretch( 0, 4 );

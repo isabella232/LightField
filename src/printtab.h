@@ -71,7 +71,7 @@ private:
     QSlider*           _printSpeedSlider                   { new QSlider     };
 
     QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
-    QWidget*           _optionsContainer                   { new QWidget     };
+    QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
     QPushButton*       _printButton                        { new QPushButton };
 
