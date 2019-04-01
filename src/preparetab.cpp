@@ -431,7 +431,7 @@ void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
     _renderedLayers = currentLayer;
     _imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
 
-    if ( 0 == ( currentLayer % 5 ) ) {
+    if ( ( 0 == currentLayer ) || ( 0 == ( ( currentLayer + 1 ) % 5 ) ) ) {
         _visibleLayer = currentLayer;
         _showLayerImage( _visibleLayer );
     }
