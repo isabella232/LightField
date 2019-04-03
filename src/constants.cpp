@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "constants.h"
 
-QSize          const MainButtonSize           {  218,  84 };
+QSize          const MainButtonSize           {  218,  74 };
 QSize          const MainWindowSize           {  800, 480 };
 QSize          const MaximalRightHandPaneSize {  564, 424 };
 QSize          const PngDisplayWindowSize     { 1280, 800 };
