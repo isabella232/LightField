@@ -43,15 +43,16 @@ protected:
 
 private:
 
-    bool           _lampOn               { };
-    PrintResult    _printResult          { };
     Shepherd*      _shepherd             { };
     PrintJob*      _printJob             { };
     PngDisplayer*  _pngDisplayer         { };
     ProcessRunner* _setpowerProcess      { };
-    PrintStep      _step                 { };
+    PrintResult    _printResult          { };
 
+    bool           _lampOn               { };
+    PrintStep      _step                 { };
     int            _currentLayer         { };
+    bool           _paused               { false };
 
     QTimer*        _preProjectionTimer   { };
     QTimer*        _layerProjectionTimer { };
@@ -67,6 +68,9 @@ signals:
     void printStarting( );
     void printComplete( bool const success );
     void printAborted( );
+    void printPausable( bool const pausable );
+    void printPaused( );
+    void printResumed( );
     void startingLayer( int const layer );
     void lampStatusChange( bool const on );
 
@@ -74,6 +78,8 @@ public slots:
 
     void printSolutionLoaded( );
 
+    void pause( );
+    void resume( );
     void terminate( );
     void abort( );
 

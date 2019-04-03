@@ -264,11 +264,16 @@ void PrintManager::stepA6_completed( ) {
     }
 
     stepB1_start( );
+    emit printPausable( true );
 }
 
 // B1. Start projection: "setpower ${_printJob->powerLevel}".
 void PrintManager::stepB1_start( ) {
     _step = PrintStep::B1;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     debug( "+ PrintManager::stepB1_start: running 'setpower %d'\n", _printJob->powerLevel );
 
@@ -309,6 +314,10 @@ void PrintManager::stepB1_failed( QProcess::ProcessError const ) {
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
 void PrintManager::stepB2_start( ) {
     _step = PrintStep::B2;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     int layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
@@ -332,6 +341,10 @@ void PrintManager::stepB2_completed( ) {
 // B3. Stop projection: "setpower 0".
 void PrintManager::stepB3_start( ) {
     _step = PrintStep::B3;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     debug( "+ PrintManager::stepB3_start: running 'setpower 0'\n" );
 
@@ -365,6 +378,10 @@ void PrintManager::stepB3_failed( QProcess::ProcessError const error ) {
 // B4. Pause before raise.
 void PrintManager::stepB4_start( ) {
     _step = PrintStep::B4;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     debug( "+ PrintManager::stepB4_start: pausing for %d ms before raising build platform\n", PauseBeforeLift );
 
@@ -387,6 +404,10 @@ void PrintManager::stepB4_completed( ) {
 // B5. Raise the build platform by LiftDistance.
 void PrintManager::stepB5_start( ) {
     _step = PrintStep::B5;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     if ( ++_currentLayer == _printJob->layerCount ) {
         debug( "+ PrintManager::stepB5_start: print complete\n" );
@@ -421,6 +442,10 @@ void PrintManager::stepB5_completed( bool const success ) {
 // B6. Lower the build platform by LiftDistance - LayerHeight.
 void PrintManager::stepB6_start( ) {
     _step = PrintStep::B6;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
     debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", moveDistance );
@@ -448,6 +473,10 @@ void PrintManager::stepB6_completed( bool const success ) {
 // B7. Pause before projection.
 void PrintManager::stepB7_start( ) {
     _step = PrintStep::B7;
+    if ( _paused ) {
+        emit printPaused( );
+        return;
+    }
 
     debug( "+ PrintManager::stepB7_start: pausing for %d ms before projecting layer\n", PauseBeforeProject );
 
@@ -470,6 +499,7 @@ void PrintManager::stepB7_completed( ) {
 // C1. Configure print speed.
 void PrintManager::stepC1_start( ) {
     _step = PrintStep::C1;
+    emit printPausable( false );
 
     if ( _lampOn ) {
         debug( "+ PrintManager::stepC1_start: Turning off lamp\n" );
@@ -533,6 +563,7 @@ void PrintManager::print( PrintJob* printJob ) {
 
     _pngDisplayer = new PngDisplayer( );
     _pngDisplayer->setFixedSize( PngDisplayWindowSize );
+    _pngDisplayer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
     _pngDisplayer->show( );
 
@@ -540,6 +571,37 @@ void PrintManager::print( PrintJob* printJob ) {
     _printResult = PrintResult::None;
     emit printStarting( );
     stepA1_start( );
+}
+
+void PrintManager::pause( ) {
+    debug( "+ PrintManager::pause\n" );
+    if ( _paused ) {
+        return;
+    }
+
+    _paused = true;
+}
+
+void PrintManager::resume( ) {
+    debug( "+ PrintManager::resume\n" );
+    if ( !_paused ) {
+        return;
+    }
+
+    _paused = false;
+    switch ( _step ) {
+        case PrintStep::B1: stepB1_start( ); break;
+        case PrintStep::B2: stepB2_start( ); break;
+        case PrintStep::B3: stepB3_start( ); break;
+        case PrintStep::B4: stepB4_start( ); break;
+        case PrintStep::B5: stepB5_start( ); break;
+        case PrintStep::B6: stepB6_start( ); break;
+        case PrintStep::B7: stepB7_start( ); break;
+        default:
+            debug( "+ PrintManager::resume: paused in invalid state %s\n", ToString( _step ) );
+            break;
+    }
+    emit printResumed( );
 }
 
 void PrintManager::terminate( ) {
@@ -551,16 +613,36 @@ void PrintManager::abort( ) {
     debug( "+ PrintManager::abort\n" );
 
     _printResult = PrintResult::Abort;
-    if ( _step == PrintStep::A2 ) {
-        debug( "  + Aborting print solution load prompt\n" );
-        stepA2_completed( );
-        return;
-    }
-    if ( _step == PrintStep::none ) {
-        debug( "  + Going directly to step C1\n" );
-        stepC1_start( );
-    } else {
-        debug( "  + Waiting on current step to stop\n" );
+    switch ( _step ) {
+        case PrintStep::none:
+            debug( "  + Going directly to step C1\n" );
+            stepC1_start( );
+            break;
+
+        case PrintStep::A2:
+            debug( "  + Aborting print solution load prompt\n" );
+            stepA2_completed( );
+            break;
+
+        case PrintStep::A6:
+        case PrintStep::B7:
+            debug( "  + Interrupting pre-projection timer\n" );
+            _stopAndCleanUpTimer( _preProjectionTimer );
+            break;
+
+        case PrintStep::B2:
+            debug( "  + Interrupting layer projection timer\n" );
+            _stopAndCleanUpTimer( _layerProjectionTimer );
+            break;
+
+        case PrintStep::B4:
+            debug( "  + Interrupting pre-lift timer\n" );
+            _stopAndCleanUpTimer( _preLiftTimer );
+            break;
+
+        default:
+            debug( "  + Waiting on current step to stop\n" );
+            break;
     }
 }
 

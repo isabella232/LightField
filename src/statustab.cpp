@@ -77,41 +77,6 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _heaterStateDisplay->setFont( boldFont );
 
 
-    _dispensePrintSolutionLabel->setAlignment( Qt::AlignHCenter );
-    _dispensePrintSolutionLabel->setTextFormat( Qt::RichText );
-    _dispensePrintSolutionLabel->setWordWrap( true );
-
-    _printSolutionDispensedButton->setFixedSize( MainButtonSize );
-    _printSolutionDispensedButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
-    _printSolutionDispensedButton->setText( "Continue" );
-    QObject::connect( _printSolutionDispensedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
-
-    _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
-    _dispensePrintSolutionGroup->setContentsMargins( { } );
-    _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _dispensePrintSolutionGroup->setVisible( false );
-    {
-        auto buttonLayout                = WrapWidgetsInHBox( { nullptr, _printSolutionDispensedButton, nullptr } );
-        auto dispensePrintSolutionLayout = WrapWidgetsInVBox( { nullptr, _dispensePrintSolutionLabel, nullptr } );
-        dispensePrintSolutionLayout->addLayout( buttonLayout );
-        dispensePrintSolutionLayout->addStretch( );
-        _dispensePrintSolutionGroup->setLayout( dispensePrintSolutionLayout );
-    }
-
-    _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
-    _warningUvImage  = new QPixmap { QString { ":images/warning-uv.png"  } };
-
-    _warningHotLabel->setAlignment( Qt::AlignCenter );
-    _warningHotLabel->setContentsMargins( { } );
-    _warningHotLabel->setFixedSize( 43, 43 );
-    _warningHotLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-    _warningUvLabel->setAlignment( Qt::AlignCenter );
-    _warningUvLabel->setContentsMargins( { } );
-    _warningUvLabel->setFixedSize( 43, 43 );
-    _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-
     _progressControlsLayout->setContentsMargins( { } );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _printerStateLabel,       nullptr, _printerStateDisplay       } ) );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _projectorLampStateLabel, nullptr, _projectorLampStateDisplay } ) );
@@ -127,26 +92,26 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
     _progressControlsLayout->addStretch( );
 
-    _progressControlsContainer->setContentsMargins( { } );
-    _progressControlsContainer->setLayout( _progressControlsLayout );
-    _progressControlsContainer->setFixedWidth( MainButtonSize.width( ) );
-    _progressControlsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+    _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
+    _warningUvImage  = new QPixmap { QString { ":images/warning-uv.png"  } };
+
+    _warningHotLabel->setAlignment( Qt::AlignCenter );
+    _warningHotLabel->setContentsMargins( { } );
+    _warningHotLabel->setFixedSize( 43, 43 );
+    _warningHotLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+    _warningUvLabel->setAlignment( Qt::AlignCenter );
+    _warningUvLabel->setContentsMargins( { } );
+    _warningUvLabel->setFixedSize( 43, 43 );
+    _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
 
-    _currentLayerImage->setAlignment( Qt::AlignCenter );
-    _currentLayerImage->setContentsMargins( { } );
-    _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
-
-    _currentLayerLayout = WrapWidgetInVBox( _currentLayerImage );
-    _currentLayerLayout->setAlignment( Qt::AlignCenter );
-    _currentLayerLayout->setContentsMargins( { } );
-
-    _currentLayerGroup->setTitle( "Current layer" );
-    _currentLayerGroup->setContentsMargins( { } );
-    _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
-    _currentLayerGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _currentLayerGroup->setLayout( _currentLayerLayout );
+    _pauseButton->setFixedSize( MainButtonSize );
+    _pauseButton->setFont( font22pt );
+    _pauseButton->setEnabled( false );
+    _pauseButton->setText( "Pause" );
+    QObject::connect( _pauseButton, &QPushButton::clicked, this, &StatusTab::pauseButton_clicked );
 
 
     {
@@ -168,14 +133,69 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     QObject::connect( _reprintButton, &QPushButton::clicked, this, &StatusTab::reprintButton_clicked );
 
 
+    _leftColumnLayout->setContentsMargins( { } );
+    _leftColumnLayout->addLayout( _progressControlsLayout );
+    _leftColumnLayout->addWidget( _pauseButton            );
+    _leftColumnLayout->addWidget( _stopButton             );
+    _leftColumnLayout->addWidget( _reprintButton          );
+    _leftColumnLayout->addStretch( );
+
+    _leftColumn->setContentsMargins( { } );
+    _leftColumn->setFixedWidth( MainButtonSize.width( ) );
+    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _leftColumn->setLayout( _leftColumnLayout );
+
+
+    _currentLayerImage->setAlignment( Qt::AlignCenter );
+    _currentLayerImage->setContentsMargins( { } );
+    _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentLayerImage->setStyleSheet( "QWidget { background: black }" );
+
+    _currentLayerLayout = WrapWidgetInVBox( _currentLayerImage );
+    _currentLayerLayout->setAlignment( Qt::AlignCenter );
+    _currentLayerLayout->setContentsMargins( { } );
+
+    _currentLayerGroup->setContentsMargins( { } );
+    _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _currentLayerGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentLayerGroup->setLayout( _currentLayerLayout );
+    _currentLayerGroup->setTitle( "Current layer" );
+
+
+    _dispensePrintSolutionLabel->setAlignment( Qt::AlignHCenter );
+    _dispensePrintSolutionLabel->setTextFormat( Qt::RichText );
+    _dispensePrintSolutionLabel->setWordWrap( true );
+
+    _printSolutionDispensedButton->setFixedSize( MainButtonSize );
+    _printSolutionDispensedButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
+    _printSolutionDispensedButton->setText( "Continue" );
+    QObject::connect( _printSolutionDispensedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
+
+    _dispensePrintSolutionGroup->setContentsMargins( { } );
+    _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _dispensePrintSolutionGroup->setVisible( false );
+    _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
+    {
+        auto dispensePrintSolutionLayout = WrapWidgetsInVBox( { nullptr, _dispensePrintSolutionLabel, nullptr } );
+        dispensePrintSolutionLayout->addLayout( WrapWidgetsInHBox( { nullptr, _printSolutionDispensedButton, nullptr } ) );
+        dispensePrintSolutionLayout->addStretch( );
+
+        _dispensePrintSolutionGroup->setLayout( dispensePrintSolutionLayout );
+    }
+
+
+    _rightColumnLayout = WrapWidgetsInVBox( { _currentLayerGroup, _dispensePrintSolutionGroup, nullptr } );
+    _rightColumnLayout->setContentsMargins( { } );
+
+    _rightColumn->setContentsMargins( { } );
+    _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
+    _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _rightColumn->setLayout( _rightColumnLayout );
+
+
+    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
     _layout->setContentsMargins( { } );
-    _layout->addWidget( _progressControlsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( _stopButton,                 1, 0, 1, 1 );
-    _layout->addWidget( _reprintButton,              1, 0, 1, 1 );
-    _layout->addWidget( _currentLayerGroup,          0, 1, 2, 1 );
-    _layout->addWidget( _dispensePrintSolutionGroup, 0, 1, 2, 1 );
-    _layout->setRowStretch( 0, 4 );
-    _layout->setRowStretch( 1, 1 );
 
     setLayout( _layout );
 
@@ -248,8 +268,21 @@ void StatusTab::printer_offline( ) {
     _printerStateDisplay->setText( "offline" );
 }
 
+void StatusTab::pauseButton_clicked( bool ) {
+    auto paused = _isPaused;
+    _isPaused = !_isPaused;
+    _pauseButton->setEnabled( false );
+
+    if ( paused ) {
+        _printManager->resume( );
+    } else {
+        _printManager->pause( );
+    }
+}
+
 void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
+    _pauseButton->setEnabled( false );
     _stopButton->setEnabled( false );
     _updatePrintTimeInfo->stop( );
     if ( _printManager ) {
@@ -272,6 +305,59 @@ void StatusTab::printManager_printStarting( ) {
     _layerElapsedTimes.clear( );
 }
 
+void StatusTab::printManager_printComplete( bool const success ) {
+    debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
+
+    _updatePrintTimeInfo->stop( );
+
+    _jobStateDisplay->setText( success ? "print complete" : "print failed" );
+    _currentLayerDisplay->clear( );
+    _estimatedTimeLeftDisplay->clear( );
+    _percentageCompleteDisplay->clear( );
+    _currentLayerImage->clear( );
+
+    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+}
+
+void StatusTab::printManager_printAborted( ) {
+    debug( "+ StatusTab::printManager_printAborted\n" );
+
+    _dispensePrintSolutionGroup->setVisible( false );
+    _currentLayerGroup->setVisible( true );
+
+    _updatePrintTimeInfo->stop( );
+
+    _jobStateDisplay->setText( "print aborted" );
+    _currentLayerDisplay->clear( );
+    _estimatedTimeLeftDisplay->clear( );
+    _percentageCompleteDisplay->clear( );
+    _currentLayerImage->clear( );
+
+    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+}
+
+void StatusTab::printManager_printPausable( bool const pausable ) {
+    debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString( pausable ) );
+
+    _pauseButton->setEnabled( pausable );
+}
+
+void StatusTab::printManager_printPaused( ) {
+    debug( "+ StatusTab::printManager_printPaused\n" );
+
+    _jobStateDisplay->setText( "paused" );
+    _pauseButton->setEnabled( true );
+    _pauseButton->setText( "Resume" );
+}
+
+void StatusTab::printManager_printResumed( ) {
+    debug( "+ StatusTab::printManager_printResumed\n" );
+
+    _jobStateDisplay->setText( "printing" );
+    _pauseButton->setEnabled( true );
+    _pauseButton->setText( "Pause" );
+}
+
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
     _currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
@@ -280,8 +366,9 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     _currentLayerStartTime  = GetBootTimeClock( );
 
     if ( 0 == layer ) {
-        _jobStateDisplay->setText( "print started" );
-        _estimatedTimeLeftDisplay->setText( QString( "calculating..." ) );
+        _jobStateDisplay->setText( "printing" );
+        _estimatedTimeLeftDisplay->setText( "calculating..." );
+
         _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
     } else {
@@ -307,7 +394,7 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
     debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
-    _projectorLampStateDisplay->setText( QString( on ? "ON" : "off" ) );
+    _projectorLampStateDisplay->setText( on ? "ON" : "off" );
     if ( on ) {
         _warningUvLabel->setPixmap( *_warningUvImage );
     } else {
@@ -315,35 +402,11 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
     }
 }
 
-void StatusTab::printManager_printComplete( bool const success ) {
-    debug( "+ StatusTab::printManager_printComplete: %s\n", success ? "print complete" : "print failed" );
+void StatusTab::printManager_requestDispensePrintSolution( ) {
+    _dispensePrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
 
-    _updatePrintTimeInfo->stop( );
-
-    _jobStateDisplay->setText( QString( success ? "print complete" : "print failed" ) );
-    _currentLayerDisplay->clear( );
-    _estimatedTimeLeftDisplay->clear( );
-    _percentageCompleteDisplay->clear( );
-    _currentLayerImage->clear( );
-
-    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
-}
-
-void StatusTab::printManager_printAborted( ) {
-    debug( "+ StatusTab::printManager_printAborted\n" );
-
-    _dispensePrintSolutionGroup->setVisible( false );
-    _currentLayerGroup->setVisible( true );
-
-    _updatePrintTimeInfo->stop( );
-
-    _jobStateDisplay->setText( QString( "print aborted" ) );
-    _currentLayerDisplay->clear( );
-    _estimatedTimeLeftDisplay->clear( );
-    _percentageCompleteDisplay->clear( );
-    _currentLayerImage->clear( );
-
-    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+    _currentLayerGroup->setVisible( false );
+    _dispensePrintSolutionGroup->setVisible( true );
 }
 
 void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
@@ -383,13 +446,6 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     }
 }
 
-void StatusTab::printManager_requestDispensePrintSolution( ) {
-    _dispensePrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
-
-    _currentLayerGroup->setVisible( false );
-    _dispensePrintSolutionGroup->setVisible( true );
-}
-
 void StatusTab::printSolutionLoadedButton_clicked( bool ) {
     _printManager->printSolutionLoaded( );
 
@@ -399,11 +455,14 @@ void StatusTab::printSolutionLoadedButton_clicked( bool ) {
 
 void StatusTab::_connectPrintManager( ) {
     if ( _printManager ) {
-        QObject::connect( _printManager, &PrintManager::printStarting,                this, &StatusTab::printManager_printStarting            );
-        QObject::connect( _printManager, &PrintManager::printComplete,                this, &StatusTab::printManager_printComplete            );
-        QObject::connect( _printManager, &PrintManager::printAborted,                 this, &StatusTab::printManager_printAborted             );
-        QObject::connect( _printManager, &PrintManager::startingLayer,                this, &StatusTab::printManager_startingLayer            );
-        QObject::connect( _printManager, &PrintManager::lampStatusChange,             this, &StatusTab::printManager_lampStatusChange         );
+        QObject::connect( _printManager, &PrintManager::printStarting,                this, &StatusTab::printManager_printStarting                );
+        QObject::connect( _printManager, &PrintManager::printComplete,                this, &StatusTab::printManager_printComplete                );
+        QObject::connect( _printManager, &PrintManager::printAborted,                 this, &StatusTab::printManager_printAborted                 );
+        QObject::connect( _printManager, &PrintManager::printPausable,                this, &StatusTab::printManager_printPausable                );
+        QObject::connect( _printManager, &PrintManager::printPaused,                  this, &StatusTab::printManager_printPaused                  );
+        QObject::connect( _printManager, &PrintManager::printResumed,                 this, &StatusTab::printManager_printResumed                 );
+        QObject::connect( _printManager, &PrintManager::startingLayer,                this, &StatusTab::printManager_startingLayer                );
+        QObject::connect( _printManager, &PrintManager::lampStatusChange,             this, &StatusTab::printManager_lampStatusChange             );
         QObject::connect( _printManager, &PrintManager::requestDispensePrintSolution, this, &StatusTab::printManager_requestDispensePrintSolution );
     }
 }
