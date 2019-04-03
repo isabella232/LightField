@@ -54,8 +54,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _leftColumnLayout->addStretch( );
 
     _leftColumn->setContentsMargins( { } );
-    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
+    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _leftColumn->setLayout( _leftColumnLayout );
 
 
@@ -265,6 +265,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 
         _pngDisplayer = new PngDisplayer( );
         _pngDisplayer->setFixedSize( PngDisplayWindowSize );
+        _pngDisplayer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
         _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
         _pngDisplayer->setImageFileName( ":images/white-field.png" );
         _pngDisplayer->show( );

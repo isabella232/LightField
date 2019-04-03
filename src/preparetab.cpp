@@ -55,8 +55,8 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _prepareProgress->setTextVisible( false );
     _prepareProgress->hide( );
 
-    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareMessage  } ), 1 );
-    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareProgress } ), 1 );
+    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareMessage  } ) );
+    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareProgress } ) );
     _prepareLayout->addStretch( );
 
     _prepareGroup->setTitle( "Printer preparation" );
@@ -75,12 +75,13 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _optionsLayout->addLayout( WrapWidgetsInHBox( { _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus } ) );
     _optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
 
+    _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( _optionsLayout );
-    _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
 
     _sliceButton->setEnabled( false );
     _sliceButton->setFixedSize( MainButtonSize );
+    _sliceButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _sliceButton->setFont( font22pt );
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
@@ -128,8 +129,6 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
-    setContentsMargins( { } );
-    setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     setLayout( _layout );
 }
 
@@ -145,8 +144,8 @@ void PrepareTab::_connectShepherd( ) {
 }
 
 void PrepareTab::initialShowEvent( QShowEvent* event ) {
-    _currentSliceImage->setFixedWidth( _currentSliceImage->width( ) );
-    _currentSliceImage->setFixedHeight( _currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
+    _currentSliceImage->setFixedSize( _currentSliceImage->width( ), _currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
+
     event->accept( );
 }
 

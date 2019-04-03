@@ -71,9 +71,9 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _availableFilesLayout->addWidget( _availableFilesLabel,    1, 0 );
     _availableFilesLayout->addWidget( _availableFilesListView, 2, 0 );
 
+    _availableFilesContainer->setFixedWidth( MainButtonSize.width( ) );
     _availableFilesContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _availableFilesContainer->setLayout( _availableFilesLayout );
-    _availableFilesContainer->setFixedWidth( MainButtonSize.width( ) );
 
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
@@ -119,8 +119,9 @@ FileTab::~FileTab( ) {
 }
 
 void FileTab::initialShowEvent( QShowEvent* event ) {
-    debug( "+ FileTab::initialShowEvent\n" );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
+
+    event->accept( );
 }
 
 void FileTab::_loadModel( QString const& fileName ) {

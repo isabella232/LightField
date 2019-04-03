@@ -112,21 +112,22 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _printButton->setEnabled( false );
     _printButton->setFixedSize( MainButtonSize );
     _printButton->setFont( ModifyFont( _printButton->font( ), 22.0 ) );
+    _printButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _printButton->setText( "Print…" );
     QObject::connect( _printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
+    _raiseOrLowerButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _raiseOrLowerButton->setText( "Raise Build Platform" );
-    _raiseOrLowerButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::raiseOrLowerButton_clicked );
 
+    _homeButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _homeButton->setText( "Home" );
-    _homeButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::homeButton_clicked );
 
-    _adjustmentsGroup->setTitle( QString( "Adjustments" ) );
-    _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
+    _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
+    _adjustmentsGroup->setTitle( "Adjustments" );
 
     _layout->addWidget( _optionsGroup,     0, 0, 1, 2 );
     _layout->addWidget( _printButton,      1, 0, 1, 1 );

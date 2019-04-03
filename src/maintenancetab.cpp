@@ -17,8 +17,8 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
     _logoLabel->setAlignment( Qt::AlignCenter );
     _logoLabel->setContentsMargins( { } );
-    _logoLabel->setPixmap( QPixmap { QString { ":images/transparent-dark-logo.png" } } );
     _logoLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
+    _logoLabel->setPixmap( QPixmap { QString { ":images/transparent-dark-logo.png" } } );
 
     _versionLabel->setAlignment( Qt::AlignCenter );
     _versionLabel->setContentsMargins( { } );
@@ -44,10 +44,12 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
 
     _restartButton->setFont( font16pt );
+    _restartButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _restartButton->setText( "Restart" );
     QObject::connect( _restartButton, &QPushButton::clicked, this, &MaintenanceTab::restartButton_clicked );
 
     _shutDownButton->setFont( font16pt );
+    _shutDownButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _shutDownButton->setText( "Shut down" );
     QObject::connect( _shutDownButton, &QPushButton::clicked, this, &MaintenanceTab::shutDownButton_clicked );
 
@@ -78,10 +80,12 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
 
     _confirmRestartYesButton->setFont( font16pt );
+    _confirmRestartYesButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirmRestartYesButton->setText( "Yes" );
     QObject::connect( _confirmRestartYesButton, &QPushButton::clicked, this, &MaintenanceTab::confirmRestartYesButton_clicked );
 
     _confirmRestartNoButton->setFont( font16pt );
+    _confirmRestartNoButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirmRestartNoButton->setText( "No" );
     QObject::connect( _confirmRestartNoButton, &QPushButton::clicked, this, &MaintenanceTab::confirmRestartNoButton_clicked );
 
@@ -111,10 +115,12 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
 
     _confirmShutdownYesButton->setFont( font16pt );
+    _confirmShutdownYesButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirmShutdownYesButton->setText( "Yes" );
     QObject::connect( _confirmShutdownYesButton, &QPushButton::clicked, this, &MaintenanceTab::confirmShutdownYesButton_clicked );
 
     _confirmShutdownNoButton->setFont( font16pt );
+    _confirmShutdownNoButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirmShutdownNoButton->setText( "No" );
     QObject::connect( _confirmShutdownNoButton, &QPushButton::clicked, this, &MaintenanceTab::confirmShutdownNoButton_clicked );
 
