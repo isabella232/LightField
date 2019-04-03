@@ -49,24 +49,29 @@ HERE
 	shift
     done
 
-    if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
+    if [ -d "${BUILDDIR}" ]
     then
-	echo ${BUILD} > ${BUILDDIR}/.lastbuildmode
-	NUKE=yes
-    fi
+	if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
+	then
+	    echo ${BUILD} > ${BUILDDIR}/.lastbuildmode
+	    NUKE=yes
+	fi
 
-    local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-    if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
-    then
-	echo Switching from ${LASTBUILDMODE} to ${BUILD}.
-	NUKE=yes
-    fi
+	local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
+	if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
+	then
+	    echo Switching from ${LASTBUILDMODE} to ${BUILD}.
+	    NUKE=yes
+	fi
 
-    if [ -n "${NUKE}" ]
-    then
-	unset CLEAN
-	QMAKE=yes
-	rm -dr ${BUILDDIR} && mkdir ${BUILDDIR}
+	if [ -n "${NUKE}" ]
+	then
+	    unset CLEAN
+	    QMAKE=yes
+	    rm -dr ${BUILDDIR} && mkdir -p ${BUILDDIR}
+	fi
+    else
+	mkdir -p ${BUILDDIR}
     fi
 
     cd ${BUILDDIR}
