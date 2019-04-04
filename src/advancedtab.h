@@ -91,9 +91,12 @@ private slots:
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void printBedHeatingButton_clicked( bool checked );
+    void printBedTemperatureSlider_sliderReleased( );
     void printBedTemperatureSlider_valueChanged( int value );
 
     void projectorFloodlightButton_clicked( bool checked );
+
+    void powerLevelSlider_sliderReleased( );
     void powerLevelSlider_valueChanged( int value );
 
     void shepherd_sendComplete( bool const success );

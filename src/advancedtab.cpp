@@ -72,15 +72,19 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedHeatingButtonLayout = WrapWidgetsInHBox( { _bedHeatingButton, _bedHeatingButtonLabel, nullptr } );
     _bedHeatingButtonLayout->setContentsMargins( { } );
 
+    _bedTemperatureLabel->setEnabled( false );
     _bedTemperatureLabel->setText( "Print bed temperature:" );
 
     _bedTemperatureValue->setAlignment( Qt::AlignRight );
+    _bedTemperatureValue->setEnabled( false );
     _bedTemperatureValue->setFont( boldFont );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
 
     _bedTemperatureValueLayout = WrapWidgetsInHBox( { _bedTemperatureLabel, nullptr, _bedTemperatureValue } );
     _bedTemperatureValueLayout->setContentsMargins( { } );
+    _bedTemperatureValueLayout->setEnabled( false );
 
+    _bedTemperatureSlider->setEnabled( false );
     _bedTemperatureSlider->setMinimum( 30 );
     _bedTemperatureSlider->setMaximum( 50 );
     _bedTemperatureSlider->setOrientation( Qt::Horizontal );
@@ -89,17 +93,12 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedTemperatureSlider->setTickInterval( 5 );
     _bedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
     _bedTemperatureSlider->setValue( DefaultPrintBedTemperature );
-    QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged, this, &AdvancedTab::printBedTemperatureSlider_valueChanged );
-
-    _bedTemperatureLabel->setEnabled( false );
-    _bedTemperatureSlider->setEnabled( false );
-    _bedTemperatureValue->setEnabled( false );
-    _bedTemperatureValueLayout->setEnabled( false );
+    QObject::connect( _bedTemperatureSlider, &QSlider::sliderReleased, this, &AdvancedTab::printBedTemperatureSlider_sliderReleased );
+    QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged,   this, &AdvancedTab::printBedTemperatureSlider_valueChanged   );
 
     _bedTemperatureLayout->addLayout( _bedHeatingButtonLayout );
     _bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
     _bedTemperatureLayout->addWidget( _bedTemperatureSlider );
-
 
     _bedHeatingGroup->setContentsMargins( { } );
     _bedHeatingGroup->setLayout( _bedTemperatureLayout );
@@ -136,7 +135,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     _powerLevelSlider->setValue( 50 );
-    QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &AdvancedTab::powerLevelSlider_valueChanged );
+    QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged );
 
     _powerLevelLayout->addLayout( _projectorFloodlightButtonLayout );
     _powerLevelLayout->addLayout( _powerLevelValueLayout );
@@ -233,17 +233,19 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
     _bedTemperatureValueLayout->setEnabled( checked );
 
     if ( checked ) {
-        _shepherd->doSend( QString { "M104 S%d" }.arg( _bedTemperatureSlider->value( ) ) );
+        _shepherd->doSend( QString { "M104 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
     } else {
         _shepherd->doSend( QString { "M104" } );
     }
 }
 
+void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
+    _shepherd->doSend( QString { "M104 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
+}
+
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
-
-    _shepherd->doSend( QString { "M104 S%d" }.arg( value ) );
 }
 
 void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
@@ -286,9 +288,12 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
     emit printerAvailabilityChanged( _isPrinterAvailable );
 }
 
+void AdvancedTab::powerLevelSlider_sliderReleased( ) {
+    QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? _powerLevelSlider->value( ) : 0 ) } );
+}
+
 void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
     _powerLevelValue->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
-    QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? _powerLevelSlider->value( ) : 0 ) } );
 }
 
 void AdvancedTab::shepherd_sendComplete( bool const success ) {
