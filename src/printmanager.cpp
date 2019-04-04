@@ -630,11 +630,6 @@ void PrintManager::abort( ) {
             _stopAndCleanUpTimer( _preProjectionTimer );
             break;
 
-        case PrintStep::B2:
-            debug( "  + Interrupting layer projection timer\n" );
-            _stopAndCleanUpTimer( _layerProjectionTimer );
-            break;
-
         case PrintStep::B4:
             debug( "  + Interrupting pre-lift timer\n" );
             _stopAndCleanUpTimer( _preLiftTimer );
