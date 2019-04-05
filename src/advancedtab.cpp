@@ -209,17 +209,6 @@ void AdvancedTab::printer_positionReport( double const px, double const py, doub
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
-    debug(
-        "+ AdvancedTab::printer_temperatureReport:\n"
-        "  + current temperature: %.2f °C\n"
-        "  + target temperature:  %.2f °C\n"
-        "  + PWM:                 %d\n"
-        "",
-        bedCurrentTemperature,
-        bedTargetTemperature,
-        bedPwm
-    );
-
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _pwm               ->setText( QString( "%1"    ).arg( bedPwm                           ) );
