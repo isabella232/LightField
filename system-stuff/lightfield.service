@@ -1,0 +1,18 @@
+# lightfield.service
+#
+# lightfield systemd unit file:
+#    Makes sure the projector is off on startup and shutdown.
+
+[Unit]
+Description=Resets Lumen X projector
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/usr/bin/setpower 0
+ExecStop=/usr/bin/setpower 0
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
