@@ -26,26 +26,26 @@ protected:
 
 private:
 
-    QLabel*             _printerStateLabel            { new QLabel      };
-    QLabel*             _printerStateDisplay          { new QLabel      };
-    QLabel*             _projectorLampStateLabel      { new QLabel      };
-    QLabel*             _projectorLampStateDisplay    { new QLabel      };
-    QLabel*             _jobStateLabel                { new QLabel      };
-    QLabel*             _jobStateDisplay              { new QLabel      };
     QLabel*             _currentLayerLabel            { new QLabel      };
     QLabel*             _currentLayerDisplay          { new QLabel      };
     QLabel*             _elapsedTimeLabel             { new QLabel      };
     QLabel*             _elapsedTimeDisplay           { new QLabel      };
     QLabel*             _estimatedTimeLeftLabel       { new QLabel      };
     QLabel*             _estimatedTimeLeftDisplay     { new QLabel      };
-    QLabel*             _percentageCompleteLabel      { new QLabel      };
+    QLabel*             _jobStateLabel                { new QLabel      };
+    QLabel*             _jobStateDisplay              { new QLabel      };
     QLabel*             _percentageCompleteDisplay    { new QLabel      };
+    QLabel*             _printerStateLabel            { new QLabel      };
+    QLabel*             _printerStateDisplay          { new QLabel      };
     QLabel*             _currentTemperatureLabel      { new QLabel      };
     QLabel*             _currentTemperatureDisplay    { new QLabel      };
     QLabel*             _targetTemperatureLabel       { new QLabel      };
     QLabel*             _targetTemperatureDisplay     { new QLabel      };
     QLabel*             _heaterStateLabel             { new QLabel      };
     QLabel*             _heaterStateDisplay           { new QLabel      };
+    QLabel*             _projectorLampStateLabel      { new QLabel      };
+    QLabel*             _projectorLampStateDisplay    { new QLabel      };
+
     QVBoxLayout*        _progressControlsLayout       { new QVBoxLayout };
 
     QPixmap*            _warningHotImage              { };
@@ -88,6 +88,9 @@ private:
     double              _currentLayerStartTime        { };
     double              _previousLayerStartTime       { };
     double              _estimatedPrintJobTime        { };
+    double              _totalPausedTime              { };
+    double              _currentPauseStartTime        { };
+
     std::vector<double> _layerElapsedTimes            { };
 
     void _updateReprintButtonState( );
