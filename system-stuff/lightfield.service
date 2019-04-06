@@ -5,6 +5,7 @@
 
 [Unit]
 Description=Resets Lumen X projector
+RequiresMountsFor=/usr
 
 [Service]
 Type=oneshot
@@ -15,4 +16,4 @@ ExecStop=/usr/bin/setpower 0
 Restart=no
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=basic.target
