@@ -130,14 +130,17 @@ QString TimeDeltaToString( double delta ) {
     int days, hours, minutes, seconds;
     BreakDownTime( delta + 0.5, days, hours, minutes, seconds );
 
-    QString timeString;
+    QString timeString { };
     if ( days > 0 ) {
-        timeString = QString( "%1d " ).arg( days );
+        timeString += QString( "%1 d " ).arg( days );
     }
-    timeString += QString( "%1h%2m%3s" )
-        .arg( hours,   2, 10, QChar( '0' ) )
-        .arg( minutes, 2, 10, QChar( '0' ) )
-        .arg( seconds, 2, 10, QChar( '0' ) );
+    if ( hours > 0 ) {
+        timeString += QString( "%1 h " ).arg( hours );
+    }
+    if ( minutes > 0 ) {
+        timeString += QString( "%1 min " ).arg( minutes );
+    }
+    timeString += QString( "%1 s" ).arg( seconds );
 
     return timeString;
 }

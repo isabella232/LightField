@@ -33,62 +33,37 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     auto font22pt = ModifyFont( origFont, 22.0 );
 
 
-    _currentLayerLabel->setText( "Current layer:" );
-
     _currentLayerDisplay->setFont( boldFont );
-
-    _elapsedTimeLabel->setText( "Elapsed time:" );
 
     _elapsedTimeDisplay->setFont( boldFont );
 
-    _estimatedTimeLeftLabel->setText( "Time left:" );
-
     _estimatedTimeLeftDisplay->setFont( boldFont );
 
-    _jobStateLabel->setText( "Print job:" );
-
     _jobStateDisplay->setFont( boldFont );
-    _jobStateDisplay->setText( "idle" );
+    _jobStateDisplay->setText( "Printer is idle" );
 
     _percentageCompleteDisplay->setFont( boldFont );
 
-    _printerStateLabel->setText( "Printer state:" );
-
     _printerStateDisplay->setFont( boldFont );
-    _printerStateDisplay->setText( "offline" );
+    _printerStateDisplay->setText( "Printer is offline" );
 
-    _currentTemperatureLabel->setText( "Current temperature:" );
-
-    _currentTemperatureDisplay->setFont( boldFont );
-
-    _targetTemperatureLabel->setText( "Target temperature:" );
-
-    _targetTemperatureDisplay->setFont( boldFont );
-
-    _heaterStateLabel->setText( "Heater state:" );
-
-    _heaterStateDisplay->setFont( boldFont );
-
-    _projectorLampStateLabel->setText( "Projector state:" );
+    _temperatureDisplay->setFont( boldFont );
 
     _projectorLampStateDisplay->setFont( boldFont );
-    _projectorLampStateDisplay->setText( "off" );
+    _projectorLampStateDisplay->setText( "Projector is off" );
 
 
     _progressControlsLayout->setContentsMargins( { } );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentLayerLabel,       nullptr, _currentLayerDisplay       } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _elapsedTimeLabel,        nullptr, _elapsedTimeDisplay        } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _estimatedTimeLeftLabel,  nullptr, _estimatedTimeLeftDisplay  } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _jobStateLabel,           nullptr, _jobStateDisplay           } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( {                           nullptr, _percentageCompleteDisplay } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _printerStateLabel,       nullptr, _printerStateDisplay       } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperatureDisplay } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperatureDisplay  } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _heaterStateLabel,        nullptr, _heaterStateDisplay        } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _projectorLampStateLabel, nullptr, _projectorLampStateDisplay } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentLayerDisplay,       nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _elapsedTimeDisplay,        nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _estimatedTimeLeftDisplay,  nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _jobStateDisplay,           nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _percentageCompleteDisplay, nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _printerStateDisplay,       nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _temperatureDisplay,        nullptr } ) );
+    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _projectorLampStateDisplay, nullptr } ) );
     _progressControlsLayout->addStretch( );
     _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
-    _progressControlsLayout->addStretch( );
 
 
     _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
@@ -133,10 +108,10 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
 
     _leftColumnLayout->setContentsMargins( { } );
     _leftColumnLayout->addLayout( _progressControlsLayout );
+    _leftColumnLayout->addStretch( );
     _leftColumnLayout->addWidget( _pauseButton            );
     _leftColumnLayout->addWidget( _stopButton             );
     _leftColumnLayout->addWidget( _reprintButton          );
-    _leftColumnLayout->addStretch( );
 
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
@@ -249,7 +224,7 @@ void StatusTab::printer_online( ) {
     _isPrinterOnline = true;
     debug( "+ StatusTab::printer_online: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    _printerStateDisplay->setText( "online" );
+    _printerStateDisplay->setText( "Printer is online" );
 
     if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
         return;
@@ -263,7 +238,7 @@ void StatusTab::printer_offline( ) {
     _isPrinterOnline = false;
     debug( "+ StatusTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    _printerStateDisplay->setText( "offline" );
+    _printerStateDisplay->setText( "Printer is offline" );
 }
 
 void StatusTab::pauseButton_clicked( bool ) {
@@ -306,7 +281,7 @@ void StatusTab::reprintButton_clicked( bool ) {
 void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
 
-    _jobStateDisplay->setText( "waiting" );
+    _jobStateDisplay->setText( "Printer is waiting" );
     _elapsedTimeDisplay->clear( );
 
     _layerElapsedTimes.clear( );
@@ -317,7 +292,7 @@ void StatusTab::printManager_printComplete( bool const success ) {
 
     _updatePrintTimeInfo->stop( );
 
-    _jobStateDisplay->setText( success ? "print complete" : "print failed" );
+    _jobStateDisplay->setText( success ? "Print is complete" : "Print failed" );
     _currentLayerDisplay->clear( );
     _estimatedTimeLeftDisplay->clear( );
     _percentageCompleteDisplay->clear( );
@@ -334,7 +309,7 @@ void StatusTab::printManager_printAborted( ) {
 
     _updatePrintTimeInfo->stop( );
 
-    _jobStateDisplay->setText( "print aborted" );
+    _jobStateDisplay->setText( "Print was aborted" );
     _currentLayerDisplay->clear( );
     _estimatedTimeLeftDisplay->clear( );
     _percentageCompleteDisplay->clear( );
@@ -352,7 +327,7 @@ void StatusTab::printManager_printPausable( bool const pausable ) {
 void StatusTab::printManager_printPaused( ) {
     debug( "+ StatusTab::printManager_printPaused\n" );
 
-    _jobStateDisplay->setText( "paused" );
+    _jobStateDisplay->setText( "Print is paused" );
     _pauseButton->setEnabled( true );
     _pauseButton->setText( "Resume" );
 }
@@ -360,21 +335,21 @@ void StatusTab::printManager_printPaused( ) {
 void StatusTab::printManager_printResumed( ) {
     debug( "+ StatusTab::printManager_printResumed\n" );
 
-    _jobStateDisplay->setText( "printing" );
+    _jobStateDisplay->setText( "Printing" );
     _pauseButton->setEnabled( true );
     _pauseButton->setText( "Pause" );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    _currentLayerDisplay->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
+    _currentLayerDisplay->setText( QString( "Printing layer %1 of %2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
 
     _previousLayerStartTime = _currentLayerStartTime;
     _currentLayerStartTime  = GetBootTimeClock( );
 
     if ( 0 == layer ) {
-        _jobStateDisplay->setText( "printing" );
-        _estimatedTimeLeftDisplay->setText( "calculating..." );
+        _jobStateDisplay->setText( "Printing" );
+        _estimatedTimeLeftDisplay->setText( "Calculating time left..." );
 
         _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
@@ -405,7 +380,7 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
     debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
-    _projectorLampStateDisplay->setText( on ? "ON" : "off" );
+    _projectorLampStateDisplay->setText( on ? "Projector is ON" : "Projector is off" );
     if ( on ) {
         _warningUvLabel->setPixmap( *_warningUvImage );
     } else {
@@ -427,9 +402,11 @@ void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, 
         _warningHotLabel->clear( );
     }
 
-    _currentTemperatureDisplay->setText( QString { "%1 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ) );
-    _targetTemperatureDisplay ->setText( QString { "%1 °C" }.arg( bedTargetTemperature,  0, 'f', 1 ) );
-    _heaterStateDisplay       ->setText( ( bedPwm != 0 ) ? "ON" : "off" );
+    if ( bedPwm ) {
+        _temperatureDisplay->setText( QString { "Print bed is %1 °C/%2 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ).arg( bedTargetTemperature, 0, 'f', 1 ) );
+    } else {
+        _temperatureDisplay->setText( "Print bed heating is off." );
+    }
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
@@ -451,11 +428,11 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 
     double delta = GetBootTimeClock( ) - _printJobStartTime;
     double estimatedTimeLeft = _estimatedPrintJobTime - delta;
-    debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f\n", delta, _estimatedPrintJobTime, estimatedTimeLeft );
-    _elapsedTimeDisplay->setText( TimeDeltaToString( delta + _totalPausedTime ) );
+    debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n", delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString( _isPaused ), _printManager->currentLayer( ) );
+    _elapsedTimeDisplay->setText( TimeDeltaToString( delta + _totalPausedTime ) + QString { " elapsed " } );
 
     if ( !_isPaused && ( _printManager->currentLayer( ) > 3 ) && ( estimatedTimeLeft > 0.0 ) ) {
-        _estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTimeLeft ) );
+        _estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTimeLeft ) + QString { " left " } );
     }
 }
 
