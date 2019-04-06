@@ -167,8 +167,8 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionLabel->setWordWrap( true );
 
     _printSolutionDispensedButton->setFixedSize( MainButtonSize );
-    _printSolutionDispensedButton->setFont( ModifyFont( font22pt, QFont::Bold ) );
-    _printSolutionDispensedButton->setText( "Continue" );
+    _printSolutionDispensedButton->setFont( font22pt );
+    _printSolutionDispensedButton->setText( "Start the print" );
     QObject::connect( _printSolutionDispensedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
 
     _dispensePrintSolutionGroup->setContentsMargins( { } );
@@ -284,6 +284,7 @@ void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
     _pauseButton->setEnabled( false );
     _stopButton->setEnabled( false );
+    _stopButton->setText( "Stopping..." );
     _updatePrintTimeInfo->stop( );
     if ( _printManager ) {
         _printManager->abort( );
@@ -403,7 +404,7 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
-    _dispensePrintSolutionLabel->setText( QString( "Dispense <b>%1 mL</b> of print solution, then tap <b>Continue</b> to start printing." ).arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
+    _dispensePrintSolutionLabel->setText( QString { "Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." }.arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume ), 0, 'f', 2 ) );
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
@@ -447,10 +448,10 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 }
 
 void StatusTab::printSolutionLoadedButton_clicked( bool ) {
-    _printManager->printSolutionLoaded( );
-
-    _currentLayerGroup->setVisible( true );
     _dispensePrintSolutionGroup->setVisible( false );
+    _currentLayerGroup->setVisible( true );
+
+    _printManager->printSolutionLoaded( );
 }
 
 void StatusTab::_connectPrintManager( ) {
@@ -491,6 +492,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::PrintStarted:
             _reprintButton->setVisible( false );
             _stopButton->setEnabled( true );
+            _stopButton->setText( "STOP" );
             _stopButton->setVisible( true );
             break;
     }

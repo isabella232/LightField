@@ -176,7 +176,6 @@ void AdvancedTab::_connectShepherd( ) {
         QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &AdvancedTab::printer_offline           );
         QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &AdvancedTab::printer_positionReport    );
         QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &AdvancedTab::printer_temperatureReport );
-        QObject::connect( _shepherd, &Shepherd::action_sendComplete,       this, &AdvancedTab::shepherd_sendComplete     );
     }
 }
 
@@ -221,6 +220,7 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
     _bedTemperatureValue->setEnabled( checked );
     _bedTemperatureValueLayout->setEnabled( checked );
 
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
     if ( checked ) {
         _shepherd->doSend( QString { "M104 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
     } else {
@@ -229,6 +229,7 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
 }
 
 void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
     _shepherd->doSend( QString { "M104 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
 }
 
@@ -287,6 +288,7 @@ void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
 
 void AdvancedTab::shepherd_sendComplete( bool const success ) {
     debug( "+ AdvancedTab::shepherd_sendComplete: action %s\n", ToString( success ) );
+    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
 }
 
 void AdvancedTab::_updateProjectorFloodlightGroup( ) {

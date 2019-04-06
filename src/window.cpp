@@ -192,7 +192,7 @@ void Window::startPrinting( ) {
     _tabWidget->setCurrentIndex( +TabIndex::Status );
     debug(
         "+ Window::startPrinting\n"
-        "  + Print job:\n"
+        "  + Print job: %p\n"
         "    + modelFileName:       '%s'\n"
         "    + jobWorkingDirectory: '%s'\n"
         "    + layerCount:          %d\n"
@@ -200,6 +200,7 @@ void Window::startPrinting( ) {
         "    + exposureTime:        %f\n"
         "    + powerLevel:          %d\n"
         "",
+        _printJob,
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->jobWorkingDirectory.toUtf8( ).data( ),
         _printJob->layerCount,
@@ -216,7 +217,7 @@ void Window::startPrinting( ) {
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );
-    emit printJobChanged( job );
+    emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
     _printManager->print( job );

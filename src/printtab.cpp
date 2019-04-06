@@ -143,6 +143,8 @@ PrintTab::~PrintTab( ) {
 }
 
 void PrintTab::_connectPrintJob( ) {
+    debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
+
     {
         int value = _printJob->exposureTime / 0.5;
         _printJob->exposureTime = value / 2.0;
@@ -150,7 +152,6 @@ void PrintTab::_connectPrintJob( ) {
         _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
     }
 
-    debug( "+ PrintTab::setPrintJob: _printJob->exposureTimeScaleFactor=%f\n", _printJob->exposureTimeScaleFactor );
     _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
     _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
 

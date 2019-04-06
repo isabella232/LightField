@@ -133,7 +133,7 @@ void PrintManager::stepA1_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA1_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( ( _printResult != PrintResult::Abort ) && !success ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -179,7 +179,7 @@ void PrintManager::stepA3_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA3_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -205,7 +205,7 @@ void PrintManager::stepA4_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &PrintManager::stepA4_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -233,7 +233,7 @@ void PrintManager::stepA5_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA5_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -428,7 +428,7 @@ void PrintManager::stepB5_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -459,7 +459,7 @@ void PrintManager::stepB6_completed( bool const success ) {
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
 
-    if ( !success && !IsBadPrintResult( _printResult ) ) {
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
     }
     if ( IsBadPrintResult( _printResult ) ) {
@@ -525,8 +525,6 @@ void PrintManager::stepC1_completed( bool const success ) {
         _printResult = PrintResult::Failure;
         stepC2_completed( false );
     }
-
-    stepC2_start( );
 }
 
 // C2. Raise the build platform to maximum Z.
@@ -540,7 +538,7 @@ void PrintManager::stepC2_start( ) {
 }
 
 void PrintManager::stepC2_completed( bool const success ) {
-    debug( "+ PrintManager::stepC2_completed: action %s. print result %s\n", SucceededString( success ), PrintResultStrings[+_printResult] );
+    debug( "+ PrintManager::stepC2_completed: action %s. print result %s [%d]\n", SucceededString( success ), PrintResultStrings[+_printResult], +_printResult );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC2_completed );
 
@@ -558,7 +556,7 @@ void PrintManager::print( PrintJob* printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
     }
-    debug( "+ PrintManager::print: new job\n" );
+    debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
@@ -625,14 +623,21 @@ void PrintManager::abort( ) {
             break;
 
         case PrintStep::A6:
-        case PrintStep::B7:
             debug( "  + Interrupting pre-projection timer\n" );
             _stopAndCleanUpTimer( _preProjectionTimer );
+            stepA6_completed( );
             break;
 
         case PrintStep::B4:
             debug( "  + Interrupting pre-lift timer\n" );
             _stopAndCleanUpTimer( _preLiftTimer );
+            stepB4_completed( );
+            break;
+
+        case PrintStep::B7:
+            debug( "  + Interrupting pre-projection timer\n" );
+            _stopAndCleanUpTimer( _preProjectionTimer );
+            stepB7_completed( );
             break;
 
         default:
