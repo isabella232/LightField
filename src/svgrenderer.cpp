@@ -119,7 +119,6 @@ void SvgRenderer::renderLayer( ) {
         QString     { "gm" },
         QStringList {
             QString( "convert"     ),
-            QString( "-verbose"    ),
             QString( "-antialias"  ),
             QString( "-density"    ), QString( "400" ),
             QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
