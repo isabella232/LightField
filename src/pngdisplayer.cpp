@@ -6,8 +6,6 @@
 #include "utils.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
-    debug( "+ construct PngDisplayer at %p\n", this );
-
     setStyleSheet( QString( "QWidget { background: black }" ) );
 
     _label->setAlignment( Qt::AlignCenter );
@@ -16,10 +14,18 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     setPalette( ModifyPalette( palette( ), QPalette::Window, Qt::black ) );
 
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
+
+    setFixedSize( PngDisplayWindowSize );
+    setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    move( g_settings.pngDisplayWindowPosition );
+}
+
+PngDisplayer::PngDisplayer( QString const& fileName, QWidget* parent ): PngDisplayer( parent ) {
+    setImageFileName( fileName );
 }
 
 PngDisplayer::~PngDisplayer( ) {
-    debug( "+ destruct PngDisplayer at %p\n", this );
+    /*empty*/
 }
 
 void PngDisplayer::clear( ) {

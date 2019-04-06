@@ -255,11 +255,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
             _pngDisplayer->deleteLater( );
         }
 
-        _pngDisplayer = new PngDisplayer( );
-        _pngDisplayer->setFixedSize( PngDisplayWindowSize );
-        _pngDisplayer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-        _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
-        _pngDisplayer->setImageFileName( ":images/white-field.png" );
+        _pngDisplayer = new PngDisplayer( ":images/white-field.png" );
         _pngDisplayer->show( );
     } else {
         if ( _pngDisplayer ) {

@@ -8,12 +8,10 @@ class PrintJob {
 public:
 
     PrintJob( ) {
-        debug( "+ PrintJob::`ctor1: %p\n", this );
+        /*empty*/
     }
 
     PrintJob( PrintJob const* value ) {
-        debug( "+ PrintJob::`ctor2: %p\n", this );
-
         vertexCount             = value->vertexCount;
         x                       = value->x;
         y                       = value->y;
@@ -33,7 +31,7 @@ public:
     }
 
     ~PrintJob( ) {
-        debug( "+ PrintJob::`dtor: %p\n", this );
+        /*empty*/
     }
 
     size_t     vertexCount             {     };

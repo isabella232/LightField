@@ -59,13 +59,11 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
     _shepherd ( shepherd )
 {
-    debug( "+ construct PrintManager at %p\n", this );
-
     _setpowerProcess = new ProcessRunner( this );
 }
 
 PrintManager::~PrintManager( ) {
-    debug( "+ destruct PrintManager at %p\n", this );
+    /*empty*/
 }
 
 QTimer* PrintManager::_makeAndStartTimer( int const interval, void ( PrintManager::*func )( ) ) {
@@ -560,9 +558,6 @@ void PrintManager::print( PrintJob* printJob ) {
     _printJob = printJob;
 
     _pngDisplayer = new PngDisplayer( );
-    _pngDisplayer->setFixedSize( PngDisplayWindowSize );
-    _pngDisplayer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _pngDisplayer->move( g_settings.pngDisplayWindowPosition );
     _pngDisplayer->show( );
 
     debug( "+ PrintManager::print: emitting printStarting()\n" );

@@ -8,6 +8,8 @@ class PngDisplayer: public QMainWindow {
 public:
 
     PngDisplayer( QWidget* parent = nullptr );
+    PngDisplayer( QString const& fileName, QWidget* parent = nullptr );
+
     virtual ~PngDisplayer( ) override;
 
     void clear( );
