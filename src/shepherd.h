@@ -13,6 +13,8 @@ inline int operator+( PendingCommand const value ) { return static_cast<int>( va
 
 char const* ToString( PendingCommand const value );
 
+class ProcessRunner;
+
 class Shepherd: public QObject {
 
     Q_OBJECT
@@ -35,23 +37,24 @@ protected:
 
 private:
 
-    QProcess*      _process;
     QString        _buffer;
+    QProcess*      _process               { };
+    ProcessRunner* _processRunner         { };
     PendingCommand _pendingCommand        { PendingCommand::none };
     int            _okCount               { };
     int            _expectedOkCount       { };
     bool           _isTerminationExpected { };
 
-    bool           getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
-    QStringList    splitLine( QString const& line );
-    void           handleFromPrinter( QString const& input );
-    void           handleCommandFail( QStringList const& input );
+    bool        getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
+    QStringList splitLine( QString const& line );
+    void        handleFromPrinter( QString const& input );
+    void        handleCommandFail( QStringList const& input );
 #if defined _DEBUG
-    void           handleCommandFailAlternate( QStringList const& input );
+    void        handleCommandFailAlternate( QStringList const& input );
 #endif // defined _DEBUG
-    void           handleInput( QString const& input );
+    void        handleInput( QString const& input );
 
-    void           doSendOne( QString& cmd );
+    void        doSendOne( QString& cmd );
 
 signals:
 
@@ -76,11 +79,14 @@ protected slots:
 
 private slots:
 
-    void processErrorOccurred( QProcess::ProcessError error );
-    void processStarted( );
-    void processReadyReadStandardError( );
-    void processReadyReadStandardOutput( );
-    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
+    void process_errorOccurred( QProcess::ProcessError error );
+    void process_started( );
+    void process_readyReadStandardError( );
+    void process_readyReadStandardOutput( );
+    void process_finished( int exitCode, QProcess::ExitStatus exitStatus );
+
+    void processRunner_succeeded( );
+    void processRunner_failed( QProcess::ProcessError const );
 
 };
 

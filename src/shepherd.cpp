@@ -3,6 +3,7 @@
 #include "shepherd.h"
 
 #include "app.h"
+#include "processrunner.h"
 #include "strings.h"
 #include "window.h"
 
@@ -18,31 +19,22 @@ namespace {
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
     debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
-
-    _process = new QProcess( parent );
-    _process->setWorkingDirectory( ShepherdBaseDirectory );
-
-    QObject::connect( _process, &QProcess::errorOccurred,           this, &Shepherd::processErrorOccurred           );
-    QObject::connect( _process, &QProcess::started,                 this, &Shepherd::processStarted                 );
-    QObject::connect( _process, &QProcess::readyReadStandardError,  this, &Shepherd::processReadyReadStandardError  );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput, this, &Shepherd::processReadyReadStandardOutput );
-    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::processFinished );
 }
 
 Shepherd::~Shepherd( ) {
     /*empty*/
 }
 
-void Shepherd::processErrorOccurred( QProcess::ProcessError error ) {
-    debug( "+ Shepherd::processErrorOccurred: error %s [%d]\n", ToString( error ), error );
+void Shepherd::process_errorOccurred( QProcess::ProcessError error ) {
+    debug( "+ Shepherd::process_errorOccurred: error %s [%d]\n", ToString( error ), error );
     if ( error == QProcess::FailedToStart ) {
-        debug( "+ Shepherd::processErrorOccurred: process failed to start\n" );
+        debug( "+ Shepherd::process_errorOccurred: process failed to start\n" );
         emit shepherd_startFailed( );
     }
 }
 
-void Shepherd::processStarted( ) {
-    debug( "+ Shepherd::processStarted\n" );
+void Shepherd::process_started( ) {
+    debug( "+ Shepherd::process_started\n" );
     emit shepherd_started( );
 
 #if defined _DEBUG
@@ -52,19 +44,20 @@ void Shepherd::processStarted( ) {
 #endif // defined _DEBUG
 }
 
-void Shepherd::processReadyReadStandardError( ) {
+void Shepherd::process_readyReadStandardError( ) {
     _process->setReadChannel( QProcess::StandardError );
+
     QString input = _process->readAllStandardError( );
     if ( input.length( ) ) {
         debug(
-            "+ Shepherd::processReadyReadStandardError: from stderr:\n"
+            "+ Shepherd::process_readyReadStandardError: from stderr:\n"
             "%s\n",
             input.toUtf8( ).data( )
         );
     }
 }
 
-void Shepherd::processReadyReadStandardOutput( ) {
+void Shepherd::process_readyReadStandardOutput( ) {
     _process->setReadChannel( QProcess::StandardOutput );
 
     QString input = _process->readAllStandardOutput( );
@@ -73,14 +66,42 @@ void Shepherd::processReadyReadStandardOutput( ) {
     }
 }
 
-void Shepherd::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    debug( "+ Shepherd::processFinished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
+void Shepherd::process_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
+    debug( "+ Shepherd::process_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
     if ( ( exitStatus == QProcess::CrashExit ) || ( exitCode != 0 ) ) {
-        debug( "+ Shepherd::processFinished: process failed: exit status: %s [%d]; exit code: %d\n", ToString( exitStatus ), exitStatus, exitCode );
+        debug( "+ Shepherd::process_finished: process failed: exit status: %s [%d]; exit code: %d\n", ToString( exitStatus ), exitStatus, exitCode );
         emit shepherd_terminated( _isTerminationExpected, false );
     } else {
         emit shepherd_terminated( _isTerminationExpected, true );
     }
+}
+
+void Shepherd::processRunner_succeeded( ) {
+    debug( "+ Shepherd::processRunner_succeeded\n" );
+
+    if ( _processRunner ) {
+        _processRunner->deleteLater( );
+        _processRunner = nullptr;
+    }
+
+    if ( _process ) {
+        _process->kill( );
+        _process->deleteLater( );
+        _process = nullptr;
+    }
+
+    _process = new QProcess( parent( ) );
+    QObject::connect( _process, &QProcess::errorOccurred,                                        this, &Shepherd::process_errorOccurred           );
+    QObject::connect( _process, &QProcess::started,                                              this, &Shepherd::process_started                 );
+    QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
+    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
+    _process->setWorkingDirectory( ShepherdBaseDirectory );
+    _process->start( "./stdio-shepherd.py" );
+}
+
+void Shepherd::processRunner_failed( QProcess::ProcessError const ) {
+    processRunner_succeeded( );
 }
 
 bool Shepherd::getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount ) {
@@ -334,11 +355,12 @@ void Shepherd::handleInput( QString const& input ) {
 }
 
 void Shepherd::start( ) {
-    if ( _process->state( ) == QProcess::NotRunning ) {
-        _process->start( "./stdio-shepherd.py" );
-    } else {
-        debug( "+ Shepherd::start: already running?\n" );
-    }
+    debug( "+ Shepherd::start\n" );
+
+    _processRunner = new ProcessRunner( this );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded, this, &Shepherd::processRunner_succeeded );
+    QObject::connect( _processRunner, &ProcessRunner::failed,    this, &Shepherd::processRunner_failed    );
+    _processRunner->start( "reset-printer-port", { } );
 }
 
 void Shepherd::doMoveRelative( float const relativeDistance ) {
