@@ -52,10 +52,10 @@ protected slots:
 
 private slots:
 
-    void processErrorOccurred( QProcess::ProcessError error );
-    void processFinished( int exitCode, QProcess::ExitStatus exitStatus );
-    void processReadyReadStandardOutput( );
-    void processReadyReadStandardError( );
+    void process_errorOccurred( QProcess::ProcessError error );
+    void process_finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void process_readyReadStandardOutput( );
+    void process_readyReadStandardError( );
 
 };
 

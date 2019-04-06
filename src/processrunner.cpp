@@ -8,28 +8,28 @@
 /*
 Bad command startup
 ===================
-+ ProcessRunner::processStateChanged: new state Starting [1]
-+ ProcessRunner::processStateChanged: new state NotRunning [0]
-+ ProcessRunner::processErrorOccurred: error FailedToStart [0]
++ ProcessRunner::process_stateChanged: new state Starting [1]
++ ProcessRunner::process_stateChanged: new state NotRunning [0]
++ ProcessRunner::process_errorOccurred: error FailedToStart [0]
 
 When a process exits normally
 =============================
-+ ProcessRunner::processStateChanged: new state Starting [1]
-+ ProcessRunner::processStateChanged: new state Running [2]
-+ ProcessRunner::processStarted
++ ProcessRunner::process_stateChanged: new state Starting [1]
++ ProcessRunner::process_stateChanged: new state Running [2]
++ ProcessRunner::process_started
 [time passes]
-+ ProcessRunner::processStateChanged: new state NotRunning [0]
-+ ProcessRunner::processFinished: exitCode: 0, exitStatus: NormalExit [0]
++ ProcessRunner::process_stateChanged: new state NotRunning [0]
++ ProcessRunner::process_finished: exitCode: 0, exitStatus: NormalExit [0]
 
 When a process exits abnormally
 ===============================
-+ ProcessRunner::processStateChanged: new state Starting [1]
-+ ProcessRunner::processStateChanged: new state Running [2]
-+ ProcessRunner::processStarted
++ ProcessRunner::process_stateChanged: new state Starting [1]
++ ProcessRunner::process_stateChanged: new state Running [2]
++ ProcessRunner::process_started
 [time passes]
-+ ProcessRunner::processErrorOccurred: error Crashed [1]
-+ ProcessRunner::processStateChanged: new state NotRunning [0]
-+ ProcessRunner::processFinished: exitCode: 15, exitStatus: CrashExit [1]
++ ProcessRunner::process_errorOccurred: error Crashed [1]
++ ProcessRunner::process_stateChanged: new state NotRunning [0]
++ ProcessRunner::process_finished: exitCode: 15, exitStatus: CrashExit [1]
 */
 
 namespace {
@@ -39,10 +39,10 @@ namespace {
 }
 
 ProcessRunner::ProcessRunner( QObject* parent ): QObject( parent ) {
-    QObject::connect( &_process, &QProcess::errorOccurred,                                        this, &ProcessRunner::processErrorOccurred           );
-    QObject::connect( &_process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &ProcessRunner::processFinished                );
-    QObject::connect( &_process, &QProcess::readyReadStandardOutput,                              this, &ProcessRunner::processReadyReadStandardOutput );
-    QObject::connect( &_process, &QProcess::readyReadStandardError,                               this, &ProcessRunner::processReadyReadStandardError  );
+    QObject::connect( &_process, &QProcess::errorOccurred,                                        this, &ProcessRunner::process_errorOccurred           );
+    QObject::connect( &_process, &QProcess::readyReadStandardOutput,                              this, &ProcessRunner::process_readyReadStandardOutput );
+    QObject::connect( &_process, &QProcess::readyReadStandardError,                               this, &ProcessRunner::process_readyReadStandardError  );
+    QObject::connect( &_process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &ProcessRunner::process_finished                );
     _instanceId = ++InstanceId;
 }
 
@@ -54,31 +54,31 @@ void ProcessRunner::start( QString const& program, QStringList const& arguments,
     _process.start( program, arguments, mode );
 }
 
-void ProcessRunner::processErrorOccurred( QProcess::ProcessError error ) {
-    debug( "+ ProcessRunner[%d]::processErrorOccurred: %s [%d]\n", _instanceId, ToString( error ), error );
+void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {
+    debug( "+ ProcessRunner[%d]::process_errorOccurred: %s [%d]\n", _instanceId, ToString( error ), error );
 
     if ( QProcess::FailedToStart == error ) {
         // won't get signal "finished" if failed to start, so emit signal "failed" here
-        debug( "+ ProcessRunner[%d]::processErrorOccurred: process failed to start\n", _instanceId );
+        debug( "+ ProcessRunner[%d]::process_errorOccurred: process failed to start\n", _instanceId );
         emit failed( QProcess::FailedToStart );
     } else if ( QProcess::Crashed == error ) {
         if ( _process.state( ) != QProcess::NotRunning ) {
-            debug( "+ ProcessRunner[%d]::processErrorOccurred: killing undead crashed process\n", _instanceId );
+            debug( "+ ProcessRunner[%d]::process_errorOccurred: killing undead crashed process\n", _instanceId );
             _process.kill( );
         }
     }
 }
 
-void ProcessRunner::processFinished( int exitCode, QProcess::ExitStatus exitStatus ) {
+void ProcessRunner::process_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     if ( ( exitStatus == QProcess::CrashExit ) || ( exitCode != 0 ) ) {
-        debug( "+ ProcessRunner[%d]::processFinished: process failed: exit status: %s [%d]; exit code: %d\n", _instanceId, ToString( exitStatus ), exitStatus, exitCode );
+        debug( "+ ProcessRunner[%d]::process_finished: process failed: exit status: %s [%d]; exit code: %d\n", _instanceId, ToString( exitStatus ), exitStatus, exitCode );
         emit failed( QProcess::Crashed );
     } else {
         emit succeeded( );
     }
 }
 
-void ProcessRunner::processReadyReadStandardOutput( ) {
+void ProcessRunner::process_readyReadStandardOutput( ) {
     _process.setReadChannel( QProcess::StandardOutput );
     QString data = _process.readAllStandardOutput( );
     if ( data.length( ) ) {
@@ -86,7 +86,7 @@ void ProcessRunner::processReadyReadStandardOutput( ) {
     }
 }
 
-void ProcessRunner::processReadyReadStandardError( ) {
+void ProcessRunner::process_readyReadStandardError( ) {
     _process.setReadChannel( QProcess::StandardError );
     QString data = _process.readAllStandardError( );
     if ( data.length( ) ) {
