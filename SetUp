@@ -1,0 +1,164 @@
+#!/bin/bash
+
+local symlink=
+
+##
+## /usr/share/lightfield/libexec
+##
+
+if [ -h /usr/share/lightfield ]
+then
+    echo Deleting symlink /usr/share/lightfield
+    rm /usr/share/lightfield
+fi
+
+if [ ! -d /usr/share/lightfield ]
+then
+    echo Creating directory /usr/share/lightfield
+    mkdir /usr/share/lightfield
+    chown lumen:lumen /usr/share/lightfield
+fi
+
+if [ -h /usr/share/lightfield/libexec ]
+then
+    echo Deleting symlink /usr/share/lightfield/libexec
+    rm /usr/share/lightfield/libexec
+fi
+
+if [ ! -d /usr/share/lightfield/libexec ]
+then
+    echo Creating directory /usr/share/lightfield/libexec
+    mkdir /usr/share/lightfield/libexec
+    chown lumen:lumen /usr/share/lightfield/libexec
+fi
+
+if [ ! -h /usr/share/lightfield/libexec/printrun ]
+then
+    echo Symlinking /usr/share/lightfield/libexec/printrun to /home/lumen/Volumetric/printrun
+    ln -s /home/lumen/Volumetric/printrun /usr/share/lightfield/libexec/printrun
+fi
+
+if [ ! -h /usr/share/lightfield/libexec/stdio-shepherd ]
+then
+    echo Symlinking /usr/share/lightfield/libexec/stdio-shepherd to /home/lumen/Volumetric/LightField/stdio-shepherd
+    ln -s /home/lumen/Volumetric/LightField/stdio-shepherd /usr/share/lightfield/libexec/stdio-shepherd
+fi
+
+##
+## /var/cache/lightfield/print-jobs
+##
+
+if [ -h /var/cache/lightfield ]
+then
+    echo Deleting symlink /var/cache/lightfield
+    rm /var/cache/lightfield
+fi
+
+if [ ! -d /var/cache/lightfield ]
+then
+    echo Creating directory /var/cache/lightfield
+    mkdir /var/cache/lightfield
+    chown lumen:lumen /var/cache/lightfield
+fi
+
+symlink=""
+if [ -h /var/cache/lightfield/print-jobs ]
+then
+    symlink=$(readlink -e /var/cache/lightfield/print-jobs)
+    echo Deleting symlink /var/cache/lightfield/print-jobs
+    rm /var/cache/lightfield/print-jobs
+fi
+
+if [ ! -d /var/cache/lightfield/print-jobs ]
+then
+    echo Creating directory /var/cache/lightfield/print-jobs
+    mkdir /var/cache/lightfield/print-jobs
+    chown lumen:lumen /var/cache/lightfield/print-jobs
+fi
+
+if [ -n "${symlink}" -a -d "${symlink}" ]
+then
+    echo Relocating cached print jobs from "${symlink}" to /var/cache/lightfield/print-jobs
+    mv "${symlink}"/* /var/cache/lightfield/print-jobs/
+
+    echo Attempting to remove directory "${symlink}"
+    rmdir "${symlink}"
+fi
+
+##
+## /var/lib/lightfield/model-library
+##
+
+if [ -h /var/lib/lightfield ]
+then
+    echo Deleting symlink /var/lib/lightfield
+    rm /var/lib/lightfield
+fi
+
+if [ ! -d /var/lib/lightfield ]
+then
+    echo Creating directory /var/lib/lightfield
+    mkdir /var/lib/lightfield
+    chown lumen:lumen /var/lib/lightfield
+fi
+
+symlink=""
+if [ -h /var/lib/lightfield/model-library ]
+then
+    symlink=$(readlink -e /var/lib/lightfield/model-library)
+    echo Deleting symlink /var/lib/lightfield/model-library
+    rm /var/lib/lightfield/model-library
+fi
+
+if [ ! -d /var/lib/lightfield/model-library ]
+then
+    echo Creating directory /var/lib/lightfield/model-library
+    mkdir /var/lib/lightfield/model-library
+    chown lumen:lumen /var/lib/lightfield/model-library
+fi
+
+if [ -n "${symlink}" -a -d "${symlink}" ]
+then
+    echo Relocating models from "${symlink}" to /var/lib/lightfield/model-library
+    mv "${symlink}"/* /var/lib/lightfield/model-library/
+
+    echo Attempting to remove directory "${symlink}"
+    rmdir "${symlink}"
+fi
+
+##
+## /var/log/lightfield
+##
+
+symlink=""
+if [ -h /var/log/lightfield ]
+then
+    symlink=$(readlink -e /var/log/lightfield)
+    echo Deleting symlink /var/log/lightfield
+    rm /var/log/lightfield
+fi
+
+if [ ! -d /var/log/lightfield ]
+then
+    echo Creating directory /var/log/lightfield
+    mkdir /var/log/lightfield
+    chown lumen:lumen /var/log/lightfield
+fi
+
+if [ -n "${symlink}" -a -d "${symlink}" ]
+then
+    echo Relocating debugging logs from "${symlink}" to /var/log/lightfield
+    mv "${symlink}"/* /var/log/lightfield/
+
+    echo Attempting to remove directory "${symlink}"
+    rmdir "${symlink}"
+fi
+
+##
+## Copy various things into place.
+##
+
+cd /home/lumen/Volumetric/LightField/system-stuff
+install -cpv -o root -g root -m 0440 -t /etc/sudoers.d lumen-lightfield
+install -cpv -o root -g root -m 0755 -t /usr/bin       reset-printer-port upgrade-lightfield-firmware upgrade-lightfield-software
+## TODO install systemd lightfield.service unit
