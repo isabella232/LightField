@@ -29,7 +29,6 @@ private:
     QLabel*             _currentLayerDisplay          { new QLabel      };
     QLabel*             _elapsedTimeDisplay           { new QLabel      };
     QLabel*             _estimatedTimeLeftDisplay     { new QLabel      };
-    QLabel*             _jobStateDisplay              { new QLabel      };
     QLabel*             _percentageCompleteDisplay    { new QLabel      };
     QLabel*             _printerStateDisplay          { new QLabel      };
     QLabel*             _temperatureDisplay           { new QLabel      };
@@ -65,6 +64,9 @@ private:
     QHBoxLayout*        _layout                       { new QHBoxLayout };
 
     QTimer*             _updatePrintTimeInfo          { };
+
+    QFont               _boldFont;
+    QFont               _italicFont;
 
     bool                _isFirstOnlineTaskDone        { false };
     bool                _isPrinterOnline              { false };
