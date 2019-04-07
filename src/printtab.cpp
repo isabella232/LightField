@@ -129,6 +129,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
     _adjustmentsGroup->setTitle( "Adjustments" );
 
+    _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsGroup,     0, 0, 1, 2 );
     _layout->addWidget( _printButton,      1, 0, 1, 1 );
     _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
