@@ -168,15 +168,13 @@ void PrintTab::_connectShepherd( ) {
     QObject::connect( _shepherd, &Shepherd::printer_offline, this, &PrintTab::printer_offline );
 }
 
-void PrintTab::_setAdjustmentButtonsEnabled( bool const value ) {
-    debug( "+ PrintTab::_setAdjustmentButtonsEnabled: value %s\n", value ? "enabled" : "disabled" );
-    _raiseOrLowerButton->setEnabled( value );
-    _homeButton        ->setEnabled( value );
-}
-
 void PrintTab::_updateUiState( ) {
-    _printButton->setEnabled( _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
-    _setAdjustmentButtonsEnabled( _isPrinterOnline && _isPrinterAvailable );
+    bool isEnabled = _isPrinterOnline && _isPrinterAvailable;
+
+    _optionsGroup      ->setEnabled( isEnabled );
+    _printButton       ->setEnabled( isEnabled && _isPrinterPrepared && _isModelRendered );
+    _raiseOrLowerButton->setEnabled( isEnabled );
+    _homeButton        ->setEnabled( isEnabled );
 }
 
 void PrintTab::initialShowEvent( QShowEvent* event ) {
@@ -233,7 +231,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
         case BuildPlatformState::Raising:
             _buildPlatformState = BuildPlatformState::Raising;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
+            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
             _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
             break;
 
@@ -241,7 +239,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
         case BuildPlatformState::Lowering:
             _buildPlatformState = BuildPlatformState::Lowering;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
             _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0 );
             break;
     }
@@ -250,9 +248,9 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
     emit printerAvailabilityChanged( false );
 }
 
-void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
-    debug( "+ PrintTab::raiseBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveToComplete );
+void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
+    debug( "+ PrintTab::raiseBuildPlatform_moveAbsoluteComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
@@ -263,9 +261,9 @@ void PrintTab::raiseBuildPlatform_moveToComplete( bool const success ) {
     }
 }
 
-void PrintTab::lowerBuildPlatform_moveToComplete( bool const success ) {
-    debug( "+ PrintTab::lowerBuildPlatform_moveToComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveToComplete );
+void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
+    debug( "+ PrintTab::lowerBuildPlatform_moveAbsoluteComplete: %s\n", success ? "succeeded" : "failed" );
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
@@ -317,8 +315,6 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             emit printerAvailabilityChanged( true );
             break;
     }
-
-    _updateUiState( );
 }
 
 void PrintTab::printer_online( ) {

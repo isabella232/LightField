@@ -82,7 +82,6 @@ private:
 
     QGridLayout*       _layout                             { new QGridLayout };
 
-    void _setAdjustmentButtonsEnabled( bool const value );
     void _updateUiState( );
 
 signals:
@@ -107,8 +106,8 @@ private slots:
     void printer_online( );
     void printer_offline( );
 
-    void raiseBuildPlatform_moveToComplete( bool const success );
-    void lowerBuildPlatform_moveToComplete( bool const success );
+    void raiseBuildPlatform_moveAbsoluteComplete( bool const success );
+    void lowerBuildPlatform_moveAbsoluteComplete( bool const success );
     void home_homeComplete( bool const success );
 
     void exposureTimeSlider_valueChanged( int value );
