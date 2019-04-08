@@ -17,18 +17,18 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
-    pr = new ProcessRunner;
-    QObject::connect( pr, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
-    QObject::connect( pr, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
+    _processRunner = new ProcessRunner;
+    QObject::connect( _processRunner, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
+    QObject::connect( _processRunner, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
 }
 
 SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory_ ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
     debug( "+ SvgRenderer::startRender\n" );
-    outputDirectory = outputDirectory_;
+    _outputDirectory = outputDirectory;
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
@@ -36,7 +36,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         emit done( false );
         return;
     }
-    if ( !doc.setContent( &file ) ) {
+    if ( !_doc.setContent( &file ) ) {
         debug( "  + couldn't load file\n" );
         file.close( );
         emit done( false );
@@ -44,9 +44,9 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     }
     file.close( );
 
-    QDomDocument skeletonDoc = _CloneDocRoot( doc );
+    QDomDocument skeletonDoc = _CloneDocRoot( _doc );
 
-    QDomElement svgElement = doc.documentElement( );
+    QDomElement svgElement = _doc.documentElement( );
     if ( !svgElement.hasAttributes( ) ) {
         debug( "  + SVG element has no attributes?\n" );
         emit done( false );
@@ -55,15 +55,15 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
     auto mmWidth  = svgElement.attribute( "width" ).toDouble( );
     auto mmHeight = svgElement.attribute( "height" ).toDouble( );
-    pxWidth  = mmWidth  * 20.0 + 0.5;
-    pxHeight = mmHeight * 20.0 + 0.5;
-    debug( "  + dimensions: mm %f×%f; px %d×%d\n", mmWidth, mmHeight, pxWidth, pxHeight );
+    _pxWidth  = mmWidth  * 20.0 + 0.5;
+    _pxHeight = mmHeight * 20.0 + 0.5;
+    debug( "  + dimensions: mm %f×%f; px %d×%d\n", mmWidth, mmHeight, _pxWidth, _pxHeight );
 
     QDomNodeList childNodes = svgElement.childNodes( );
     int limit = childNodes.length( );
     debug( "  + childNodes.length(): %d\n", childNodes.length( ) );
 
-    currentLayer = 0;
+    _currentLayer = 0;
     for ( int childIndex = 0; childIndex < limit; ++childIndex ) {
         QDomNode node = childNodes.item( childIndex );
         if ( !node.isElement( ) ) {
@@ -94,7 +94,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         docElt.setAttribute( "width",  QString( "%1" ).arg( mmWidth,  0, 'f', 2 ) );
         docElt.setAttribute( "height", QString( "%1" ).arg( mmHeight, 0, 'f', 2 ) );
 
-        QFile data( QString( "%1/%2.svg" ).arg( outputDirectory ).arg( currentLayer++, 6, 10, DigitZero ) );
+        QFile data( QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( _currentLayer++, 6, 10, DigitZero ) );
         if ( data.open( QFile::WriteOnly | QFile::Truncate ) ) {
             QTextStream textStream( &data );
             layerDoc.save( textStream, 0 );
@@ -105,39 +105,39 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             return;
         }
     }
-    totalLayers = currentLayer;
-    emit layerCount( totalLayers );
+    _totalLayers = _currentLayer;
+    emit layerCount( _totalLayers );
 
-    currentLayer = 0;
-    renderLayer( );
+    _currentLayer = 0;
+    _renderLayer( );
 }
 
-void SvgRenderer::renderLayer( ) {
-    debug( "+ SvgRenderer::renderLayer: currentLayer: %d; PNG size: %d×%d\n", currentLayer, pxWidth, pxHeight );
-    pr->setProcessChannelMode( QProcess::ForwardedChannels );
-    pr->start(
+void SvgRenderer::_renderLayer( ) {
+    debug( "+ SvgRenderer::_renderLayer: _currentLayer: %d; PNG size: %d×%d\n", _currentLayer, _pxWidth, _pxHeight );
+    _processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
+    _processRunner->start(
         QString     { "gm" },
         QStringList {
             QString( "convert"     ),
             QString( "-antialias"  ),
             QString( "-density"    ), QString( "400" ),
-            QString( "-size"       ), QString( "%1x%2" ).arg( pxWidth ).arg( pxHeight ),
+            QString( "-size"       ), QString( "%1x%2" ).arg( _pxWidth ).arg( _pxHeight ),
             QString( "-background" ), QString( "#000000" ),
-            QString( "%1/%2.svg"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, DigitZero ),
-            QString( "%1/%2.png"   ).arg( outputDirectory ).arg( currentLayer, 6, 10, DigitZero )
+            QString( "%1/%2.svg"   ).arg( _outputDirectory ).arg( _currentLayer, 6, 10, DigitZero ),
+            QString( "%1/%2.png"   ).arg( _outputDirectory ).arg( _currentLayer, 6, 10, DigitZero )
         }
     );
 }
 
 void SvgRenderer::programSucceeded( ) {
-    if ( currentLayer + 1 == totalLayers ) {
+    if ( _currentLayer + 1 == _totalLayers ) {
         debug( "+ SvgRenderer::programSucceeded: finished\n" );
-        emit layerComplete( currentLayer );
+        emit layerComplete( _currentLayer );
         emit done( true );
     } else {
-        emit layerComplete( currentLayer );
-        ++currentLayer;
-        renderLayer( );
+        emit layerComplete( _currentLayer );
+        ++_currentLayer;
+        _renderLayer( );
     }
 }
 

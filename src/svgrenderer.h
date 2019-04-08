@@ -12,23 +12,23 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& outputDirectory );
+    void startRender( QString const& svgFileName, QString const& _outputDirectory );
 
 protected:
 
 private:
 
-    QString        outputDirectory;
-    QDomDocument   doc;
-    ProcessRunner* pr;
+    QString              _outputDirectory;
+    QDomDocument         _doc;
+    ProcessRunner*       _processRunner  { };
 
-    int currentLayer;
-    int totalLayers { 0 };
-    int digits;
-    int pxWidth;
-    int pxHeight;
+    int                  _currentLayer   { };
+    int                  _totalLayers    { };
+    int                  _digits         { };
+    int                  _pxWidth        { };
+    int                  _pxHeight       { };
 
-    void renderLayer( );
+    void _renderLayer( );
 
 signals:
 
