@@ -21,6 +21,16 @@ namespace {
         "M155 S5",
     };
 
+    void _HideAndClear( QLabel* widget ) {
+        widget->setVisible( false );
+        widget->clear( );
+    }
+
+    void _SetTextAndShow( QLabel* widget, QString const& text ) {
+        widget->setText( text );
+        widget->setVisible( true );
+    }
+
 }
 
 StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBase>( parent ) {
@@ -28,25 +38,32 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
 
-    auto origFont = font( );
+    QFont origFont { font( ) };
+    QFont font22pt { ModifyFont( origFont, 22.0 ) };
+
     _boldFont = ModifyFont( origFont, QFont::Bold );
-    auto font22pt = ModifyFont( origFont, 22.0 );
 
     _italicFont = _boldFont;
     _italicFont.setItalic( true );
 
+
     _currentLayerDisplay->setFont( _boldFont );
+    _currentLayerDisplay->setVisible( false );
 
     _elapsedTimeDisplay->setFont( _boldFont );
+    _elapsedTimeDisplay->setVisible( false );
 
     _estimatedTimeLeftDisplay->setFont( _boldFont );
+    _estimatedTimeLeftDisplay->setVisible( false );
 
     _percentageCompleteDisplay->setFont( _boldFont );
+    _percentageCompleteDisplay->setVisible( false );
 
     _printerStateDisplay->setFont( _boldFont );
     _printerStateDisplay->setText( "Printer is offline" );
 
     _temperatureDisplay->setFont( _boldFont );
+    _temperatureDisplay->setVisible( false );
 
     _projectorLampStateDisplay->setFont( _boldFont );
     _projectorLampStateDisplay->setText( "Projector is off" );
@@ -279,7 +296,7 @@ void StatusTab::printManager_printStarting( ) {
     debug( "+ StatusTab::printManager_printStarting\n" );
 
     _printerStateDisplay->setText( "Waiting" );
-    _elapsedTimeDisplay->clear( );
+    _HideAndClear( _elapsedTimeDisplay );
 
     _layerElapsedTimes.clear( );
 }
@@ -290,9 +307,9 @@ void StatusTab::printManager_printComplete( bool const success ) {
     _updatePrintTimeInfo->stop( );
 
     _printerStateDisplay->setText( success ? "Print is complete" : "Print failed" );
-    _currentLayerDisplay->clear( );
-    _estimatedTimeLeftDisplay->clear( );
-    _percentageCompleteDisplay->clear( );
+    _HideAndClear( _currentLayerDisplay       );
+    _HideAndClear( _estimatedTimeLeftDisplay  );
+    _HideAndClear( _percentageCompleteDisplay );
     _currentLayerImage->clear( );
 
     emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
@@ -307,9 +324,9 @@ void StatusTab::printManager_printAborted( ) {
     _updatePrintTimeInfo->stop( );
 
     _printerStateDisplay->setText( "Print was canceled" );
-    _currentLayerDisplay->clear( );
-    _estimatedTimeLeftDisplay->clear( );
-    _percentageCompleteDisplay->clear( );
+    _HideAndClear( _currentLayerDisplay       );
+    _HideAndClear( _estimatedTimeLeftDisplay  );
+    _HideAndClear( _percentageCompleteDisplay );
     _currentLayerImage->clear( );
 
     emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
@@ -339,7 +356,7 @@ void StatusTab::printManager_printResumed( ) {
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    _currentLayerDisplay->setText( QString( "Printing layer %1 of %2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
+    _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->layerCount ) );
 
     _previousLayerStartTime = _currentLayerStartTime;
     _currentLayerStartTime  = GetBootTimeClock( );
@@ -347,7 +364,7 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     if ( 0 == layer ) {
         _printerStateDisplay->setText( "Printing" );
         _estimatedTimeLeftDisplay->setFont( _italicFont );
-        _estimatedTimeLeftDisplay->setText( "Estimating time remaining..." );
+        _SetTextAndShow( _estimatedTimeLeftDisplay, "Estimating time remaining..." );
 
         _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );
@@ -367,9 +384,9 @@ void StatusTab::printManager_startingLayer( int const layer ) {
         debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
-    _percentageCompleteDisplay->setText( QString( "%1% complete" ).arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
+    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString { "/%2.png" }.arg( layer, 6, 10, DigitZero ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -401,9 +418,9 @@ void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, 
     }
 
     if ( bedPwm ) {
-        _temperatureDisplay->setText( QString { "Print bed is %1 °C/%2 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ).arg( bedTargetTemperature, 0, 'f', 1 ) );
+        _SetTextAndShow( _temperatureDisplay, QString { "Print bed is %1 °C/%2 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ).arg( bedTargetTemperature, 0, 'f', 1 ) );
     } else {
-        _temperatureDisplay->setText( "Print bed heating is off." );
+        _SetTextAndShow( _temperatureDisplay, "Print bed heating is off." );
     }
 }
 
@@ -430,7 +447,7 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n", delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString( _isPaused ), currentLayer );
 
-    _elapsedTimeDisplay->setText( TimeDeltaToString( delta + _totalPausedTime ) + QString { " elapsed" } );
+    _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) + QString { " elapsed" } );
 
     if ( _isPaused || ( currentLayer < 4 ) || !( estimatedTimeLeft > 0.0 ) ) {
         return;
@@ -439,7 +456,7 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     if ( currentLayer == 4 ) {
         _estimatedTimeLeftDisplay->setFont( _boldFont );
     }
-    _estimatedTimeLeftDisplay->setText( TimeDeltaToString( estimatedTimeLeft ) + QString { " remaining" } );
+    _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) + QString { " remaining" } );
 }
 
 void StatusTab::printSolutionLoadedButton_clicked( bool ) {
