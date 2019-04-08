@@ -13,7 +13,7 @@ rebuild () {
 
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
 	cat <<HERE
-Usage: $0 [-cnqrx] [--clean|--nuke-first|--qmake-anyway|--release]
+Usage: rebuild [-cnqrx] [--clean|--nuke-first|--qmake-anyway|--release]
 Runs "qmake" to regenerate the Makefile, if necessary, then "make" to
 rebuild LightField.
 
