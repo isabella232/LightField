@@ -1,4 +1,4 @@
-Cmnd_Alias	SW_UPDATE = sha512:JZC1YX6fauUf6JjcvIWzUoPhFzzPYUobHoo9NMkeMER1MiC2R0+u56pWsoVNcMdqnmO1jZNytEAzl22SYXlOUQ== /usr/bin/upgrade-lightfield-software
-Cmnd_Alias	FW_UPDATE = sha512:i0lAjSV9MlIx3bLEnew5Ne3pXYMqtgHoYaViYffqXejXhHBfh27sI4d1R6rRiX67IaTBhunZ1bVceuRyCyN0EA== /usr/bin/upgrade-lightfield-firmware
+Cmnd_Alias	FW_UPDATE = sha384:e4UHlqb+5azjB2WQ07PD9PYsyN+JPVN8oKp2KMpUYXhqPXrG9Fz9IRV9GL45wphT /usr/bin/upgrade-lightfield-firmware
+Cmnd_Alias	SW_UPDATE = sha384:wfLlY7KLlYjXE/cFQvXF88WgRR6UYd7dyw0Fnfl1oq04O21tXIhQObzDJv2UinrF /usr/bin/upgrade-lightfield-software
 
-lumen		ALL = NOPASSWD: SW_UPDATE, FW_UPDATE, /sbin/shutdown -h now, /sbin/shutdown -r now
+lumen		ALL = NOPASSWD: FW_UPDATE, SW_UPDATE, /sbin/shutdown -h now, /sbin/shutdown -r now
