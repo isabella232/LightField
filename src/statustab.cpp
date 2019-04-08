@@ -122,7 +122,6 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
 
     _leftColumnLayout->setContentsMargins( { } );
     _leftColumnLayout->addLayout( _progressControlsLayout );
-    _leftColumnLayout->addStretch( );
     _leftColumnLayout->addWidget( _pauseButton            );
     _leftColumnLayout->addWidget( _stopButton             );
     _leftColumnLayout->addWidget( _reprintButton          );
