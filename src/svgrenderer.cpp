@@ -130,12 +130,12 @@ void SvgRenderer::_renderLayer( ) {
 }
 
 void SvgRenderer::programSucceeded( ) {
+    emit layerComplete( _currentLayer );
+
     if ( _currentLayer + 1 == _totalLayers ) {
         debug( "+ SvgRenderer::programSucceeded: finished\n" );
-        emit layerComplete( _currentLayer );
         emit done( true );
     } else {
-        emit layerComplete( _currentLayer );
         ++_currentLayer;
         _renderLayer( );
     }
