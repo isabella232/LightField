@@ -55,9 +55,9 @@ private:
     QWidget*      _optionsContainer            { new QWidget      };
     QPushButton*  _sliceButton                 { new QPushButton  };
 
-    QGroupBox*    _currentSliceGroup           { new QGroupBox    };
-    QLabel*       _currentSliceImage           { new QLabel       };
-    QVBoxLayout*  _currentSliceLayout          { new QVBoxLayout  };
+    QGroupBox*    _currentLayerGroup           { new QGroupBox    };
+    QLabel*       _currentLayerImage           { new QLabel       };
+    QVBoxLayout*  _currentLayerLayout          { new QVBoxLayout  };
 
     QPushButton*  _navigateFirst               { new QPushButton  };
     QPushButton*  _navigatePrevious            { new QPushButton  };

@@ -86,10 +86,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
-    _currentSliceImage->setAlignment( Qt::AlignCenter );
-    _currentSliceImage->setContentsMargins( { } );
-    _currentSliceImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _currentSliceImage->setStyleSheet( QString( "QWidget { background: black }" ) );
+    _currentLayerImage->setAlignment( Qt::AlignCenter );
+    _currentLayerImage->setContentsMargins( { } );
+    _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _currentLayerImage->setStyleSheet( QString( "QWidget { background: black }" ) );
 
     for ( auto button : { _navigateFirst, _navigatePrevious, _navigateNext, _navigateLast } ) {
         button->setFont( fontAwesome );
@@ -113,19 +113,19 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _setNavigationButtonsEnabled( false );
 
-    _currentSliceLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
-    _currentSliceLayout->setContentsMargins( { } );
-    _currentSliceLayout->addWidget( _currentSliceImage );
-    _currentSliceLayout->addLayout( _navigationLayout );
+    _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
+    _currentLayerLayout->setContentsMargins( { } );
+    _currentLayerLayout->addWidget( _currentLayerImage );
+    _currentLayerLayout->addLayout( _navigationLayout );
 
-    _currentSliceGroup->setTitle( "Current layer" );
-    _currentSliceGroup->setMinimumSize( MaximalRightHandPaneSize );
-    _currentSliceGroup->setLayout( _currentSliceLayout );
+    _currentLayerGroup->setTitle( "Current layer" );
+    _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
+    _currentLayerGroup->setLayout( _currentLayerLayout );
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
     _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
-    _layout->addWidget( _currentSliceGroup, 0, 1, 2, 1 );
+    _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -144,7 +144,7 @@ void PrepareTab::_connectShepherd( ) {
 }
 
 void PrepareTab::initialShowEvent( QShowEvent* event ) {
-    _currentSliceImage->setFixedSize( _currentSliceImage->width( ), _currentSliceImage->width( ) / AspectRatio16to10 + 0.5 );
+    _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
 
     event->accept( );
 }
@@ -274,10 +274,10 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 
 void PrepareTab::_showLayerImage( int const layer ) {
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
-    if ( ( pixmap.width( ) > _currentSliceImage->width( ) ) || ( pixmap.height( ) > _currentSliceImage->height( ) ) ) {
-        pixmap = pixmap.scaled( _currentSliceImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
+        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
-    _currentSliceImage->setPixmap( pixmap );
+    _currentLayerImage->setPixmap( pixmap );
 
     _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
 }
@@ -542,7 +542,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
             _sliceStatus->setText( "idle" );
             _imageGeneratorStatus->setText( "idle" );
-            _currentSliceImage->clear( );
+            _currentLayerImage->clear( );
             _navigateCurrentLabel->setText( "0/0" );
             _setNavigationButtonsEnabled( false );
 
