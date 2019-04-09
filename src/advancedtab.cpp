@@ -248,24 +248,9 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
     _powerLevelValueLayout->setEnabled( checked );
 
     if ( checked ) {
-        debug( "  + Creating PngDisplayer instance and showing a white field\n" );
-        if ( _pngDisplayer ) {
-            debug( "    + Deleting stale pngDisplayer?\n" );
-            _pngDisplayer->close( );
-            _pngDisplayer->deleteLater( );
-        }
-
-        _pngDisplayer = new PngDisplayer( ":images/white-field.png" );
-        _pngDisplayer->show( );
+        _pngDisplayer->loadImageFile( ":images/white-field.png" );
     } else {
-        if ( _pngDisplayer ) {
-            debug( "  + Destroying PngDisplayer instance\n" );
-            _pngDisplayer->close( );
-            _pngDisplayer->deleteLater( );
-            _pngDisplayer = nullptr;
-        } else {
-            debug( "  + No PngDisplayer instance to destroy?\n" );
-        }
+        _pngDisplayer->clear( );
     }
 
     QProcess::startDetached( SetpowerCommand, { QString { "%1" }.arg( checked ? _powerLevelSlider->value( ) : 0 ) } );
@@ -303,6 +288,10 @@ void AdvancedTab::printer_offline( ) {
     debug( "+ AdvancedTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateProjectorFloodlightGroup( );
+}
+
+void AdvancedTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
+    _pngDisplayer = pngDisplayer;
 }
 
 void AdvancedTab::setPrinterAvailable( bool const value ) {

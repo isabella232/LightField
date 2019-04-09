@@ -7,9 +7,10 @@
 #include "uistate.h"
 
 class ModelSelectionInfo;
-class Shepherd;
+class PngDisplayer;
 class PrintManager;
 class PrintJob;
+class Shepherd;
 
 class FileTab;
 class PrepareTab;
@@ -34,14 +35,14 @@ protected:
 
 private:
 
-    Shepherd*           _shepherd          { };
+    ModelSelectionInfo* _modelSelection    { };
+    PngDisplayer*       _pngDisplayer      { };
     PrintJob*           _printJob          { };
     PrintManager*       _printManager      { };
+    Shepherd*           _shepherd          { };
     UiState             _uiState           { };
-    ModelSelectionInfo* _modelSelection    { };
 
     QTabWidget*         _tabWidget         { new QTabWidget };
-
     FileTab*            _fileTab;
     PrepareTab*         _prepareTab;
     PrintTab*           _printTab;
@@ -66,11 +67,11 @@ signals:
 
 public slots:
 
-    void startPrinting( );
-
 protected slots:
 
 private slots:
+
+    void startPrinting( );
 
     void tab_uiStateChanged( TabIndex const sender, UiState const state );
     void tabs_currentChanged( int index );

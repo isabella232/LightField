@@ -8,13 +8,8 @@ class PngDisplayer: public QMainWindow {
 public:
 
     PngDisplayer( QWidget* parent = nullptr );
-    PngDisplayer( QString const& fileName, QWidget* parent = nullptr );
 
     virtual ~PngDisplayer( ) override;
-
-    void clear( );
-    bool setImageFileName( QString const& fileName );
-    void setPixmap( QPixmap const& pixmap );
 
 protected:
 
@@ -26,6 +21,10 @@ private:
 signals:
 
 public slots:
+
+    void clear( );
+    bool loadImageFile( QString const& fileName );
+    void setPixmap( QPixmap const& pixmap );
 
 protected slots:
 

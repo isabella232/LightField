@@ -6,22 +6,14 @@
 #include "utils.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
-    setStyleSheet( QString( "QWidget { background: black }" ) );
+    setFixedSize( PngDisplayWindowSize );
+    setPalette( ModifyPalette( palette( ), QPalette::Window, Qt::black ) );
+    setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
+    move( g_settings.pngDisplayWindowPosition );
 
     _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );
-
-    setPalette( ModifyPalette( palette( ), QPalette::Window, Qt::black ) );
-
-    setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
-
-    setFixedSize( PngDisplayWindowSize );
-    setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    move( g_settings.pngDisplayWindowPosition );
-}
-
-PngDisplayer::PngDisplayer( QString const& fileName, QWidget* parent ): PngDisplayer( parent ) {
-    setImageFileName( fileName );
 }
 
 PngDisplayer::~PngDisplayer( ) {
@@ -32,7 +24,7 @@ void PngDisplayer::clear( ) {
     _label->clear( );
 }
 
-bool PngDisplayer::setImageFileName( QString const& fileName ) {
+bool PngDisplayer::loadImageFile( QString const& fileName ) {
     if ( !_png.load( fileName ) ) {
         _label->clear( );
         return false;

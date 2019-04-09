@@ -3,6 +3,7 @@
 #include "window.h"
 
 #include "app.h"
+#include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
@@ -40,6 +41,9 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     setFixedSize( MainWindowSize );
     move( g_settings.mainWindowPosition );
 
+    _pngDisplayer = new PngDisplayer;
+    _pngDisplayer->show( );
+
     QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     g_signalHandler->subscribe( signalList );
 
@@ -72,6 +76,7 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
+    _advancedTab->setPngDisplayer( _pngDisplayer );
 
     _shepherd->start( );
 
@@ -176,10 +181,19 @@ void Window::_setModelRendered( bool const value ) {
 
 void Window::closeEvent( QCloseEvent* event ) {
     debug( "+ Window::closeEvent\n" );
+
     if ( _printManager ) {
         _printManager->terminate( );
     }
+
+    if ( _pngDisplayer ) {
+        _pngDisplayer->close( );
+        _pngDisplayer->deleteLater( );
+        _pngDisplayer = nullptr;
+    }
+
     _shepherd->doTerminate( );
+
     event->accept( );
 }
 
@@ -213,7 +227,9 @@ void Window::startPrinting( ) {
     _printJob = new PrintJob( _printJob );
 
     PrintManager* oldPrintManager = _printManager;
+
     _printManager = new PrintManager( _shepherd, this );
+    _printManager->setPngDisplayer( _pngDisplayer );
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );

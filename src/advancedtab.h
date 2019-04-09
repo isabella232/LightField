@@ -78,6 +78,7 @@ public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
+    void setPngDisplayer( PngDisplayer* pngDisplayer );
     void setPrinterAvailable( bool const value );
 
 protected slots:

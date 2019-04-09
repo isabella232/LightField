@@ -101,12 +101,6 @@ void PrintManager::_cleanUp( ) {
         _printJob = nullptr;
     }
 
-    if ( _pngDisplayer ) {
-        _pngDisplayer->close( );
-        _pngDisplayer->deleteLater( );
-        _pngDisplayer = nullptr;
-    }
-
     if ( _setpowerProcess ) {
         if ( _setpowerProcess->state( ) != QProcess::NotRunning ) {
             _setpowerProcess->kill( );
@@ -276,8 +270,8 @@ void PrintManager::stepB1_start( ) {
     debug( "+ PrintManager::stepB1_start: running 'setpower %d'\n", _printJob->powerLevel );
 
     QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
-    if ( !_pngDisplayer->setImageFileName( pngFileName ) ) {
-        debug( "+ PrintManager::stepB1_start: PngDisplayer::setImageFileName failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+    if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
+        debug( "+ PrintManager::stepB1_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
         this->abort( );
         return;
     }
@@ -557,8 +551,7 @@ void PrintManager::print( PrintJob* printJob ) {
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
 
-    _pngDisplayer = new PngDisplayer( );
-    _pngDisplayer->show( );
+    _pngDisplayer->clear( );
 
     debug( "+ PrintManager::print: emitting printStarting()\n" );
     _printResult = PrintResult::None;
@@ -639,6 +632,10 @@ void PrintManager::abort( ) {
             debug( "  + Waiting on current step to stop\n" );
             break;
     }
+}
+
+void PrintManager::setPngDisplayer( PngDisplayer* pngDisplayer ) {
+    _pngDisplayer = pngDisplayer;
 }
 
 void PrintManager::printSolutionLoaded( ) {

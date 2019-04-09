@@ -35,8 +35,6 @@ public:
     PrintManager( Shepherd* shepherd, QObject* parent = 0 );
     virtual ~PrintManager( ) override;
 
-    void print( PrintJob* printJob );
-
     int currentLayer( ) const { return _currentLayer; }
 
 protected:
@@ -65,6 +63,7 @@ private:
 signals:
 
     void requestDispensePrintSolution( );
+
     void printStarting( );
     void printComplete( bool const success );
     void printAborted( );
@@ -76,12 +75,15 @@ signals:
 
 public slots:
 
-    void printSolutionLoaded( );
+    void setPngDisplayer( PngDisplayer* pngDisplayer );
 
+    void print( PrintJob* printJob );
     void pause( );
     void resume( );
     void terminate( );
     void abort( );
+
+    void printSolutionLoaded( );
 
 protected slots:
 
