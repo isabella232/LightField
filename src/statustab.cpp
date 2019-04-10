@@ -152,8 +152,9 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionLabel->setTextFormat( Qt::RichText );
     _dispensePrintSolutionLabel->setWordWrap( true );
 
-    _printSolutionDispensedButton->setFixedSize( MainButtonSize );
     _printSolutionDispensedButton->setFont( font22pt );
+    _printSolutionDispensedButton->setFixedSize( MainButtonSize.width( ) + 20, MainButtonSize.height( ) );
+    _printSolutionDispensedButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _printSolutionDispensedButton->setText( "Start the print" );
     QObject::connect( _printSolutionDispensedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
 
