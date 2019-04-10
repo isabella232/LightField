@@ -83,7 +83,7 @@ public slots:
     void terminate( );
     void abort( );
 
-    void printSolutionLoaded( );
+    void printSolutionDispensed( );
 
 protected slots:
 

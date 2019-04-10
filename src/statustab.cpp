@@ -152,11 +152,11 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionLabel->setTextFormat( Qt::RichText );
     _dispensePrintSolutionLabel->setWordWrap( true );
 
-    _printSolutionDispensedButton->setFont( font22pt );
-    _printSolutionDispensedButton->setFixedSize( MainButtonSize.width( ) + 20, MainButtonSize.height( ) );
-    _printSolutionDispensedButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _printSolutionDispensedButton->setText( "Start the print" );
-    QObject::connect( _printSolutionDispensedButton, &QPushButton::clicked, this, &StatusTab::printSolutionLoadedButton_clicked );
+    _startThePrintButton->setFont( font22pt );
+    _startThePrintButton->setFixedSize( MainButtonSize.width( ) + 20, MainButtonSize.height( ) );
+    _startThePrintButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _startThePrintButton->setText( "Start the print" );
+    QObject::connect( _startThePrintButton, &QPushButton::clicked, this, &StatusTab::startThePrintButton_clicked );
 
     _dispensePrintSolutionGroup->setContentsMargins( { } );
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
@@ -165,7 +165,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
     {
         auto dispensePrintSolutionLayout = WrapWidgetsInVBox( { nullptr, _dispensePrintSolutionLabel, nullptr } );
-        dispensePrintSolutionLayout->addLayout( WrapWidgetsInHBox( { nullptr, _printSolutionDispensedButton, nullptr } ) );
+        dispensePrintSolutionLayout->addLayout( WrapWidgetsInHBox( { nullptr, _startThePrintButton, nullptr } ) );
         dispensePrintSolutionLayout->addStretch( );
 
         _dispensePrintSolutionGroup->setLayout( dispensePrintSolutionLayout );
@@ -459,12 +459,12 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) + QString { " remaining" } );
 }
 
-void StatusTab::printSolutionLoadedButton_clicked( bool ) {
+void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
     _currentLayerGroup->setVisible( true );
     _printerStateDisplay->setText( "Print solution is settling" );
 
-    _printManager->printSolutionLoaded( );
+    _printManager->printSolutionDispensed( );
 }
 
 void StatusTab::_connectPrintManager( ) {

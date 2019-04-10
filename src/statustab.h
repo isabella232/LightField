@@ -26,63 +26,63 @@ protected:
 
 private:
 
-    QLabel*             _currentLayerDisplay          { new QLabel      };
-    QLabel*             _elapsedTimeDisplay           { new QLabel      };
-    QLabel*             _estimatedTimeLeftDisplay     { new QLabel      };
-    QLabel*             _percentageCompleteDisplay    { new QLabel      };
-    QLabel*             _printerStateDisplay          { new QLabel      };
-    QLabel*             _temperatureDisplay           { new QLabel      };
-    QLabel*             _projectorLampStateDisplay    { new QLabel      };
+    QLabel*             _currentLayerDisplay        { new QLabel      };
+    QLabel*             _elapsedTimeDisplay         { new QLabel      };
+    QLabel*             _estimatedTimeLeftDisplay   { new QLabel      };
+    QLabel*             _percentageCompleteDisplay  { new QLabel      };
+    QLabel*             _printerStateDisplay        { new QLabel      };
+    QLabel*             _temperatureDisplay         { new QLabel      };
+    QLabel*             _projectorLampStateDisplay  { new QLabel      };
 
-    QVBoxLayout*        _progressControlsLayout       { new QVBoxLayout };
+    QVBoxLayout*        _progressControlsLayout     { new QVBoxLayout };
 
-    QPixmap*            _warningHotImage              { };
-    QLabel*             _warningHotLabel              { new QLabel      };
+    QPixmap*            _warningHotImage            { };
+    QLabel*             _warningHotLabel            { new QLabel      };
 
-    QPixmap*            _warningUvImage               { };
-    QLabel*             _warningUvLabel               { new QLabel      };
+    QPixmap*            _warningUvImage             { };
+    QLabel*             _warningUvLabel             { new QLabel      };
 
-    QPushButton*        _pauseButton                  { new QPushButton };
-    QPushButton*        _stopButton                   { new QPushButton };
-    QPushButton*        _reprintButton                { new QPushButton };
+    QPushButton*        _pauseButton                { new QPushButton };
+    QPushButton*        _stopButton                 { new QPushButton };
+    QPushButton*        _reprintButton              { new QPushButton };
 
-    QVBoxLayout*        _leftColumnLayout             { new QVBoxLayout };
-    QWidget*            _leftColumn                   { new QWidget     };
+    QVBoxLayout*        _leftColumnLayout           { new QVBoxLayout };
+    QWidget*            _leftColumn                 { new QWidget     };
 
 
-    QLabel*             _currentLayerImage            { new QLabel      };
-    QVBoxLayout*        _currentLayerLayout           {                 };
-    QGroupBox*          _currentLayerGroup            { new QGroupBox   };
+    QLabel*             _currentLayerImage          { new QLabel      };
+    QVBoxLayout*        _currentLayerLayout         {                 };
+    QGroupBox*          _currentLayerGroup          { new QGroupBox   };
 
-    QLabel*             _dispensePrintSolutionLabel   { new QLabel      };
-    QPushButton*        _printSolutionDispensedButton { new QPushButton };
-    QGroupBox*          _dispensePrintSolutionGroup   { new QGroupBox   };
+    QLabel*             _dispensePrintSolutionLabel { new QLabel      };
+    QPushButton*        _startThePrintButton        { new QPushButton };
+    QGroupBox*          _dispensePrintSolutionGroup { new QGroupBox   };
 
-    QVBoxLayout*        _rightColumnLayout            { };
-    QWidget*            _rightColumn                  { new QWidget     };
+    QVBoxLayout*        _rightColumnLayout          { };
+    QWidget*            _rightColumn                { new QWidget     };
 
-    QHBoxLayout*        _layout                       { new QHBoxLayout };
+    QHBoxLayout*        _layout                     { new QHBoxLayout };
 
-    QTimer*             _updatePrintTimeInfo          { };
+    QTimer*             _updatePrintTimeInfo        { };
 
     QFont               _boldFont;
     QFont               _italicFont;
 
-    bool                _isFirstOnlineTaskDone        { false };
-    bool                _isPrinterOnline              { false };
-    bool                _isPrinterAvailable           { true  };
-    bool                _isPrinterPrepared            { false };
-    bool                _isModelRendered              { false };
-    bool                _isPaused                     { false };
+    bool                _isFirstOnlineTaskDone      { false };
+    bool                _isPrinterOnline            { false };
+    bool                _isPrinterAvailable         { true  };
+    bool                _isPrinterPrepared          { false };
+    bool                _isModelRendered            { false };
+    bool                _isPaused                   { false };
 
-    double              _printJobStartTime            { };
-    double              _currentLayerStartTime        { };
-    double              _previousLayerStartTime       { };
-    double              _estimatedPrintJobTime        { };
-    double              _totalPausedTime              { };
-    double              _currentPauseStartTime        { };
+    double              _printJobStartTime          { };
+    double              _currentLayerStartTime      { };
+    double              _previousLayerStartTime     { };
+    double              _estimatedPrintJobTime      { };
+    double              _totalPausedTime            { };
+    double              _currentPauseStartTime      { };
 
-    std::vector<double> _layerElapsedTimes            { };
+    std::vector<double> _layerElapsedTimes          { };
 
     void _updateReprintButtonState( );
 
@@ -125,7 +125,7 @@ private slots:
     void pauseButton_clicked( bool );
     void stopButton_clicked( bool );
     void reprintButton_clicked( bool );
-    void printSolutionLoadedButton_clicked( bool );
+    void startThePrintButton_clicked( bool );
 
 };
 

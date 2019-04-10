@@ -37,10 +37,10 @@
 
 namespace {
 
-    auto const PauseAfterPrintSolutionLoad = 4000; // ms
-    auto const PauseBeforeProject          = 1000; // ms
-    auto const PauseBeforeLift             = 1000; // ms
-    auto const LiftDistance                = 2.00; // mm
+    auto const PauseAfterPrintSolutionDispensed = 4000; // ms
+    auto const PauseBeforeProject               = 1000; // ms
+    auto const PauseBeforeLift                  = 1000; // ms
+    auto const LiftDistance                     = 2.00; // mm
 
     char const* PrintResultStrings[] {
         "None",
@@ -240,9 +240,9 @@ void PrintManager::stepA5_completed( bool const success ) {
 void PrintManager::stepA6_start( ) {
     _step = PrintStep::A6;
 
-    debug( "+ PrintManager::stepA6_start: pausing for %d ms\n", PauseAfterPrintSolutionLoad );
+    debug( "+ PrintManager::stepA6_start: pausing for %d ms\n", PauseAfterPrintSolutionDispensed );
 
-    _preProjectionTimer = _makeAndStartTimer( PauseAfterPrintSolutionLoad, &PrintManager::stepA6_completed );
+    _preProjectionTimer = _makeAndStartTimer( PauseAfterPrintSolutionDispensed, &PrintManager::stepA6_completed );
 }
 
 void PrintManager::stepA6_completed( ) {
@@ -606,7 +606,7 @@ void PrintManager::abort( ) {
             break;
 
         case PrintStep::A2:
-            debug( "  + Aborting print solution load prompt\n" );
+            debug( "  + Aborting print solution dispense prompt\n" );
             stepA2_completed( );
             break;
 
@@ -638,6 +638,6 @@ void PrintManager::setPngDisplayer( PngDisplayer* pngDisplayer ) {
     _pngDisplayer = pngDisplayer;
 }
 
-void PrintManager::printSolutionLoaded( ) {
+void PrintManager::printSolutionDispensed( ) {
     stepA2_completed( );
 }
