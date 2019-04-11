@@ -360,7 +360,7 @@ void Shepherd::start( ) {
     _processRunner = new ProcessRunner( this );
     QObject::connect( _processRunner, &ProcessRunner::succeeded, this, &Shepherd::processRunner_succeeded );
     QObject::connect( _processRunner, &ProcessRunner::failed,    this, &Shepherd::processRunner_failed    );
-    _processRunner->start( "reset-printer-port", { } );
+    _processRunner->start( "reset-lumen-arduino-port", { } );
 }
 
 void Shepherd::doMoveRelative( float const relativeDistance ) {
