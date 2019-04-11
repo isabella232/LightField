@@ -596,7 +596,7 @@ void PrintManager::terminate( ) {
 }
 
 void PrintManager::abort( ) {
-    debug( "+ PrintManager::abort\n" );
+    debug( "+ PrintManager::abort: current step is %s; currrent print result is %s\n", ToString( _step ), ToString( _printResult ) );
 
     _printResult = PrintResult::Abort;
     switch ( _step ) {
@@ -611,7 +611,7 @@ void PrintManager::abort( ) {
             break;
 
         case PrintStep::A6:
-            debug( "  + Interrupting pre-projection timer\n" );
+            debug( "  + Interrupting initial pre-projection timer\n" );
             _stopAndCleanUpTimer( _preProjectionTimer );
             stepA6_completed( );
             break;
