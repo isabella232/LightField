@@ -25,6 +25,9 @@ private:
 
     QLabel*      _copyrightsLabel          { new QLabel      };
 
+    QPushButton* _updateSoftwareButton     { new QPushButton };
+    QPushButton* _updateFirmwareButton     { new QPushButton };
+
     QPushButton* _restartButton            { new QPushButton };
     QPushButton* _shutDownButton           { new QPushButton };
 
@@ -60,10 +63,15 @@ protected slots:
 
 private slots:
 
+    void updateSoftwareButton_clicked( bool );
+    void updateFirmwareButton_clicked( bool );
+
     void restartButton_clicked( bool );
     void shutDownButton_clicked( bool );
+
     void confirmRestartYesButton_clicked( bool );
     void confirmRestartNoButton_clicked( bool );
+
     void confirmShutdownYesButton_clicked( bool );
     void confirmShutdownNoButton_clicked( bool );
 

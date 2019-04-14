@@ -43,6 +43,17 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     _copyrightsLabel->setText( ReadWholeFile( ":text/copyright-message.txt" ) );
 
 
+    _updateSoftwareButton->setFont( font16pt );
+    _updateSoftwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _updateSoftwareButton->setText( "Update software" );
+    QObject::connect( _updateSoftwareButton, &QPushButton::clicked, this, &MaintenanceTab::updateSoftwareButton_clicked );
+
+    _updateFirmwareButton->setFont( font16pt );
+    _updateFirmwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _updateFirmwareButton->setText( "Update firmware" );
+    QObject::connect( _updateFirmwareButton, &QPushButton::clicked, this, &MaintenanceTab::updateFirmwareButton_clicked );
+
+
     _restartButton->setFont( font16pt );
     _restartButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _restartButton->setText( "Restart" );
@@ -164,6 +175,12 @@ void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
     _confirmShutdownNoButton ->setFixedSize( newSize );
 
     event->accept( );
+}
+
+void MaintenanceTab::updateSoftwareButton_clicked( bool ) {
+}
+
+void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
 }
 
 void MaintenanceTab::restartButton_clicked( bool ) {
