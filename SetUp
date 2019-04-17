@@ -161,4 +161,4 @@ fi
 cd /home/lumen/Volumetric/LightField/system-stuff
 install -Dv -o root -g root -m 0440 -t /etc/sudoers.d/                lumen-lightfield
 install -Dv -o root -g root -m 0644 -t /lib/systemd/system/           lightfield.service
-install -Dv -o root -g root -m 0755 -t /usr/share/lightfield/libexec/ reset-printer-port upgrade-lightfield-software upgrade-lumenx-firmware
+install -Dv -o root -g root -m 0755 -t /usr/share/lightfield/libexec/ reset-lumen-arduino-port upgrade-lightfield-software upgrade-lumenx-firmware
