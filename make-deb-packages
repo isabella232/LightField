@@ -1,0 +1,39 @@
+#!/bin/bash -evx
+
+LIGHTFIELD=/home/lumen/Volumetric/LightField
+PRINTRUN=/home/lumen/Volumetric/printrun
+
+PACKAGE=/code/work/Volumetric/LightField/mk5/lightfield-1.0.1
+PACKAGE_FILES=${PACKAGE}/files
+
+mkdir -pv ${PACKAGE_FILES}/usr/bin-release
+mkdir -pv ${PACKAGE_FILES}/usr/bin-debug
+mkdir -pv ${PACKAGE_FILES}/var/cache/lightfield/print-jobs
+mkdir -pv ${PACKAGE_FILES}/var/lib/lightfield/model-library
+mkdir -pv ${PACKAGE_FILES}/var/log/lightfield
+
+cd ${LIGHTFIELD}
+install -D -v -t ${PACKAGE_FILES}/etc/sudoers.d/                               -m 644 system-stuff/lumen-lightfield
+install -D -v -t ${PACKAGE_FILES}/lib/systemd/system/                          -m 644 system-stuff/lightfield.service
+install -D -v -t ${PACKAGE_FILES}/lib/udev/rules.d/                            -m 644 usb-driver/90-dlpc350.rules
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/                -m 755 system-stuff/reset-lumen-arduino-port system-stuff/upgrade-lightfield-software system-stuff/upgrade-lumenx-firmware
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 644 stdio-shepherd/printer.py
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 755 stdio-shepherd/stdio-shepherd.py
+cp -var ${LIGHTFIELD}/debian ${PACKAGE}/
+
+./rebuild -rx; install -D -v -t ${PACKAGE_FILES}/usr/bin-release/ -m 755 -s build/lf
+./rebuild -x;  install -D -v -t ${PACKAGE_FILES}/usr/bin-debug/   -m 755    build/lf
+
+cd ${PRINTRUN}
+python3 setup.py build_ext --inplace
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/printrun/printrun/         -m 644 printrun/__init__.py printrun/eventhandler.py printrun/gcoder.py printrun/printcore.py printrun/utils.py
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/printrun/printrun/         -m 755 printrun/gcoder_line.cpython-37m-x86_64-linux-gnu.so
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/ -m 644 printrun/plugins/__init__.py
+install -D -v -t ${PACKAGE_FILES}/usr/share/lightfield/libexec/printrun/Util/             -m 644 Util/constants.py
+
+cd ${LIGHTFIELD}/usb-driver
+g++ -o ${PACKAGE_FILES}/usr/bin-release/setpower -pipe -s -O3 -DNDEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb main.cpp dlpc350_usb.cpp dlpc350_api.cpp
+g++ -o ${PACKAGE_FILES}/usr/bin-debug/setpower   -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb main.cpp dlpc350_usb.cpp dlpc350_api.cpp
+
+cd ${PACKAGE}
+dpkg-buildpackage
