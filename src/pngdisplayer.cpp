@@ -10,7 +10,7 @@ PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     setPalette( ModifyPalette( palette( ), QPalette::Window, Qt::black ) );
     setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
-    move( g_settings.pngDisplayWindowPosition );
+    move( g_settings.pngDisplayWindowPosition + g_settings.projectorOffset );
 
     _label->setAlignment( Qt::AlignCenter );
     setCentralWidget( _label );

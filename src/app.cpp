@@ -13,15 +13,17 @@ namespace {
     QCommandLineParser commandLineParser;
 
     QList<QCommandLineOption> commandLineOptions {
-        QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                     },
-        QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                            },
+        QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                                    },
+        QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                                           },
+        QCommandLineOption {               "x",            "Offsets the projected image horizontally.",                              "xAdjust", "0" },
+        QCommandLineOption {               "y",            "Offsets the projected image vertically.",                                "yAdjust", "0" },
 #if defined _DEBUG
-        QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                        },
-        QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows." },
-        QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                },
-        QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                  },
-        QCommandLineOption {               "m",            "Pretend printer is online."                                              },
-        QCommandLineOption {               "n",            "Ignore USB."                                                             },
+        QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                                       },
+        QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows."                },
+        QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                               },
+        QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                                 },
+        QCommandLineOption {               "m",            "Pretend printer is online."                                                             },
+        QCommandLineOption {               "n",            "Ignore USB."                                                                            },
 #endif // defined _DEBUG
     };
 
@@ -32,6 +34,30 @@ namespace {
         },
         [] ( ) { // -l or --light
             g_settings.theme = Theme::Light;
+        },
+        [] ( ) { // -x
+            auto value = commandLineParser.value( commandLineOptions[2] );
+
+            bool ok = false;
+            auto xOffset = value.toInt( &ok, 10 );
+            if ( ok ) {
+                g_settings.projectorOffset.setX( xOffset );
+            } else {
+                ::fprintf( stderr, "Invalid value given for -x parameter.\n" );
+                ::exit( 1 );
+            }
+        },
+        [] ( ) { // -y
+            auto value = commandLineParser.value( commandLineOptions[2] );
+
+            bool ok = false;
+            auto yOffset = value.toInt( &ok, 10 );
+            if ( ok ) {
+                g_settings.projectorOffset.setY( yOffset );
+            } else {
+                ::fprintf( stderr, "Invalid value given for -y parameter.\n" );
+                ::exit( 1 );
+            }
         },
 #if defined _DEBUG
         [] ( ) { // -h
