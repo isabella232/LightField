@@ -48,7 +48,7 @@ namespace {
             }
         },
         [] ( ) { // -y
-            auto value = commandLineParser.value( commandLineOptions[2] );
+            auto value = commandLineParser.value( commandLineOptions[3] );
 
             bool ok = false;
             auto yOffset = value.toInt( &ok, 10 );
