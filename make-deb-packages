@@ -1,63 +1,76 @@
 #!/bin/bash -evx
 
+VERSION=1.0.1
+PACKAGE_BUILD_ROOT=/code/LightField/r1
+
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
+
 function clear () {
     echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
 }
 
 function blue-bar () {
-    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m"
+    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
 
-VERSION=1.0.1
-
-PACKAGE_BUILD_ROOT=/code/work/Volumetric/LightField/mk7
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_PACKAGE=${PACKAGE_BUILD_ROOT}/lightfield-${VERSION}
+LIGHTFIELD_FILES=${LIGHTFIELD_PACKAGE}/files
+if [ "$1" = "-q" ]
+then
+	VERBOSE=
+else
+	VERBOSE=-v
+fi
 
 clear
 
 blue-bar • Creating directories
-mkdir -pv ${LIGHTFIELD_PACKAGE}/files/var/cache/lightfield/print-jobs
-mkdir -pv ${LIGHTFIELD_PACKAGE}/files/var/lib/lightfield/model-library
-mkdir -pv ${LIGHTFIELD_PACKAGE}/files/var/log/lightfield
+mkdir ${VERBOSE} -p ${LIGHTFIELD_FILES}/var/cache/lightfield/print-jobs
+mkdir ${VERBOSE} -p ${LIGHTFIELD_FILES}/var/lib/lightfield/model-library
+mkdir ${VERBOSE} -p ${LIGHTFIELD_FILES}/var/log/lightfield
 
 blue-bar • Installing system files
 cd ${LIGHTFIELD_SRC}
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/etc/sudoers.d/                               -m 644 system-stuff/lumen-lightfield
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/lib/systemd/system/                          -m 644 system-stuff/lightfield.service
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/lib/udev/rules.d/                            -m 644 usb-driver/90-dlpc350.rules
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/                -m 755 system-stuff/reset-lumen-arduino-port system-stuff/upgrade-lightfield-software system-stuff/upgrade-lumenx-firmware
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/stdio-shepherd/ -m 644 stdio-shepherd/printer.py
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/stdio-shepherd/ -m 755 stdio-shepherd/stdio-shepherd.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/etc/sudoers.d/                               -m 644 system-stuff/lumen-lightfield
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/lib/systemd/system/                          -m 644 system-stuff/lightfield.service
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/lib/udev/rules.d/                            -m 644 usb-driver/90-dlpc350.rules
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/                -m 755 system-stuff/reset-lumen-arduino-port system-stuff/upgrade-lightfield-software system-stuff/upgrade-lumenx-firmware
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 644 stdio-shepherd/printer.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 755 stdio-shepherd/stdio-shepherd.py
 
 blue-bar • Copying Debian packaging files
-cp -var ${LIGHTFIELD_SRC}/debian ${LIGHTFIELD_PACKAGE}/
+cp ${VERBOSE} -ar ${LIGHTFIELD_SRC}/debian ${LIGHTFIELD_PACKAGE}/
 
 blue-bar • Building and installing debugging version of LightField
-./rebuild -x;  install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/bin-debug/   -m 755    build/lf
+./rebuild -x;  install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-debug/   -m 755    build/lf
 
 blue-bar • Building and installing release version of LightField
-./rebuild -rx; install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/bin-release/ -m 755 -s build/lf
+./rebuild -rx; install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-release/ -m 755 -s build/lf
 
 blue-bar • Installing printrun
 cd ${PRINTRUN_SRC}
 python3 setup.py build_ext --inplace
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/lib/lightfield                                      -m 755 -s printrun/gcoder_line.cpython-37m-x86_64-linux-gnu.so
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/printrun/printrun/         -m 644    printrun/__init__.py printrun/eventhandler.py printrun/gcoder.py printrun/printcore.py printrun/utils.py
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/printrun/printrun/plugins/ -m 644    printrun/plugins/__init__.py
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/share/lightfield/libexec/printrun/Util/             -m 644    Util/constants.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/lib/lightfield                                      -m 755 -s printrun/gcoder_line.cpython-37m-x86_64-linux-gnu.so
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/         -m 644    printrun/__init__.py printrun/eventhandler.py printrun/gcoder.py printrun/printcore.py printrun/utils.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/ -m 644    printrun/plugins/__init__.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/Util/             -m 644    Util/constants.py
 
 blue-bar • Building and installing setpower
 cd ${LIGHTFIELD_SRC}/usb-driver
 
-rm -fv setpower || true
-g++ -o setpower -pipe    -O3 -DNDEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb main.cpp dlpc350_usb.cpp dlpc350_api.cpp
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/bin-release/ -m 755 -s setpower
+rm ${VERBOSE} -f setpower || true
+g++ -o setpower -pipe -O3 -DNDEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-release/ -m 755 -s setpower
 
-rm -fv setpower || true
-g++ -o setpower -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb main.cpp dlpc350_usb.cpp dlpc350_api.cpp
-install -D -v -t ${LIGHTFIELD_PACKAGE}/files/usr/bin-debug/   -m 755    setpower
+rm ${VERBOSE} -f setpower || true
+g++ -o setpower -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-debug/ -m 755 setpower
 
 blue-bar • Building Debian packages
 cd ${LIGHTFIELD_PACKAGE}
