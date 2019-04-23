@@ -12,19 +12,18 @@ class AppSettings {
 
 public:
 
-#if defined _DEBUG
     QPoint mainWindowPosition       { 0, 800 };
     QPoint pngDisplayWindowPosition { 0,   0 };
-#endif
+    QPoint projectorOffset          { 0,   0 };
 
     Theme  theme                    {        };
-#if defined _DEBUG
     bool   frameless                { false  };
+
+#if defined _DEBUG
     bool   pretendPrinterIsPrepared { false  };
     bool   ignoreShepherdFailures   { false  };
     bool   pretendPrinterIsOnline   { false  };
     bool   ignoreUsb                { false  };
-    QPoint projectorOffset          { 0, 0   };
 #endif // defined _DEBUG
 
 };
