@@ -145,6 +145,7 @@ void PrepareTab::_connectShepherd( ) {
 
 void PrepareTab::initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    update( );
 
     event->accept( );
 }
@@ -243,12 +244,13 @@ bool PrepareTab::_checkJobDirectory( ) {
     if ( preSliced ) {
         _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
-        return true;
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
-        return false;
     }
+
+    update( );
+    return preSliced;
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool checked ) {
@@ -270,6 +272,8 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
     _navigateNext    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
     _navigateLast    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->layerCount ) ) );
+
+    update( );
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
@@ -277,9 +281,11 @@ void PrepareTab::_showLayerImage( int const layer ) {
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
-    _currentLayerImage->setPixmap( pixmap );
 
+    _currentLayerImage->setPixmap( pixmap );
     _navigateCurrentLabel->setText( QString( "%1/%2" ).arg( layer + 1 ).arg( _printJob->layerCount ) );
+
+    update( );
 }
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
@@ -287,16 +293,22 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
+
+    update( );
 }
 
 void PrepareTab::_updatePrepareButtonState( ) {
     _prepareButton->setEnabled( _isPrinterOnline && _isPrinterAvailable );
+
+    update( );
 }
 
 void PrepareTab::navigateFirst_clicked( bool ) {
     _visibleLayer = 0;
     _setNavigationButtonsEnabled( true );
     _showLayerImage( _visibleLayer );
+
+    update( );
 }
 
 void PrepareTab::navigatePrevious_clicked( bool ) {
@@ -305,6 +317,8 @@ void PrepareTab::navigatePrevious_clicked( bool ) {
     }
     _setNavigationButtonsEnabled( true );
     _showLayerImage( _visibleLayer );
+
+    update( );
 }
 
 void PrepareTab::navigateNext_clicked( bool ) {
@@ -313,12 +327,16 @@ void PrepareTab::navigateNext_clicked( bool ) {
     }
     _setNavigationButtonsEnabled( true );
     _showLayerImage( _visibleLayer );
+
+    update( );
 }
 
 void PrepareTab::navigateLast_clicked( bool ) {
     _visibleLayer = _printJob->layerCount - 1;
     _setNavigationButtonsEnabled( true );
     _showLayerImage( _visibleLayer );
+
+    update( );
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -348,6 +366,8 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     _setSliceControlsEnabled( false );
     emit uiStateChanged( TabIndex::Prepare, UiState::SliceStarted );
+
+    update( );
 }
 
 void PrepareTab::hasher_resultReady( QString const hash ) {
@@ -366,6 +386,8 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     bool goodJobDir = _checkJobDirectory( );
     emit slicingNeeded( !goodJobDir );
+
+    update( );
 }
 
 void PrepareTab::slicerProcess_errorOccurred( QProcess::ProcessError error ) {
@@ -382,11 +404,15 @@ void PrepareTab::slicerProcess_errorOccurred( QProcess::ProcessError error ) {
         }
         _sliceStatus->setText( "crashed" );
     }
+
+    update( );
 }
 
 void PrepareTab::slicerProcess_started( ) {
     debug( "+ PrepareTab::slicerProcess_started\n" );
     _sliceStatus->setText( "started" );
+
+    update( );
 }
 
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
@@ -401,16 +427,21 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
         debug( "  + slicer process crashed?\n" );
         _sliceStatus->setText( "crashed" );
         emit uiStateChanged( TabIndex::Prepare, UiState::SelectCompleted );
+
+        update( );
         return;
     } else if ( ( exitStatus == QProcess::NormalExit ) && ( exitCode != 0 ) ) {
         debug( "  + slicer process failed\n" );
         _sliceStatus->setText( "failed" );
         emit uiStateChanged( TabIndex::Prepare, UiState::SelectCompleted );
+
+        update( );
         return;
     }
 
     _sliceStatus->setText( "finished" );
     _imageGeneratorStatus->setText( "starting" );
+    update( );
 
     _svgRenderer = new SvgRenderer;
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
@@ -424,6 +455,7 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
     _printJob->layerCount = totalLayers;
 
     _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
+    update( );
 }
 
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
@@ -434,6 +466,7 @@ void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
         _visibleLayer = currentLayer;
         _showLayerImage( _visibleLayer );
     }
+    update( );
 }
 
 void PrepareTab::svgRenderer_done( bool const success ) {
@@ -446,6 +479,8 @@ void PrepareTab::svgRenderer_done( bool const success ) {
     _sliceButton->setText( success ? "Reslice" : "Slice" );
 
     emit uiStateChanged( TabIndex::Prepare, success ? UiState::SliceCompleted : UiState::SelectCompleted );
+
+    update( );
 }
 
 void PrepareTab::prepareButton_clicked( bool ) {
@@ -464,6 +499,8 @@ void PrepareTab::prepareButton_clicked( bool ) {
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
     emit preparePrinterStarted( );
+
+    update( );
 }
 
 void PrepareTab::shepherd_homeComplete( bool const success ) {
@@ -479,6 +516,8 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
         _prepareButton->setEnabled( true );
 
         emit preparePrinterComplete( false );
+
+        update( );
         return;
     }
 
@@ -486,6 +525,8 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
     _prepareButton->setEnabled( true );
+
+    update( );
 }
 
 void PrepareTab::adjustBuildPlatform_complete( bool ) {
@@ -499,6 +540,8 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
     _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+
+    update( );
 }
 
 void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
@@ -514,6 +557,8 @@ void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success )
         _prepareButton->setEnabled( true );
 
         emit preparePrinterComplete( false );
+
+        update( );
         return;
     }
 
@@ -526,6 +571,8 @@ void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success )
     setPrinterAvailable( true );
     emit printerAvailabilityChanged( true );
     emit preparePrinterComplete( true );
+
+    update( );
 }
 
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -574,6 +621,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             emit printerAvailabilityChanged( true );
             break;
     }
+
+    update( );
 }
 
 void PrepareTab::printer_online( ) {

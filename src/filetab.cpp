@@ -127,6 +127,7 @@ void FileTab::initialShowEvent( QShowEvent* event ) {
 void FileTab::_loadModel( QString const& fileName ) {
     debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
+    update( );
 
     if ( _loader ) {
         QObject::disconnect( _loader, nullptr, this, nullptr );
@@ -198,6 +199,8 @@ void FileTab::_checkUsbPath( ) {
 
     _usbFsModel->setRootPath( _usbPath );
     _toggleLocationButton->setEnabled( true );
+
+    update( );
 }
 
 void FileTab::_startUsbRetry( ) {
@@ -224,6 +227,8 @@ void FileTab::_showLibrary( ) {
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
     _toggleLocationButton->setText( "Show USB stick" );
+
+    update( );
 }
 
 void FileTab::_showUsbStick( ) {
@@ -235,6 +240,8 @@ void FileTab::_showUsbStick( ) {
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
     _toggleLocationButton->setText( "Show library" );
+
+    update( );
 }
 
 void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -258,6 +265,8 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0].unicode( ) == L':' ) ) {
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
+        update( );
+
         delete mesh;
         return;
     }
@@ -292,9 +301,12 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         _errorLabel->setText( "Model exceeds build volume!" );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
+
+        update( );
         return;
     } else {
         _errorLabel->clear( );
+        update( );
     }
 
     if ( _processRunner ) {
@@ -323,6 +335,7 @@ void FileTab::loader_errorBadStl( ) {
 
     _dimensionsLabel->clear( );
     _errorLabel->setText( "Unable to read model." );
+    update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
@@ -332,6 +345,7 @@ void FileTab::loader_errorEmptyMesh( ) {
 
     _dimensionsLabel->clear( );
     _errorLabel->setText( "Model is empty" );
+    update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
@@ -341,6 +355,7 @@ void FileTab::loader_errorMissingFile( ) {
 
     _dimensionsLabel->clear( );
     _errorLabel->setText( "Model file went missing" );
+    update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
@@ -350,6 +365,8 @@ void FileTab::loader_finished( ) {
 
     _availableFilesListView->setEnabled( true );
     _canvas->clear_status( );
+    update( );
+
     _loader->deleteLater( );
     _loader = nullptr;
 }
@@ -359,6 +376,7 @@ void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
     if ( _modelsLocation == ModelsLocation::Library ) {
         _libraryFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
+        update( );
     }
 }
 
@@ -367,6 +385,7 @@ void FileTab::usbFsModel_directoryLoaded( QString const& name ) {
     if ( _modelsLocation == ModelsLocation::Usb ) {
         _usbFsModel->sort( 0, Qt::AscendingOrder );
         _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
+        update( );
     }
 }
 
@@ -381,6 +400,7 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
     _selectButton->setEnabled( false );
     _availableFilesListView->setEnabled( false );
+    update( );
 
     if ( _processRunner ) {
         QObject::disconnect( _processRunner, nullptr, this, nullptr );
@@ -441,12 +461,16 @@ void FileTab::toggleLocationButton_clicked( bool ) {
     } else {
         _showLibrary( );
     }
+
+    update( );
 }
 
 void FileTab::selectButton_clicked( bool ) {
     debug( "+ FileTab::selectButton_clicked\n" );
     emit modelSelected( &_modelSelection );
     emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+
+    update( );
 }
 
 void FileTab::processRunner_succeeded( ) {
@@ -471,6 +495,8 @@ void FileTab::processRunner_succeeded( ) {
                 unit
             );
             _selectButton->setEnabled( true );
+
+            update( );
             break;
         }
     }
@@ -521,6 +547,8 @@ void FileTab::usbRetryTimer_timeout( ) {
         }
 
         _toggleLocationButton->setEnabled( false );
+
+        update( );
     }
 }
 

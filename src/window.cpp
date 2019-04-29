@@ -171,12 +171,16 @@ void Window::_setPrinterPrepared( bool const value ) {
         value;
     debug( "+ Window::_setPrinterPrepared: old value: %s; new value: %s\n", ToString( _isPrinterPrepared ), ToString( newValue ) );
     emit printerPrepared( newValue );
+
+    update( );
 }
 
 void Window::_setModelRendered( bool const value ) {
     debug( "+ Window::_setModelRendered: old value: %s; new value: %s\n", ToString( _isModelRendered ), ToString( value ) );
     _isModelRendered = value;
     emit modelRendered( value );
+
+    update( );
 }
 
 void Window::closeEvent( QCloseEvent* event ) {
@@ -195,15 +199,21 @@ void Window::closeEvent( QCloseEvent* event ) {
     _shepherd->doTerminate( );
 
     event->accept( );
+
+    update( );
 }
 
 void Window::initialShowEvent( QShowEvent* event ) {
     debug( "+ Window::initialShowEvent\n" );
     event->ignore( );
+
+    update( );
 }
 
 void Window::startPrinting( ) {
     _tabWidget->setCurrentIndex( +TabIndex::Status );
+    update( );
+
     debug(
         "+ Window::startPrinting\n"
         "  + Print job: %p\n"
@@ -257,6 +267,8 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             _setModelRendered( false );
             if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
                 _tabWidget->setCurrentIndex( +TabIndex::Prepare );
+
+                update( );
             }
             break;
 
@@ -268,6 +280,8 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             _setModelRendered( true );
             if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
                 _tabWidget->setCurrentIndex( +TabIndex::Print );
+
+                update( );
             }
             break;
 
@@ -279,6 +293,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 
 void Window::tabs_currentChanged( int index ) {
     debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
+    update( );
 }
 
 void Window::shepherd_started( ) {
@@ -304,6 +319,8 @@ void Window::printManager_printComplete( bool const success ) {
 void Window::printManager_printAborted( ) {
     debug( "+ Window::printManager_printAborted: forwarding to printManager_printComplete\n" );
     printManager_printComplete( false );
+
+    update( );
 }
 
 void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
@@ -356,6 +373,8 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
     if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
         debug( "+ Window::prepareTab_preparePrinterComplete: switching to Print tab\n" );
         _tabWidget->setCurrentIndex( +TabIndex::Print );
+
+        update( );
     }
 }
 
@@ -366,6 +385,8 @@ void Window::prepareTab_slicingNeeded( bool const needed ) {
     if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
         debug( "+ Window::prepareTab_slicingNeeded: switching to Print tab\n" );
         _tabWidget->setCurrentIndex( +TabIndex::Print );
+
+        update( );
     }
 }
 

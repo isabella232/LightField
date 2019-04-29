@@ -161,6 +161,8 @@ void PrintTab::_connectPrintJob( ) {
 
     _printSpeedSlider->setValue( _printJob->printSpeed );
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+
+    update( );
 }
 
 void PrintTab::_connectShepherd( ) {
@@ -175,6 +177,8 @@ void PrintTab::_updateUiState( ) {
     _printButton       ->setEnabled( isEnabled && _isPrinterPrepared && _isModelRendered );
     _raiseOrLowerButton->setEnabled( isEnabled );
     _homeButton        ->setEnabled( isEnabled );
+
+    update( );
 }
 
 void PrintTab::initialShowEvent( QShowEvent* event ) {
@@ -195,32 +199,44 @@ void PrintTab::initialShowEvent( QShowEvent* event ) {
     _homeButton        ->setFixedSize( size );
 
     event->accept( );
+
+    update( );
 }
 
 void PrintTab::exposureTimeSlider_valueChanged( int value ) {
     _printJob->exposureTime = value / 2.0;
     _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+
+    update( );
 }
 
 void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
     _printJob->exposureTimeScaleFactor = value;
     _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( value ) );
+
+    update( );
 }
 
 void PrintTab::powerLevelSlider_valueChanged( int value ) {
     _printJob->powerLevel = value / 100.0 * 255.0 + 0.5;
     _powerLevelValue->setText( QString( "%1%" ).arg( value ) );
+
+    update( );
 }
 
 void PrintTab::printSpeedSlider_valueChanged( int value ) {
     _printJob->printSpeed = value;
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( value ) );
+
+    update( );
 }
 
 void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
     emit printRequested( );
     emit uiStateChanged( TabIndex::Print, UiState::PrintStarted );
+
+    update( );
 }
 
 void PrintTab::raiseOrLowerButton_clicked( bool ) {
@@ -246,6 +262,8 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
 
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
+
+    update( );
 }
 
 void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
@@ -259,6 +277,8 @@ void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
     } else {
         _buildPlatformState = BuildPlatformState::Lowered;
     }
+
+    update( );
 }
 
 void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
@@ -275,6 +295,8 @@ void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
 
     setPrinterAvailable( true );
     emit printerAvailabilityChanged( true );
+
+    update( );
 }
 
 void PrintTab::homeButton_clicked( bool ) {
@@ -285,6 +307,8 @@ void PrintTab::homeButton_clicked( bool ) {
 
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
+
+    update( );
 }
 
 void PrintTab::home_homeComplete( bool const success ) {
@@ -292,6 +316,8 @@ void PrintTab::home_homeComplete( bool const success ) {
 
     setPrinterAvailable( true );
     emit printerAvailabilityChanged( true );
+
+    update( );
 }
 
 void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -315,6 +341,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             emit printerAvailabilityChanged( true );
             break;
     }
+
+    update( );
 }
 
 void PrintTab::printer_online( ) {

@@ -21,14 +21,16 @@ namespace {
         "M155 S5",
     };
 
-    void _HideAndClear( QLabel* widget ) {
-        widget->setVisible( false );
-        widget->clear( );
+    void _HideAndClear( QLabel* label ) {
+        label->setVisible( false );
+        label->clear( );
+        label->update( );
     }
 
-    void _SetTextAndShow( QLabel* widget, QString const& text ) {
-        widget->setText( text );
-        widget->setVisible( true );
+    void _SetTextAndShow( QLabel* label, QString const& text ) {
+        label->setText( text );
+        label->setVisible( true );
+        label->update( );
     }
 
 }
@@ -200,6 +202,8 @@ StatusTab::~StatusTab( ) {
 
 void StatusTab::_updateReprintButtonState( ) {
     _reprintButton->setEnabled( _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
+
+    update( );
 }
 
 void StatusTab::initialShowEvent( QShowEvent* event ) {
@@ -207,6 +211,8 @@ void StatusTab::initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
 
     event->accept( );
+
+    update( );
 }
 
 void StatusTab::setModelRendered( bool const value ) {
@@ -239,6 +245,7 @@ void StatusTab::printer_online( ) {
     debug( "+ StatusTab::printer_online: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _printerStateDisplay->setText( "Printer is online" );
+    update( );
 
     if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
         return;
@@ -253,12 +260,14 @@ void StatusTab::printer_offline( ) {
     debug( "+ StatusTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _printerStateDisplay->setText( "Printer is offline" );
+    update( );
 }
 
 void StatusTab::pauseButton_clicked( bool ) {
     auto paused = _isPaused;
     _isPaused = !_isPaused;
     _pauseButton->setEnabled( false );
+    update( );
 
     if ( !paused ) {
         _currentPauseStartTime = GetBootTimeClock( );
@@ -277,19 +286,25 @@ void StatusTab::pauseButton_clicked( bool ) {
 
 void StatusTab::stopButton_clicked( bool ) {
     debug( "+ StatusTab::stopButton_clicked\n" );
+
     _pauseButton->setEnabled( false );
     _stopButton->setEnabled( false );
     _stopButton->setText( "Stopping..." );
     _updatePrintTimeInfo->stop( );
+
     if ( _printManager ) {
         _printManager->abort( );
     }
+
+    update( );
 }
 
 void StatusTab::reprintButton_clicked( bool ) {
     debug( "+ StatusTab::reprintButton_clicked\n" );
     emit printRequested( );
     emit uiStateChanged( TabIndex::Status, UiState::PrintStarted );
+
+    update( );
 }
 
 void StatusTab::printManager_printStarting( ) {
@@ -299,6 +314,8 @@ void StatusTab::printManager_printStarting( ) {
     _HideAndClear( _elapsedTimeDisplay );
 
     _layerElapsedTimes.clear( );
+
+    update( );
 }
 
 void StatusTab::printManager_printComplete( bool const success ) {
@@ -313,6 +330,8 @@ void StatusTab::printManager_printComplete( bool const success ) {
     _currentLayerImage->clear( );
 
     emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+
+    update( );
 }
 
 void StatusTab::printManager_printAborted( ) {
@@ -330,12 +349,16 @@ void StatusTab::printManager_printAborted( ) {
     _currentLayerImage->clear( );
 
     emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+
+    update( );
 }
 
 void StatusTab::printManager_printPausable( bool const pausable ) {
     debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString( pausable ) );
 
     _pauseButton->setEnabled( pausable );
+
+    update( );
 }
 
 void StatusTab::printManager_printPaused( ) {
@@ -344,6 +367,8 @@ void StatusTab::printManager_printPaused( ) {
     _printerStateDisplay->setText( "Print is paused" );
     _pauseButton->setEnabled( true );
     _pauseButton->setText( "Resume" );
+
+    update( );
 }
 
 void StatusTab::printManager_printResumed( ) {
@@ -352,6 +377,8 @@ void StatusTab::printManager_printResumed( ) {
     _printerStateDisplay->setText( "Printing" );
     _pauseButton->setEnabled( true );
     _pauseButton->setText( "Pause" );
+
+    update( );
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
@@ -391,6 +418,8 @@ void StatusTab::printManager_startingLayer( int const layer ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
     _currentLayerImage->setPixmap( pixmap );
+
+    update( );
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
@@ -401,6 +430,8 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
     } else {
         _warningUvLabel->clear( );
     }
+
+    update( );
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
@@ -408,6 +439,8 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
+
+    update( );
 }
 
 void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
@@ -422,6 +455,8 @@ void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, 
     } else {
         _SetTextAndShow( _temperatureDisplay, "Print bed heating is off." );
     }
+
+    update( );
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
@@ -449,6 +484,8 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 
     _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) + QString { " elapsed" } );
 
+    update( );
+
     if ( _isPaused || ( currentLayer < 4 ) || !( estimatedTimeLeft > 0.0 ) ) {
         return;
     }
@@ -465,6 +502,8 @@ void StatusTab::startThePrintButton_clicked( bool ) {
     _printerStateDisplay->setText( "Print solution is settling" );
 
     _printManager->printSolutionDispensed( );
+
+    update( );
 }
 
 void StatusTab::_connectPrintManager( ) {

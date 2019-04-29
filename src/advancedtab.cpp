@@ -205,12 +205,16 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
 void AdvancedTab::printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz ) {
     debug( "AdvancedTab::printer_positionReport: px %.2f mm, cx %.0f counts\n", px, cx );
     _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );
+
+    update( );
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _pwm               ->setText( QString( "%1"    ).arg( bedPwm                           ) );
+
+    update( );
 }
 
 void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
@@ -226,6 +230,8 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
     } else {
         _shepherd->doSend( QString { "M104" } );
     }
+
+    update( );
 }
 
 void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
@@ -236,6 +242,8 @@ void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
+
+    update( );
 }
 
 void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
@@ -257,6 +265,8 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 
     setPrinterAvailable( !checked );
     emit printerAvailabilityChanged( _isPrinterAvailable );
+
+    update( );
 }
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
@@ -265,6 +275,8 @@ void AdvancedTab::powerLevelSlider_sliderReleased( ) {
 
 void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
     _powerLevelValue->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
+
+    update( );
 }
 
 void AdvancedTab::shepherd_sendComplete( bool const success ) {
@@ -274,6 +286,8 @@ void AdvancedTab::shepherd_sendComplete( bool const success ) {
 
 void AdvancedTab::_updateProjectorFloodlightGroup( ) {
     _projectorFloodlightGroup->setEnabled( ( _pngDisplayer != nullptr ) || ( _isPrinterOnline && _isPrinterAvailable ) );
+
+    update( );
 }
 
 void AdvancedTab::printer_online( ) {

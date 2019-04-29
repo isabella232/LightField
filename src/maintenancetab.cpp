@@ -175,6 +175,8 @@ void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
     _confirmShutdownNoButton ->setFixedSize( newSize );
 
     event->accept( );
+
+    update( );
 }
 
 void MaintenanceTab::updateSoftwareButton_clicked( bool ) {
@@ -186,6 +188,8 @@ void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
 void MaintenanceTab::restartButton_clicked( bool ) {
     _mainContent->setVisible( false );
     _confirmRestartContent->setVisible( true );
+
+    update( );
 }
 
 void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -206,11 +210,15 @@ void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const st
 void MaintenanceTab::shutDownButton_clicked( bool ) {
     _mainContent->setVisible( false );
     _confirmShutdownContent->setVisible( true );
+
+    update( );
 }
 
 void MaintenanceTab::confirmRestartYesButton_clicked( bool ) {
     _confirmRestartContent->setVisible( false );
     _mainContent->setVisible( true );
+
+    update( );
 
     system( "sudo shutdown -r now" );
 }
@@ -218,11 +226,15 @@ void MaintenanceTab::confirmRestartYesButton_clicked( bool ) {
 void MaintenanceTab::confirmRestartNoButton_clicked( bool ) {
     _confirmRestartContent->setVisible( false );
     _mainContent->setVisible( true );
+
+    update( );
 }
 
 void MaintenanceTab::confirmShutdownYesButton_clicked( bool ) {
     _confirmShutdownContent->setVisible( false );
     _mainContent->setVisible( true );
+
+    update( );
 
     system( "sudo shutdown -h now" );
 }
@@ -230,4 +242,6 @@ void MaintenanceTab::confirmShutdownYesButton_clicked( bool ) {
 void MaintenanceTab::confirmShutdownNoButton_clicked( bool ) {
     _confirmShutdownContent->setVisible( false );
     _mainContent->setVisible( true );
+
+    update( );
 }
