@@ -1,4 +1,17 @@
-#!/bin/bash
+#!/bin/bash -evx
+
+##
+## Make sure you change these in make-deb-packages too!
+##
+
+VERSION=1.0.1
+PACKAGE_BUILD_ROOT=/code/LightField/r1
+
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
 
 function clear () {
     echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
@@ -8,53 +21,48 @@ function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m"
 }
 
-VERSION=1.0.1
+if [ "$1" = "-q" ]
+then
+	TAR_VERBOSE=
+	GPG_VERBOSE=
+else
+	TAR_VERBOSE=-vv
+	GPG_VERBOSE=--verbose
+fi
 
-PACKAGE_BUILD_ROOT=/code/work/Volumetric/LightField/mk7
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
-LIGHTFIELD_PACKAGE=${PACKAGE_BUILD_ROOT}/lightfield-${VERSION}
-
-cd {$PACKAGE_BUILD_ROOT}
+cd ${PACKAGE_BUILD_ROOT}
 
 blue-bar • Creating LightField ${VERSION} release build update kit
-tar                                                               \
-    -vv                                                           \
-    -C ${PACKAGE_BUILD_ROOT}                                      \
-    -c                                                            \
-    -f lightfield-release_${VERSION}_amd64.kit                    \
-    --owner=root                                                  \
-    --group=root                                                  \
-    fonts-montserrat_7.200_all.deb                                \
-    lightfield-common_${VERSION}_amd64.deb                        \
-    lightfield-firmware_${VERSION}_all.deb                        \
+tar                                                      \
+    ${TAR_VERBOSE}                                       \
+    -C ${PACKAGE_BUILD_ROOT}                             \
+    -c                                                   \
+    -f lightfield-release_${VERSION}_amd64.kit           \
+    --owner=root                                         \
+    --group=root                                         \
+    version.inf                                          \
+    fonts-montserrat_7.200_all.deb                       \
+    lightfield-common_${VERSION}_all.deb                 \
+    lightfield-firmware_${VERSION}_all.deb               \
     lightfield-release_${VERSION}_amd64.deb
 
-blue-bar • Signing release build update kit
-gpg                                                               \
-    --detach-sign                                                 \
-    --local-user 'lightfield-packager@volumetricbio.com'          \
-    --verbose                                                     \
-    --output lightfield-release_${VERSION}_amd64.kit.sig          \
-    ${PACKAGE_BUILD_ROOT}/lightfield-release_${VERSION}_amd64.kit
-
-blue-bar • Creating LightField ${VERSION} debug build update kit
-tar                                                               \
-    -vv                                                           \
-    -C ${PACKAGE_BUILD_ROOT}                                      \
-    -c                                                            \
-    -f lightfield-debug_${VERSION}_amd64.kit                      \
-    --owner=root                                                  \
-    --group=root                                                  \
-    fonts-montserrat_7.200_all.deb                                \
-    lightfield-common_${VERSION}_amd64.deb                        \
-    lightfield-firmware_${VERSION}_all.deb                        \
-    lightfield-debug_${VERSION}_amd64.deb                         \
+blue-bar • Creating LightField ${VERSION} debugging build update kit
+tar                                                      \
+    ${TAR_VERBOSE}                                       \
+    -C ${PACKAGE_BUILD_ROOT}                             \
+    -c                                                   \
+    -f lightfield-debug_${VERSION}_amd64.kit             \
+    --owner=root                                         \
+    --group=root                                         \
+    version.inf                                          \
+    fonts-montserrat_7.200_all.deb                       \
+    lightfield-common_${VERSION}_all.deb                 \
+    lightfield-firmware_${VERSION}_all.deb               \
+    lightfield-debug_${VERSION}_amd64.deb                \
     lightfield-debug-dbgsym_${VERSION}_amd64.deb
 
-blue-bar • Signing debug build update kit
-gpg                                                               \
-    --detach-sign                                                 \
-    --local-user 'lightfield-packager@volumetricbio.com'          \
-    --verbose                                                     \
-    --output lightfield-debug_${VERSION}_amd64.kit.sig            \
-    ${PACKAGE_BUILD_ROOT}/lightfield-debug_${VERSION}_amd64.kit
+blue-bar • Signing release build update kit
+gpg ${GPG_VERBOSE} --detach-sign --local-user 'lightfield-packager@volumetricbio.com' --output lightfield-release_${VERSION}_amd64.kit.sig lightfield-release_${VERSION}_amd64.kit
+
+blue-bar • Signing debugging build update kit
+gpg ${GPG_VERBOSE} --detach-sign --local-user 'lightfield-packager@volumetricbio.com' --output lightfield-debug_${VERSION}_amd64.kit.sig   lightfield-debug_${VERSION}_amd64.kit

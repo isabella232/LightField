@@ -1,5 +1,9 @@
 #!/bin/bash -evx
 
+##
+## Make sure you change these in make-deb-packages too!
+##
+
 VERSION=1.0.1
 PACKAGE_BUILD_ROOT=/code/LightField/r1
 
