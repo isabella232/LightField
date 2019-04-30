@@ -9,6 +9,7 @@ class Canvas;
 class Loader;
 class Mesh;
 class ProcessRunner;
+class UpdateManager;
 
 enum class ModelsLocation {
     Library,
@@ -64,6 +65,7 @@ protected:
 private:
 
     ProcessRunner*      _processRunner           { };
+    UpdateManager*      _updateManager           { };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
@@ -113,6 +115,8 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+
+    void setUpdateManager( UpdateManager* updateManager );
 
 protected slots:
 

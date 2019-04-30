@@ -10,19 +10,19 @@ Canvas::Canvas(const QSurfaceFormat& format, QWidget *parent)
       scale(1), zoom(1), tilt(90), yaw(0),
       perspective(0.25), anim(this, "perspective"), status(" ")
 {
-	setFormat(format);
+    setFormat(format);
 
     anim.setDuration(100);
 }
 
 Canvas::~Canvas()
 {
-	makeCurrent();
-	if (mesh)
-	{
-		delete mesh;
-	}
-	doneCurrent();
+    makeCurrent();
+    if (mesh)
+    {
+        delete mesh;
+    }
+    doneCurrent();
 }
 
 void Canvas::view_anim(float v)
@@ -127,18 +127,18 @@ void Canvas::initializeGL()
 
 void Canvas::paintGL()
 {
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-	backdrop->draw();
-	if (mesh)  draw_mesh();
+    backdrop->draw();
+    if (mesh)  draw_mesh();
 
-	if (status.isNull())  return;
+    if (status.isNull())  return;
 
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing);
-	painter.drawText(10, height() - 10, status);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawText(10, height() - 10, status);
 }
 
 void Canvas::draw_mesh()

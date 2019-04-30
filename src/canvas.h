@@ -14,7 +14,7 @@ class Canvas : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-	Canvas(const QSurfaceFormat& format, QWidget* parent=0);
+    Canvas(const QSurfaceFormat& format, QWidget* parent=0);
     virtual ~Canvas() override;
 
     void view_orthographic();
@@ -29,16 +29,16 @@ public slots:
     void clear();
 
 protected:
-	void paintGL() override;
-	void initializeGL() override;
-	void resizeGL(int width, int height) override;
+    void paintGL() override;
+    void initializeGL() override;
+    void resizeGL(int width, int height) override;
 
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
     
-	void set_perspective(float p);
+    void set_perspective(float p);
     void set_drawMode(int mode);
     void view_anim(float v);
 
@@ -50,7 +50,7 @@ private:
 
     QOpenGLShaderProgram mesh_shader;
     QOpenGLShaderProgram mesh_wireframe_shader;
-	QOpenGLShaderProgram quad_shader;
+    QOpenGLShaderProgram quad_shader;
 
     GLMesh* mesh;
     Backdrop* backdrop;

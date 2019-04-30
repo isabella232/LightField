@@ -13,8 +13,8 @@ public:
     GLMesh(const Mesh* const mesh);
     void draw(GLuint vp);
 private:
-	QOpenGLBuffer vertices;
-	QOpenGLBuffer indices;
+    QOpenGLBuffer vertices;
+    QOpenGLBuffer indices;
 };
 
 #endif // GLMESH_H
