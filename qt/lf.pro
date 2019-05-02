@@ -35,10 +35,11 @@ SOURCES +=                     \
     ../src/utils.cpp           \
     ../src/gesturelistview.cpp \
     ../src/hasher.cpp          \
-    ../src/updatemanager.cpp
+    ../src/upgrademanager.cpp
 
 HEADERS  += \
     ../src/debug.h           \
+    ../src/version.h         \
     ../src/app.h             \
     ../src/canvas.h          \
     ../src/mesh.h            \
@@ -66,7 +67,7 @@ HEADERS  += \
     ../src/gesturelistview.h \
     ../src/hasher.h          \
     ../src/uistate.h         \
-    ../src/updatemanager.h
+    ../src/upgrademanager.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h

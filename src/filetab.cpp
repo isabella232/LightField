@@ -11,7 +11,7 @@
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
-#include "updatemanager.h"
+#include "upgrademanager.h"
 
 namespace {
 
@@ -200,7 +200,7 @@ void FileTab::_checkUsbPath( ) {
 
     _usbFsModel->setRootPath( _usbPath );
     _toggleLocationButton->setEnabled( true );
-    _updateManager->checkForUpdate( _usbPath );
+    _upgradeManager->checkForUpgrades( _usbPath );
 
     update( );
 }
@@ -560,6 +560,6 @@ void FileTab::fsWatcher_directoryChanged( QString const& path ) {
     _checkUserMediaPath( );
 }
 
-void FileTab::setUpdateManager( UpdateManager* updateManager ) {
-    _updateManager = updateManager;
+void FileTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
+    _upgradeManager = upgradeManager;
 }

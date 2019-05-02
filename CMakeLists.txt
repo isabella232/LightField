@@ -54,11 +54,12 @@ src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
 src/hasher.cpp
-src/updatemanager.cpp)
+src/upgrademanager.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
 src/pch.h
+src/version.h
 src/app.h
 src/canvas.h
 src/mesh.h
@@ -86,7 +87,7 @@ src/utils.h
 src/gesturelistview.h
 src/hasher.h
 src/uistate.h
-src/updatemanager.h)
+src/upgrademanager.h)
 
 #set project resources and icon resource
 set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)

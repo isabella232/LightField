@@ -28,6 +28,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <atomic>
 #include <exception>
 #include <functional>
 #include <future>
