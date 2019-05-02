@@ -381,7 +381,6 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
 
     _sliceStatus->setText( "idle" );
-    _hasher->deleteLater( );
     _hasher = nullptr;
 
     bool goodJobDir = _checkJobDirectory( );
@@ -597,7 +596,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
                 _hasher->deleteLater( );
             }
             _hasher = new Hasher;
-            QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady );
+            QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection );
             _hasher->hash( _printJob->modelFileName );
             break;
 
