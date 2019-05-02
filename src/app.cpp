@@ -62,7 +62,7 @@ namespace {
 #if defined _DEBUG
         [] ( ) { // -h
             g_settings.mainWindowPosition.setY( 0 );
-            g_settings.pngDisplayWindowPosition.setY( 480 );
+            g_settings.pngDisplayWindowPosition.setY( MainWindowSize.height( ) );
         },
         [] ( ) { // -i
             g_settings.frameless = true;
