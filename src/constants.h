@@ -1,11 +1,10 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
-QSize   extern const MainButtonSize;
 QSize   extern const MainWindowSize;
-QSize   extern const MaximalRightHandPaneSize;
 QSize   extern const PngDisplayWindowSize;
-QSize   extern const QuarterRightHandPaneSize;
+QSize   extern const MainButtonSize;
+QSize   extern const MaximalRightHandPaneSize;
 
 QString extern const MediaRootPath;
 QString extern const StlModelLibraryPath;
