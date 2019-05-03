@@ -12,11 +12,14 @@ namespace {
 
     QCommandLineParser commandLineParser;
 
+    bool moveMainWindow = false;
+
     QList<QCommandLineOption> commandLineOptions {
         QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                                    },
         QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                                           },
-        QCommandLineOption {               "x",            "Offsets the projected image horizontally.",                              "xAdjust", "0" },
-        QCommandLineOption {               "y",            "Offsets the projected image vertically.",                                "yAdjust", "0" },
+        QCommandLineOption {               "s",            "Run at 800×480.",                                                                       },
+        QCommandLineOption {               "x",            "Offsets the projected image horizontally.",                              "xOffset", "0" },
+        QCommandLineOption {               "y",            "Offsets the projected image vertically.",                                "yOffset", "0" },
 #if defined _DEBUG
         QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                                       },
         QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows."                },
@@ -35,8 +38,13 @@ namespace {
         [] ( ) { // -l or --light
             g_settings.theme = Theme::Light;
         },
+        [ ] ( ) { // -s
+            MainWindowSize           = SmallMainWindowSize;
+            MainButtonSize           = SmallMainButtonSize;
+            MaximalRightHandPaneSize = SmallMaximalRightHandPaneSize;
+        },
         [] ( ) { // -x
-            auto value = commandLineParser.value( commandLineOptions[2] );
+            auto value = commandLineParser.value( "xOffset" );
 
             bool ok = false;
             auto xOffset = value.toInt( &ok, 10 );
@@ -48,7 +56,7 @@ namespace {
             }
         },
         [] ( ) { // -y
-            auto value = commandLineParser.value( commandLineOptions[3] );
+            auto value = commandLineParser.value( "yOffset" );
 
             bool ok = false;
             auto yOffset = value.toInt( &ok, 10 );
@@ -61,8 +69,7 @@ namespace {
         },
 #if defined _DEBUG
         [] ( ) { // -h
-            g_settings.mainWindowPosition.setY( 0 );
-            g_settings.pngDisplayWindowPosition.setY( MainWindowSize.height( ) );
+            moveMainWindow = true;
         },
         [] ( ) { // -i
             g_settings.frameless = true;
@@ -94,6 +101,11 @@ void App::_parseCommandLine( ) {
         if ( commandLineParser.isSet( commandLineOptions[i] ) ) {
             commandLineActions[i]( );
         }
+    }
+
+    if ( moveMainWindow ) {
+        g_settings.mainWindowPosition.setY( 0 );
+        g_settings.projectorWindowPosition.setY( MainWindowSize.height( ) );
     }
 }
 
