@@ -305,12 +305,11 @@ QString FormatDouble( double const value, int const fieldWidth, int const precis
     return str;
 }
 
-QString GroupDigits( QString const& input, char const groupSeparator_, char const decimalSeparator_ ) {
-    QChar   groupSeparator   { groupSeparator_   };
-    QChar   decimalSeparator { decimalSeparator_ };
-    QString str              { input             };
+QString GroupDigits( QString const& input, char const groupSeparator_, char const decimalSeparator ) {
+    QChar   groupSeparator { groupSeparator_ };
+    QString str            { input           };
 
-    int index = str.indexOf( decimalSeparator );
+    int index = str.indexOf( QChar { decimalSeparator } );
     if ( -1 == index ) {
         index = str.length( );
     }
