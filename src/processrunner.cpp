@@ -60,7 +60,7 @@ void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {
     if ( QProcess::FailedToStart == error ) {
         // won't get signal "finished" if failed to start, so emit signal "failed" here
         debug( "+ ProcessRunner[%d]::process_errorOccurred: process failed to start\n", _instanceId );
-        emit failed( QProcess::FailedToStart );
+        emit failed( -1, QProcess::FailedToStart );
     } else if ( QProcess::Crashed == error ) {
         if ( _process.state( ) != QProcess::NotRunning ) {
             debug( "+ ProcessRunner[%d]::process_errorOccurred: killing undead crashed process\n", _instanceId );
@@ -72,7 +72,7 @@ void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {
 void ProcessRunner::process_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     if ( ( exitStatus == QProcess::CrashExit ) || ( exitCode != 0 ) ) {
         debug( "+ ProcessRunner[%d]::process_finished: process failed: exit status: %s [%d]; exit code: %d\n", _instanceId, ToString( exitStatus ), exitStatus, exitCode );
-        emit failed( QProcess::Crashed );
+        emit failed( exitCode, QProcess::Crashed );
     } else {
         emit succeeded( );
     }

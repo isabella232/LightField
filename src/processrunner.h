@@ -30,7 +30,7 @@ private:
 signals:
 
     void succeeded( );
-    void failed( QProcess::ProcessError const error );
+    void failed( int const exitCode, QProcess::ProcessError const error );
     void readyReadStandardOutput( QString const& data );
     void readyReadStandardError( QString const& data );
 

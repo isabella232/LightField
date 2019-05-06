@@ -141,7 +141,7 @@ void SvgRenderer::programSucceeded( ) {
     }
 }
 
-void SvgRenderer::programFailed( QProcess::ProcessError const error ) {
-    debug( "+ SvgRenderer::programFailed: error: %s [%d]\n", ToString( error ), static_cast<int>( error ) );
+void SvgRenderer::programFailed( int const exitCode, QProcess::ProcessError const error ) {
+    debug( "+ SvgRenderer::programFailed: exit code: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
     emit done( false );
 }

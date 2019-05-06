@@ -299,7 +299,7 @@ void PrintManager::stepB1_completed( ) {
     stepB2_start( );
 }
 
-void PrintManager::stepB1_failed( QProcess::ProcessError const ) {
+void PrintManager::stepB1_failed( int const, QProcess::ProcessError const ) {
     stepB1_completed( );
 }
 
@@ -363,7 +363,7 @@ void PrintManager::stepB3_completed( ) {
     stepB4_start( );
 }
 
-void PrintManager::stepB3_failed( QProcess::ProcessError const error ) {
+void PrintManager::stepB3_failed( int const, QProcess::ProcessError const ) {
     stepB3_completed( );
 }
 

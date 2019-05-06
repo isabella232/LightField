@@ -73,7 +73,7 @@ private slots:
     ;
 
     void gpg_succeeded( );
-    void gpg_failed( QProcess::ProcessError const error );
+    void gpg_failed( int const exitCode, QProcess::ProcessError const error );
     void gpg_readyReadStandardOutput( QString const& data );
 
 };

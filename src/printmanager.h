@@ -109,14 +109,14 @@ private slots:
 
     void stepB1_start( );
     void stepB1_completed( );
-    void stepB1_failed( QProcess::ProcessError const error );
+    void stepB1_failed( int const exitCode, QProcess::ProcessError const error );
 
     void stepB2_start( );
     void stepB2_completed( );
 
     void stepB3_start( );
     void stepB3_completed( );
-    void stepB3_failed( QProcess::ProcessError const error );
+    void stepB3_failed( int const exitCode, QProcess::ProcessError const error );
 
     void stepB4_start( );
     void stepB4_completed( );

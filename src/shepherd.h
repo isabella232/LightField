@@ -86,7 +86,7 @@ private slots:
     void process_finished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void processRunner_succeeded( );
-    void processRunner_failed( QProcess::ProcessError const );
+    void processRunner_failed( int const, QProcess::ProcessError const error );
 
 };
 

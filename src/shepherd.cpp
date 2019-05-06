@@ -9,8 +9,6 @@
 
 namespace {
 
-    char const* ShepherdBaseDirectory = "/usr/share/lightfield/libexec/stdio-shepherd";
-
     QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher2 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
@@ -18,7 +16,7 @@ namespace {
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
-    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
+    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory.toUtf8( ).data( ) );
 }
 
 Shepherd::~Shepherd( ) {
@@ -100,7 +98,7 @@ void Shepherd::processRunner_succeeded( ) {
     _process->start( "./stdio-shepherd.py" );
 }
 
-void Shepherd::processRunner_failed( QProcess::ProcessError const ) {
+void Shepherd::processRunner_failed( int const, QProcess::ProcessError const ) {
     processRunner_succeeded( );
 }
 

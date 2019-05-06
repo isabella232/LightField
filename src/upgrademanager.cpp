@@ -74,7 +74,7 @@ void UpgradeManager::_checkNextSignature( ) {
         { "gpgv" },
         {
             "--status-fd", "1",
-            "--keyring",   "/code/work/Volumetric/LightField/gpg/pubring.kbx",
+            "--keyring",   GpgKeyRingPath,
             _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ),
             _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( )
         }
@@ -84,7 +84,7 @@ void UpgradeManager::_checkNextSignature( ) {
 void UpgradeManager::gpg_succeeded( ) {
 }
 
-void UpgradeManager::gpg_failed( QProcess::ProcessError const error ) {
+void UpgradeManager::gpg_failed( int const exitCode, QProcess::ProcessError const error ) {
 }
 
 void UpgradeManager::gpg_readyReadStandardOutput( QString const& data ) {

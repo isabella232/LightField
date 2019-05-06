@@ -138,7 +138,7 @@ private slots:
     void selectButton_clicked( bool );
 
     void processRunner_succeeded( );
-    void processRunner_failed( QProcess::ProcessError const error );
+    void processRunner_failed( int const exitCode, QProcess::ProcessError const error );
     void processRunner_readyReadStandardOutput ( QString const& data );
     void processRunner_readyReadStandardError( QString const& data );
 

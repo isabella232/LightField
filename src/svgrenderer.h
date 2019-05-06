@@ -18,15 +18,15 @@ protected:
 
 private:
 
-    QString              _outputDirectory;
-    QDomDocument         _doc;
-    ProcessRunner*       _processRunner  { };
+    QString        _outputDirectory;
+    QDomDocument   _doc;
+    ProcessRunner* _processRunner   { };
 
-    int                  _currentLayer   { };
-    int                  _totalLayers    { };
-    int                  _digits         { };
-    int                  _pxWidth        { };
-    int                  _pxHeight       { };
+    int            _currentLayer    { };
+    int            _totalLayers     { };
+    int            _digits          { };
+    int            _pxWidth         { };
+    int            _pxHeight        { };
 
     void _renderLayer( );
 
@@ -43,7 +43,7 @@ protected slots:
 private slots:
 
     void programSucceeded( );
-    void programFailed( QProcess::ProcessError const error );
+    void programFailed( int const exitCode, QProcess::ProcessError const error );
 
 };
 
