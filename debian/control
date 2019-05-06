@@ -61,6 +61,7 @@ Multi-Arch: foreign
 Depends:
  lightfield-firmware (= ${binary:Version}),
  ${misc:Depends},
+ avrdude (>= 6.3),
  python3 (>= 3.6),
  python3-serial (>= 3.4),
  python3-zope.component (>= 4.3.0),
@@ -69,13 +70,4 @@ Depends:
  python3-zope.interface (>= 4.3.2),
  sudo (>= 1.8.23)
 Description: Printer software for Volumetric's Lumen X 3D printer - common files
- Selects, slices, and prints.
-
-Package: lightfield-firmware
-Architecture: all
-Multi-Arch: foreign
-Depends:
- ${misc:Depends},
- avrdude (>= 6.3)
-Description: Printer software for Volumetric's Lumen X 3D printer - printer firmware
  Selects, slices, and prints.

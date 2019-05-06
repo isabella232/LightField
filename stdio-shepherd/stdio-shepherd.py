@@ -13,7 +13,7 @@ import time
 
 from threading import Thread
 
-sys.path.append( '/usr/share/lightfield/libexec/printrun' )
+sys.path.append( '/usr/lib/lightfield/printrun' )
 
 import printer
 

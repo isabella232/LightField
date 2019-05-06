@@ -23,11 +23,10 @@ function unsymlink-and-maybe-mkdir () {
 }
 
 ##
-## /usr/share/lightfield/libexec
+## /usr/lib/lightfield
 ##
 
-unsymlink-and-maybe-mkdir /usr/share/lightfield
-unsymlink-and-maybe-mkdir /usr/share/lightfield/libexec
+unsymlink-and-maybe-mkdir /usr/lib/lightfield
 
 ##
 ## /var/cache/lightfield/print-jobs
@@ -41,11 +40,12 @@ fi
 
 unsymlink-and-maybe-mkdir /var/cache/lightfield
 unsymlink-and-maybe-mkdir /var/cache/lightfield/print-jobs
+unsymlink-and-maybe-mkdir /var/cache/lightfield/software-updates
 
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating cached print jobs from "${symlink}" to /var/cache/lightfield/print-jobs
-    mv "${symlink}"/* /var/cache/lightfield/print-jobs/
+    mv -i "${symlink}"/* /var/cache/lightfield/print-jobs/
 fi
 
 ##
@@ -64,7 +64,7 @@ unsymlink-and-maybe-mkdir /var/lib/lightfield/model-library
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating models from "${symlink}" to /var/lib/lightfield/model-library
-    mv "${symlink}"/* /var/lib/lightfield/model-library/
+    mv -i "${symlink}"/* /var/lib/lightfield/model-library/
 fi
 
 ##
@@ -82,5 +82,5 @@ unsymlink-and-maybe-mkdir /var/log/lightfield
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating debugging logs from "${symlink}" to /var/log/lightfield
-    mv "${symlink}"/* /var/log/lightfield/
+    mv -i "${symlink}"/* /var/log/lightfield/
 fi

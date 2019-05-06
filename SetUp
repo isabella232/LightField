@@ -3,45 +3,32 @@
 local symlink=
 
 ##
-## /usr/share/lightfield/libexec
+## /usr/lib/lightfield
 ##
 
-if [ -h /usr/share/lightfield ]
+if [ -h /usr/lib/lightfield ]
 then
-    echo Deleting symlink /usr/share/lightfield
-    rm /usr/share/lightfield
+    echo Deleting symlink /usr/lib/lightfield
+    rm /usr/lib/lightfield
 fi
 
-if [ ! -d /usr/share/lightfield ]
+if [ ! -d /usr/lib/lightfield ]
 then
-    echo Creating directory /usr/share/lightfield
-    mkdir /usr/share/lightfield
-    chown lumen:lumen /usr/share/lightfield
+    echo Creating directory /usr/lib/lightfield
+    mkdir /usr/lib/lightfield
+    chown lumen:lumen /usr/lib/lightfield
 fi
 
-if [ -h /usr/share/lightfield/libexec ]
+if [ ! -h /usr/lib/lightfield/printrun ]
 then
-    echo Deleting symlink /usr/share/lightfield/libexec
-    rm /usr/share/lightfield/libexec
+    echo Symlinking /usr/lib/lightfield/printrun to /home/lumen/Volumetric/printrun
+    ln -s /home/lumen/Volumetric/printrun /usr/lib/lightfield/printrun
 fi
 
-if [ ! -d /usr/share/lightfield/libexec ]
+if [ ! -h /usr/lib/lightfield/stdio-shepherd ]
 then
-    echo Creating directory /usr/share/lightfield/libexec
-    mkdir /usr/share/lightfield/libexec
-    chown lumen:lumen /usr/share/lightfield/libexec
-fi
-
-if [ ! -h /usr/share/lightfield/libexec/printrun ]
-then
-    echo Symlinking /usr/share/lightfield/libexec/printrun to /home/lumen/Volumetric/printrun
-    ln -s /home/lumen/Volumetric/printrun /usr/share/lightfield/libexec/printrun
-fi
-
-if [ ! -h /usr/share/lightfield/libexec/stdio-shepherd ]
-then
-    echo Symlinking /usr/share/lightfield/libexec/stdio-shepherd to /home/lumen/Volumetric/LightField/stdio-shepherd
-    ln -s /home/lumen/Volumetric/LightField/stdio-shepherd /usr/share/lightfield/libexec/stdio-shepherd
+    echo Symlinking /usr/lib/lightfield/stdio-shepherd to /home/lumen/Volumetric/LightField/stdio-shepherd
+    ln -s /home/lumen/Volumetric/LightField/stdio-shepherd /usr/lib/lightfield/stdio-shepherd
 fi
 
 ##
@@ -83,6 +70,23 @@ then
 
     echo Attempting to remove directory "${symlink}"
     rmdir "${symlink}"
+fi
+
+##
+## /var/cache/lightfield/software-updates
+##
+
+if [ -h /var/cache/lightfield/software-updates ]
+then
+    echo Deleting symlink /var/cache/lightfield/software-updates
+    rm /var/cache/lightfield/software-updates
+fi
+
+if [ ! -d /var/cache/lightfield/software-updates ]
+then
+    echo Creating directory /var/cache/lightfield/software-updates
+    mkdir /var/cache/lightfield/software-updates
+    chown lumen:lumen /var/cache/lightfield/software-updates
 fi
 
 ##
@@ -159,6 +163,6 @@ fi
 ##
 
 cd /home/lumen/Volumetric/LightField/system-stuff
-install -Dv -o root -g root -m 0440 -t /etc/sudoers.d/                lumen-lightfield
-install -Dv -o root -g root -m 0644 -t /lib/systemd/system/           lightfield.service
-install -Dv -o root -g root -m 0755 -t /usr/share/lightfield/libexec/ reset-lumen-arduino-port upgrade-lightfield-software upgrade-lumenx-firmware
+install -Dv -o root -g root -m 0440 -t /etc/sudoers.d/      lumen-lightfield
+install -Dv -o root -g root -m 0644 -t /lib/systemd/system/ lightfield.service
+install -Dv -o root -g root -m 0755 -t /usr/lib/lightfield/ configure-touchscreen reset-lumen-arduino-port upgrade-lightfield-software upgrade-lumenx-firmware
