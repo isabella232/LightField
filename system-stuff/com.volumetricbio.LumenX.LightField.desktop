@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=LightField
+NoDisplay=true
+Comment=Launch Volumetric LightField.
+Exec=/home/lumen/Volumetric/LightField/build/lf
+X-GNOME-Autostart-enabled=true
+Terminal=true

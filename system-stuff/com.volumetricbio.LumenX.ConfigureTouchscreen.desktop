@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=ConfigureLumenXTouchscreen
+NoDisplay=true
+Comment=Configure Lumen X touchscreen.
+Exec=xinput map-to-output 'WaveShare WS170120' DP-1
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=2
