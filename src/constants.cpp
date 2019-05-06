@@ -7,11 +7,13 @@ QSize          const MaximalRightHandPaneSize {  564, 424 };
 QSize          const PngDisplayWindowSize     { 1280, 800 };
 QSize          const QuarterRightHandPaneSize {  257, 187 };
 
-QString        const MediaRootPath            { "/media"                            };
-QString        const StlModelLibraryPath      { "/var/lib/lightfield/model-library" };
-QString        const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-jobs"  };
-QString        const SlicedSvgFileName        { "sliced.svg"                        };
-QString        const SetpowerCommand          { "setpower"                          };
+QString        const MediaRootPath            { "/media"                                           };
+QString        const StlModelLibraryPath      { "/var/lib/lightfield/model-library"                };
+QString        const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-jobs"                 };
+QString        const SlicedSvgFileName        { "sliced.svg"                                       };
+QString        const SetpowerCommand          { "/usr/lib/lightfield/setpower"                     };
+QString        const GpgKeyRingPath           { "/code/work/Volumetric/LightField/gpg/pubring.kbx" };
+QString        const ShepherdBaseDirectory    { "/usr/lib/lightfield/stdio-shepherd"               };
 
 QChar          const Space                    { L' '      };
 QChar          const Slash                    { L'/'      };
