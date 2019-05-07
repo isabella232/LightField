@@ -478,7 +478,7 @@ void FileTab::selectButton_clicked( bool ) {
 void FileTab::processRunner_succeeded( ) {
     debug( "+ FileTab::processRunner_succeeded\n" );
 
-    for ( auto line : _slicerBuffer.split( QRegularExpression { QString { "\\r?\\n" } } ) ) {
+    for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
         auto match = VolumeLineMatcher.match( line );
         if ( match.hasMatch( ) ) {
             _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );

@@ -293,11 +293,11 @@ void Shepherd::handleCommandFailAlternate( QStringList const& input ) {
 void Shepherd::handleInput( QString const& input ) {
     _buffer += input;
 
-    auto lines = _buffer.split( "\n", QString::SplitBehavior::KeepEmptyParts );
+    auto lines = _buffer.split( NewLineRegex );
 
     // if the buffer doesn't end with a newline character, then the last line is
     // not yet complete. put it back in the buffer and forget about it for now.
-    if ( !_buffer.endsWith( "\n" ) ) {
+    if ( !_buffer.endsWith( LineFeed ) ) {
         _buffer = lines.last( );
         lines.removeLast( );
     } else {
@@ -305,7 +305,8 @@ void Shepherd::handleInput( QString const& input ) {
     }
 
     for ( auto line : lines ) {
-        if ( line.endsWith( "\r" ) ) {
+        if ( line.endsWith( CarriageReturn ) ) {
+            line.chop( 1 );
             line.resize( line.length( ) - 1 );
         }
         if ( line.isEmpty( ) ) {
