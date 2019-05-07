@@ -46,15 +46,16 @@ private:
     QThread*           _thread             { };
     ProcessRunner*     _processRunner      { };
 
-    UpgradeKitInfoList     _rawUpgradeKits;
+    UpgradeKitInfoList _rawUpgradeKits;
     UpgradeKitInfoList _goodSigUpgradeKits;
-    UpgradeKitInfoList    _goodUpgradeKits;
+    UpgradeKitInfoList _goodUpgradeKits;
 
-    QString _gpgResult;
+    QString            _gpgResult;
 
     void _checkForUpgrades( QString const upgradesPath );
     void _findUpgradeKits( QString const& upgradesPath );
     void _checkNextSignature( );
+    void _unpackNextKit( );
 
 signals:
     ;
@@ -75,6 +76,9 @@ private slots:
     void gpg_succeeded( );
     void gpg_failed( int const exitCode, QProcess::ProcessError const error );
     void gpg_readyReadStandardOutput( QString const& data );
+
+    void tar_succeeded( );
+    void tar_failed( int const exitCode, QProcess::ProcessError const error );
 
 };
 
