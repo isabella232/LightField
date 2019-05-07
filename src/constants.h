@@ -13,7 +13,8 @@ QString extern const JobWorkingDirectoryPath;
 QString extern const SlicedSvgFileName;
 QString extern const SetpowerCommand;
 QString extern const GpgKeyRingPath;
-QString extern const ShepherdBaseDirectory;
+QString extern const ShepherdPath;
+QString extern const UpdatesRootPath;
 
 QChar   extern const Space;
 QChar   extern const Slash;

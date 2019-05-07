@@ -13,7 +13,8 @@ QString        const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-job
 QString        const SlicedSvgFileName        { "sliced.svg"                                       };
 QString        const SetpowerCommand          { "/usr/lib/lightfield/setpower"                     };
 QString        const GpgKeyRingPath           { "/code/work/Volumetric/LightField/gpg/pubring.kbx" };
-QString        const ShepherdBaseDirectory    { "/usr/lib/lightfield/stdio-shepherd"               };
+QString        const ShepherdPath             { "/usr/lib/lightfield/stdio-shepherd"               };
+QString        const UpdatesRootPath          { "/var/cache/lightfield/software-updates"           };
 
 QChar          const Space                    { L' '      };
 QChar          const Slash                    { L'/'      };

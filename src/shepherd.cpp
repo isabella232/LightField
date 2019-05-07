@@ -16,7 +16,7 @@ namespace {
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
-    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory.toUtf8( ).data( ) );
+    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdPath.toUtf8( ).data( ) );
 }
 
 Shepherd::~Shepherd( ) {
@@ -94,7 +94,7 @@ void Shepherd::processRunner_succeeded( ) {
     QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
     QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
-    _process->setWorkingDirectory( ShepherdBaseDirectory );
+    _process->setWorkingDirectory( ShepherdPath );
     _process->start( "./stdio-shepherd.py" );
 }
 
