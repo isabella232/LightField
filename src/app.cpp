@@ -4,6 +4,7 @@
 
 #include "signalhandler.h"
 #include "utils.h"
+#include "version.h"
 #include "window.h"
 
 AppSettings g_settings;
@@ -136,7 +137,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationName( "Volumetric" );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
-    QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION );
+    QCoreApplication::setApplicationVersion( VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ) );
 
     QProcess::startDetached( SetpowerCommand, { "0" } );

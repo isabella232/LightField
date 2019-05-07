@@ -54,7 +54,8 @@ src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
 src/hasher.cpp
-src/upgrademanager.cpp)
+src/upgrademanager.cpp
+src/version.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h

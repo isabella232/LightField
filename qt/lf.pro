@@ -4,8 +4,8 @@ TARGET   = lf
 TEMPLATE = app
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -DLIGHTFIELD_VERSION=\\\"1.0.1\\\" -Winvalid-pch
-QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -DLIGHTFIELD_VERSION=\\\"1.0.1\\\" -Winvalid-pch
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Winvalid-pch
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
 
 SOURCES +=                     \
     ../src/debug.cpp           \
@@ -35,7 +35,8 @@ SOURCES +=                     \
     ../src/utils.cpp           \
     ../src/gesturelistview.cpp \
     ../src/hasher.cpp          \
-    ../src/upgrademanager.cpp
+    ../src/upgrademanager.cpp  \
+    ../src/version.cpp
 
 HEADERS  += \
     ../src/debug.h           \
@@ -73,8 +74,8 @@ CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \
-    ../images/images.qrc \
     ../gl/gl.qrc         \
+    ../images/images.qrc \
     ../text/text.qrc
 
 linux {
