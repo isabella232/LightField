@@ -207,12 +207,10 @@ void StatusTab::_updateReprintButtonState( ) {
 }
 
 void StatusTab::initialShowEvent( QShowEvent* event ) {
-    _currentLayerImage->setFixedWidth( _currentLayerImage->width( ) );
-    _currentLayerImage->setFixedHeight( _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    update( );
 
     event->accept( );
-
-    update( );
 }
 
 void StatusTab::setModelRendered( bool const value ) {
