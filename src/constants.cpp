@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "constants.h"
 
-QRegularExpression        const NewLineRegex             { "\r?\n" };
+QRegularExpression        const NewLineRegex             { "\\r?\\n" };
 
 QSize                     const MainButtonSize           {  218,  74 };
 QSize                     const MainWindowSize           {  800, 480 };
@@ -20,9 +20,9 @@ QString                   const UpdatesRootPath          { "/var/cache/lightfiel
 
 QChar                     const LineFeed                 { L'\u000A' };
 QChar                     const CarriageReturn           { L'\u000D' };
-QChar                     const Space                    { L' '      };
-QChar                     const Slash                    { L'/'      };
-QChar                     const DigitZero                { L'0'      };
+QChar                     const Space                    { L'\u0020' };
+QChar                     const Slash                    { L'\u002F' };
+QChar                     const DigitZero                { L'\u0030' };
 QChar                     const FigureSpace              { L'\u2007' };
 QChar                     const EmDash                   { L'\u2014' };
 QChar                     const BlackDiamond             { L'\u25C6' };
