@@ -53,9 +53,9 @@ private:
     QString            _gpgResult;
 
     void _checkForUpgrades( QString const upgradesPath );
-    void _findUpgradeKits( QString const& upgradesPath );
-    void _checkNextSignature( );
+    void _checkNextKitSignature( );
     void _unpackNextKit( );
+    void _examineUnpackedKits( );
 
 signals:
     ;
