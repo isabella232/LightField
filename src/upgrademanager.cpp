@@ -46,6 +46,7 @@ namespace {
     QRegularExpression const SingleWhitespaceCharacterRegex { "\\s"                                                         };
     QRegularExpression const StartsWithWhitespaceRegex      { "^\\s+"                                                       };
     QRegularExpression const EndsWithWhitespaceRegex        { "\\s+$"                                                       };
+    QRegularExpression const MetadataFieldMatcherRegex      { "^([-0-9A-Za-z]+):\\s*"                                       };
     QRegularExpression const MetadataFieldParserRegex       { "^([-0-9A-Za-z]+):\\s+(.*?)\\s+$"                             };
 
 }
@@ -98,9 +99,11 @@ void UpgradeManager::_checkNextKitSignature( ) {
     debug( "+ UpgradeManager::_checkNextKitSignature\n" );
 
     if ( _rawUpgradeKits.isEmpty( ) ) {
+        debug( "  + finished checking signatures, moving on to unpacking %d kits\n", _goodSigUpgradeKits.count( ) );
         _unpackNextKit( );
     }
 
+    debug( "  + checking signature for upgrade kit %s\n", _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ).toUtf8( ).data( ) );
     _processRunner = new ProcessRunner( this );
     QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::gpg_succeeded               );
     QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::gpg_failed                  );
@@ -148,29 +151,61 @@ void UpgradeManager::_unpackNextKit( ) {
     );
 }
 
-void UpgradeManager::_examineUnpackedKits( ) {
-    for ( auto& update : _goodUpgradeKits ) {
-        auto versionInfo = ReadWholeFile( UpdatesRootPath + Slash + update.kitFileInfo.fileName( ) + Slash + QString( "version.inf" ) );
+/*
+Metadata-Version: 1
+Version: 1.0.1
+Build-Type: release
+Release-Date: 2019-04-23
+Description:
+ This is the description for this update. Include information about changes
+ here.
+ .
+ The description text needs to start in the *second* column. To add a blank
+ line, put a single period ('.') in the second column.
+*/
 
-        // Unfold lines
-        auto lines = versionInfo.split( NewLineRegex );
+void UpgradeManager::_examineUnpackedKits( ) {
+    debug( "+ UpgradeManager::_examineUnpackedKits\n" );
+
+    for ( auto& update : _goodUpgradeKits ) {
+        debug( "  + examining upgrade kit %s\n", update.kitFileInfo.fileName( ).toUtf8( ).data( ) );
+        auto versionInfo = ReadWholeFile( UpdatesRootPath + Slash + update.kitFileInfo.fileName( ) + Slash + QString( "version.inf" ) ).split( NewLineRegex );
+
+        QMap<QString, QString> fields;
+        QString currentKey;
         int index = 1;
-        while ( index < lines.count( ) ) {
-            lines[index].replace( EndsWithWhitespaceRegex, { } );
-            if ( auto result = StartsWithWhitespaceRegex.match( lines[index] ); result.hasMatch( ) ) {
-                lines[index].replace( StartsWithWhitespaceRegex, { } );
-                lines[index - 1].append( Space );
-                lines[index - 1].append( lines[index] );
-                lines.removeAt( index );
-                continue;
+        while ( index < versionInfo.count( ) ) {
+            auto& line = versionInfo[index];
+            line.replace( EndsWithWhitespaceRegex, { } );
+
+            if ( auto result = MetadataFieldMatcherRegex.match( line ); result.hasMatch( ) ) {
+                currentKey = result.captured( 1 );
+                line.remove( result.capturedStart( 0 ), result.capturedLength( 0 ) );
+                if ( fields.contains( currentKey ) ) {
+                    debug( "  + metadata for this kit contains duplicate key '%s'\n", currentKey.toUtf8( ).data( ) );
+                    goto nextKit;
+                }
+                fields.insert( currentKey, line );
+            } else if ( ( line.length( ) > 1 ) && ( line[0] == Space ) ) {
+                if ( currentKey.isEmpty( ) ) {
+                    debug( "  + continuation line in metadata file without anything to continue\n" );
+                    goto nextKit;
+                }
+
+                line.remove( 0, 1 );
+                fields[currentKey].append( LineFeed );
+                if ( line != "." ) {
+                    fields[currentKey].append( line );
+                }
+            } else {
+                debug( "  + unintelligible gibberish in metadata file\n" );
+                goto nextKit;
             }
+
             ++index;
         }
 
-        QMap<QString, QString> fields;
-        for ( auto const& line : lines ) {
-            if ( !fields.contains( ) )
-        }
+nextKit: /*empty statement*/ ;
     }
 }
 
