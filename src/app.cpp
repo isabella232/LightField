@@ -151,7 +151,12 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION );
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ) );
 
+    debug( "+ App::`ctor: running setpower\n" );
     QProcess::startDetached( SetpowerCommand, { "0" } );
+
+    sleep( 2 );
+
+    debug( "+ App::`ctor: running xinput\n" );
     QProcess::startDetached( "xinput", { "map-to-output", "WaveShare WS170120", "DP-1" } );
 
     _parseCommandLine( );
