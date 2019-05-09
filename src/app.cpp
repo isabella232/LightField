@@ -152,6 +152,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ) );
 
     QProcess::startDetached( SetpowerCommand, { "0" } );
+    QProcess::startDetached( "xinput", { "map-to-output", "WaveShare WS170120", "DP-1" } );
 
     _parseCommandLine( );
     _debugManager = new DebugManager;
