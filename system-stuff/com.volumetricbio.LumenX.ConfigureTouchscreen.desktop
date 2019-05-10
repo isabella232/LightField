@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=ConfigureLumenXTouchscreen
-NoDisplay=true
-Comment=Configure Lumen X touchscreen.
-Exec=/usr/lib/lightfield/configure-touchscreen
-X-GNOME-Autostart-enabled=true

@@ -1,4 +1,5 @@
 files/etc/sudoers.d/*                                          etc/sudoers.d
+files/etc/xdg/autostart/*                                      etc/xdg/autostart
 files/lib/udev/rules.d/*                                       lib/udev/rules.d
 files/usr/share/lightfield/libexec/printrun/*                  usr/share/lightfield/libexec/printrun
 files/usr/share/lightfield/libexec/stdio-shepherd/*            usr/share/lightfield/libexec/stdio-shepherd

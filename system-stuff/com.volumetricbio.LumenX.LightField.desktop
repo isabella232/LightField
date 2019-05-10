@@ -6,4 +6,5 @@ NoDisplay=true
 Comment=Launch Volumetric LightField.
 Exec=/home/lumen/Volumetric/LightField/build/lf
 X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Phase=Application
 Terminal=true
