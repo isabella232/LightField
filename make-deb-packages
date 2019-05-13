@@ -44,6 +44,7 @@ install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/lib/udev/rules.d/                    
 install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/                -m 755 system-stuff/reset-lumen-arduino-port system-stuff/upgrade-lightfield-software system-stuff/upgrade-lumenx-firmware
 install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 644 stdio-shepherd/printer.py
 install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/ -m 755 stdio-shepherd/stdio-shepherd.py
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/                   -m 644 system-stuff/99-waveshare.conf
 
 blue-bar • Copying Debian packaging files
 cp ${VERBOSE} -ar ${LIGHTFIELD_SRC}/debian ${LIGHTFIELD_PACKAGE}/
