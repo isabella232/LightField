@@ -13,7 +13,6 @@ function maybe-mkdir () {
 	then
 		echo Creating directory "$1"
 		mkdir "$1"
-		chown lumen:lumen "$1"
 	fi
 }
 
@@ -26,8 +25,7 @@ function unsymlink-and-maybe-mkdir () {
 ## /usr/share/lightfield/libexec
 ##
 
-unsymlink-and-maybe-mkdir /usr/share/lightfield
-unsymlink-and-maybe-mkdir /usr/share/lightfield/libexec
+rm -rf /usr/share/lightfield
 
 ##
 ## /var/cache/lightfield/print-jobs
@@ -67,6 +65,8 @@ then
     mv "${symlink}"/* /var/lib/lightfield/model-library/
 fi
 
+mkdir /var/lib/lightfield/software-updates
+
 ##
 ## /var/log/lightfield
 ##
@@ -84,3 +84,9 @@ then
     echo Relocating debugging logs from "${symlink}" to /var/log/lightfield
     mv "${symlink}"/* /var/log/lightfield/
 fi
+
+##
+## Permissions
+##
+
+chown -R lumen:lumen /var/cache/lightfield /var/lib/lightfield /var/log/lightfield
