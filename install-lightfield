@@ -1,4 +1,7 @@
-#!/bin/bash -ev
+#!/bin/bash
+
+set -e
+set -v
 
 function clear () {
     echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
