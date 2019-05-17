@@ -12,6 +12,7 @@ function blue-bar () {
 }
 
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
+USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 if [ "$1" = "-q" ]
 then
@@ -22,17 +23,14 @@ fi
 
 clear
 
+#blue-bar • Building debugging version of set-projector-power
+#cd ${USBDRIVER_SRC}
+#[ -f set-projector-power ] && rm ${VERBOSE} -f set-projector-power
+#g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -lhidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
+
 blue-bar • Building debugging version of LightField
+cd ${LIGHTFIELD_SRC}
 ./rebuild -x
-
-blue-bar • Building and installing set-projector-power
-cd ${LIGHTFIELD_SRC}/usb-driver
-rm ${VERBOSE} -f set-projector-power || true
-g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
-
-blue-bar • Building GCoder module
-cd ${PRINTRUN_SRC}
-python3 setup.py build_ext --inplace
 
 blue-bar • Creating directories
 [ ! -d /var/cache/lightfield/print-jobs     ] && mkdir ${VERBOSE} -p /var/cache/lightfield/print-jobs
@@ -45,27 +43,29 @@ chown -Rc lumen:lumen /var/lib/lightfield
 chown -Rc lumen:lumen /var/log/lightfield
 
 blue-bar • Installing files
-cd ${LIGHTFIELD_SRC}
-install ${VERBOSE} -DT -m 644    system-stuff/lumen-lightfield                        /etc/sudoers.d/lumen-lightfield
-install ${VERBOSE} -DT -m 644    system-stuff/getty@tty1.service.d_override.conf      /etc/systemd/system/getty@tty1.service.d/override.conf
-install ${VERBOSE} -DT -m 644    system-stuff/lumen-bash_profile                      /home/lumen/.bash_profile
-install ${VERBOSE} -DT -m 644    system-stuff/lightfield.service                      /lib/systemd/system/lightfield.service
-install ${VERBOSE} -DT -m 644    usb-driver/90-dlpc350.rules                          /lib/udev/rules.d/90-dlpc350.rules
-install ${VERBOSE} -DT -m 755 -s build/lf                                             /usr/bin/lf
-install ${VERBOSE} -DT -m 755 -s set-projector-power                                  /usr/bin/set-projector-power
-install ${VERBOSE} -DT -m 755 -s printrun/gcoder_line.cpython-37m-x86_64-linux-gnu.so /usr/lib/lightfield/gcoder_line.cpython-37m-x86_64-linux-gnu.so
-install ${VERBOSE} -DT -m 644    printrun/__init__.py                                 /usr/share/lightfield/libexec/printrun/printrun/__init__.py
-install ${VERBOSE} -DT -m 644    printrun/eventhandler.py                             /usr/share/lightfield/libexec/printrun/printrun/eventhandler.py
-install ${VERBOSE} -DT -m 644    printrun/gcoder.py                                   /usr/share/lightfield/libexec/printrun/printrun/gcoder.py
-install ${VERBOSE} -DT -m 644    printrun/printcore.py                                /usr/share/lightfield/libexec/printrun/printrun/printcore.py
-install ${VERBOSE} -DT -m 644    printrun/utils.py                                    /usr/share/lightfield/libexec/printrun/printrun/utils.py
-install ${VERBOSE} -DT -m 644    printrun/plugins/__init__.py                         /usr/share/lightfield/libexec/printrun/printrun/plugins/__init__.py
-install ${VERBOSE} -DT -m 644    Util/constants.py                                    /usr/share/lightfield/libexec/printrun/Util/constants.py
-install ${VERBOSE} -DT -m 644    stdio-shepherd/printer.py                            /usr/share/lightfield/libexec/stdio-shepherd/printer.py
-install ${VERBOSE} -DT -m 755    stdio-shepherd/stdio-shepherd.py                     /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
-install ${VERBOSE} -DT -m 755    system-stuff/reset-lumen-arduino-port                /usr/share/lightfield/libexec/reset-lumen-arduino-port
-install ${VERBOSE} -DT -m 755    system-stuff/upgrade-lumenx-firmware                 /usr/share/lightfield/libexec/upgrade-lumenx-firmware
-install ${VERBOSE} -DT -m 644    system-stuff/99-waveshare.conf                       /usr/share/X11/xorg.conf.d/99-waveshare.conf
+install ${VERBOSE} -DT -m 440    system-stuff/lumen-lightfield                       /etc/sudoers.d/lumen-lightfield
+install ${VERBOSE} -DT -m 644    system-stuff/getty@tty1.service.d_override.conf     /etc/systemd/system/getty@tty1.service.d/override.conf
+install ${VERBOSE} -DT -m 644    system-stuff/lumen-bash_profile                     /home/lumen/.bash_profile
+install ${VERBOSE} -DT -m 644    system-stuff/lightfield.service                     /lib/systemd/system/lightfield.service
+install ${VERBOSE} -DT -m 644    usb-driver/90-dlpc350.rules                         /lib/udev/rules.d/90-dlpc350.rules
+install ${VERBOSE} -DT -m 755 -s build/lf                                            /usr/bin/lf
+#install ${VERBOSE} -DT -m 755 -s set-projector-power                                 /usr/bin/set-projector-power
+install ${VERBOSE} -DT -m 755    /usr/local/bin/setpower                             /usr/bin/set-projector-power
+install ${VERBOSE} -DT -m 644    stdio-shepherd/printer.py                           /usr/share/lightfield/libexec/stdio-shepherd/printer.py
+install ${VERBOSE} -DT -m 755    stdio-shepherd/stdio-shepherd.py                    /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
+install ${VERBOSE} -DT -m 755    system-stuff/reset-lumen-arduino-port               /usr/share/lightfield/libexec/reset-lumen-arduino-port
+install ${VERBOSE} -DT -m 755    system-stuff/upgrade-lumenx-firmware                /usr/share/lightfield/libexec/upgrade-lumenx-firmware
+install ${VERBOSE} -DT -m 644    system-stuff/99-waveshare.conf                      /usr/share/X11/xorg.conf.d/99-waveshare.conf
+
+cd ${PRINTRUN_SRC}
+install ${VERBOSE} -DT -m 644    printrun/__init__.py                               /usr/share/lightfield/libexec/printrun/printrun/__init__.py
+install ${VERBOSE} -DT -m 644    printrun/eventhandler.py                           /usr/share/lightfield/libexec/printrun/printrun/eventhandler.py
+install ${VERBOSE} -DT -m 644    printrun/gcoder.py                                 /usr/share/lightfield/libexec/printrun/printrun/gcoder.py
+install ${VERBOSE} -DT -m 644    printrun/printcore.py                              /usr/share/lightfield/libexec/printrun/printrun/printcore.py
+install ${VERBOSE} -DT -m 644    printrun/utils.py                                  /usr/share/lightfield/libexec/printrun/printrun/utils.py
+install ${VERBOSE} -DT -m 644    printrun/plugins/__init__.py                       /usr/share/lightfield/libexec/printrun/printrun/plugins/__init__.py
+install ${VERBOSE} -DT -m 644    Util/constants.py                                  /usr/share/lightfield/libexec/printrun/Util/constants.py
+
 
 blue-bar • Configuring system
 systemctl daemon-reload
