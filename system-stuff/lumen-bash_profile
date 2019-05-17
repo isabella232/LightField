@@ -1,5 +1,5 @@
 if [ "`tty`" = "/dev/tty1" ]; then
 	startx /home/lumen/Volumetric/LightField/build/lf
 else
-	exec zsh -i -l
+	source /home/lumen/.real_bash_profile
 fi

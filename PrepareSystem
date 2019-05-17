@@ -96,3 +96,5 @@ fi
 ##
 
 chown -R lumen:lumen /var/cache/lightfield /var/lib/lightfield /var/log/lightfield
+
+[ -f /home/lumen/.bashrc ] && mv /home/lumen/.bashrc /home/lumen/.real_bash_profile
