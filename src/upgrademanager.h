@@ -1,22 +1,13 @@
 #ifndef __UPGRADEMANAGER_H__
 #define __UPGRADEMANAGER_H__
 
-/*
-#include <atomic>
-
-#include <QObject>
-#include <QFileInfo>
-#include <QProcess>
-#include <QString>
-#include <QThread>
-*/
-
 #include "version.h"
 
 //
 // Forward declarations
 //
 
+class GpgSignatureChecker;
 class ProcessRunner;
 
 //
@@ -57,6 +48,9 @@ class UpgradeManager: public QObject {
 
 public:
 
+    UpgradeManager( QObject* parent = nullptr );
+    virtual ~UpgradeManager( ) override;
+
     UpgradeKitInfoList const& availableUpgrades( ) { return _goodUpgradeKits; }
 
     bool isCheckingForUpgrades( ) {
@@ -71,19 +65,18 @@ protected:
 
 private:
 
-    std::atomic_flag   _isChecking         { ATOMIC_FLAG_INIT };
+    std::atomic_flag     _isChecking          { ATOMIC_FLAG_INIT };
 
-    ProcessRunner*     _processRunner      { };
+    GpgSignatureChecker* _gpgSignatureChecker { };
+    ProcessRunner*       _processRunner       { };
 
-    UpgradeKitInfoList _rawUpgradeKits;
-    UpgradeKitInfoList _goodSigUpgradeKits;
-    UpgradeKitInfoList _goodUpgradeKits;
-
-    QString            _gpgResult;
+    UpgradeKitInfoList   _rawUpgradeKits;
+    UpgradeKitInfoList   _goodSigUpgradeKits;
+    UpgradeKitInfoList   _goodUpgradeKits;
 
 #if defined _DEBUG
-    QString            _tarOutput;
-    QString            _tarError;
+    QString              _tarOutput;
+    QString              _tarError;
 #endif // defined _DEBUG
 
     void _checkForUpgrades( QString const upgradesPath );
@@ -107,9 +100,7 @@ protected slots:
 private slots:
     ;
 
-    void gpg_succeeded( );
-    void gpg_failed( int const exitCode, QProcess::ProcessError const error );
-    void gpg_readyReadStandardOutput( QString const& data );
+    void gpgSignatureChecker_complete( bool const result, QStringList const& results );
 
     void tar_succeeded( );
     void tar_failed( int const exitCode, QProcess::ProcessError const error );

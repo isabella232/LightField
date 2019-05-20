@@ -2,7 +2,9 @@
 
 #include "upgrademanager.h"
 
+#include "gpgsignaturechecker.h"
 #include "processrunner.h"
+#include "strings.h"
 #include "utils.h"
 #include "version.h"
 
@@ -44,17 +46,25 @@ namespace {
         { "release", BuildType::Release },
     };
 
-    QString            const ExpectedKeyId                  { "0EF6486549978C0C76B49E99C9FC781B66B69981" };
-    QString            const ExpectedFingerprint            { "C9FC781B66B69981" };
-    QString            const ExpectedSignerAddress          { "lightfield-packager@volumetricbio.com" };
+    QString            const ExpectedKeyId                  { "0EF6486549978C0C76B49E99C9FC781B66B69981"                    };
+    QString            const ExpectedFingerprint            { "C9FC781B66B69981"                                            };
+    QString            const ExpectedSignerAddress          { "lightfield-packager@volumetricbio.com"                       };
     QString            const ExpectedSignerName             { "LightField packager <lightfield-packager@volumetricbio.com>" };
 
-    QRegularExpression const SingleWhitespaceCharacterRegex { "\\s" };
-    QRegularExpression const StartsWithWhitespaceRegex      { "^\\s+" };
-    QRegularExpression const EndsWithWhitespaceRegex        { "\\s+$" };
-    QRegularExpression const MetadataFieldMatcherRegex      { "^([-0-9A-Za-z]+):\\s*" };
-    QRegularExpression const MetadataFieldParserRegex       { "^([-0-9A-Za-z]+):\\s+(.*?)\\s+$" };
+    QRegularExpression const EndsWithWhitespaceRegex        { "\\s+$"                                                       };
+    QRegularExpression const MetadataFieldMatcherRegex      { "^([-0-9A-Za-z]+):\\s*"                                       };
+    QRegularExpression const MetadataFieldParserRegex       { "^([-0-9A-Za-z]+):\\s+(.*?)\\s+$"                             };
+    QRegularExpression const SingleWhitespaceCharacterRegex { "\\s"                                                         };
+    QRegularExpression const StartsWithWhitespaceRegex      { "^\\s+"                                                       };
 
+}
+
+UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
+    /*empty*/
+}
+
+UpgradeManager::~UpgradeManager( ) {
+    /*empty*/
 }
 
 void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
@@ -110,22 +120,9 @@ void UpgradeManager::_checkNextKitSignature( ) {
 
     debug( "  + checking signature for upgrade kit %s\n", _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ).toUtf8( ).data( ) );
 
-    _gpgResult.clear( );
-
-    _processRunner = new ProcessRunner( this );
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::gpg_succeeded               );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::gpg_failed                  );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::gpg_readyReadStandardOutput );
-
-    _processRunner->start(
-        { "gpgv" },
-        {
-            "--status-fd", "1",
-            "--keyring",   GpgKeyRingPath,
-            _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ),
-            _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( )
-        }
-    );
+    _gpgSignatureChecker = new GpgSignatureChecker( this );
+    QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_complete );
+    _gpgSignatureChecker->startCheckDetachedSignature( _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ), _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ) );
 }
 
 /*
@@ -138,101 +135,21 @@ void UpgradeManager::_checkNextKitSignature( ) {
 [GNUPG:] VERIFICATION_COMPLIANCE_MODE 23
 */
 
-void UpgradeManager::gpg_succeeded( ) {
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
+void UpgradeManager::gpgSignatureChecker_complete( bool const result, QStringList const& /*results*/ ) {
+    _gpgSignatureChecker->deleteLater( );
+    _gpgSignatureChecker = nullptr;
 
-    debug( "+ UpgradeManager::gpg_succeeded: examining GPG output for upgrade kit '%s'\n", _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ).toUtf8( ).data( ) );
+    debug( "+ UpgradeManager::gpgSignatureChecker_complete: result is %s\n", ToString( result ) );
 
-    auto lines = _gpgResult.replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
-    if ( lines.count( ) > GpgExpectedTokens.count( ) ) {
-        debug( "  + too many lines: expected %d, got %d\n%s\n", GpgExpectedTokens.count( ), lines.count( ), lines.join( "\n" ).toUtf8( ).data( ) );
-        _rawUpgradeKits.removeFirst( );
-        _checkNextKitSignature( );
-        return;
+    if ( result ) {
+        debug( "+ UpgradeManager::gpgSignatureChecker_complete: good signature\n" );
+        _goodSigUpgradeKits.append( _rawUpgradeKits.front( ) );
+    } else {
+        debug( "+ UpgradeManager::gpgSignatureChecker_complete: bad signature\n" );
     }
 
-    auto lineIndex = 0;
-    for ( auto line : lines ) {
-        debug(
-            "  + examining line %d:\n"
-            "    >> %s\n"
-            "",
-            lineIndex,
-            line.toUtf8( ).data( )
-        );
-        auto fields = line.split( SingleWhitespaceCharacterRegex );
-        auto& token = fields[1];
-
-        if ( ( GpgExpectedFieldCount[lineIndex] != -1 ) && ( GpgExpectedFieldCount[lineIndex] != fields.count( ) ) ) {
-            debug( "  + wrong number of fields: expected %d, got %d\n", GpgExpectedFieldCount[lineIndex], fields.count( ) );
-            goto fail;
-        }
-        if ( token != GpgExpectedTokens[lineIndex] ) {
-            debug( "  + wrong token: expected '%s', got '%s'\n", GpgExpectedTokens[lineIndex].toUtf8( ).data( ), token.toUtf8( ).data( ) );
-            goto fail;
-        }
-        ++lineIndex;
-
-        if ( token == "NEWSIG" ) {
-            if ( fields[2] != ExpectedSignerAddress ) {
-                debug( "  + 'NEWSIG': invalid signer address: expected '%s', got '%s'\n", ExpectedSignerAddress.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
-                goto fail;
-            }
-        } else if ( token == "KEY_CONSIDERED" ) {
-            if ( fields[2] != ExpectedKeyId ) {
-                debug( "  + 'KEY_CONSIDERED': invalid key ID: expected '%s', got '%s'\n", ExpectedKeyId.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
-                goto fail;
-            }
-        } else if ( token == "SIG_ID" ) {
-            debug( "  + 'SIG_ID': signature ID '%s', date '%s', timestamp '%s'\n", fields[2].toUtf8( ).data( ), fields[3].toUtf8( ).data( ), fields[4].toUtf8( ).data( ) );
-        } else if ( token == "GOODSIG" ) {
-            if ( fields[2] != ExpectedFingerprint ) {
-                debug( "  + 'GOODSIG': invalid key fingerprint: expected '%s', got '%s'\n", ExpectedFingerprint.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
-                goto fail;
-            }
-
-            fields.removeFirst( );
-            fields.removeFirst( );
-            fields.removeFirst( );
-            auto signerName = fields.join( Space );
-
-            if ( signerName != ExpectedSignerName ) {
-                debug( "  + 'GOODSIG': invalid signer name: expected '%s', got '%s'\n", ExpectedSignerName.toUtf8( ).data( ), signerName.toUtf8( ).data( ) );
-                goto fail;
-            }
-        } else if ( token == "VALIDSIG" ) {
-            if ( ( fields[2] != ExpectedKeyId ) || ( fields[11] != ExpectedKeyId ) ) {
-                debug( "  + 'VALIDSIG': invalid key ID: expected '%s', got '%s' and '%s'\n", ExpectedKeyId.toUtf8( ).data( ), fields[2].toUtf8( ).data( ), fields[11].toUtf8( ).data( ) );
-                goto fail;
-            }
-        } else if ( token == "VERIFICATION_COMPLIANCE_MODE" ) {
-            if ( fields[2] != "23" ) {
-                debug( "  + 'VERIFICATION_COMPLIANCE_MODE': invalid value: expected '23', got '%s'\n", fields[2].toUtf8( ).data( ) );
-                goto fail;
-            }
-        }
-    }
-
-    debug( "  + good signature\n" );
-    _goodSigUpgradeKits.append( _rawUpgradeKits.front( ) );
-
-fail:
     _rawUpgradeKits.removeFirst( );
     _checkNextKitSignature( );
-}
-
-void UpgradeManager::gpg_failed( int const exitCode, QProcess::ProcessError const error ) {
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
-
-    debug( "+ UpgradeManager::gpg_failed: checking signature of upgrade kit: exit status %d\n", exitCode );
-    _rawUpgradeKits.removeFirst( );
-    _checkNextKitSignature( );
-}
-
-void UpgradeManager::gpg_readyReadStandardOutput( QString const& data ) {
-    _gpgResult.append( data );
 }
 
 void UpgradeManager::_unpackNextKit( ) {
@@ -316,8 +233,12 @@ void UpgradeManager::tar_failed( int const exitCode, QProcess::ProcessError cons
     debug( "+ UpgradeManager::tar_failed: unpacking upgrade kit: exit status %d\n", exitCode );
 
 #if defined _DEBUG
-    debug( "  + tar's stdout:\n%s", _tarOutput.toUtf8( ).data( ) );
-    debug( "  + tar's stderr:\n%s", _tarError.toUtf8( ).data( )  );
+    if ( !_tarOutput.isEmpty( ) ) {
+        debug( "  + tar's stdout:\n%s", _tarOutput.toUtf8( ).data( ) );
+    }
+    if ( !_tarError.isEmpty( ) ) {
+        debug( "  + tar's stderr:\n%s", _tarError.toUtf8( ).data( ) );
+    }
 #endif // defined _DEBUG
 
     _goodSigUpgradeKits.removeFirst( );

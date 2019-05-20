@@ -28,6 +28,7 @@ set(CMAKE_AUTOUIC ON)
 
 #set project sources
 set(Project_Sources src/debug.cpp
+src/version.cpp
 src/app.cpp
 src/main.cpp
 src/canvas.cpp
@@ -54,8 +55,8 @@ src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
 src/hasher.cpp
+src/gpgsignaturechecker.cpp)
 src/upgrademanager.cpp
-src/version.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
@@ -88,6 +89,7 @@ src/utils.h
 src/gesturelistview.h
 src/hasher.h
 src/uistate.h
+src/gpgsignaturechecker.h
 src/upgrademanager.h)
 
 #set project resources and icon resource
