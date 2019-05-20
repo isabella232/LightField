@@ -145,14 +145,13 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     // Tab widget
     //
 
-    double pointSize = _tabWidget->font( ).pointSizeF( );
-    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), 20.0 ) );
+    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), LargeFontSize ) );
     QObject::connect( _tabWidget, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
-    auto font9pt = ModifyFont( _fileTab->font( ), pointSize );
+    auto fontNormalSize = ModifyFont( _fileTab->font( ), NormalFontSize );
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
-        tab->setFont( font9pt );
+        tab->setFont( fontNormalSize );
     }
 
     setCentralWidget( _tabWidget );

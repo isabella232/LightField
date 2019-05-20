@@ -39,4 +39,7 @@ double         const PrinterRaiseToMaxZHeight = 70.00;
 double         const AspectRatio5to3          =  5.0 /  3.0;
 double         const AspectRatio16to10        = 16.0 / 10.0;
 
+double         const LargeFontSize            = 22.0;
+double         const NormalFontSize           = 12.0;
+
 #endif // __CONSTANTS_H__

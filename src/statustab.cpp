@@ -41,7 +41,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
 #endif // _DEBUG
 
     QFont origFont { font( ) };
-    QFont font22pt { ModifyFont( origFont, 22.0 ) };
+    QFont font22pt { ModifyFont( origFont, LargeFontSize ) };
 
     _boldFont = ModifyFont( origFont, QFont::Bold );
 

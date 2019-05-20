@@ -8,8 +8,8 @@
 
 MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<MaintenanceTab, TabBase>( parent ) {
     auto origFont = font( );
-    auto font16pt = ModifyFont( origFont, 16.0 );
-    auto font22pt = ModifyFont( origFont, 22.0 );
+    auto font16pt = ModifyFont( origFont, 18.0 );
+    auto font22pt = ModifyFont( origFont, LargeFontSize );
 
     //
     // Main content

@@ -12,8 +12,8 @@
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
-    auto font12pt    = ModifyFont( origFont, 12.0 );
-    auto font22pt    = ModifyFont( origFont, 22.0 );
+    auto font12pt    = ModifyFont( origFont, 14.0 );
+    auto font22pt    = ModifyFont( origFont, LargeFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
     _layerThicknessLabel->setEnabled( false );

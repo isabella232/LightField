@@ -149,7 +149,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION );
-    QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ) );
+    QGuiApplication::setFont( ModifyFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ), NormalFontSize ) );
 
     debug( "+ App::`ctor: running setpower\n" );
     QProcess::startDetached( SetpowerCommand, { "0" } );
