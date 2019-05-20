@@ -1,4 +1,4 @@
-#!/bin/bash -evx
+#!/bin/bash -e
 
 ##
 ## Make sure you change these in make-deb-packages too!
@@ -33,6 +33,8 @@ fi
 cd ${PACKAGE_BUILD_ROOT}
 
 blue-bar • Creating LightField ${VERSION} release build update kit
+cp version-release.inf version.inf
+rm -f lightfield-release_${VERSION}_amd64.kit{,.sig}
 tar                                                      \
     ${TAR_VERBOSE}                                       \
     -C ${PACKAGE_BUILD_ROOT}                             \
@@ -43,10 +45,11 @@ tar                                                      \
     version.inf                                          \
     fonts-montserrat_7.200_all.deb                       \
     lightfield-common_${VERSION}_all.deb                 \
-    lightfield-firmware_${VERSION}_all.deb               \
     lightfield-release_${VERSION}_amd64.deb
 
 blue-bar • Creating LightField ${VERSION} debugging build update kit
+cp version-debug.inf version.inf
+rm -f lightfield-debug_${VERSION}_amd64.kit{,.sig}
 tar                                                      \
     ${TAR_VERBOSE}                                       \
     -C ${PACKAGE_BUILD_ROOT}                             \
@@ -57,7 +60,6 @@ tar                                                      \
     version.inf                                          \
     fonts-montserrat_7.200_all.deb                       \
     lightfield-common_${VERSION}_all.deb                 \
-    lightfield-firmware_${VERSION}_all.deb               \
     lightfield-debug_${VERSION}_amd64.deb                \
     lightfield-debug-dbgsym_${VERSION}_amd64.deb
 
