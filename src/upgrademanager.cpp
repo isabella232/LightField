@@ -256,15 +256,23 @@ void UpgradeManager::_unpackNextKit( ) {
         _goodSigUpgradeKits[0].kitFileInfo.fileName( ).toUtf8( ).data( )
     );
 
-    QString kitFilePath { _goodSigUpgradeKits[0].kitFileInfo.canonicalFilePath( )                  };
-    QDir    unpackDir   { UpdatesRootPath + Slash + _goodSigUpgradeKits[0].kitFileInfo.fileName( ) };
-    QString unpackPath  { unpackDir.absolutePath( )                                                };
+    QString kitFilePath { _goodSigUpgradeKits[0].kitFileInfo.canonicalFilePath( ) };
+
+    QString unpackDirName { UpdatesRootPath + Slash + _goodSigUpgradeKits[0].kitFileInfo.fileName( ) };
+    if ( unpackDirName.endsWith( ".kit" ) ) {
+        unpackDirName = unpackDirName.left( unpackDirName.length( ) - 4 );
+    }
+    QDir unpackDir { unpackDirName };
+
+    QString unpackPath { unpackDir.absolutePath( ) };
     debug( "  + Unpacking kit '%s' into directory '%s'\n", kitFilePath.toUtf8( ).data( ), unpackPath.toUtf8( ).data( ) );
+
     if ( unpackDir.exists( ) ) {
         debug( "  + Directory already exists, deleting\n" );
         unpackDir.removeRecursively( );
     }
     unpackDir.mkdir( unpackPath );
+    _goodSigUpgradeKits[0].directory = std::move( unpackDir );
 
 #if defined _DEBUG
     _tarOutput.clear( );
@@ -346,7 +354,7 @@ void UpgradeManager::_examineUnpackedKits( ) {
     for ( int kitIndex = 0; kitIndex < _goodUpgradeKits.count( ); ++kitIndex ) {
         auto& update = _goodUpgradeKits[kitIndex];
         debug( "  + examining upgrade kit %s\n", update.kitFileInfo.fileName( ).toUtf8( ).data( ) );
-        auto versionInfo = ReadWholeFile( UpdatesRootPath + Slash + update.kitFileInfo.fileName( ) + Slash + QString( "version.inf" ) ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
+        auto versionInfo = ReadWholeFile( update.directory.absolutePath( ) + Slash + QString( "version.inf" ) ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
 
         QMap<QString, QString> fields;
         QString currentKey;
@@ -414,7 +422,7 @@ void UpgradeManager::_examineUnpackedKits( ) {
 
         auto releaseDateParts = fields["Release-Date"].split( "-" );
         if ( releaseDateParts.count( ) != 3 ) {
-            debug( "    + bad release date \"%s\" (1)\n", fields["Release-Date"].toUtf8( ).data( ) );
+            debug( "    + bad release date format \"%s\"\n", fields["Release-Date"].toUtf8( ).data( ) );
             badKitIndices.append( kitIndex );
             continue;
         }
@@ -423,7 +431,7 @@ void UpgradeManager::_examineUnpackedKits( ) {
         auto day   = releaseDateParts[2].toInt( );
         update.releaseDate = QDate( year, month, day );
         if ( !update.releaseDate.isValid( ) ) {
-            debug( "    + bad release date \"%s\" (2)\n", fields["Release-Date"].toUtf8( ).data( ) );
+            debug( "    + bad release date \"%s\"\n", fields["Release-Date"].toUtf8( ).data( ) );
             badKitIndices.append( kitIndex );
             continue;
         }

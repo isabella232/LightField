@@ -36,6 +36,7 @@ public:
 
     QFileInfo kitFileInfo;
     QFileInfo sigFileInfo;
+    QDir      directory;
     QString   version;
     unsigned  versionCode { };
     QDate     releaseDate;
