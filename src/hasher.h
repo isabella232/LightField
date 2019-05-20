@@ -3,6 +3,8 @@
 
 class Hasher: public QObject {
 
+    QCryptographicHash::Algorithm const _DefaultAlgorithm = QCryptographicHash::Md5;
+
     Q_OBJECT
 
 public:
@@ -16,7 +18,13 @@ public:
     }
 
     void hash( QString const fileName ) {
-        _thread = QThread::create( std::bind( &Hasher::_hash, this, fileName ) );
+        _thread = QThread::create( std::bind( &Hasher::_hash, this, fileName, QCryptographicHash::Md5 ) );
+        QObject::connect( _thread, &QThread::finished, _thread, &QThread::deleteLater );
+        _thread->start( );
+    }
+
+    void hash( QString const fileName, QCryptographicHash::Algorithm const algorithm ) {
+        _thread = QThread::create( std::bind( &Hasher::_hash, this, fileName, algorithm ) );
         QObject::connect( _thread, &QThread::finished, _thread, &QThread::deleteLater );
         _thread->start( );
     }
@@ -27,7 +35,7 @@ private:
 
     QThread* _thread;
 
-    void _hash( QString const fileName );
+    void _hash( QString const fileName, QCryptographicHash::Algorithm const algorithm );
 
 signals:
 

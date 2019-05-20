@@ -2,10 +2,10 @@
 
 #include "hasher.h"
 
-void Hasher::_hash( QString const fileName ) {
+void Hasher::_hash( QString const fileName, QCryptographicHash::Algorithm const algorithm ) {
     QFile file { fileName };
     if ( file.open( QIODevice::ReadOnly ) ) {
-        QCryptographicHash hasher { QCryptographicHash::Md5 };
+        QCryptographicHash hasher { algorithm };
         hasher.addData( &file );
         file.close( );
         emit resultReady( { hasher.result( ).toHex( ) } );

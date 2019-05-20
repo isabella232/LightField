@@ -597,7 +597,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             }
             _hasher = new Hasher;
             QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection );
-            _hasher->hash( _printJob->modelFileName );
+            _hasher->hash( _printJob->modelFileName, QCryptographicHash::Md5 );
             break;
 
         case UiState::SliceStarted:
