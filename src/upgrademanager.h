@@ -1,7 +1,27 @@
 #ifndef __UPGRADEMANAGER_H__
 #define __UPGRADEMANAGER_H__
 
+/*
+#include <atomic>
+
+#include <QObject>
+#include <QFileInfo>
+#include <QProcess>
+#include <QString>
+#include <QThread>
+*/
+
+#include "version.h"
+
+//
+// Forward declarations
+//
+
 class ProcessRunner;
+
+//
+// Class UpgradeKitInfo
+//
 
 class UpgradeKitInfo {
 
@@ -16,18 +36,27 @@ public:
 
     QFileInfo kitFileInfo;
     QFileInfo sigFileInfo;
+    QString   version;
+    unsigned  versionCode { };
+    QDate     releaseDate;
+    BuildType buildType   { };
+    QString   description;
 
 };
 
 using UpgradeKitInfoList = QList<UpgradeKitInfo>;
 
+//
+// Class UpgradeManager
+//
+
 class UpgradeManager: public QObject {
 
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
 
-    UpgradeKitInfoList availableUpgrades( ) { return _goodUpgradeKits; }
+    UpgradeKitInfoList const& availableUpgrades( ) { return _goodUpgradeKits; }
 
     bool isCheckingForUpgrades( ) {
         bool value = _isChecking.test_and_set( );
@@ -43,7 +72,6 @@ private:
 
     std::atomic_flag   _isChecking         { ATOMIC_FLAG_INIT };
 
-    QThread*           _thread             { };
     ProcessRunner*     _processRunner      { };
 
     UpgradeKitInfoList _rawUpgradeKits;
@@ -51,6 +79,11 @@ private:
     UpgradeKitInfoList _goodUpgradeKits;
 
     QString            _gpgResult;
+
+#if defined _DEBUG
+    QString            _tarOutput;
+    QString            _tarError;
+#endif // defined _DEBUG
 
     void _checkForUpgrades( QString const upgradesPath );
     void _checkNextKitSignature( );
@@ -79,6 +112,10 @@ private slots:
 
     void tar_succeeded( );
     void tar_failed( int const exitCode, QProcess::ProcessError const error );
+#if defined _DEBUG
+    void tar_readyReadStandardOutput( QString const& data );
+    void tar_readyReadStandardError( QString const& data );
+#endif // _DEBUG
 
 };
 
