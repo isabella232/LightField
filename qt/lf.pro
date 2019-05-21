@@ -37,6 +37,7 @@ SOURCES +=                         \
     ../src/hasher.cpp              \
     ../src/upgrademanager.cpp      \
     ../src/gpgsignaturechecker.cpp \
+    ../src/upgradekitunpacker.cpp  \
     ../src/version.cpp
 
 HEADERS  +=                        \
@@ -70,6 +71,7 @@ HEADERS  +=                        \
     ../src/hasher.h                \
     ../src/uistate.h               \
     ../src/gpgsignaturechecker.h   \
+    ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h
 
 CONFIG += c++1z precompile_header

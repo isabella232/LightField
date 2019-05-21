@@ -8,7 +8,7 @@
 //
 
 class GpgSignatureChecker;
-class ProcessRunner;
+class UpgradeKitUnpacker;
 
 //
 // Class UpgradeKitInfo
@@ -68,16 +68,11 @@ private:
     std::atomic_flag     _isChecking          { ATOMIC_FLAG_INIT };
 
     GpgSignatureChecker* _gpgSignatureChecker { };
-    ProcessRunner*       _processRunner       { };
+    UpgradeKitUnpacker*  _upgradeKitUnpacker  { };
 
     UpgradeKitInfoList   _rawUpgradeKits;
     UpgradeKitInfoList   _goodSigUpgradeKits;
     UpgradeKitInfoList   _goodUpgradeKits;
-
-#if defined _DEBUG
-    QString              _tarOutput;
-    QString              _tarError;
-#endif // defined _DEBUG
 
     void _checkForUpgrades( QString const upgradesPath );
     void _checkNextKitSignature( );
@@ -100,14 +95,9 @@ protected slots:
 private slots:
     ;
 
-    void gpgSignatureChecker_complete( bool const result, QStringList const& results );
+    void gpgSignatureChecker_kit_complete( bool const result, QStringList const& results );
 
-    void tar_succeeded( );
-    void tar_failed( int const exitCode, QProcess::ProcessError const error );
-#if defined _DEBUG
-    void tar_readyReadStandardOutput( QString const& data );
-    void tar_readyReadStandardError( QString const& data );
-#endif // _DEBUG
+    void upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError );
 
 };
 

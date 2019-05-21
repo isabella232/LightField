@@ -3,8 +3,8 @@
 #include "upgrademanager.h"
 
 #include "gpgsignaturechecker.h"
-#include "processrunner.h"
 #include "strings.h"
+#include "upgradekitunpacker.h"
 #include "utils.h"
 #include "version.h"
 
@@ -121,31 +121,19 @@ void UpgradeManager::_checkNextKitSignature( ) {
     debug( "  + checking signature for upgrade kit %s\n", _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ).toUtf8( ).data( ) );
 
     _gpgSignatureChecker = new GpgSignatureChecker( this );
-    QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_complete );
-    _gpgSignatureChecker->startCheckDetachedSignature( _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ), _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ) );
+    QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_kit_complete );
+    _gpgSignatureChecker->startCheckDetachedSignature( _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ), _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ) );
 }
 
-/*
-[GNUPG:] NEWSIG lightfield-packager@volumetricbio.com
-[GNUPG:] KEY_CONSIDERED 0EF6486549978C0C76B49E99C9FC781B66B69981 0
-[GNUPG:] SIG_ID bO4XJA4tRxLFCgNzlG7QIn0TNzA 2019-04-23 1556050721
-[GNUPG:] KEY_CONSIDERED 0EF6486549978C0C76B49E99C9FC781B66B69981 0
-[GNUPG:] GOODSIG C9FC781B66B69981 LightField packager <lightfield-packager@volumetricbio.com>
-[GNUPG:] VALIDSIG 0EF6486549978C0C76B49E99C9FC781B66B69981 2019-04-23 1556050721 0 4 0 1 10 00 0EF6486549978C0C76B49E99C9FC781B66B69981
-[GNUPG:] VERIFICATION_COMPLIANCE_MODE 23
-*/
-
-void UpgradeManager::gpgSignatureChecker_complete( bool const result, QStringList const& /*results*/ ) {
+void UpgradeManager::gpgSignatureChecker_kit_complete( bool const result, QStringList const& /*results*/ ) {
     _gpgSignatureChecker->deleteLater( );
     _gpgSignatureChecker = nullptr;
 
-    debug( "+ UpgradeManager::gpgSignatureChecker_complete: result is %s\n", ToString( result ) );
+    debug( "+ UpgradeManager::gpgSignatureChecker_kit_complete: result is %s\n", ToString( result ) );
 
+    debug( "+ UpgradeManager::gpgSignatureChecker_kit_complete: signature is %s\n", result ? "good" : "bad" );
     if ( result ) {
-        debug( "+ UpgradeManager::gpgSignatureChecker_complete: good signature\n" );
         _goodSigUpgradeKits.append( _rawUpgradeKits.front( ) );
-    } else {
-        debug( "+ UpgradeManager::gpgSignatureChecker_complete: bad signature\n" );
     }
 
     _rawUpgradeKits.removeFirst( );
@@ -191,69 +179,33 @@ void UpgradeManager::_unpackNextKit( ) {
     unpackDir.mkdir( unpackPath );
     _goodSigUpgradeKits[0].directory = std::move( unpackDir );
 
+    _upgradeKitUnpacker = new UpgradeKitUnpacker( this );
+    QObject::connect( _upgradeKitUnpacker, &UpgradeKitUnpacker::unpackComplete, this, &UpgradeManager::upgradeKitUnpacker_complete );
+    _upgradeKitUnpacker->startUnpacking( kitFilePath, unpackPath );
+}
+
+void UpgradeManager::upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError ) {
+    _upgradeKitUnpacker->deleteLater( );
+    _upgradeKitUnpacker = nullptr;
+
+    debug( "+ UpgradeManager::upgradeKitUnpacker_complete: result is %s\n", ToString( result ) );
+
+    if ( result ) {
+        _goodUpgradeKits.append( _goodSigUpgradeKits.front( ) );
 #if defined _DEBUG
-    _tarOutput.clear( );
-    _tarError.clear( );
-#endif // defined _DEBUG
-
-    _processRunner = new ProcessRunner( this );
-
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::tar_succeeded               );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::tar_failed                  );
-#if defined _DEBUG
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::tar_readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::tar_readyReadStandardError  );
-#endif // defined _DEBUG
-
-    _processRunner->start(
-        { "tar" },
-        {
-            "-C",  unpackPath,
-            "-xf", kitFilePath,
+    } else {
+        if ( !tarOutput.isEmpty( ) ) {
+            debug( "+ UpgradeManager::upgradeKitUnpacker_complete: tar's stdout:\n%s", tarOutput.toUtf8( ).data( ) );
         }
-    );
-}
-
-void UpgradeManager::tar_succeeded( ) {
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
-
-    debug( "+ UpgradeManager::tar_succeeded\n" );
-
-    _goodUpgradeKits.append( _goodSigUpgradeKits.front( ) );
+        if ( !tarError.isEmpty( ) ) {
+            debug( "+ UpgradeManager::upgradeKitUnpacker_complete: tar's stderr:\n%s", tarError.toUtf8( ).data( ) );
+        }
+#endif // defined _DEBUG
+    }
 
     _goodSigUpgradeKits.removeFirst( );
     _unpackNextKit( );
 }
-
-void UpgradeManager::tar_failed( int const exitCode, QProcess::ProcessError const error ) {
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
-
-    debug( "+ UpgradeManager::tar_failed: unpacking upgrade kit: exit status %d\n", exitCode );
-
-#if defined _DEBUG
-    if ( !_tarOutput.isEmpty( ) ) {
-        debug( "  + tar's stdout:\n%s", _tarOutput.toUtf8( ).data( ) );
-    }
-    if ( !_tarError.isEmpty( ) ) {
-        debug( "  + tar's stderr:\n%s", _tarError.toUtf8( ).data( ) );
-    }
-#endif // defined _DEBUG
-
-    _goodSigUpgradeKits.removeFirst( );
-    _unpackNextKit( );
-}
-
-#if defined _DEBUG
-void UpgradeManager::tar_readyReadStandardOutput( QString const& data ) {
-    _tarOutput.append( data );
-}
-
-void UpgradeManager::tar_readyReadStandardError( QString const& data ) {
-    _tarError.append( data );
-}
-#endif // defined _DEBUG
 
 /*
 Metadata-Version: 1

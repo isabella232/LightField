@@ -55,8 +55,9 @@ src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
 src/hasher.cpp
-src/gpgsignaturechecker.cpp)
-src/upgrademanager.cpp
+src/gpgsignaturechecker.cpp
+src/upgradekitunpacker.cpp
+src/upgrademanager.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
@@ -90,6 +91,7 @@ src/gesturelistview.h
 src/hasher.h
 src/uistate.h
 src/gpgsignaturechecker.h
+src/upgradekitunpacker.h
 src/upgrademanager.h)
 
 #set project resources and icon resource
