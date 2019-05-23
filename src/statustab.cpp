@@ -435,7 +435,7 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
-    _dispensePrintSolutionLabel->setText( QString { "Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." }.arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume ), 0, 'f', 2 ) );
+    _dispensePrintSolutionLabel->setText( QString { "Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." }.arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
