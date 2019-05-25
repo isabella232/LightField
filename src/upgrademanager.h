@@ -18,16 +18,18 @@ class UpgradeKitInfo {
 
 public:
 
-    UpgradeKitInfo( QFileInfo&& kitFileInfo_, QFileInfo&& sigFileInfo_ ):
-        kitFileInfo { std::move( kitFileInfo_ ) },
-        sigFileInfo { std::move( sigFileInfo_ ) }
-    {
+    UpgradeKitInfo( QDir const& directory_ ): directory { directory_ } {
+        /*empty*/
+    }
+
+    UpgradeKitInfo( QFileInfo const& kitFileInfo_, QFileInfo const& sigFileInfo_ ): kitFileInfo { kitFileInfo_ }, sigFileInfo { sigFileInfo_ } {
         /*empty*/
     }
 
     QFileInfo kitFileInfo;
     QFileInfo sigFileInfo;
     QDir      directory;
+
     QString   version;
     unsigned  versionCode { };
     QDate     releaseDate;
@@ -74,9 +76,10 @@ private:
     UpgradeKitInfoList   _goodSigUpgradeKits;
     UpgradeKitInfoList   _goodUpgradeKits;
 
-    void _checkForUpgrades( QString const upgradesPath );
+    void _checkForUpgrades( QString const& upgradesPath );
     void _checkNextKitSignature( );
     void _unpackNextKit( );
+    bool _parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& info );
     void _examineUnpackedKits( );
 
 signals:

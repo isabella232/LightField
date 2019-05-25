@@ -16,46 +16,23 @@
 
 namespace {
 
-    QStringList UpgradeKitGlobs {
+    QStringList UpgradeKitFileGlobs {
         "lightfield-debug_*_amd64.kit",
         "lightfield-release_*_amd64.kit"
     };
 
-    QStringList GpgExpectedTokens {
-        "NEWSIG",
-        "KEY_CONSIDERED",
-        "SIG_ID",
-        "KEY_CONSIDERED",
-        "GOODSIG",
-        "VALIDSIG",
-        "VERIFICATION_COMPLIANCE_MODE",
-    };
-
-    QList<int> GpgExpectedFieldCount {
-         3,
-         4,
-         5,
-         4,
-        -1,
-        12,
-         3,
+    QStringList UpgradeKitDirGlobs {
+        "lightfield-debug_*_amd64",
+        "lightfield-release_*_amd64"
     };
 
     QMap<QString, BuildType> StringToBuildType {
-        { "debug",   BuildType::Debug   },
         { "release", BuildType::Release },
+        { "debug",   BuildType::Debug   },
     };
 
-    QString            const ExpectedKeyId                  { "0EF6486549978C0C76B49E99C9FC781B66B69981"                    };
-    QString            const ExpectedFingerprint            { "C9FC781B66B69981"                                            };
-    QString            const ExpectedSignerAddress          { "lightfield-packager@volumetricbio.com"                       };
-    QString            const ExpectedSignerName             { "LightField packager <lightfield-packager@volumetricbio.com>" };
-
-    QRegularExpression const EndsWithWhitespaceRegex        { "\\s+$"                                                       };
-    QRegularExpression const MetadataFieldMatcherRegex      { "^([-0-9A-Za-z]+):\\s*"                                       };
-    QRegularExpression const MetadataFieldParserRegex       { "^([-0-9A-Za-z]+):\\s+(.*?)\\s+$"                             };
-    QRegularExpression const SingleWhitespaceCharacterRegex { "\\s"                                                         };
-    QRegularExpression const StartsWithWhitespaceRegex      { "^\\s+"                                                       };
+    QRegularExpression const EndsWithWhitespaceRegex   { "\\s+$"                 };
+    QRegularExpression const MetadataFieldMatcherRegex { "^([-0-9A-Za-z]+):\\s*" };
 
 }
 
@@ -76,13 +53,22 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
     _checkForUpgrades( upgradesPath );
 }
 
-void UpgradeManager::_checkForUpgrades( QString const upgradesPath ) {
+void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
     debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
 
-    for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
-        debug( "+ UpgradeManager::_checkForUpgrades: found kit %s\n", kitFile.fileName( ).toUtf8( ).data( ) );
+    for ( auto kitDir : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
+        debug( "+ UpgradeManager::_checkForUpgrades: found unpacked kit %s\n", kitDir.fileName( ).toUtf8( ).data( ) );
 
-        QFileInfo sigFile { kitFile.canonicalFilePath( ).append( ".sig" ) };
+        if ( QFileInfo versionInfoFile { kitDir.absoluteFilePath( ).append( "/version.inf" ) }; versionInfoFile.exists( ) ) {
+            debug( "  + found unpacked update kit\n" );
+            _rawUpgradeKits.append( UpgradeKitInfo { kitDir.dir( ) } );
+        }
+    }
+
+    for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
+        debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.fileName( ).toUtf8( ).data( ) );
+
+        QFileInfo sigFile { kitFile.absoluteFilePath( ).append( ".sig" ) };
         if ( !sigFile.exists( ) ) {
             debug( "  + ignoring: signature file doesn't exist\n" );
             continue;
@@ -97,7 +83,7 @@ void UpgradeManager::_checkForUpgrades( QString const upgradesPath ) {
         }
 
         debug( "  + found signature file\n" );
-        _rawUpgradeKits += std::move( UpgradeKitInfo { std::move( kitFile ), std::move( sigFile ) } );
+        _rawUpgradeKits.append( { kitFile, sigFile } );
     }
 
     debug( "+ UpgradeManager::_checkForUpgrades: found %d upgrade kits\n", _rawUpgradeKits.count( ) );
@@ -118,11 +104,12 @@ void UpgradeManager::_checkNextKitSignature( ) {
         return;
     }
 
-    debug( "  + checking signature for upgrade kit %s\n", _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ).toUtf8( ).data( ) );
+    auto kitFilePath = _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( );
+    debug( "  + checking signature for upgrade kit %s\n", kitFilePath.toUtf8( ).data( ) );
 
     _gpgSignatureChecker = new GpgSignatureChecker( this );
     QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_kit_complete );
-    _gpgSignatureChecker->startCheckDetachedSignature( _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( ), _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ) );
+    _gpgSignatureChecker->startCheckDetachedSignature( kitFilePath, _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ) );
 }
 
 void UpgradeManager::gpgSignatureChecker_kit_complete( bool const result, QStringList const& /*results*/ ) {
@@ -177,7 +164,7 @@ void UpgradeManager::_unpackNextKit( ) {
         unpackDir.removeRecursively( );
     }
     unpackDir.mkdir( unpackPath );
-    _goodSigUpgradeKits[0].directory = std::move( unpackDir );
+    _goodSigUpgradeKits[0].directory = unpackDir;
 
     _upgradeKitUnpacker = new UpgradeKitUnpacker( this );
     QObject::connect( _upgradeKitUnpacker, &UpgradeKitUnpacker::unpackComplete, this, &UpgradeManager::upgradeKitUnpacker_complete );
@@ -220,107 +207,119 @@ Description:
  line, put a single period ('.') in the second column.
 */
 
-void UpgradeManager::_examineUnpackedKits( ) {
-    debug( "+ UpgradeManager::_examineUnpackedKits\n" );
+bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& update ) {
+    QMap<QString, QString> fields;
+    QString currentKey;
+    int index = 1;
 
-    QList<int> badKitIndices;
+    debug( "+ UpgradeManager::_parseVersionInfo: file name is \"%s\"\n", versionInfoFileName.toUtf8( ).data( ) );
+    auto versionInfo = ReadWholeFile( versionInfoFileName ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
+
+    while ( index < versionInfo.count( ) ) {
+        auto line = versionInfo[index];
+        line.replace( EndsWithWhitespaceRegex, "" );
+        debug( "  + line #%d: \"%s\"\n", index, line.toUtf8( ).data( ) );
+
+        if ( auto result = MetadataFieldMatcherRegex.match( line ); result.hasMatch( ) ) {
+            currentKey = result.captured( 1 );
+            line.remove( result.capturedStart( 0 ), result.capturedLength( 0 ) );
+            if ( fields.contains( currentKey ) ) {
+                debug( "    + metadata for this kit contains duplicate key '%s'\n", currentKey.toUtf8( ).data( ) );
+                return false;
+            }
+            fields.insert( currentKey, line );
+        } else if ( ( line.length( ) > 1 ) && ( line[0] == Space ) ) {
+            if ( currentKey.isEmpty( ) ) {
+                debug( "    + continuation line in metadata file without anything to continue\n" );
+                return false;
+            }
+
+            line.remove( 0, 1 );
+            auto& currentField = fields[currentKey];
+            if ( !currentField.isEmpty( ) ) {
+                currentField.append( LineFeed );
+            }
+            if ( line != "." ) {
+                currentField.append( line );
+            }
+        } else {
+            debug( "    + unintelligible gibberish in metadata file\n" );
+            return false;
+        }
+
+        ++index;
+    }
+
+    bool missingMetadata = false;
+    for ( auto const& field : { "Version", "Release-Date", "Description", "Build-Type" } ) {
+        if ( !fields.contains( field ) ) {
+            debug( "  + metadata is missing field %s\n", field );
+            missingMetadata = true;
+        }
+    }
+    if ( missingMetadata ) {
+        return false;
+    }
+
+    auto buildType = fields["Build-Type"];
+    auto buildTypeValue = buildType.toLower( );
+    if ( !StringToBuildType.contains( buildTypeValue ) ) {
+        debug( "  + unknown build type \"%s\"\n", buildType.toUtf8( ).data( ) );
+        return false;
+    }
+    update.buildType = StringToBuildType[buildTypeValue];
+
+    auto version = fields["Version"];
+    update.version = version;
+
+    update.description = fields["Description"];
+
+    auto releaseDate = fields["Release-Date"];
+    auto releaseDateParts = releaseDate.split( "-" );
+    if ( releaseDateParts.count( ) != 3 ) {
+        debug( "  + bad release date format \"%s\"\n", releaseDate.toUtf8( ).data( ) );
+        return false;
+    }
+    auto year  = releaseDateParts[0].toInt( );
+    auto month = releaseDateParts[1].toInt( );
+    auto day   = releaseDateParts[2].toInt( );
+    update.releaseDate = QDate( year, month, day );
+    if ( !update.releaseDate.isValid( ) ) {
+        debug( "  + bad release date \"%s\"\n", releaseDate.toUtf8( ).data( ) );
+        return false;
+    }
+
+    auto versionParts = version.split( "." );
+    if ( versionParts.count( ) != 3 ) {
+        debug( "  + bad software version \"%s\"\n", version.toUtf8( ).data( ) );
+        return false;
+    }
+    update.versionCode = ( versionParts[0].toUInt( ) << 24u ) | ( versionParts[1].toUInt( ) << 16u ) | ( versionParts[2].toUInt( ) << 8u );
+
+    return true;
+}
+
+void UpgradeManager::_examineUnpackedKits( ) {
+    debug( "+ UpgradeManager::_examineUnpackedKits: %d kits to examine\n", _goodUpgradeKits.count( ) );
+
+    std::vector<int> badKitIndices;
     for ( int kitIndex = 0; kitIndex < _goodUpgradeKits.count( ); ++kitIndex ) {
         auto& update = _goodUpgradeKits[kitIndex];
-        debug( "  + examining upgrade kit %s\n", update.kitFileInfo.fileName( ).toUtf8( ).data( ) );
-        auto versionInfo = ReadWholeFile( update.directory.absolutePath( ) + Slash + QString( "version.inf" ) ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
 
-        QMap<QString, QString> fields;
-        QString currentKey;
-        int index = 1;
-        while ( index < versionInfo.count( ) ) {
-            auto& line = versionInfo[index];
-            line.replace( EndsWithWhitespaceRegex, "" );
-            debug( "    + index: %d {%s}\n", index, line.toUtf8( ).data( ) );
-
-            if ( auto result = MetadataFieldMatcherRegex.match( line ); result.hasMatch( ) ) {
-                currentKey = result.captured( 1 );
-                line.remove( result.capturedStart( 0 ), result.capturedLength( 0 ) );
-                if ( fields.contains( currentKey ) ) {
-                    debug( "    + metadata for this kit contains duplicate key '%s'\n", currentKey.toUtf8( ).data( ) );
-                    badKitIndices.append( kitIndex );
-                    continue;
+        if ( !_parseVersionInfo( update.directory.absolutePath( ) + Slash + QString( "version.inf" ), update ) ) {
+            debug( "+ UpgradeManager::_examineUnpackedKits: bad metadata in kit #%d (%s)\n", kitIndex, update.kitFileInfo.absoluteFilePath( ) );
+            auto end = badKitIndices.end( );
+            if ( auto iter = std::lower_bound( badKitIndices.begin( ), end, kitIndex ); iter != end ) {
+                if ( *iter != kitIndex ) {
+                    badKitIndices.insert( iter, kitIndex );
                 }
-                fields.insert( currentKey, line );
-            } else if ( ( line.length( ) > 1 ) && ( line[0] == Space ) ) {
-                if ( currentKey.isEmpty( ) ) {
-                    debug( "    + continuation line in metadata file without anything to continue\n" );
-                    badKitIndices.append( kitIndex );
-                    continue;
-                }
-
-                line.remove( 0, 1 );
-                auto& currentField = fields[currentKey];
-                if ( !currentField.isEmpty( ) ) {
-                    currentField.append( LineFeed );
-                }
-                if ( line != "." ) {
-                    currentField.append( line );
-                }
-            } else {
-                debug( "    + unintelligible gibberish in metadata file\n" );
-                badKitIndices.append( kitIndex );
-                continue;
-            }
-
-            ++index;
-        }
-
-        bool missingMetadata = false;
-        for ( auto const& field : { "Version", "Release-Date", "Description", "Build-Type" } ) {
-            if ( !fields.contains( field ) ) {
-                debug( "    + metadata is missing field %s\n", field );
-                missingMetadata = true;
             }
         }
-        if ( missingMetadata ) {
-            badKitIndices.append( kitIndex );
-            continue;
-        }
-
-        auto buildType = fields["Build-Type"].toLower( );
-        if ( !StringToBuildType.contains( buildType ) ) {
-            debug( "    + unknown build type \"%s\"\n", fields["Build-Type"].toUtf8( ).data( ) );
-            badKitIndices.append( kitIndex );
-            continue;
-        }
-
-        update.version     = fields["Version"];
-        update.description = fields["Description"];
-        update.buildType   = StringToBuildType[buildType];
-
-        auto releaseDateParts = fields["Release-Date"].split( "-" );
-        if ( releaseDateParts.count( ) != 3 ) {
-            debug( "    + bad release date format \"%s\"\n", fields["Release-Date"].toUtf8( ).data( ) );
-            badKitIndices.append( kitIndex );
-            continue;
-        }
-        auto year  = releaseDateParts[0].toInt( );
-        auto month = releaseDateParts[1].toInt( );
-        auto day   = releaseDateParts[2].toInt( );
-        update.releaseDate = QDate( year, month, day );
-        if ( !update.releaseDate.isValid( ) ) {
-            debug( "    + bad release date \"%s\"\n", fields["Release-Date"].toUtf8( ).data( ) );
-            badKitIndices.append( kitIndex );
-            continue;
-        }
-
-        auto versionParts = fields["Version"].split( "." );
-        if ( versionParts.count( ) != 3 ) {
-            debug( "    + bad software version \"%s\"\n", fields["Version"].toUtf8( ).data( ) );
-            badKitIndices.append( kitIndex );
-            continue;
-        }
-        update.versionCode = ( versionParts[0].toUInt( ) << 24u ) | ( versionParts[1].toUInt( ) << 16u ) | ( versionParts[2].toUInt( ) << 8u );
     }
 
     auto end = badKitIndices.rend( );
     for ( auto iter = badKitIndices.rbegin( ); iter != end; ++iter ) {
-        debug( "  + removing bad kit %d\n", *iter );
         _goodUpgradeKits.removeAt( *iter );
     }
+    debug( "  + %d kits left after removing bad kits\n", _goodUpgradeKits.count( ) );
 }
