@@ -8,6 +8,7 @@
 //
 
 class GpgSignatureChecker;
+class Hasher;
 class UpgradeKitUnpacker;
 
 //
@@ -18,23 +19,40 @@ class UpgradeKitInfo {
 
 public:
 
-    UpgradeKitInfo( QDir const& directory_ ): directory { directory_ } {
+    UpgradeKitInfo( QDir const& directory_ ):
+        isAlreadyUnpacked { true       },
+        directory         { directory_ }
+    {
         /*empty*/
     }
 
-    UpgradeKitInfo( QFileInfo const& kitFileInfo_, QFileInfo const& sigFileInfo_ ): kitFileInfo { kitFileInfo_ }, sigFileInfo { sigFileInfo_ } {
+    UpgradeKitInfo( QFileInfo const& kitFileInfo_, QFileInfo const& sigFileInfo_ ):
+        isAlreadyUnpacked { false        },
+        kitFileInfo       { kitFileInfo_ },
+        sigFileInfo       { sigFileInfo_ }
+    {
         /*empty*/
     }
 
-    QFileInfo kitFileInfo;
-    QFileInfo sigFileInfo;
-    QDir      directory;
+    bool                   isAlreadyUnpacked     { };
 
-    QString   version;
-    unsigned  versionCode { };
-    QDate     releaseDate;
-    BuildType buildType   { };
-    QString   description;
+    QDir                   directory;
+    QFileInfo              kitFileInfo;
+    QFileInfo              sigFileInfo;
+
+    QString                metadataVersionString;
+    int                    metadataVersion       { };
+
+    QString                versionString;
+    unsigned               version               { };
+
+    BuildType              buildType             { };
+
+    QDate                  releaseDate;
+
+    QString                description;
+
+    QMap<QString, QString> checksums;
 
 };
 
@@ -70,17 +88,21 @@ private:
     std::atomic_flag     _isChecking          { ATOMIC_FLAG_INIT };
 
     GpgSignatureChecker* _gpgSignatureChecker { };
+    Hasher*              _hashChecker         { };
     UpgradeKitUnpacker*  _upgradeKitUnpacker  { };
 
-    UpgradeKitInfoList   _rawUpgradeKits;
-    UpgradeKitInfoList   _goodSigUpgradeKits;
+    UpgradeKitInfoList   _unprocessedUpgradeKits;
+    UpgradeKitInfoList   _processedUpgradeKits;
+
     UpgradeKitInfoList   _goodUpgradeKits;
 
     void _checkForUpgrades( QString const& upgradesPath );
     void _checkNextKitSignature( );
     void _unpackNextKit( );
+    void _checkNextVersionInfSignature( );
     bool _parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& info );
     void _examineUnpackedKits( );
+    void _checkNextKitsHashes( );
 
 signals:
     ;
@@ -98,9 +120,13 @@ protected slots:
 private slots:
     ;
 
-    void gpgSignatureChecker_kit_complete( bool const result, QStringList const& results );
+    void gpgSignatureChecker_kit_complete( bool const result );
 
     void upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError );
+
+    void gpgSignatureChecker_versionInf_complete( bool const result );
+
+    void hasher_hashCheckResult( bool const result );
 
 };
 

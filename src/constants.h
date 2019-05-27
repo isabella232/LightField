@@ -1,6 +1,7 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
+QRegularExpression extern const EndsWithWhitespaceRegex;
 QRegularExpression extern const NewLineRegex;
 
 QSize              extern const MainButtonSize;

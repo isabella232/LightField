@@ -29,6 +29,12 @@ public:
         _thread->start( );
     }
 
+    void checkHashes( QMap<QString, QString> const fileNames, QCryptographicHash::Algorithm const algorithm ) {
+        _thread = QThread::create( std::bind( &Hasher::_checkHashes, this, fileNames, algorithm ) );
+        QObject::connect( _thread, &QThread::finished, _thread, &QThread::deleteLater );
+        _thread->start( );
+    }
+
 protected:
 
 private:
@@ -36,10 +42,12 @@ private:
     QThread* _thread;
 
     void _hash( QString const fileName, QCryptographicHash::Algorithm const algorithm );
+    void _checkHashes( QMap<QString, QString> const fileNames, QCryptographicHash::Algorithm const algorithm );
 
 signals:
 
     void resultReady( QString const hash );
+    void hashCheckResult( bool const result );
 
 public slots:
 

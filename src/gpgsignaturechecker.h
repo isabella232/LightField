@@ -24,11 +24,12 @@ private:
     ProcessRunner* _processRunner { };
     QString        _dataFileName;
     QString        _signatureFileName;
-    QString        _result;
+    QString        _stdout;
+    QString        _stderr;
 
 signals:
 
-    void signatureCheckComplete( bool const result, QStringList const& results );
+    void signatureCheckComplete( bool const result );
 
 public slots:
 
@@ -39,6 +40,7 @@ private slots:
     void gpg_succeeded( );
     void gpg_failed( int const exitCode, QProcess::ProcessError const error );
     void gpg_readyReadStandardOutput( QString const& data );
+    void gpg_readyReadStandardError( QString const& data );
 
 };
 

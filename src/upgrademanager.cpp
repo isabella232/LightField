@@ -3,16 +3,11 @@
 #include "upgrademanager.h"
 
 #include "gpgsignaturechecker.h"
+#include "hasher.h"
 #include "strings.h"
 #include "upgradekitunpacker.h"
 #include "utils.h"
 #include "version.h"
-
-// find kit files
-// check signatures
-// inspect version.inf
-// fill in UpgradeKitInfo instances as we go
-// announce results
 
 namespace {
 
@@ -31,8 +26,17 @@ namespace {
         { "debug",   BuildType::Debug   },
     };
 
-    QRegularExpression const EndsWithWhitespaceRegex   { "\\s+$"                 };
     QRegularExpression const MetadataFieldMatcherRegex { "^([-0-9A-Za-z]+):\\s*" };
+    QRegularExpression const WhitespaceRegex           { "\\s+"                  };
+
+    QStringList ExpectedMetadataFields {
+        "Metadata-Version",
+        "Version",
+        "Build-Type",
+        "Release-Date",
+        "Description",
+        "Checksums-SHA256"
+    };
 
 }
 
@@ -44,31 +48,30 @@ UpgradeManager::~UpgradeManager( ) {
     /*empty*/
 }
 
-void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
-    if ( _isChecking.test_and_set( ) ) {
-        debug( "+ UpgradeManager::checkForUpgrades: check already in progress\n" );
-        return;
-    }
-
-    _checkForUpgrades( upgradesPath );
-}
-
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
-    debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
+    debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in path %s\n", UpdatesRootPath.toUtf8( ).data( ) );
+    for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
+        QString kitDirName { kitDirInfo.absoluteFilePath( ) };
+        debug( "+ UpgradeManager::_checkForUpgrades: found unpacked kit %s\n", kitDirName.toUtf8( ).data( ) );
 
-    for ( auto kitDir : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
-        debug( "+ UpgradeManager::_checkForUpgrades: found unpacked kit %s\n", kitDir.fileName( ).toUtf8( ).data( ) );
-
-        if ( QFileInfo versionInfoFile { kitDir.absoluteFilePath( ).append( "/version.inf" ) }; versionInfoFile.exists( ) ) {
-            debug( "  + found unpacked update kit\n" );
-            _rawUpgradeKits.append( UpgradeKitInfo { kitDir.dir( ) } );
+        if ( !( QFileInfo { kitDirName + QString { "/version.inf" } } ).exists( ) ) {
+            debug( "  + bad kit: version.inf file is missing\n" );
+            continue;
         }
+        if ( !( QFileInfo { kitDirName + QString { "/version.inf.sig" } } ).exists( ) ) {
+            debug( "  + bad kit: version.inf.sig file is missing\n" );
+            continue;
+        }
+
+        debug( "  + found unpacked update kit\n" );
+        _unprocessedUpgradeKits.append( UpgradeKitInfo { QDir { kitDirName } } );
     }
 
+    debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
     for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
-        debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.fileName( ).toUtf8( ).data( ) );
+        debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
 
-        QFileInfo sigFile { kitFile.absoluteFilePath( ).append( ".sig" ) };
+        QFileInfo sigFile { kitFile.absoluteFilePath( ) + QString { ".sig" } };
         if ( !sigFile.exists( ) ) {
             debug( "  + ignoring: signature file doesn't exist\n" );
             continue;
@@ -83,92 +86,153 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
         }
 
         debug( "  + found signature file\n" );
-        _rawUpgradeKits.append( { kitFile, sigFile } );
+        _unprocessedUpgradeKits.append( UpgradeKitInfo { kitFile, sigFile } );
     }
 
-    debug( "+ UpgradeManager::_checkForUpgrades: found %d upgrade kits\n", _rawUpgradeKits.count( ) );
-    if ( _rawUpgradeKits.isEmpty( ) ) {
+    if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+        debug( "+ UpgradeManager::_checkForUpgrades: no upgrade kits found\n" );
         _isChecking.clear( );
         emit upgradeCheckComplete( false );
+        return;
     }
 
+    debug(
+        "+ UpgradeManager::_checkForUpgrades: found %d upgrade kits\n"
+        "==================================================\n"
+        "",
+        _unprocessedUpgradeKits.count( )
+    );
     _checkNextKitSignature( );
 }
 
 void UpgradeManager::_checkNextKitSignature( ) {
     debug( "+ UpgradeManager::_checkNextKitSignature\n" );
 
-    if ( _rawUpgradeKits.isEmpty( ) ) {
-        debug( "  + finished checking signatures, moving on to unpacking %d kits\n", _goodSigUpgradeKits.count( ) );
-        _unpackNextKit( );
+top:
+    if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+        debug( "  + finished checking kit signatures\n" );
+
+        _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
+        if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+            debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
+            _isChecking.clear( );
+            emit upgradeCheckComplete( false );
+        } else {
+            debug(
+                "  + starting unpacking %d kits\n"
+                "==================================================\n"
+                "",
+                _unprocessedUpgradeKits.count( )
+            );
+            _unpackNextKit( );
+        }
         return;
     }
 
-    auto kitFilePath = _rawUpgradeKits[0].kitFileInfo.canonicalFilePath( );
-    debug( "  + checking signature for upgrade kit %s\n", kitFilePath.toUtf8( ).data( ) );
+    auto& currentUpgradeKit = _unprocessedUpgradeKits.front( );
+
+    if ( currentUpgradeKit.isAlreadyUnpacked ) {
+        debug( "  + skipping unpacked upgrade kit %s\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
+        _processedUpgradeKits.append( currentUpgradeKit );
+        _unprocessedUpgradeKits.removeFirst( );
+        goto top;
+    }
+
+    auto kitFilePath = currentUpgradeKit.kitFileInfo.absoluteFilePath( );
+    auto sigFilePath = currentUpgradeKit.sigFileInfo.absoluteFilePath( );
+    debug(
+        "  + checking signature for upgrade kit\n"
+        "    + upgrade kit file name: %s\n"
+        "    + signature file name:   %s\n"
+        "",
+        kitFilePath.toUtf8( ).data( ),
+        sigFilePath.toUtf8( ).data( )
+    );
 
     _gpgSignatureChecker = new GpgSignatureChecker( this );
     QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_kit_complete );
-    _gpgSignatureChecker->startCheckDetachedSignature( kitFilePath, _rawUpgradeKits[0].sigFileInfo.canonicalFilePath( ) );
+    _gpgSignatureChecker->startCheckDetachedSignature( kitFilePath, sigFilePath );
 }
 
-void UpgradeManager::gpgSignatureChecker_kit_complete( bool const result, QStringList const& /*results*/ ) {
+void UpgradeManager::gpgSignatureChecker_kit_complete( bool const result ) {
     _gpgSignatureChecker->deleteLater( );
     _gpgSignatureChecker = nullptr;
 
-    debug( "+ UpgradeManager::gpgSignatureChecker_kit_complete: result is %s\n", ToString( result ) );
-
     debug( "+ UpgradeManager::gpgSignatureChecker_kit_complete: signature is %s\n", result ? "good" : "bad" );
     if ( result ) {
-        _goodSigUpgradeKits.append( _rawUpgradeKits.front( ) );
+        _processedUpgradeKits.append( _unprocessedUpgradeKits.front( ) );
     }
 
-    _rawUpgradeKits.removeFirst( );
+    _unprocessedUpgradeKits.removeFirst( );
     _checkNextKitSignature( );
 }
 
 void UpgradeManager::_unpackNextKit( ) {
     debug( "+ UpgradeManager::_unpackNextKit\n" );
 
-    if ( _goodSigUpgradeKits.isEmpty( ) ) {
-        debug( "  + No more kits to unpack; %d good kits found\n", _goodUpgradeKits.count( ) );
-        if ( !_goodUpgradeKits.isEmpty( ) ) {
-            _examineUnpackedKits( );
+top:
+    if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+        debug( "  + finished unpacking kits\n", _processedUpgradeKits.count( ) );
+
+        _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
+        if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+            debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
+            _isChecking.clear( );
+            emit upgradeCheckComplete( false );
+        } else {
+            debug(
+                "  + starting checking version.inf signatures for %d kits\n"
+                "==================================================\n"
+                "",
+                _unprocessedUpgradeKits.count( )
+            );
+            _checkNextVersionInfSignature( );
         }
-        _isChecking.clear( );
-        emit upgradeCheckComplete( !_goodUpgradeKits.isEmpty( ) );
         return;
     }
 
-    debug(
-        "  + UpdatesRootPath:                                {%s}\n"
-        "  + _goodSigUpgradeKits[0].kitFileInfo.fileName( ): {%s}\n"
-        "",
-        UpdatesRootPath.toUtf8( ).data( ),
-        _goodSigUpgradeKits[0].kitFileInfo.fileName( ).toUtf8( ).data( )
-    );
+    auto& currentUpgradeKit = _unprocessedUpgradeKits.front( );
 
-    QString kitFilePath { _goodSigUpgradeKits[0].kitFileInfo.canonicalFilePath( ) };
-
-    QString unpackDirName { UpdatesRootPath + Slash + _goodSigUpgradeKits[0].kitFileInfo.fileName( ) };
-    if ( unpackDirName.endsWith( ".kit" ) ) {
-        unpackDirName = unpackDirName.left( unpackDirName.length( ) - 4 );
+    if ( currentUpgradeKit.isAlreadyUnpacked ) {
+        debug( "  + skipping unpacked upgrade kit %s\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
+        _processedUpgradeKits.append( currentUpgradeKit );
+        _unprocessedUpgradeKits.removeFirst( );
+        goto top;
     }
-    QDir unpackDir { unpackDirName };
 
-    QString unpackPath { unpackDir.absolutePath( ) };
-    debug( "  + Unpacking kit '%s' into directory '%s'\n", kitFilePath.toUtf8( ).data( ), unpackPath.toUtf8( ).data( ) );
+    QString kitFilePath { currentUpgradeKit.kitFileInfo.absoluteFilePath( ) };
+    debug( "  + kit file name: %s\n", kitFilePath.toUtf8( ).data( ) );
 
-    if ( unpackDir.exists( ) ) {
+    QString dirName { UpdatesRootPath + Slash + currentUpgradeKit.kitFileInfo.fileName( ) };
+    if ( dirName.endsWith( ".kit" ) ) {
+        dirName = dirName.left( dirName.length( ) - 4 );
+    }
+
+    debug( "  + Unpacking kit '%s' into directory '%s'\n", kitFilePath.toUtf8( ).data( ), dirName.toUtf8( ).data( ) );
+    currentUpgradeKit.directory = QDir { dirName };
+    if ( currentUpgradeKit.directory.exists( ) ) {
         debug( "  + Directory already exists, deleting\n" );
-        unpackDir.removeRecursively( );
+        currentUpgradeKit.directory.removeRecursively( );
+
+        auto const pred = [ &dirName ] ( UpgradeKitInfo const& kitInfo ) {
+            return kitInfo.isAlreadyUnpacked && ( kitInfo.directory.absolutePath( ) == dirName );
+        };
+
+        if ( auto iter = std::find_if( _unprocessedUpgradeKits.begin( ), _unprocessedUpgradeKits.end( ), pred ); iter != _unprocessedUpgradeKits.end( ) ) {
+            debug( "  + Forgetting about unprocessed upgrade kit already unpacked into same directory\n" );
+            _unprocessedUpgradeKits.erase( iter );
+        }
+        if ( auto iter = std::find_if( _processedUpgradeKits.begin( ), _processedUpgradeKits.end( ), pred ); iter != _processedUpgradeKits.end( ) ) {
+            debug( "  + Forgetting about processed upgrade kit already unpacked into same directory\n" );
+            _processedUpgradeKits.erase( iter );
+        }
     }
-    unpackDir.mkdir( unpackPath );
-    _goodSigUpgradeKits[0].directory = unpackDir;
+
+    currentUpgradeKit.directory.mkdir( dirName );
 
     _upgradeKitUnpacker = new UpgradeKitUnpacker( this );
     QObject::connect( _upgradeKitUnpacker, &UpgradeKitUnpacker::unpackComplete, this, &UpgradeManager::upgradeKitUnpacker_complete );
-    _upgradeKitUnpacker->startUnpacking( kitFilePath, unpackPath );
+    _upgradeKitUnpacker->startUnpacking( kitFilePath, dirName );
 }
 
 void UpgradeManager::upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError ) {
@@ -178,7 +242,8 @@ void UpgradeManager::upgradeKitUnpacker_complete( bool const result, QString con
     debug( "+ UpgradeManager::upgradeKitUnpacker_complete: result is %s\n", ToString( result ) );
 
     if ( result ) {
-        _goodUpgradeKits.append( _goodSigUpgradeKits.front( ) );
+        _unprocessedUpgradeKits[0].isAlreadyUnpacked = true;
+        _processedUpgradeKits.append( _unprocessedUpgradeKits.front( ) );
 #if defined _DEBUG
     } else {
         if ( !tarOutput.isEmpty( ) ) {
@@ -190,8 +255,45 @@ void UpgradeManager::upgradeKitUnpacker_complete( bool const result, QString con
 #endif // defined _DEBUG
     }
 
-    _goodSigUpgradeKits.removeFirst( );
+    _unprocessedUpgradeKits.removeFirst( );
     _unpackNextKit( );
+}
+
+void UpgradeManager::_checkNextVersionInfSignature( ) {
+    debug( "+ UpgradeManager::_checkNextVersionInfSignature\n" );
+
+    if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+        debug( "  + finished checking version.inf signatures, moving on to examining %d kits\n", _processedUpgradeKits.count( ) );
+
+        _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
+        if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+            _isChecking.clear( );
+            emit upgradeCheckComplete( false );
+        } else {
+            _examineUnpackedKits( );
+        }
+        return;
+    }
+
+    auto versionInfFilePath = _unprocessedUpgradeKits[0].directory.absoluteFilePath( "version.inf" );
+    debug( "  + checking signature for version.inf file %s\n", versionInfFilePath.toUtf8( ).data( ) );
+
+    _gpgSignatureChecker = new GpgSignatureChecker( this );
+    QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_versionInf_complete );
+    _gpgSignatureChecker->startCheckDetachedSignature( versionInfFilePath, versionInfFilePath + QString { ".sig" } );
+}
+
+void UpgradeManager::gpgSignatureChecker_versionInf_complete( bool const result ) {
+    _gpgSignatureChecker->deleteLater( );
+    _gpgSignatureChecker = nullptr;
+
+    debug( "+ UpgradeManager::gpgSignatureChecker_versionInf_complete: signature is %s\n", result ? "good" : "bad" );
+    if ( result ) {
+        _processedUpgradeKits.append( _unprocessedUpgradeKits.front( ) );
+    }
+
+    _unprocessedUpgradeKits.removeFirst( );
+    _checkNextVersionInfSignature( );
 }
 
 /*
@@ -205,15 +307,20 @@ Description:
  .
  The description text needs to start in the *second* column. To add a blank
  line, put a single period ('.') in the second column.
+Checksums-SHA256:
+ 9f407bf19aebe2050bb2b1b8cdd4832a3c041706da2c29258926513c0e199cc3 fonts-montserrat_7.200_all.deb
+ 3064060395be9b1f7d1341a6c1b96639269df3050717db5ab4cc4e2e11f0d6aa lightfield-common_1.0.1_all.deb
+ a3a82cc1ba47c12e445c1d049c042af421977007f2637b9e3a1bbd944f7692a6 lightfield-debug_1.0.1_amd64.deb
+ 295bbd3dff58abe856fc68fdbb43e1d76ad74a095ce490c3aab1bd1eb3ff089b lightfield-debug-dbgsym_1.0.1_amd64.deb
 */
 
 bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& update ) {
-    QMap<QString, QString> fields;
-    QString currentKey;
-    int index = 1;
-
     debug( "+ UpgradeManager::_parseVersionInfo: file name is \"%s\"\n", versionInfoFileName.toUtf8( ).data( ) );
     auto versionInfo = ReadWholeFile( versionInfoFileName ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
+
+    QMap<QString, QString> fields;
+    QString currentKey;
+    int index = 0;
 
     while ( index < versionInfo.count( ) ) {
         auto line = versionInfo[index];
@@ -251,9 +358,9 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
     }
 
     bool missingMetadata = false;
-    for ( auto const& field : { "Version", "Release-Date", "Description", "Build-Type" } ) {
+    for ( auto const& field : ExpectedMetadataFields ) {
         if ( !fields.contains( field ) ) {
-            debug( "  + metadata is missing field %s\n", field );
+            debug( "  + metadata is missing field %s\n", field.toUtf8( ).data( ) );
             missingMetadata = true;
         }
     }
@@ -261,65 +368,141 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
         return false;
     }
 
-    auto buildType = fields["Build-Type"];
-    auto buildTypeValue = buildType.toLower( );
-    if ( !StringToBuildType.contains( buildTypeValue ) ) {
-        debug( "  + unknown build type \"%s\"\n", buildType.toUtf8( ).data( ) );
-        return false;
-    }
-    update.buildType = StringToBuildType[buildTypeValue];
+    {
+        update.metadataVersionString = fields["Metadata-Version"];
 
-    auto version = fields["Version"];
-    update.version = version;
+        bool ok = false;
+        update.metadataVersion = update.metadataVersionString.toInt( &ok );
+        if ( !ok ) {
+            debug( "  + bad metadata version \"%s\"\n", update.metadataVersionString.toUtf8( ).data( ) );
+            return false;
+        }
+
+        if ( update.metadataVersion != 1 ) {
+            debug( "  + unknown metadata version \"%s\"\n", update.metadataVersionString.toUtf8( ).data( ) );
+            return false;
+        }
+    }
+
+    {
+        update.versionString = fields["Version"];
+
+        auto versionParts = update.versionString.split( "." );
+        if ( versionParts.count( ) != 3 ) {
+            debug( "  + bad software version \"%s\" (1)\n", update.versionString.toUtf8( ).data( ) );
+            return false;
+        }
+
+        bool ok0 = false, ok1 = false, ok2 = false;
+        update.version = MakeVersionCode( versionParts[0].toUInt( &ok0 ), versionParts[1].toUInt( &ok1 ), versionParts[2].toUInt( &ok2 ) );
+        if ( !ok0 || !ok1 || !ok2 ) {
+            debug( "  + bad software version \"%s\" (2)\n", update.versionString.toUtf8( ).data( ) );
+            return false;
+        }
+    }
+
+    {
+        auto buildType = fields["Build-Type"];
+        auto buildTypeValue = buildType.toLower( );
+        if ( !StringToBuildType.contains( buildTypeValue ) ) {
+            debug( "  + unknown build type \"%s\"\n", buildType.toUtf8( ).data( ) );
+            return false;
+        }
+        update.buildType = StringToBuildType[buildTypeValue];
+    }
+
+    {
+        auto releaseDate = fields["Release-Date"];
+        auto releaseDateParts = releaseDate.split( "-" );
+        if ( releaseDateParts.count( ) != 3 ) {
+            debug( "  + bad release date format \"%s\"\n", releaseDate.toUtf8( ).data( ) );
+            return false;
+        }
+        auto year  = releaseDateParts[0].toInt( );
+        auto month = releaseDateParts[1].toInt( );
+        auto day   = releaseDateParts[2].toInt( );
+        update.releaseDate = QDate( year, month, day );
+        if ( !update.releaseDate.isValid( ) ) {
+            debug( "  + bad release date \"%s\"\n", releaseDate.toUtf8( ).data( ) );
+            return false;
+        }
+    }
 
     update.description = fields["Description"];
 
-    auto releaseDate = fields["Release-Date"];
-    auto releaseDateParts = releaseDate.split( "-" );
-    if ( releaseDateParts.count( ) != 3 ) {
-        debug( "  + bad release date format \"%s\"\n", releaseDate.toUtf8( ).data( ) );
-        return false;
-    }
-    auto year  = releaseDateParts[0].toInt( );
-    auto month = releaseDateParts[1].toInt( );
-    auto day   = releaseDateParts[2].toInt( );
-    update.releaseDate = QDate( year, month, day );
-    if ( !update.releaseDate.isValid( ) ) {
-        debug( "  + bad release date \"%s\"\n", releaseDate.toUtf8( ).data( ) );
-        return false;
-    }
+    update.checksums.clear( );
+    auto path = update.directory.absolutePath( ) + Slash;
+    for ( auto item : fields["Checksums-SHA256"].replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex ) ) {
+        auto pieces = item.split( WhitespaceRegex, QString::SkipEmptyParts );
+        if ( ( pieces.count( ) != 2 ) || ( pieces[0].length( ) != 64 ) ) {
+            debug( "  + bad checksum entry \"%s\"\n", item.toUtf8( ).data( ) );
+            return false;
+        }
 
-    auto versionParts = version.split( "." );
-    if ( versionParts.count( ) != 3 ) {
-        debug( "  + bad software version \"%s\"\n", version.toUtf8( ).data( ) );
-        return false;
+        update.checksums[path + pieces[1]] = pieces[0];
+        debug( "    + file '%s': checksum %s\n", ( path + pieces[1] ).toUtf8( ).data( ), pieces[0].toUtf8( ).data( ) );
     }
-    update.versionCode = ( versionParts[0].toUInt( ) << 24u ) | ( versionParts[1].toUInt( ) << 16u ) | ( versionParts[2].toUInt( ) << 8u );
 
     return true;
 }
 
 void UpgradeManager::_examineUnpackedKits( ) {
-    debug( "+ UpgradeManager::_examineUnpackedKits: %d kits to examine\n", _goodUpgradeKits.count( ) );
+    debug( "+ UpgradeManager::_examineUnpackedKits: %d kits to examine\n", _unprocessedUpgradeKits.count( ) );
 
-    std::vector<int> badKitIndices;
-    for ( int kitIndex = 0; kitIndex < _goodUpgradeKits.count( ); ++kitIndex ) {
-        auto& update = _goodUpgradeKits[kitIndex];
-
-        if ( !_parseVersionInfo( update.directory.absolutePath( ) + Slash + QString( "version.inf" ), update ) ) {
-            debug( "+ UpgradeManager::_examineUnpackedKits: bad metadata in kit #%d (%s)\n", kitIndex, update.kitFileInfo.absoluteFilePath( ) );
-            auto end = badKitIndices.end( );
-            if ( auto iter = std::lower_bound( badKitIndices.begin( ), end, kitIndex ); iter != end ) {
-                if ( *iter != kitIndex ) {
-                    badKitIndices.insert( iter, kitIndex );
-                }
+    for ( auto& update : _unprocessedUpgradeKits ) {
+        if ( _parseVersionInfo( update.directory.absoluteFilePath( "version.inf" ), update ) ) {
+            if ( update.version > LIGHTFIELD_VERSION_CODE ) {
+                debug( "  + keeping newer version %s, build type %s\n", update.versionString.toUtf8( ).data( ), ToString( update.buildType ) );
+                _processedUpgradeKits.append( update );
+            } else {
+                debug( "  + discarding older version %s, build type %s\n", update.versionString.toUtf8( ).data( ), ToString( update.buildType ) );
             }
+        } else {
+            debug( "+ UpgradeManager::_examineUnpackedKits: bad metadata in unpacked kit %s\n", update.directory.absolutePath( ).toUtf8( ).data( ) );
         }
     }
 
-    auto end = badKitIndices.rend( );
-    for ( auto iter = badKitIndices.rbegin( ); iter != end; ++iter ) {
-        _goodUpgradeKits.removeAt( *iter );
+    _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
+    _checkNextKitsHashes( );
+}
+
+void UpgradeManager::_checkNextKitsHashes( ) {
+    debug( "+ UpgradeManager::_checkNextKitsHashes\n" );
+
+    if ( _unprocessedUpgradeKits.isEmpty( ) ) {
+        debug( "  + finished checking checksums, %d good kits\n", _goodUpgradeKits.count( ) );
+
+        _unprocessedUpgradeKits.clear( );
+        _processedUpgradeKits.clear( );
+
+        _isChecking.clear( );
+        emit upgradeCheckComplete( _goodUpgradeKits.count( ) > 0 );
+        return;
     }
-    debug( "  + %d kits left after removing bad kits\n", _goodUpgradeKits.count( ) );
+
+    if ( !_hashChecker ) {
+        _hashChecker = new Hasher;
+        QObject::connect( _hashChecker, &Hasher::hashCheckResult, this, &UpgradeManager::hasher_hashCheckResult, Qt::QueuedConnection );
+    }
+
+    _hashChecker->checkHashes( _unprocessedUpgradeKits[0].checksums, QCryptographicHash::Sha256 );
+}
+
+void UpgradeManager::hasher_hashCheckResult( bool const result ) {
+    debug( "+ UpgradeManager::hasher_hashCheckResult: result is %s\n", ToString( result ) );
+
+    if ( result ) {
+        _goodUpgradeKits.append( _unprocessedUpgradeKits[0] );
+    }
+    _unprocessedUpgradeKits.removeFirst( );
+    _checkNextKitsHashes( );
+}
+
+void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
+    if ( _isChecking.test_and_set( ) ) {
+        debug( "+ UpgradeManager::checkForUpgrades: check already in progress\n" );
+        return;
+    }
+
+    _checkForUpgrades( upgradesPath );
 }

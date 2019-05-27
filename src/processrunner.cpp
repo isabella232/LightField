@@ -70,6 +70,8 @@ void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {
 }
 
 void ProcessRunner::process_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
+    debug( "+ ProcessRunner[%d]::process_finished: exit status %s [%d], exit code %d\n", _instanceId, ToString( exitStatus ), exitStatus, exitCode );
+
     if ( ( exitStatus == QProcess::CrashExit ) || ( exitCode != 0 ) ) {
         debug( "+ ProcessRunner[%d]::process_finished: process failed: exit status: %s [%d]; exit code: %d\n", _instanceId, ToString( exitStatus ), exitStatus, exitCode );
         emit failed( exitCode, QProcess::Crashed );

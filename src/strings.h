@@ -1,6 +1,8 @@
 #ifndef __STRINGS_H__
 #define __STRINGS_H__
 
+enum class BuildType;
+
 //
 // Functions for converting various types to constant strings.
 //
@@ -18,6 +20,8 @@ char const* ToString( QProcess::ExitStatus          const value );
 char const* ToString( QSwipeGesture::SwipeDirection const value );
 
 char const* ToString( Qt::GestureState              const value );
+
+char const* ToString( BuildType                     const value );
 
 //
 // Functions for converting various types to variable strings.

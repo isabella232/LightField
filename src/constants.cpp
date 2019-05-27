@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "constants.h"
 
+QRegularExpression        const EndsWithWhitespaceRegex  { "\\s+$"   };
 QRegularExpression        const NewLineRegex             { "\\r?\\n" };
 
 QSize                     const MainButtonSize           {  218,  74 };
@@ -13,7 +14,7 @@ QString                   const MediaRootPath            { "/media"             
 QString                   const StlModelLibraryPath      { "/var/lib/lightfield/model-library"                };
 QString                   const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-jobs"                 };
 QString                   const SlicedSvgFileName        { "sliced.svg"                                       };
-QString                   const SetpowerCommand          { "/usr/lib/lightfield/setpower"                     };
+QString                   const SetpowerCommand          { "set-projector-power"                              };
 QString                   const GpgKeyRingPath           { "/code/work/Volumetric/LightField/gpg/pubring.kbx" };
 QString                   const ShepherdPath             { "/usr/lib/lightfield/stdio-shepherd"               };
 QString                   const UpdatesRootPath          { "/var/cache/lightfield/software-updates"           };

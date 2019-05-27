@@ -6,6 +6,7 @@
 #include "printmanager.h"
 #include "printtab.h"
 #include "shepherd.h"
+#include "version.h"
 #include "window.h"
 
 namespace {
@@ -103,6 +104,12 @@ namespace {
         "Usb",
     };
 
+    char const* BuildTypeStrings[] {
+        "unknown",
+        "Debug",
+        "Release",
+    };
+
 }
 
 char const* ToString( QProcess::ProcessError const value ) {
@@ -146,6 +153,18 @@ char const* ToString( QDialog::DialogCode const value ) {
     if ( ( value >= QDialog::Rejected ) && ( value <= QDialog::Accepted ) ) {
 #endif
         return DialogCodeStrings[static_cast<int>( value )];
+#if defined _DEBUG
+    } else {
+        return nullptr;
+    }
+#endif
+}
+
+char const* ToString( BuildType const value ) {
+#if defined _DEBUG
+    if ( ( value >= BuildType::unknown ) && ( value <= BuildType::Debug ) ) {
+#endif
+        return BuildTypeStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;

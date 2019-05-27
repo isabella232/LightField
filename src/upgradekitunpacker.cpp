@@ -41,7 +41,11 @@ void UpgradeKitUnpacker::tar_succeeded( ) {
 
     debug( "+ UpgradeKitUnpacker::tar_succeeded\n" );
 
+#if defined _DEBUG
     emit unpackComplete( true, _tarOutput, _tarError );
+#else
+    emit unpackComplete( true );
+#endif // defined _DEBUG
 }
 
 void UpgradeKitUnpacker::tar_failed( int const exitCode, QProcess::ProcessError const error ) {
@@ -50,7 +54,11 @@ void UpgradeKitUnpacker::tar_failed( int const exitCode, QProcess::ProcessError 
 
     debug( "+ UpgradeKitUnpacker::tar_failed: unpacking upgrade kit: exit status %d\n", exitCode );
 
+#if defined _DEBUG
     emit unpackComplete( false, _tarOutput, _tarError );
+#else
+    emit unpackComplete( false );
+#endif // defined _DEBUG
 }
 
 #if defined _DEBUG
@@ -62,3 +70,11 @@ void UpgradeKitUnpacker::tar_readyReadStandardError( QString const& data ) {
     _tarError.append( data );
 }
 #endif // defined _DEBUG
+
+int UpgradeKitUnpacker::instanceId( ) const {
+    return _processRunner ? _processRunner->instanceId( ) : -1;
+}
+
+QProcess::ProcessState UpgradeKitUnpacker::state( ) const {
+    return _processRunner ? _processRunner->state( ) : QProcess::ProcessState::NotRunning;
+}
