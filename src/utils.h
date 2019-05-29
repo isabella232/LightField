@@ -36,4 +36,12 @@ inline QString RemoveFileExtension( QString const& fileName ) {
 
 QString ReadWholeFile( QString const& fileName );
 
+inline QSize minSize( QSize const& a, QSize const& b ) {
+    return QSize { std::min( a.width( ), b.width( ) ), std::min( a.height( ), b.height( ) ) };
+}
+
+inline QSize maxSize( QSize const& a, QSize const& b ) {
+    return QSize { std::max( a.width( ), b.width( ) ), std::max( a.height( ), b.height( ) ) };
+}
+
 #endif // __UTILS_H__

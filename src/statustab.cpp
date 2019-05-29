@@ -206,7 +206,7 @@ void StatusTab::_updateReprintButtonState( ) {
     update( );
 }
 
-void StatusTab::initialShowEvent( QShowEvent* event ) {
+void StatusTab::_initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
     update( );
 

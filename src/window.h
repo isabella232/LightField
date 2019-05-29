@@ -11,6 +11,7 @@ class PngDisplayer;
 class PrintManager;
 class PrintJob;
 class Shepherd;
+class UpgradeManager;
 
 class FileTab;
 class PrepareTab;
@@ -31,7 +32,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    virtual void initialShowEvent( QShowEvent* event ) override;
+    virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -41,6 +42,7 @@ private:
     PrintManager*       _printManager      { };
     Shepherd*           _shepherd          { };
     UiState             _uiState           { };
+    UpgradeManager*     _upgradeManager    { };
 
     QTabWidget*         _tabWidget         { new QTabWidget };
     FileTab*            _fileTab;

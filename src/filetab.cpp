@@ -119,7 +119,7 @@ FileTab::~FileTab( ) {
     /*empty*/
 }
 
-void FileTab::initialShowEvent( QShowEvent* event ) {
+void FileTab::_initialShowEvent( QShowEvent* event ) {
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
     event->accept( );
@@ -558,8 +558,4 @@ void FileTab::fsWatcher_directoryChanged( QString const& path ) {
     debug( "+ FileTab::fsWatcher_directoryChanged: path '%s'\n", path.toUtf8( ).data( ) );
 
     _checkUserMediaPath( );
-}
-
-void FileTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
-    _upgradeManager = upgradeManager;
 }

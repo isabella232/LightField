@@ -143,7 +143,7 @@ void PrepareTab::_connectShepherd( ) {
     }
 }
 
-void PrepareTab::initialShowEvent( QShowEvent* event ) {
+void PrepareTab::_initialShowEvent( QShowEvent* event ) {
     _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
     update( );
 

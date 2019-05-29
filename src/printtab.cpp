@@ -181,7 +181,7 @@ void PrintTab::_updateUiState( ) {
     update( );
 }
 
-void PrintTab::initialShowEvent( QShowEvent* event ) {
+void PrintTab::_initialShowEvent( QShowEvent* event ) {
     auto size = QSize {
         std::max( { _raiseOrLowerButton->width( ),  _homeButton->width( ),  } ),
         std::max( { _raiseOrLowerButton->height( ), _homeButton->height( ), } )

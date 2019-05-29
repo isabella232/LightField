@@ -60,7 +60,7 @@ public:
 
 protected:
 
-    virtual void initialShowEvent( QShowEvent* event ) override;
+    virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -115,8 +115,6 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
-    void setUpgradeManager( UpgradeManager* upgradeManager );
 
 protected slots:
 

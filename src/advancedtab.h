@@ -68,7 +68,7 @@ private:
     bool          _isPrinterOnline                 { false };
     bool          _isPrinterAvailable              { true  };
 
-    void          _updateProjectorFloodlightGroup( );
+    void          _updateControlGroups( );
 
 signals:
 

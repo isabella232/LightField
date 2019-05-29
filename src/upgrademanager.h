@@ -85,11 +85,11 @@ protected:
 
 private:
 
-    std::atomic_flag     _isChecking          { ATOMIC_FLAG_INIT };
+    std::atomic_flag     _isChecking             { ATOMIC_FLAG_INIT };
 
-    GpgSignatureChecker* _gpgSignatureChecker { };
-    Hasher*              _hashChecker         { };
-    UpgradeKitUnpacker*  _upgradeKitUnpacker  { };
+    GpgSignatureChecker* _gpgSignatureChecker    { };
+    Hasher*              _hashChecker            { };
+    UpgradeKitUnpacker*  _upgradeKitUnpacker     { };
 
     UpgradeKitInfoList   _unprocessedUpgradeKits;
     UpgradeKitInfoList   _processedUpgradeKits;
@@ -107,7 +107,7 @@ private:
 signals:
     ;
 
-    void upgradeCheckComplete( bool const found );
+    void upgradeCheckComplete( bool const upgradesFound );
 
 public slots:
     ;

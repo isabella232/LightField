@@ -3,7 +3,9 @@
 #include "maintenancetab.h"
 
 #include "app.h"
+#include "shepherd.h"
 #include "strings.h"
+#include "upgrademanager.h"
 #include "utils.h"
 
 MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<MaintenanceTab, TabBase>( parent ) {
@@ -28,10 +30,11 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
         QString {
             "<span style='font-size: 22pt;'>%1</span><br>"
             "<span style='font-size: 16pt;'>Version %2</span><br>"
-            "<span>© 2019 Volumetric, Inc.</span>"
+            "<span>© 2019 %3</span>"
         }
-        .arg( QCoreApplication::applicationName( ) )
+        .arg( QCoreApplication::applicationName( )    )
         .arg( QCoreApplication::applicationVersion( ) )
+        .arg( QCoreApplication::organizationName( )   )
     );
 
     auto versionInfoLayout = WrapWidgetsInHBox( { _logoLabel, _versionLabel } );
@@ -53,6 +56,9 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     _updateFirmwareButton->setText( "Update firmware" );
     QObject::connect( _updateFirmwareButton, &QPushButton::clicked, this, &MaintenanceTab::updateFirmwareButton_clicked );
 
+    auto updateButtonsLayout = WrapWidgetsInHBox( { nullptr, _updateSoftwareButton, nullptr, _updateFirmwareButton, nullptr } );
+    updateButtonsLayout->setContentsMargins( { } );
+
 
     _restartButton->setFont( font16pt );
     _restartButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -70,6 +76,8 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
 
     _mainLayout->addLayout( versionInfoLayout );
     _mainLayout->addWidget( _copyrightsLabel );
+    _mainLayout->addStretch( );
+    _mainLayout->addLayout( updateButtonsLayout );
     _mainLayout->addStretch( );
     _mainLayout->addLayout( mainButtonsLayout );
     _mainLayout->setAlignment( Qt::AlignCenter );
@@ -163,10 +171,27 @@ MaintenanceTab::~MaintenanceTab( ) {
     /*empty*/
 }
 
-void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
-    QSize newSize = _shutDownButton->size( );
-    newSize.setWidth( newSize.width( ) + 20 );
+void MaintenanceTab::_connectShepherd( ) {
+    if ( _shepherd ) {
+        QObject::connect( _shepherd, &Shepherd::printer_online,  this, &MaintenanceTab::printer_online  );
+        QObject::connect( _shepherd, &Shepherd::printer_offline, this, &MaintenanceTab::printer_offline );
+    }
+}
 
+void MaintenanceTab::_updateButtons( ) {
+    _updateSoftwareButton->setEnabled( _isPrinterAvailable                     );
+    _updateFirmwareButton->setEnabled( _isPrinterAvailable && _isPrinterOnline );
+    _restartButton       ->setEnabled( _isPrinterAvailable                     );
+    _shutDownButton      ->setEnabled( _isPrinterAvailable                     );
+
+    update( );
+}
+
+void MaintenanceTab::_initialShowEvent( QShowEvent* event ) {
+    QSize newSize = QSize { 20, 4 } + maxSize( maxSize( maxSize( _updateSoftwareButton->size( ), _updateFirmwareButton->size( ) ), _restartButton->size( ) ), _shutDownButton->size( ) );
+
+    _updateSoftwareButton    ->setFixedSize( newSize );
+    _updateFirmwareButton    ->setFixedSize( newSize );
     _restartButton           ->setFixedSize( newSize );
     _shutDownButton          ->setFixedSize( newSize );
     _confirmRestartYesButton ->setFixedSize( newSize );
@@ -179,35 +204,80 @@ void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
     update( );
 }
 
+void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    //debug( "+ MaintenanceTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    _uiState = state;
+    //
+    //switch ( _uiState ) {
+    //    case UiState::SelectStarted:
+    //    case UiState::SelectCompleted:
+    //    case UiState::SliceStarted:
+    //    case UiState::SliceCompleted:
+    //    case UiState::PrintStarted:
+    //    case UiState::PrintCompleted:
+    //        break;
+    //}
+}
+
+void MaintenanceTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
+    // TODO
+}
+
+void MaintenanceTab::setPrinterAvailable( bool const value ) {
+    _isPrinterAvailable = value;
+    debug( "+ MaintenanceTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateButtons( );
+}
+
+void MaintenanceTab::printer_online( ) {
+    _isPrinterOnline = true;
+    debug( "+ MaintenanceTab::printer_online: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateButtons( );
+}
+
+void MaintenanceTab::printer_offline( ) {
+    _isPrinterOnline = false;
+    debug( "+ MaintenanceTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+
+    _updateButtons( );
+}
+
 void MaintenanceTab::updateSoftwareButton_clicked( bool ) {
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
+
+    debug( "+ MaintenanceTab::updateSoftwareButton_clicked\n" );
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 }
 
 void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
+
+    debug( "+ MaintenanceTab::updateFirmwareButton_clicked\n" );
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 }
 
 void MaintenanceTab::restartButton_clicked( bool ) {
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
+
     _mainContent->setVisible( false );
     _confirmRestartContent->setVisible( true );
 
     update( );
 }
 
-void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ MaintenanceTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
-    _uiState = state;
-
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SelectCompleted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-            break;
-    }
-}
-
 void MaintenanceTab::shutDownButton_clicked( bool ) {
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
+
     _mainContent->setVisible( false );
     _confirmShutdownContent->setVisible( true );
 
@@ -227,6 +297,9 @@ void MaintenanceTab::confirmRestartNoButton_clicked( bool ) {
     _confirmRestartContent->setVisible( false );
     _mainContent->setVisible( true );
 
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
+
     update( );
 }
 
@@ -243,5 +316,12 @@ void MaintenanceTab::confirmShutdownNoButton_clicked( bool ) {
     _confirmShutdownContent->setVisible( false );
     _mainContent->setVisible( true );
 
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
+
     update( );
+}
+
+void MaintenanceTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
+    _upgradeManager = upgradeManager;
 }

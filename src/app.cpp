@@ -134,7 +134,7 @@ void App::_setTheme( ) {
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     g_signalHandler = new SignalHandler;
 
-    QCoreApplication::setOrganizationName( "Volumetric" );
+    QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );

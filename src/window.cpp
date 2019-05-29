@@ -9,6 +9,7 @@
 #include "shepherd.h"
 #include "signalhandler.h"
 #include "strings.h"
+#include "upgrademanager.h"
 #include "utils.h"
 
 #include "filetab.h"
@@ -54,6 +55,8 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _printJob = new PrintJob;
 
+    _upgradeManager = new UpgradeManager;
+
     std::vector<TabBase*> tabs {
         _fileTab        = new FileTab,
         _prepareTab     = new PrepareTab,
@@ -76,7 +79,10 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
+
     _advancedTab->setPngDisplayer( _pngDisplayer );
+
+    _maintenanceTab->setUpgradeManager( _upgradeManager );
 
     _shepherd->start( );
 
@@ -94,12 +100,13 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _prepareTab->setContentsMargins( { } );
     _prepareTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _prepareTab, &PrepareTab::preparePrinterStarted,      this,         &Window::prepareTab_preparePrinterStarted  );
-    QObject::connect( _prepareTab, &PrepareTab::preparePrinterComplete,     this,         &Window::prepareTab_preparePrinterComplete );
-    QObject::connect( _prepareTab, &PrepareTab::slicingNeeded,              this,         &Window::prepareTab_slicingNeeded          );
-    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _printTab,    &PrintTab::setPrinterAvailable             );
-    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable            );
-    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
+    QObject::connect( _prepareTab, &PrepareTab::preparePrinterStarted,      this,            &Window::prepareTab_preparePrinterStarted  );
+    QObject::connect( _prepareTab, &PrepareTab::preparePrinterComplete,     this,            &Window::prepareTab_preparePrinterComplete );
+    QObject::connect( _prepareTab, &PrepareTab::slicingNeeded,              this,            &Window::prepareTab_slicingNeeded          );
+    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable             );
+    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable            );
+    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable          );
+    QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _maintenanceTab, &MaintenanceTab::setPrinterAvailable       );
 
     //
     // "Print" tab
@@ -107,12 +114,13 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _printTab->setContentsMargins( { } );
     _printTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _printTab, &PrintTab::printRequested,             this,         &Window::startPrinting            );
-    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _prepareTab,  &PrepareTab::setPrinterAvailable  );
-    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable   );
-    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable );
-    QObject::connect( this,      &Window::modelRendered,                _printTab,    &PrintTab::setModelRendered       );
-    QObject::connect( this,      &Window::printerPrepared,              _printTab,    &PrintTab::setPrinterPrepared     );
+    QObject::connect( _printTab, &PrintTab::printRequested,             this,            &Window::startPrinting               );
+    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable     );
+    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable      );
+    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable    );
+    QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _maintenanceTab, &MaintenanceTab::setPrinterAvailable );
+    QObject::connect( this,      &Window::modelRendered,                _printTab,       &PrintTab::setModelRendered          );
+    QObject::connect( this,      &Window::printerPrepared,              _printTab,       &PrintTab::setPrinterPrepared        );
 
     //
     // "Status" tab
@@ -130,9 +138,10 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _advancedTab->setContentsMargins( { } );
     _advancedTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab, &PrepareTab::setPrinterAvailable );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,   &PrintTab::setPrinterAvailable   );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable  );
+    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable     );
+    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable       );
+    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable      );
+    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _maintenanceTab, &MaintenanceTab::setPrinterAvailable );
 
     //
     // "Maintenance" tab
@@ -140,6 +149,11 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _maintenanceTab->setContentsMargins( { } );
     _maintenanceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _prepareTab,  &PrepareTab::setPrinterAvailable  );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _printTab,    &PrintTab::setPrinterAvailable    );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable   );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable );
+    QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete,       _maintenanceTab, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
 
     //
     // Tab widget
@@ -203,8 +217,8 @@ void Window::closeEvent( QCloseEvent* event ) {
     update( );
 }
 
-void Window::initialShowEvent( QShowEvent* event ) {
-    debug( "+ Window::initialShowEvent\n" );
+void Window::_initialShowEvent( QShowEvent* event ) {
+    debug( "+ Window::_initialShowEvent\n" );
     event->ignore( );
 
     update( );
