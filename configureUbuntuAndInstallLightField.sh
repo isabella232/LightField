@@ -40,6 +40,8 @@ sudo apt install fonts-font-awesome -y
 
 
 
+## INSTALL pastebinit for posting log files easily
+sudo apt install pastebinit -y
 
 
 
@@ -141,9 +143,11 @@ chmod +x ./install-lightfield.sh
 ./install-lightfield.sh
 
 
-
-
+# SET PERMISSIONS FOR ALL USER FILES
 sudo chown -R lumen:lumen ~/
+
+# ALSO PROPERLY SET THE DOT FILES
+sudo chown -R lumen:lumen ~/.*
 
 
 sudo apt autoremove -y
