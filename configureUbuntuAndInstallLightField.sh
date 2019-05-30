@@ -154,6 +154,7 @@ sudo apt autoremove -y
 
 # clean all caches
 sudo apt clean
+sudo rm ~/.cache/
 
 
 ## Delete Network Passwords
