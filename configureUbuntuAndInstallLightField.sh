@@ -152,6 +152,9 @@ sudo chown -R lumen:lumen ~/.*
 
 sudo apt autoremove -y
 
+# clean all caches
+sudo apt clean
+
 
 ## Delete Network Passwords
 cd /etc/NetworkManager/system-connections
