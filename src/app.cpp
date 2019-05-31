@@ -44,7 +44,7 @@ namespace {
             MaximalRightHandPaneSize = SmallMaximalRightHandPaneSize;
         },
         [] ( ) { // -x
-            auto value = commandLineParser.value( "xOffset" );
+            auto value = commandLineParser.value( commandLineOptions[3] );
 
             bool ok = false;
             auto xOffset = value.toInt( &ok, 10 );
@@ -56,7 +56,7 @@ namespace {
             }
         },
         [] ( ) { // -y
-            auto value = commandLineParser.value( "yOffset" );
+            auto value = commandLineParser.value( commandLineOptions[4] );
 
             bool ok = false;
             auto yOffset = value.toInt( &ok, 10 );
