@@ -1,7 +1,5 @@
-. ~/Volumetric/envTouchPrint/bin/activate
-
 if [ "`tty`" = "/dev/tty1" ]; then
-	startx /home/lumen/Volumetric/LightField/build/lf
+        exec startx /home/lumen/Volumetric/LightField/build/lf -- -keeptty
 else
-	source /home/lumen/.real_bash_profile
+        source /home/lumen/.real_bash_profile
 fi

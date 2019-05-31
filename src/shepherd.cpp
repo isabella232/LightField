@@ -9,7 +9,8 @@
 
 namespace {
 
-    char const* ShepherdBaseDirectory = "/usr/share/lightfield/libexec/stdio-shepherd";
+    QString const ShepherdBaseDirectory  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
+    QString const ResetSerialPortCommand { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 
     QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
@@ -18,7 +19,7 @@ namespace {
 }
 
 Shepherd::Shepherd( QObject* parent ): QObject( parent ) {
-    debug( "+ Shepherd::`ctor: Shepherd base directory: '%s'\n", ShepherdBaseDirectory );
+    /*empty*/
 }
 
 Shepherd::~Shepherd( ) {
@@ -77,31 +78,47 @@ void Shepherd::process_finished( int exitCode, QProcess::ExitStatus exitStatus )
 }
 
 void Shepherd::processRunner_succeeded( ) {
-    debug( "+ Shepherd::processRunner_succeeded\n" );
+    debug( "+ Shepherd::processRunner_succeeded: serial port reset completed successfully\n" );
 
     if ( _processRunner ) {
         _processRunner->deleteLater( );
         _processRunner = nullptr;
     }
 
-    if ( _process ) {
-        _process->kill( );
-        _process->deleteLater( );
-        _process = nullptr;
-    }
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
 
-    _process = new QProcess( parent( ) );
-    QObject::connect( _process, &QProcess::errorOccurred,                                        this, &Shepherd::process_errorOccurred           );
-    QObject::connect( _process, &QProcess::started,                                              this, &Shepherd::process_started                 );
-    QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
-    QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
-    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
-    _process->setWorkingDirectory( ShepherdBaseDirectory );
-    _process->start( "./stdio-shepherd.py" );
+    launchShepherd( );
 }
 
-void Shepherd::processRunner_failed( QProcess::ProcessError const ) {
-    processRunner_succeeded( );
+void Shepherd::processRunner_failed( QProcess::ProcessError const processError ) {
+    debug(
+        "+ Shepherd::processRunner_failed: serial port reset failed: process error %s [%d]\n"
+        "  + stdout:\n%s"
+        "  + stderr:\n%s"
+        "",
+        ToString( processError ), processError,
+        _stdoutBuffer.toUtf8( ).data( ),
+        _stderrBuffer.toUtf8( ).data( )
+    );
+
+    if ( _processRunner ) {
+        _processRunner->deleteLater( );
+        _processRunner = nullptr;
+    }
+
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
+
+    launchShepherd( );
+}
+
+void Shepherd::processRunner_stdout( QString const& data ) {
+    _stdoutBuffer += data;
+}
+
+void Shepherd::processRunner_stderr( QString const& data ) {
+    _stderrBuffer += data;
 }
 
 bool Shepherd::getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount ) {
@@ -358,9 +375,13 @@ void Shepherd::start( ) {
     debug( "+ Shepherd::start\n" );
 
     _processRunner = new ProcessRunner( this );
-    QObject::connect( _processRunner, &ProcessRunner::succeeded, this, &Shepherd::processRunner_succeeded );
-    QObject::connect( _processRunner, &ProcessRunner::failed,    this, &Shepherd::processRunner_failed    );
-    _processRunner->start( "/usr/share/lightfield/lightfield/reset-lumen-arduino-port", { } );
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &Shepherd::processRunner_succeeded );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &Shepherd::processRunner_failed    );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &Shepherd::processRunner_stdout    );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &Shepherd::processRunner_stderr    );
+    _processRunner->start( ResetSerialPortCommand, { } );
 }
 
 void Shepherd::doMoveRelative( float const relativeDistance ) {
@@ -397,6 +418,23 @@ void Shepherd::doSend( QStringList cmds ) {
 
 void Shepherd::doSendOne( QString& cmd ) {
     _process->write( QString( "send \"%1\"\n" ).arg( cmd.replace( "\\", "\\\\" ).replace( "\"", "\\\"" ) ).toUtf8( ) );
+}
+
+void Shepherd::launchShepherd( ) {
+    if ( _process ) {
+        _process->kill( );
+        _process->deleteLater( );
+        _process = nullptr;
+    }
+
+    _process = new QProcess( parent( ) );
+    QObject::connect( _process, &QProcess::errorOccurred,                                        this, &Shepherd::process_errorOccurred           );
+    QObject::connect( _process, &QProcess::started,                                              this, &Shepherd::process_started                 );
+    QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
+    QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
+    QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
+    _process->setWorkingDirectory( ShepherdBaseDirectory );
+    _process->start( "./stdio-shepherd.py" );
 }
 
 void Shepherd::doTerminate( ) {

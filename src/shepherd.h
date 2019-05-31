@@ -45,6 +45,9 @@ private:
     int            _expectedOkCount       { };
     bool           _isTerminationExpected { };
 
+    QString        _stdoutBuffer;
+    QString        _stderrBuffer;
+
     bool        getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
     QStringList splitLine( QString const& line );
     void        handleFromPrinter( QString const& input );
@@ -55,6 +58,8 @@ private:
     void        handleInput( QString const& input );
 
     void        doSendOne( QString& cmd );
+
+    void        launchShepherd( );
 
 signals:
 
@@ -87,6 +92,8 @@ private slots:
 
     void processRunner_succeeded( );
     void processRunner_failed( QProcess::ProcessError const );
+    void processRunner_stdout( QString const& data );
+    void processRunner_stderr( QString const& data );
 
 };
 

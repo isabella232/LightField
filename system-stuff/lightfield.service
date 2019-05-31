@@ -4,7 +4,7 @@
 #    Makes sure the projector is off on startup and shutdown.
 
 [Unit]
-Description=Resets Lumen X projector
+Description=Reset Lumen X projector
 RequiresMountsFor=/usr
 
 [Service]
