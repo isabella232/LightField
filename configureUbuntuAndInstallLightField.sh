@@ -143,6 +143,13 @@ chmod +x ./install-lightfield.sh
 ./install-lightfield.sh
 
 
+# FLASH THE FIRMWARE ONTO THE ARDUINO
+cd ~/Volumetric/LightField/system-stuff/firmware
+chmod +x *.sh
+./firmware-flash-during-install.sh
+
+
+
 # SET PERMISSIONS FOR ALL USER FILES
 sudo chown -R lumen:lumen ~/
 
