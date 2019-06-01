@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=BurnIn-NoHeat
+Exec=/home/lumen/Volumetric/printrun/burn_in-noHeat.py
+X-GNOME-Autostart-enabled=true
+Terminal=true
+Categories=Application;
+Comment[en_US]=Burn in the printer, noHeat.
+Comment=Burn in the printer, noHeat.

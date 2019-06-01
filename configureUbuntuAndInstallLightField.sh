@@ -160,6 +160,8 @@ cp lumenLightField.desktop ~/.config/autostart/
 cp lumenTouchscreenXinput.desktop ~/.config/autostart/
 cp lumenLockPrimaryDisplay.desktop ~/.config/autostart/
 cp burn-in.desktop ~/Desktop/
+cp burn-in-noHeat.desktop ~/Desktop/
+cp burn-in-noFan.desktop ~/Desktop/
 
 
 # SET PERMISSIONS FOR ALL USER FILES
