@@ -15,6 +15,7 @@ namespace {
     QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher2 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression FirmwareVersionMatcher    { "^echo:.*?Author:\\s*(.+?)(?:\\s|;|$)",                                                                                    QRegularExpression::CaseInsensitiveOption };
 
 }
 
@@ -240,6 +241,10 @@ void Shepherd::handleFromPrinter( QString const& input ) {
         auto bedPwm                = match.captured( 3 ).toInt( );
         debug( "+ Shepherd::handleFromPrinter: temperature report (type 2): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
+    } else if ( auto match = FirmwareVersionMatcher.match( input ); match.hasMatch( ) ) {
+        auto firmwareVersion = match.captured( 1 );
+        debug( "+ Shepherd::handleFromPrinter: firmware version string: %s\n", firmwareVersion.toUtf8( ).data( ) );
+        emit printer_firmwareVersionReport( firmwareVersion );
     }
 }
 

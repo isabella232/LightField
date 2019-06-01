@@ -16,6 +16,8 @@ public:
 
 protected:
 
+    virtual void _connectShepherd( )                   override;
+
     virtual void initialShowEvent( QShowEvent* event ) override;
 
 private:
@@ -62,6 +64,8 @@ public slots:
 protected slots:
 
 private slots:
+
+    void shepherd_firmwareVersionReport( QString const& version );
 
     void updateSoftwareButton_clicked( bool );
     void updateFirmwareButton_clicked( bool );

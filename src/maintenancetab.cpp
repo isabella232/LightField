@@ -3,8 +3,20 @@
 #include "maintenancetab.h"
 
 #include "app.h"
+#include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
+
+namespace {
+
+    QString VersionMessage {
+        "<span style='font-size: 22pt;'>%1</span><br>"
+        "<span style='font-size: 16pt;'>Version %2</span><br>"
+        "<span style='font-size: 12pt;'>Firmware version %3</span><br>"
+        "<span>© 2019 Volumetric, Inc.</span>"
+    };
+
+}
 
 MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<MaintenanceTab, TabBase>( parent ) {
     auto origFont = font( );
@@ -25,16 +37,13 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     _versionLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
     _versionLabel->setTextFormat( Qt::RichText );
     _versionLabel->setText(
-        QString {
-            "<span style='font-size: 22pt;'>%1</span><br>"
-            "<span style='font-size: 16pt;'>Version %2</span><br>"
-            "<span>© 2019 Volumetric, Inc.</span>"
-        }
+        VersionMessage
         .arg( QCoreApplication::applicationName( ) )
         .arg( QCoreApplication::applicationVersion( ) )
+        .arg( "(unknown)" )
     );
 
-    auto versionInfoLayout = WrapWidgetsInHBox( { _logoLabel, _versionLabel } );
+    auto versionInfoLayout = WrapWidgetsInHBox( { nullptr, _logoLabel, _versionLabel, nullptr } );
     versionInfoLayout->setContentsMargins( { } );
 
 
@@ -163,6 +172,12 @@ MaintenanceTab::~MaintenanceTab( ) {
     /*empty*/
 }
 
+void MaintenanceTab::_connectShepherd( ) {
+    if ( _shepherd ) {
+        QObject::connect( _shepherd, &Shepherd::printer_firmwareVersionReport, this, &MaintenanceTab::shepherd_firmwareVersionReport );
+    }
+}
+
 void MaintenanceTab::initialShowEvent( QShowEvent* event ) {
     QSize newSize = _shutDownButton->size( );
     newSize.setWidth( newSize.width( ) + 20 );
@@ -205,6 +220,15 @@ void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const st
         case UiState::PrintCompleted:
             break;
     }
+}
+
+void MaintenanceTab::shepherd_firmwareVersionReport( QString const& version ) {
+    _versionLabel->setText(
+        VersionMessage
+        .arg( QCoreApplication::applicationName( ) )
+        .arg( QCoreApplication::applicationVersion( ) )
+        .arg( version )
+    );
 }
 
 void MaintenanceTab::shutDownButton_clicked( bool ) {
