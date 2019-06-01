@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=LumenProjectorPower
-Exec=/usr/local/bin/setpower 0 
+Exec=/usr/bin/set-projector-power 0 
 X-GNOME-Autostart-enabled=true
 Terminal=false
 Comment[en_US]=Projector on goes to 255 which is bad for hardware and not necessary for user, so set to 0 as default

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=BurnIn
+Exec=/home/lumen/Volumetric/printrun/burn-in.py
+X-GNOME-Autostart-enabled=true
+Terminal=true
+Categories=Application;
+Comment[en_US]=Burn in the printer.
+Comment=Burn in the printer.

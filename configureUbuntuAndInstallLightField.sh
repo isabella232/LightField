@@ -144,10 +144,22 @@ chmod +x ./install-lightfield.sh
 
 
 # FLASH THE FIRMWARE ONTO THE ARDUINO
+sudo apt install avrdude -y
 cd ~/Volumetric/LightField/system-stuff/firmware
 chmod +x *.sh
 ./firmware-flash-during-install.sh
 
+# COPY STARTUP FILES FOR WHEN RUNNING GNOME
+sudo apt install arandr -y
+cd ~/Volumetric/LightField/login-user-stuff/
+mkdir -p ~/.config/autostart
+chmod +x trustDotDesktopFiles.sh
+./trustDotDesktopFiles.sh
+cp lumenProjectorPower.desktop ~/.config/autostart/
+cp lumenLightField.desktop ~/.config/autostart/
+cp lumenTouchscreenXinput.desktop ~/.config/autostart/
+cp lumenLockPrimaryDisplay.desktop ~/.config/autostart/
+cp burn-in.desktop ~/Desktop/
 
 
 # SET PERMISSIONS FOR ALL USER FILES
