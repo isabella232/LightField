@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=BurnIn-NoFan
+Name=BurnIn-NoMotor
 Exec=/home/lumen/Volumetric/printrun/burn_in-noMotor.py
 Terminal=true
 Categories=Application;
