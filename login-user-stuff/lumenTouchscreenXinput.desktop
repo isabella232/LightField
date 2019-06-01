@@ -14,7 +14,7 @@
 [Desktop Entry]
 Type=Application
 Name=LumenTouchscreenXinput
-Exec=/usr/bin/xinput map-to-output 'Microchip Technology Inc. AR1100 HID-MOUSE' DP-2 
+Exec=/usr/bin/xinput map-to-output 'WaveShare WS170120' DP-1 
 X-GNOME-Autostart-enabled=true
 Terminal=false
 Comment[en_US]=confine all touchscreen taps only to the touchscreen display itself. otherwise touchscreen acts as a trackpad no matter where the mouse is.
