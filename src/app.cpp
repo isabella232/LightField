@@ -143,6 +143,7 @@ void App::_setTheme( ) {
 }
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
+    _debugManager   = new DebugManager;
     g_signalHandler = new SignalHandler;
 
     QCoreApplication::setOrganizationName( "Volumetric" );
@@ -155,7 +156,6 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QProcess::startDetached( SetpowerCommand, { "0" } );
 
     _parseCommandLine( );
-    _debugManager = new DebugManager;
     _setTheme( );
 
     _window = new Window;
@@ -163,8 +163,9 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
 }
 
 App::~App( ) {
+    QProcess::startDetached( SetpowerCommand, { "0" } );
+
     delete _window;
     delete g_signalHandler;
-
-    QProcess::startDetached( SetpowerCommand, { "0" } );
+    delete _debugManager;
 }
