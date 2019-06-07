@@ -164,7 +164,7 @@ cp burn-in-noHeat.desktop ~/Desktop/
 cp burn-in-noFan.desktop ~/Desktop/
 
 # REMOVE MODEM MANAGER SO WE CAN CONNECT PROPERLY TO THE EINSY MOTHERBOARD
-sudo apt remove modemmanager
+sudo apt remove modemmanager -y
 
 # SET PERMISSIONS FOR ALL USER FILES
 sudo chown -R lumen:lumen ~/
