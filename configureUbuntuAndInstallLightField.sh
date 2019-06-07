@@ -47,7 +47,6 @@ sudo apt install pastebinit -y
 
 cd ~/Volumetric
 
-
 git clone --recursive https://github.com/VolumetricBio/LightField.git
 
 
@@ -73,6 +72,7 @@ python3 -m venv envTouchPrint
 
 
 cd ~/Volumetric
+rm -rf printrun
 git clone https://github.com/VolumetricBio/printrun.git
 cd printrun
 
@@ -162,6 +162,7 @@ cp lumenLockPrimaryDisplay.desktop ~/.config/autostart/
 cp burn-in.desktop ~/Desktop/
 cp burn-in-noHeat.desktop ~/Desktop/
 cp burn-in-noFan.desktop ~/Desktop/
+cp burn-in-noMotor.desktop ~/Desktop/
 
 # REMOVE MODEM MANAGER SO WE CAN CONNECT PROPERLY TO THE EINSY MOTHERBOARD
 sudo apt remove modemmanager -y
