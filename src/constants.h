@@ -18,6 +18,7 @@ QString            extern const SetpowerCommand;
 QString            extern const GpgKeyRingPath;
 QString            extern const ShepherdPath;
 QString            extern const UpdatesRootPath;
+QString            extern const MountmonCommand;
 
 QChar              extern const LineFeed;
 QChar              extern const CarriageReturn;

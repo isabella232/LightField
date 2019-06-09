@@ -18,6 +18,7 @@ QString                   const SetpowerCommand          { "set-projector-power"
 QString                   const GpgKeyRingPath           { "/code/work/Volumetric/LightField/gpg/pubring.kbx" };
 QString                   const ShepherdPath             { "/usr/share/lightfield/libexec/stdio-shepherd"     };
 QString                   const UpdatesRootPath          { "/var/cache/lightfield/software-updates"           };
+QString                   const MountmonCommand          { "mountmon"                                         };
 
 QChar                     const LineFeed                 { L'\u000A' };
 QChar                     const CarriageReturn           { L'\u000D' };
