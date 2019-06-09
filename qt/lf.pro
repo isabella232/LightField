@@ -38,6 +38,7 @@ SOURCES +=                         \
     ../src/upgrademanager.cpp      \
     ../src/gpgsignaturechecker.cpp \
     ../src/upgradekitunpacker.cpp  \
+    ../src/usbmountmanager.cpp     \
     ../src/version.cpp
 
 HEADERS  +=                        \
@@ -72,7 +73,8 @@ HEADERS  +=                        \
     ../src/uistate.h               \
     ../src/gpgsignaturechecker.h   \
     ../src/upgradekitunpacker.h    \
-    ../src/upgrademanager.h
+    ../src/upgrademanager.h        \
+    ../src/usbmountmanager.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
