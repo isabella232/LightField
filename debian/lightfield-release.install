@@ -1,2 +1,3 @@
-files/usr/bin-release/lf       usr/bin
-files/usr/bin-release/setpower usr/lib/lightfield
+files/usr/bin-release/lf                  usr/bin
+files/usr/bin-release/mountmon            usr/bin
+files/usr/bin-release/set-projector-power usr/bin

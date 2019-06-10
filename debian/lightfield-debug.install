@@ -1,2 +1,3 @@
-files/usr/bin-debug/lf       usr/bin
-files/usr/bin-debug/setpower usr/lib/lightfield
+files/usr/bin-debug/lf                  usr/bin
+files/usr/bin-debug/mountmon            usr/bin
+files/usr/bin-debug/set-projector-power usr/bin

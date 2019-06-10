@@ -17,8 +17,11 @@ function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
 
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
+MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
+USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
+
 LIGHTFIELD_PACKAGE=${PACKAGE_BUILD_ROOT}/lightfield-${VERSION}
 LIGHTFIELD_FILES=${LIGHTFIELD_PACKAGE}/files
 if [ "$1" = "-q" ]
@@ -63,16 +66,23 @@ install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun
 install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/ -m 644    printrun/plugins/__init__.py
 install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/Util/             -m 644    Util/constants.py
 
-blue-bar • Building and installing setpower
-cd ${LIGHTFIELD_SRC}/usb-driver
+cd ${MOUNTMON_SRC}
+blue-bar • Building and installing debugging version of Mountmon
+./rebuild -x;  install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-debug/   -m 755    build/mountmon
 
-rm ${VERBOSE} -f setpower || true
-g++ -o setpower -pipe -O3 -DNDEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
-install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-release/ -m 755 -s setpower
+blue-bar • Building and installing release version of Mountmon
+./rebuild -rx; install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-release/ -m 755 -s build/mountmon
 
-rm ${VERBOSE} -f setpower || true
-g++ -o setpower -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
-install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-debug/ -m 755 setpower
+blue-bar • Building and installing set-projector-power
+cd ${USBDRIVER_SRC}
+
+rm ${VERBOSE} -f set-projector-power || true
+g++ -o set-projector-power -pipe -O3 -DNDEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-release/ -m 755 -s set-projector-power
+
+rm ${VERBOSE} -f set-projector-power || true
+g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC -l hidapi-libusb dlpc350_usb.cpp dlpc350_api.cpp main.cpp
+install ${VERBOSE} -Dt ${LIGHTFIELD_FILES}/usr/bin-debug/ -m 755 set-projector-power
 
 blue-bar • Building Debian packages
 cd ${LIGHTFIELD_PACKAGE}

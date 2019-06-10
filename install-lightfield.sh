@@ -11,9 +11,11 @@ function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
 
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
-USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
+MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
+USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
+
 if [ "$1" = "-q" ]
 then
     VERBOSE=
@@ -27,6 +29,10 @@ blue-bar • Building debugging version of set-projector-power
 cd ${USBDRIVER_SRC}
 [ -f set-projector-power ] && rm ${VERBOSE} -f set-projector-power
 g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+
+blue-bar • Building debugging version of Mountmon
+cd ${MOUNTMON_SRC}
+./rebuild -x
 
 blue-bar • Building debugging version of LightField
 cd ${LIGHTFIELD_SRC}
@@ -49,6 +55,7 @@ install ${VERBOSE} -DT -m 644    system-stuff/lumen-bash_profile                
 install ${VERBOSE} -DT -m 644    system-stuff/lightfield.service                 /lib/systemd/system/lightfield.service
 install ${VERBOSE} -DT -m 644    usb-driver/90-dlpc350.rules                     /lib/udev/rules.d/90-dlpc350.rules
 install ${VERBOSE} -DT -m 755 -s build/lf                                        /usr/bin/lf
+install ${VERBOSE} -DT -m 755 -s mountmon/build/mountmon                         /usr/bin/mountmon
 install ${VERBOSE} -DT -m 755 -s usb-driver/set-projector-power                  /usr/bin/set-projector-power
 install ${VERBOSE} -DT -m 644    stdio-shepherd/printer.py                       /usr/share/lightfield/libexec/stdio-shepherd/printer.py
 install ${VERBOSE} -DT -m 755    stdio-shepherd/stdio-shepherd.py                /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
