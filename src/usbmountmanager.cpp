@@ -44,7 +44,7 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
     _stdoutBuffer.remove( 0, index + 1 );
     for ( auto const& line : lines ) {
         debug( "  + output from mountmon: '%s'\n", line.toUtf8( ).data( ) );
-        auto tokens = _stdoutBuffer.split( ':' );
+        auto tokens = line.split( ':' );
         if ( tokens.count( ) < 2 ) {
             debug( "    + short line\n" );
             continue;
@@ -52,7 +52,7 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
 
         if ( tokens[0] == "mounted" ) {
             emit filesystemMounted( tokens[1] );
-        } else if ( tokens[1] == "unmounted" ) {
+        } else if ( tokens[0] == "unmounted" ) {
             emit filesystemUnmounted( tokens[1] );
         } else {
             debug( "    + unknown verb '%s'\n", tokens[0].toUtf8( ).data( ) );
@@ -61,12 +61,10 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
 }
 
 void UsbMountManager::mountmon_readyReadStandardError( QString const& data ) {
-    debug( "+ UsbMountManager::mountmon_readyReadStandardError\n" );
     _stderrBuffer += data;
 
     auto index = _stderrBuffer.lastIndexOf( '\n' );
     if ( -1 == index ) {
-        debug( "  + no whole lines in buffer, done for now\n" );
         return;
     }
 

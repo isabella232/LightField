@@ -4,11 +4,10 @@
 QRegularExpression        const EndsWithWhitespaceRegex  { "\\s+$"   };
 QRegularExpression        const NewLineRegex             { "\\r?\\n" };
 
-QSize                     const MainButtonSize           {  218,  74 };
-QSize                     const MainWindowSize           {  800, 480 };
-QSize                     const MaximalRightHandPaneSize {  564, 424 };
+QSize                     const MainWindowSize           { 1024, 600 };
+QSize                     const MainButtonSize           {  279,  93 };
+QSize                     const MaximalRightHandPaneSize {  722, 530 };
 QSize                     const PngDisplayWindowSize     { 1280, 800 };
-QSize                     const QuarterRightHandPaneSize {  257, 187 };
 
 QString                   const StlModelLibraryPath      { "/var/lib/lightfield/model-library"                };
 QString                   const JobWorkingDirectoryPath  { "/var/cache/lightfield/print-jobs"                 };
