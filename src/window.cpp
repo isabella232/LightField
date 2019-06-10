@@ -10,6 +10,7 @@
 #include "signalhandler.h"
 #include "strings.h"
 #include "upgrademanager.h"
+#include "usbmountmanager.h"
 #include "utils.h"
 
 #include "filetab.h"
@@ -55,7 +56,9 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _printJob = new PrintJob;
 
-    _upgradeManager = new UpgradeManager;
+    _upgradeManager  = new UpgradeManager;
+    _usbMountManager = new UsbMountManager;
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
 
     std::vector<TabBase*> tabs {
         _fileTab        = new FileTab,
@@ -92,7 +95,9 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _fileTab->setContentsMargins( { } );
     _fileTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _fileTab, &FileTab::modelSelected, this, &Window::fileTab_modelSelected );
+    QObject::connect( _fileTab,         &FileTab::modelSelected,               this,     &Window::fileTab_modelSelected                );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   _fileTab, &FileTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, _fileTab, &FileTab::usbMountManager_filesystemUnmounted );
 
     //
     // "Prepare" tab
@@ -149,10 +154,10 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _maintenanceTab->setContentsMargins( { } );
     _maintenanceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _prepareTab,  &PrepareTab::setPrinterAvailable  );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _printTab,    &PrintTab::setPrinterAvailable    );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable   );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable                     );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                       );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                      );
+    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable                    );
     QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete,       _maintenanceTab, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
 
     //

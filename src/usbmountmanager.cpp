@@ -6,7 +6,6 @@
 
 UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
     _mountmonProcess = new ProcessRunner;
-    QObject::connect( _mountmonProcess, &ProcessRunner::succeeded,               this, &UsbMountManager::mountmon_succeeded               );
     QObject::connect( _mountmonProcess, &ProcessRunner::failed,                  this, &UsbMountManager::mountmon_failed                  );
     QObject::connect( _mountmonProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbMountManager::mountmon_readyReadStandardOutput );
     QObject::connect( _mountmonProcess, &ProcessRunner::readyReadStandardError,  this, &UsbMountManager::mountmon_readyReadStandardError  );
@@ -25,9 +24,6 @@ UsbMountManager::~UsbMountManager( ) {
         _mountmonProcess->deleteLater( );
         _mountmonProcess = nullptr;
     }
-}
-
-void UsbMountManager::mountmon_succeeded( ) {
 }
 
 void UsbMountManager::mountmon_failed( int const exitCode, QProcess::ProcessError const error ) {

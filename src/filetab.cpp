@@ -20,19 +20,12 @@ namespace {
 }
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
-    _userMediaPath = MediaRootPath + Slash + GetUserName( );
     debug(
         "+ FileTab::`ctor:\n"
-        "  + User media path:         '%s'\n"
         "  + Model library directory: '%s'\n"
         "",
-        _userMediaPath.toUtf8( ).data( ),
         StlModelLibraryPath.toUtf8( ).data( )
     );
-
-    _usbRetryTimer->setInterval( 1000 );
-    _usbRetryTimer->setSingleShot( false );
-    _usbRetryTimer->setTimerType( Qt::PreciseTimer );
 
     _currentFsModel = _libraryFsModel;
 
@@ -46,11 +39,6 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _usbFsModel->setNameFilterDisables( false );
     _usbFsModel->setNameFilters( { { "*.stl" } } );
     QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
-
-    QObject::connect( _fsWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTab::_checkUsbPath );
-    _fsWatcher->addPath( MediaRootPath );
-
-    _checkUserMediaPath( );
 
     _toggleLocationButton->setEnabled( false );
     _toggleLocationButton->setText( "Show USB stick" );
@@ -145,81 +133,6 @@ void FileTab::_loadModel( QString const& fileName ) {
     _loader->start( );
 }
 
-void FileTab::_checkUserMediaPath( ) {
-#if defined _DEBUG
-    if ( g_settings.ignoreUsb ) {
-        return;
-    }
-#endif // defined _DEBUG
-
-    debug( "+ FileTab::_checkUserMediaPath\n" );
-
-    QFileInfo userMediaPathInfo { _userMediaPath };
-    if ( !userMediaPathInfo.exists( ) ) {
-        debug( "  + User media path doesn't exist\n" );
-        _fsWatcher->removePath( _userMediaPath );
-        _startUsbRetry( );
-        return;
-    }
-
-    if ( !userMediaPathInfo.isReadable( ) || !userMediaPathInfo.isExecutable( ) ) {
-        debug( "  + User media path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", userMediaPathInfo.ownerId( ), userMediaPathInfo.groupId( ), userMediaPathInfo.permissions( ) & 0777 );
-    }
-
-    if ( !_fsWatcher->directories( ).contains( _userMediaPath ) && !_fsWatcher->addPath( _userMediaPath ) ) {
-        debug( "  + QFileSystemWatcher::addPath failed for user media path\n" );
-        _startUsbRetry( );
-        return;
-    }
-
-    _checkUsbPath( );
-}
-
-void FileTab::_checkUsbPath( ) {
-    debug( "+ FileTab::_checkUsbPath\n" );
-
-    QString dirname { GetFirstDirectoryIn( _userMediaPath ) };
-    if ( dirname.isEmpty( ) ) {
-        debug( "  + no directories in user media path\n" );
-        _startUsbRetry( );
-        return;
-    }
-
-    _usbPath = _userMediaPath + Slash + dirname;
-    debug( "  + mounted USB device is '%s'\n", _usbPath.toUtf8( ).data( ) );
-
-    QFileInfo usbPathInfo { _usbPath };
-    if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
-        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 0777 );
-        _startUsbRetry( );
-        return;
-    }
-
-    debug( "  + USB path is good\n" );
-    _stopUsbRetry( );
-
-    _usbFsModel->setRootPath( _usbPath );
-    _toggleLocationButton->setEnabled( true );
-    _upgradeManager->checkForUpgrades( _usbPath );
-
-    update( );
-}
-
-void FileTab::_startUsbRetry( ) {
-    debug( "+ FileTab::_startUsbRetry\n" );
-    if ( !_usbRetryTimer->isActive( ) ) {
-        QObject::connect( _usbRetryTimer, &QTimer::timeout, this, &FileTab::usbRetryTimer_timeout );
-        _usbRetryCount = 5;
-        _usbRetryTimer->start( );
-    }
-}
-
-void FileTab::_stopUsbRetry( ) {
-    debug( "+ FileTab::_stopUsbRetry: stopping timer\n" );
-    QObject::disconnect( _usbRetryTimer, nullptr, this, nullptr );
-    _usbRetryTimer->stop( );
-}
-
 void FileTab::_showLibrary( ) {
     _modelsLocation = ModelsLocation::Library;
     _currentFsModel = _libraryFsModel;
@@ -263,8 +176,54 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     }
 }
 
+void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
+    debug( "+ FileTab::usbMountManager_filesystemMounted: mount point %s\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( !_usbPath.isEmpty( ) ) {
+        debug( "  + USB storage device at %s already mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    QFileInfo usbPathInfo { mountPoint };
+    if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
+        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
+        return;
+    }
+
+    _usbPath = mountPoint;
+    _usbFsModel->setRootPath( mountPoint );
+    _toggleLocationButton->setEnabled( true );
+
+    update( );
+}
+
+void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
+    debug( "+ FileTab::usbMountManager_filesystemUnmounted: mount point %s\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( mountPoint != _usbPath ) {
+        debug( "  + not our filesystem; ignoring\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    if ( _modelsLocation == ModelsLocation::Usb ) {
+        _showLibrary( );
+    }
+    if ( _modelSelection.fileName.startsWith( _usbPath ) ) {
+        _canvas->clear( );
+        _dimensionsLabel->clear( );
+        _errorLabel->clear( );
+
+        emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
+    }
+
+    _usbPath.clear( );
+    _toggleLocationButton->setEnabled( false );
+
+    update( );
+}
+
 void FileTab::loader_gotMesh( Mesh* mesh ) {
-    if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0].unicode( ) == L':' ) ) {
+    if ( _modelSelection.fileName.isEmpty( ) || ( _modelSelection.fileName[0] == L':' ) ) {
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
         update( );
@@ -521,41 +480,4 @@ void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
 void FileTab::processRunner_readyReadStandardError( QString const& data ) {
     auto tmp = data.toUtf8( );
     fwrite( tmp.data( ), 1, tmp.count( ), stderr );
-}
-
-void FileTab::usbRetryTimer_timeout( ) {
-    debug( "+ FileTab::usbRetryTimer_timeout: retry count is %d\n", _usbRetryCount );
-
-    _checkUserMediaPath( );
-
-    if ( !_usbRetryTimer->isActive( ) ) {
-        return;
-    }
-
-    --_usbRetryCount;
-    if ( _usbRetryCount < 1 ) {
-        debug( "+ FileTab::usbRetryTimer_timeout: out of retries, giving up\n" );
-        _stopUsbRetry( );
-
-        if ( _modelsLocation == ModelsLocation::Usb ) {
-            _showLibrary( );
-        }
-        if ( _modelSelection.fileName.startsWith( _userMediaPath ) ) {
-            _canvas->clear( );
-            _dimensionsLabel->clear( );
-            _errorLabel->clear( );
-
-            emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
-        }
-
-        _toggleLocationButton->setEnabled( false );
-
-        update( );
-    }
-}
-
-void FileTab::fsWatcher_directoryChanged( QString const& path ) {
-    debug( "+ FileTab::fsWatcher_directoryChanged: path '%s'\n", path.toUtf8( ).data( ) );
-
-    _checkUserMediaPath( );
 }

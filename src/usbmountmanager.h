@@ -35,7 +35,6 @@ protected slots:
 private slots:
     ;
 
-    void mountmon_succeeded( );
     void mountmon_failed( int const exitCode, QProcess::ProcessError const error );
     void mountmon_readyReadStandardOutput( QString const& data );
     void mountmon_readyReadStandardError( QString const& data );

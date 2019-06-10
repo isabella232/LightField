@@ -64,8 +64,8 @@ protected:
 
 private:
 
-    ProcessRunner*      _processRunner           { };
-    UpgradeManager*      _upgradeManager           { };
+    ProcessRunner*      _processRunner           {                         };
+    UpgradeManager*     _upgradeManager          {                         };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
@@ -83,27 +83,17 @@ private:
     QVBoxLayout*        _canvasLayout            { new QVBoxLayout         };
     Loader*             _loader                  {                         };
     QGridLayout*        _layout                  { new QGridLayout         };
-    QFileSystemWatcher* _fsWatcher               { new QFileSystemWatcher  };
-    QTimer*             _usbRetryTimer           { new QTimer              };
 
     QString             _dimensionsText;
-    int                 _selectedRow             { -1 };
+    int                 _selectedRow             { -1                      };
     QString             _slicerBuffer;
-    QString             _usbPath;
-    int                 _usbRetryCount           { -1 };
-    QString             _userMediaPath;
     ModelSelectionInfo  _modelSelection;
+    QString             _usbPath;
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
-    QPointF             _swipeLastPoint          { };
+    QPointF             _swipeLastPoint          {                         };
 
     void _loadModel( QString const& filename );
-
-    void _checkUserMediaPath( );
-    void _checkUsbPath( );
-
-    void _startUsbRetry( );
-    void _stopUsbRetry( );
 
     void _showLibrary( );
     void _showUsbStick( );
@@ -115,6 +105,9 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
 protected slots:
 
@@ -139,10 +132,6 @@ private slots:
     void processRunner_failed( int const exitCode, QProcess::ProcessError const error );
     void processRunner_readyReadStandardOutput ( QString const& data );
     void processRunner_readyReadStandardError( QString const& data );
-
-    void usbRetryTimer_timeout( );
-
-    void fsWatcher_directoryChanged( QString const& path );
 
 };
 

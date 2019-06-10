@@ -10,7 +10,6 @@ QSize              extern const MaximalRightHandPaneSize;
 QSize              extern const PngDisplayWindowSize;
 QSize              extern const QuarterRightHandPaneSize;
 
-QString            extern const MediaRootPath;
 QString            extern const StlModelLibraryPath;
 QString            extern const JobWorkingDirectoryPath;
 QString            extern const SlicedSvgFileName;

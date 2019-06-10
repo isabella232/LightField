@@ -12,6 +12,7 @@ class PrintManager;
 class PrintJob;
 class Shepherd;
 class UpgradeManager;
+class UsbMountManager;
 
 class FileTab;
 class PrepareTab;
@@ -43,6 +44,7 @@ private:
     Shepherd*           _shepherd          { };
     UiState             _uiState           { };
     UpgradeManager*     _upgradeManager    { };
+    UsbMountManager*    _usbMountManager   { };
 
     QTabWidget*         _tabWidget         { new QTabWidget };
     FileTab*            _fileTab;
