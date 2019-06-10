@@ -1,5 +1,11 @@
 #!/bin/bash
 
+set -e
+
+function blue-bar () {
+    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
+}
+
 function unsymlink () {
 	if [ -h "$1" ]
 	then
@@ -13,7 +19,6 @@ function maybe-mkdir () {
 	then
 		echo Creating directory "$1"
 		mkdir "$1"
-		chown lumen:lumen "$1"
 	fi
 }
 
@@ -23,10 +28,10 @@ function unsymlink-and-maybe-mkdir () {
 }
 
 ##
-## /usr/lib/lightfield
+## /usr/share/lightfield/libexec
 ##
 
-unsymlink-and-maybe-mkdir /usr/lib/lightfield
+rm -drv /usr/share/lightfield
 
 ##
 ## /var/cache/lightfield/print-jobs
@@ -40,12 +45,11 @@ fi
 
 unsymlink-and-maybe-mkdir /var/cache/lightfield
 unsymlink-and-maybe-mkdir /var/cache/lightfield/print-jobs
-unsymlink-and-maybe-mkdir /var/cache/lightfield/software-updates
 
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating cached print jobs from "${symlink}" to /var/cache/lightfield/print-jobs
-    mv -i "${symlink}"/* /var/cache/lightfield/print-jobs/
+    mv "${symlink}"/* /var/cache/lightfield/print-jobs/
 fi
 
 ##
@@ -64,8 +68,10 @@ unsymlink-and-maybe-mkdir /var/lib/lightfield/model-library
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating models from "${symlink}" to /var/lib/lightfield/model-library
-    mv -i "${symlink}"/* /var/lib/lightfield/model-library/
+    mv "${symlink}"/* /var/lib/lightfield/model-library/
 fi
+
+mkdir /var/lib/lightfield/software-updates
 
 ##
 ## /var/log/lightfield
@@ -82,5 +88,13 @@ unsymlink-and-maybe-mkdir /var/log/lightfield
 if [ -n "${symlink}" -a -d "${symlink}" ]
 then
     echo Relocating debugging logs from "${symlink}" to /var/log/lightfield
-    mv -i "${symlink}"/* /var/log/lightfield/
+    mv "${symlink}"/* /var/log/lightfield/
 fi
+
+##
+## Permissions
+##
+
+chown -R lumen:lumen /var/cache/lightfield /var/lib/lightfield /var/log/lightfield
+
+[ -f /home/lumen/.bashrc ] && mv /home/lumen/.bashrc /home/lumen/.real_bash_profile

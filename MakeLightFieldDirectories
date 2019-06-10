@@ -1,9 +1,9 @@
 #!/bin/bash
 
-mkdir -p /usr/lib/lightfield
-mkdir -p /var/cache/lightfield/{print-jobs,software-updates}; chown -R lumen:lumen /var/cache/lightfield
-mkdir -p /var/lib/lightfield/model-library;                   chown -R lumen:lumen /var/lib/lightfield
-mkdir -p /var/log/lightfield;                                 chown -R lumen:lumen /var/log/lightfield
+mkdir -p /usr/share/lightfield/libexec
+mkdir -p /var/cache/lightfield/print-jobs;  chown -R lumen:lumen /var/cache/lightfield
+mkdir -p /var/lib/lightfield/model-library; chown -R lumen:lumen /var/lib/lightfield
+mkdir -p /var/log/lightfield;               chown -R lumen:lumen /var/log/lightfield
 
-ln -s /home/lumen/Volumetric/LightField/stdio-shepherd /usr/lib/lightfield/stdio-shepherd
-ln -s /home/lumen/Volumetric/printrun                  /usr/lib/lightfield/printrun
+ln -s /home/lumen/Volumetric/LightField/stdio-shepherd /usr/share/lightfield/libexec/stdio-shepherd
+ln -s /home/lumen/Volumetric/printrun                  /usr/share/lightfield/libexec/printrun
