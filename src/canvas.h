@@ -37,7 +37,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
-    
+
     void set_perspective(float p);
     void set_drawMode(int mode);
     void view_anim(float v);

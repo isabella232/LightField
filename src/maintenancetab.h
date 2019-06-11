@@ -39,29 +39,11 @@ private:
     QPushButton*    _restartButton            { new QPushButton };
     QPushButton*    _shutDownButton           { new QPushButton };
 
-    QVBoxLayout*    _mainLayout               { new QVBoxLayout };
-    QWidget*        _mainContent              { new QWidget     };
 
-
-    QLabel*         _confirmRestartLabel      { new QLabel      };
-    QPushButton*    _confirmRestartYesButton  { new QPushButton };
-    QPushButton*    _confirmRestartNoButton   { new QPushButton };
-
-    QVBoxLayout*    _confirmRestartLayout     {                 };
-    QWidget*        _confirmRestartContent    { new QWidget     };
-
-
-    QLabel*         _confirmShutdownLabel     { new QLabel      };
-    QPushButton*    _confirmShutdownYesButton { new QPushButton };
-    QPushButton*    _confirmShutdownNoButton  { new QPushButton };
-
-    QVBoxLayout*    _confirmShutdownLayout    {                 };
-    QWidget*        _confirmShutdownContent   { new QWidget     };
-
-
-    QVBoxLayout*    _layout                   {                 };
+    QVBoxLayout*    _layout                   { new QVBoxLayout };
 
     void _updateButtons( );
+    bool _yesNoPrompt( QString const& title, QString const& text );
 
 signals:
     ;
@@ -92,12 +74,6 @@ private slots:
 
     void restartButton_clicked( bool );
     void shutDownButton_clicked( bool );
-
-    void confirmRestartYesButton_clicked( bool );
-    void confirmRestartNoButton_clicked( bool );
-
-    void confirmShutdownYesButton_clicked( bool );
-    void confirmShutdownNoButton_clicked( bool );
 
 };
 

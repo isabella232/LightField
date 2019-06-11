@@ -37,6 +37,8 @@ public:
     App( int& argc, char *argv[] );
     virtual ~App( ) override;
 
+    Window* mainWindow( ) { return _window; }
+
 private:
 
     DebugManager* _debugManager;
