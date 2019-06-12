@@ -194,6 +194,13 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _updatePrintTimeInfo->setSingleShot( false );
     _updatePrintTimeInfo->setTimerType( Qt::PreciseTimer );
     QObject::connect( _updatePrintTimeInfo, &QTimer::timeout, this, &StatusTab::updatePrintTimeInfo_timeout );
+
+
+    _printerOnlineTimer = new QTimer( this );
+    _printerOnlineTimer->setInterval( 2000 );
+    _printerOnlineTimer->setSingleShot( true );
+    _printerOnlineTimer->setTimerType( Qt::PreciseTimer );
+    QObject::connect( _printerOnlineTimer, &QTimer::timeout, this, &StatusTab::printerOnlineTimer_timeout );
 }
 
 StatusTab::~StatusTab( ) {
@@ -248,9 +255,8 @@ void StatusTab::printer_online( ) {
     if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
         return;
     }
-    debug( "+ StatusTab::printer_online: printer has come online for the first time; sending initialization commands\n" );
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
-    _shepherd->doSend( PrinterInitializationCommands );
+    debug( "+ StatusTab::printer_online: printer has come online for the first time; starting timer\n" );
+    _printerOnlineTimer->start( );
 }
 
 void StatusTab::printer_offline( ) {
@@ -492,6 +498,14 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
         _estimatedTimeLeftDisplay->setFont( _boldFont );
     }
     _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) + QString { " remaining" } );
+}
+
+void StatusTab::printerOnlineTimer_timeout( ) {
+    _printerOnlineTimer->stop( );
+
+    debug( "+ StatusTab::printerOnlineTimer_timeout: sending initialization commands\n" );
+    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
+    _shepherd->doSend( PrinterInitializationCommands );
 }
 
 void StatusTab::startThePrintButton_clicked( bool ) {

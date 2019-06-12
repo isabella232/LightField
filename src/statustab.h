@@ -64,6 +64,7 @@ private:
     QHBoxLayout*        _layout                     { new QHBoxLayout };
 
     QTimer*             _updatePrintTimeInfo        { };
+    QTimer*             _printerOnlineTimer         { };
 
     QFont               _boldFont;
     QFont               _italicFont;
@@ -121,6 +122,7 @@ private slots:
     void initializationCommands_sendComplete( bool const success );
 
     void updatePrintTimeInfo_timeout( );
+    void printerOnlineTimer_timeout( );
 
     void pauseButton_clicked( bool );
     void stopButton_clicked( bool );
