@@ -35,9 +35,10 @@ SOURCES +=                         \
     ../src/utils.cpp               \
     ../src/gesturelistview.cpp     \
     ../src/hasher.cpp              \
-    ../src/upgrademanager.cpp      \
     ../src/gpgsignaturechecker.cpp \
     ../src/upgradekitunpacker.cpp  \
+    ../src/upgrademanager.cpp      \
+    ../src/upgradeselector.cpp     \
     ../src/usbmountmanager.cpp     \
     ../src/version.cpp
 
@@ -74,6 +75,7 @@ HEADERS  +=                        \
     ../src/gpgsignaturechecker.h   \
     ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h        \
+    ../src/upgradeselector.h       \
     ../src/usbmountmanager.h
 
 CONFIG += c++1z precompile_header

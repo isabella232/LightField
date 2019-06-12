@@ -1,15 +1,14 @@
 #ifndef __FILETAB_H__
 #define __FILETAB_H__
 
-#include "tabbase.h"
 #include "coordinate.h"
 #include "gesturelistview.h"
+#include "tabbase.h"
 
 class Canvas;
 class Loader;
 class Mesh;
 class ProcessRunner;
-class UpgradeManager;
 
 enum class ModelsLocation {
     Library,
@@ -64,9 +63,6 @@ protected:
 
 private:
 
-    ProcessRunner*      _processRunner           {                         };
-    UpgradeManager*     _upgradeManager          {                         };
-
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
     QFileSystemModel*   _currentFsModel          {                         };
@@ -92,6 +88,7 @@ private:
 
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
     QPointF             _swipeLastPoint          {                         };
+    ProcessRunner*      _processRunner           {                         };
 
     void _loadModel( QString const& filename );
 

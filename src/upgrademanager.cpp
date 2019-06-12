@@ -67,26 +67,28 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
         _unprocessedUpgradeKits.append( UpgradeKitInfo { QDir { kitDirName } } );
     }
 
-    debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
-    for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
-        debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
+    if ( !upgradesPath.isEmpty( ) ) {
+        debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
+        for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
+            debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
 
-        QFileInfo sigFile { kitFile.absoluteFilePath( ) + QString { ".sig" } };
-        if ( !sigFile.exists( ) ) {
-            debug( "  + ignoring: signature file doesn't exist\n" );
-            continue;
-        }
-        if ( !sigFile.isFile( ) ) {
-            debug( "  + ignoring: signature file is not actually a file\n" );
-            continue;
-        }
-        if ( !sigFile.isReadable( ) ) {
-            debug( "  + ignoring: we do not have permission to read the signature file\n" );
-            continue;
-        }
+            QFileInfo sigFile { kitFile.absoluteFilePath( ) + QString { ".sig" } };
+            if ( !sigFile.exists( ) ) {
+                debug( "  + ignoring: signature file doesn't exist\n" );
+                continue;
+            }
+            if ( !sigFile.isFile( ) ) {
+                debug( "  + ignoring: signature file is not actually a file\n" );
+                continue;
+            }
+            if ( !sigFile.isReadable( ) ) {
+                debug( "  + ignoring: we do not have permission to read the signature file\n" );
+                continue;
+            }
 
-        debug( "  + found signature file\n" );
-        _unprocessedUpgradeKits.append( UpgradeKitInfo { kitFile, sigFile } );
+            debug( "  + found signature file\n" );
+            _unprocessedUpgradeKits.append( UpgradeKitInfo { kitFile, sigFile } );
+        }
     }
 
     if ( _unprocessedUpgradeKits.isEmpty( ) ) {

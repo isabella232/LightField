@@ -34,6 +34,10 @@ namespace {
 
 }
 
+Window* getMainWindow( ) {
+    return static_cast<App*>( QCoreApplication::instance( ) )->mainWindow( );
+}
+
 Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
@@ -154,11 +158,11 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _maintenanceTab->setContentsMargins( { } );
     _maintenanceTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable                     );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                       );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                      );
-    QObject::connect( _maintenanceTab, &MaintenanceTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable                    );
-    QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete,       _maintenanceTab, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
+    QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable                     );
+    QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                       );
+    QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                      );
+    QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable                    );
+    QObject::connect( _upgradeManager,  &UpgradeManager::upgradeCheckComplete,       _maintenanceTab, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
 
     //
     // Tab widget
@@ -175,6 +179,8 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     }
 
     setCentralWidget( _tabWidget );
+
+    _upgradeManager->checkForUpgrades( { } );
 }
 
 Window::~Window( ) {

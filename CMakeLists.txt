@@ -58,6 +58,7 @@ src/hasher.cpp
 src/gpgsignaturechecker.cpp
 src/upgradekitunpacker.cpp
 src/upgrademanager.cpp
+src/upgradeselector.cpp
 src/usbmountmanager.cpp)
 
 #set project headers. 
@@ -94,6 +95,7 @@ src/uistate.h
 src/gpgsignaturechecker.h
 src/upgradekitunpacker.h
 src/upgrademanager.h
+src/upgradeselector.h
 src/usbmountmanager.h)
 
 #set project resources and icon resource

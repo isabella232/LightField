@@ -3,7 +3,9 @@
 
 #include "tabbase.h"
 
+class UpgradeKitInfo;
 class UpgradeManager;
+class UpgradeSelector;
 
 class MaintenanceTab: public InitialShowEventMixin<MaintenanceTab, TabBase> {
 
@@ -23,24 +25,25 @@ protected:
 
 private:
 
-    bool            _isPrinterOnline          { false           };
-    bool            _isPrinterAvailable       { true            };
-    UpgradeManager* _upgradeManager           {                 };
+    bool             _isPrinterOnline            { false           };
+    bool             _isPrinterAvailable         { true            };
+    bool             _isFirmwareUpgradeAvailable { false           };
+    bool             _isSoftwareUpgradeAvailable { false           };
+    UpgradeManager*  _upgradeManager             {                 };
+    UpgradeSelector* _upgradeSelector            {                 };
 
+    QLabel*          _logoLabel                  { new QLabel      };
+    QLabel*          _versionLabel               { new QLabel      };
 
-    QLabel*         _logoLabel                { new QLabel      };
-    QLabel*         _versionLabel             { new QLabel      };
+    QLabel*          _copyrightsLabel            { new QLabel      };
 
-    QLabel*         _copyrightsLabel          { new QLabel      };
+    QPushButton*     _updateSoftwareButton       { new QPushButton };
+    QPushButton*     _updateFirmwareButton       { new QPushButton };
 
-    QPushButton*    _updateSoftwareButton     { new QPushButton };
-    QPushButton*    _updateFirmwareButton     { new QPushButton };
+    QPushButton*     _restartButton              { new QPushButton };
+    QPushButton*     _shutDownButton             { new QPushButton };
 
-    QPushButton*    _restartButton            { new QPushButton };
-    QPushButton*    _shutDownButton           { new QPushButton };
-
-
-    QVBoxLayout*    _layout                   { new QVBoxLayout };
+    QVBoxLayout*     _layout                     { new QVBoxLayout };
 
     void _updateButtons( );
     bool _yesNoPrompt( QString const& title, QString const& text );
@@ -56,6 +59,9 @@ public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void upgradeManager_upgradeCheckComplete( bool const upgradesFound );
+
+    void upgradeSelector_canceled( );
+    void upgradeSelector_kitSelected( UpgradeKitInfo const& kit );
 
     void setPrinterAvailable( bool const value );
     void setUpgradeManager( UpgradeManager* upgradeManager );
