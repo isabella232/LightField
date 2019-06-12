@@ -26,7 +26,6 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     kitsListView->setFlow( QListView::TopToBottom );
     kitsListView->setLayoutMode( QListView::SinglePass );
     kitsListView->setMovement( QListView::Static );
-    //kitsListView->setResizeMode( QListView::Fixed );
     kitsListView->setSelectionMode( QListView::SingleSelection );
     kitsListView->setViewMode( QListView::ListMode );
     kitsListView->setModel( kitsListModel );
