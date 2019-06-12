@@ -171,23 +171,23 @@ void MaintenanceTab::upgradeManager_upgradeCheckComplete( bool const upgradesFou
 void MaintenanceTab::upgradeSelector_canceled( ) {
     debug( "+ MaintenanceTab::upgradeSelector_canceled\n" );
 
+    auto mainWindow = getMainWindow( );
+    mainWindow->show( );
+
     _upgradeSelector->close( );
     _upgradeSelector->deleteLater( );
     _upgradeSelector = nullptr;
-
-    auto mainWindow = getMainWindow( );
-    mainWindow->show( );
 }
 
 void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
     debug( "+ MaintenanceTab::upgradeSelector_kitSelected: version %s (%s)\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
 
+    auto mainWindow = getMainWindow( );
+    mainWindow->show( );
+
     _upgradeSelector->close( );
     _upgradeSelector->deleteLater( );
     _upgradeSelector = nullptr;
-
-    auto mainWindow = getMainWindow( );
-    mainWindow->show( );
 }
 
 void MaintenanceTab::setPrinterAvailable( bool const value ) {
@@ -214,23 +214,17 @@ void MaintenanceTab::printer_offline( ) {
 void MaintenanceTab::updateSoftwareButton_clicked( bool ) {
     debug( "+ MaintenanceTab::updateSoftwareButton_clicked\n" );
 
-    auto mainWindow = getMainWindow( );
-    mainWindow->hide( );
-
     _upgradeSelector = new UpgradeSelector( _upgradeManager, this );
     QObject::connect( _upgradeSelector, &UpgradeSelector::canceled,    this, &MaintenanceTab::upgradeSelector_canceled    );
     QObject::connect( _upgradeSelector, &UpgradeSelector::kitSelected, this, &MaintenanceTab::upgradeSelector_kitSelected );
     _upgradeSelector->show( );
+
+    auto mainWindow = getMainWindow( );
+    mainWindow->hide( );
 }
 
 void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
-    setPrinterAvailable( false );
-    emit printerAvailabilityChanged( false );
-
     debug( "+ MaintenanceTab::updateFirmwareButton_clicked\n" );
-
-    setPrinterAvailable( true );
-    emit printerAvailabilityChanged( true );
 }
 
 void MaintenanceTab::restartButton_clicked( bool ) {
