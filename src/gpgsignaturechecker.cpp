@@ -71,16 +71,6 @@ void GpgSignatureChecker::startCheckDetachedSignature( QString const& dataFileNa
     );
 }
 
-/*
-[GNUPG:] NEWSIG lightfield-packager@volumetricbio.com
-[GNUPG:] KEY_CONSIDERED 0EF6486549978C0C76B49E99C9FC781B66B69981 0
-[GNUPG:] SIG_ID bO4XJA4tRxLFCgNzlG7QIn0TNzA 2019-04-23 1556050721
-[GNUPG:] KEY_CONSIDERED 0EF6486549978C0C76B49E99C9FC781B66B69981 0
-[GNUPG:] GOODSIG C9FC781B66B69981 LightField packager <lightfield-packager@volumetricbio.com>
-[GNUPG:] VALIDSIG 0EF6486549978C0C76B49E99C9FC781B66B69981 2019-04-23 1556050721 0 4 0 1 10 00 0EF6486549978C0C76B49E99C9FC781B66B69981
-[GNUPG:] VERIFICATION_COMPLIANCE_MODE 23
-*/
-
 void GpgSignatureChecker::gpg_succeeded( ) {
     debug( "+ GpgSignatureChecker::gpg_succeeded: examining GPG output for file '%s'\n", _dataFileName.toUtf8( ).data( ) );
 
