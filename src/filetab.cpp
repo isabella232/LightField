@@ -11,7 +11,6 @@
 #include "shepherd.h"
 #include "strings.h"
 #include "utils.h"
-#include "upgrademanager.h"
 
 namespace {
 
