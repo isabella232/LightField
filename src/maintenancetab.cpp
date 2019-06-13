@@ -234,7 +234,7 @@ void MaintenanceTab::restartButton_clicked( bool ) {
 }
 
 void MaintenanceTab::shutDownButton_clicked( bool ) {
-    if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
+    if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
         system( "sudo shutdown -h now" );
     }
 }
