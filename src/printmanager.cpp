@@ -38,8 +38,8 @@
 namespace {
 
     auto const PauseAfterPrintSolutionDispensed = 4000; // ms
-    auto const PauseBeforeProject               = 1000; // ms
-    auto const PauseBeforeLift                  = 1000; // ms
+    auto const PauseBeforeProject               = 4000; // ms
+    auto const PauseBeforeLift                  = 2000; // ms
     auto const LiftDistance                     = 2.00; // mm
 
     char const* PrintResultStrings[] {
