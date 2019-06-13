@@ -1,8 +1,9 @@
 #include "pch.h"
 
+#include "usbmountmanager.h"
+
 #include "processrunner.h"
 #include "strings.h"
-#include "usbmountmanager.h"
 
 UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
     _mountmonProcess = new ProcessRunner;

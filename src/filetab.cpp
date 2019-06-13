@@ -294,7 +294,7 @@ void FileTab::loader_errorBadStl( ) {
     debug( "+ FileTab::loader_errorBadStl\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Unable to read model." );
+    _errorLabel->setText( "Unable to read model" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );

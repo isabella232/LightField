@@ -72,6 +72,7 @@ extern int getpid( );
 extern int getpwuid_r( int uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
 extern int getuid( );
 extern struct tm* gmtime_r( time_t const* timep, tm* result );
+extern int link( char const* oldPath, char const* newPath );
 extern int mkdir( char const* pathName, int mode );
 extern char* strsignal( int sig );
 

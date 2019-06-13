@@ -168,6 +168,13 @@ void MaintenanceTab::upgradeManager_upgradeCheckComplete( bool const upgradesFou
     _updateButtons( );
 }
 
+void MaintenanceTab::upgradeManager_upgradeFailed( ) {
+    // TODO
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
+}
+
 void MaintenanceTab::upgradeSelector_canceled( ) {
     debug( "+ MaintenanceTab::upgradeSelector_canceled\n" );
 
@@ -182,12 +189,17 @@ void MaintenanceTab::upgradeSelector_canceled( ) {
 void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
     debug( "+ MaintenanceTab::upgradeSelector_kitSelected: version %s (%s)\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
 
+    setPrinterAvailable( false );
+    emit printerAvailabilityChanged( false );
+
     auto mainWindow = getMainWindow( );
     mainWindow->show( );
 
     _upgradeSelector->close( );
     _upgradeSelector->deleteLater( );
     _upgradeSelector = nullptr;
+
+    _upgradeManager->installUpgradeKit( kit );
 }
 
 void MaintenanceTab::setPrinterAvailable( bool const value ) {
@@ -240,5 +252,12 @@ void MaintenanceTab::shutDownButton_clicked( bool ) {
 }
 
 void MaintenanceTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
-    _upgradeManager = upgradeManager;
+    if ( upgradeManager ) {
+        _upgradeManager = upgradeManager;
+        QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete, this, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
+        QObject::connect( _upgradeManager, &UpgradeManager::upgradeFailed,        this, &MaintenanceTab::upgradeManager_upgradeFailed        );
+    } else {
+        QObject::disconnect( _upgradeManager, nullptr, this, nullptr );
+        _upgradeManager = nullptr;
+    }
 }

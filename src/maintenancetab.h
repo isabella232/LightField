@@ -59,6 +59,7 @@ public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void upgradeManager_upgradeCheckComplete( bool const upgradesFound );
+    void upgradeManager_upgradeFailed( );
 
     void upgradeSelector_canceled( );
     void upgradeSelector_kitSelected( UpgradeKitInfo const& kit );

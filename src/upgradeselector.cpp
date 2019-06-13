@@ -1,9 +1,10 @@
 #include "pch.h"
 
+#include "upgradeselector.h"
+
 #include "app.h"
 #include "strings.h"
 #include "upgrademanager.h"
-#include "upgradeselector.h"
 #include "utils.h"
 
 UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent ): InitialShowEventMixin<UpgradeSelector, QMainWindow>( parent ), _upgradeManager( upgradeManager ) {

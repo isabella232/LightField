@@ -162,7 +162,6 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                       );
     QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                      );
     QObject::connect( _maintenanceTab,  &MaintenanceTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable                    );
-    QObject::connect( _upgradeManager,  &UpgradeManager::upgradeCheckComplete,       _maintenanceTab, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
 
     //
     // Tab widget

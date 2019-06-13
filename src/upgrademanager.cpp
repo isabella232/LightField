@@ -4,6 +4,7 @@
 
 #include "gpgsignaturechecker.h"
 #include "hasher.h"
+#include "processrunner.h"
 #include "strings.h"
 #include "upgradekitunpacker.h"
 #include "utils.h"
@@ -298,24 +299,6 @@ void UpgradeManager::gpgSignatureChecker_versionInf_complete( bool const result 
     _checkNextVersionInfSignature( );
 }
 
-/*
-Metadata-Version: 1
-Version: 1.0.1
-Build-Type: release
-Release-Date: 2019-04-23
-Description:
- This is the description for this update. Include information about changes
- here.
- .
- The description text needs to start in the *second* column. To add a blank
- line, put a single period ('.') in the second column.
-Checksums-SHA256:
- 9f407bf19aebe2050bb2b1b8cdd4832a3c041706da2c29258926513c0e199cc3 fonts-montserrat_7.200_all.deb
- 3064060395be9b1f7d1341a6c1b96639269df3050717db5ab4cc4e2e11f0d6aa lightfield-common_1.0.1_all.deb
- a3a82cc1ba47c12e445c1d049c042af421977007f2637b9e3a1bbd944f7692a6 lightfield-debug_1.0.1_amd64.deb
- 295bbd3dff58abe856fc68fdbb43e1d76ad74a095ce490c3aab1bd1eb3ff089b lightfield-debug-dbgsym_1.0.1_amd64.deb
-*/
-
 bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& update ) {
     debug( "+ UpgradeManager::_parseVersionInfo: file name is \"%s\"\n", versionInfoFileName.toUtf8( ).data( ) );
     auto versionInfo = ReadWholeFile( versionInfoFileName ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
@@ -490,6 +473,15 @@ void UpgradeManager::_checkNextKitsHashes( ) {
     _hashChecker->checkHashes( _unprocessedUpgradeKits[0].checksums, QCryptographicHash::Sha256 );
 }
 
+void UpgradeManager::_dumpBufferContents( ) {
+    if ( !_stdoutBuffer.isEmpty( ) ) {
+        debug( "  + stdout:\n[apt-get] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+    }
+    if ( !_stderrBuffer.isEmpty( ) ) {
+        debug( "  + stderr:\n[apt-get] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+    }
+}
+
 void UpgradeManager::hasher_hashCheckResult( bool const result ) {
     debug( "+ UpgradeManager::hasher_hashCheckResult: result is %s\n", ToString( result ) );
 
@@ -507,4 +499,107 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
     }
 
     _checkForUpgrades( upgradesPath );
+}
+
+void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
+    QString symlinkPath { UpdatesRootPath % Slash % "to-install" };
+    QString kitPath     { kit.directory.absolutePath( )          };
+
+    debug(
+        "+ UpgradeManager::installUpgradeKit:\n"
+        "  + creating symlink from %s to %s\n",
+        symlinkPath.toUtf8( ).data( ), kitPath.toUtf8( ).data( )
+    );
+    unlink( symlinkPath.toUtf8( ).data( ) );
+    link( kit.directory.absolutePath( ).toUtf8( ).data( ), symlinkPath.toUtf8( ).data( ) );
+
+    debug( "+ UpgradeManager::installUpgradeKit: running `apt update`\n" );
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
+    _processRunner = new ProcessRunner { this };
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetUpdate_succeeded               );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetUpdate_failed                  );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::aptGetUpdate_readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::aptGetUpdate_readyReadStandardError  );
+
+    _processRunner->start(
+        { "sudo" },
+        {
+            "apt-get",
+            "-y",
+            "update",
+        }
+    );
+}
+
+void UpgradeManager::aptGetUpdate_succeeded( ) {
+    _processRunner->deleteLater( );
+
+    debug( "+ UpgradeManager::aptGetUpdate_succeeded: apt-get update succeeded\n" );
+    _dumpBufferContents( );
+
+    debug( "  + running `apt-get dist-upgrade`\n" );
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
+    _processRunner = new ProcessRunner { this };
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetDistUpgrade_succeeded               );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetDistUpgrade_failed                  );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::aptGetDistUpgrade_readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::aptGetDistUpgrade_readyReadStandardError  );
+
+    _processRunner->start(
+        { "sudo" },
+        {
+            "apt-get",
+            "-y",
+            "dist-upgrade",
+        }
+    );
+}
+
+void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error ) {
+    _processRunner->deleteLater( );
+    _processRunner = nullptr;
+
+    debug( "+ UpgradeManager::aptGetUpdate_failed: apt-get update failed\n" );
+    _dumpBufferContents( );
+
+    emit upgradeFailed( );
+}
+
+void UpgradeManager::aptGetUpdate_readyReadStandardOutput( QString const& data ) {
+    _stdoutBuffer += data;
+}
+
+void UpgradeManager::aptGetUpdate_readyReadStandardError( QString const& data ) {
+    _stderrBuffer += data;
+}
+
+void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: software upgrade succeeded\n" );
+    _dumpBufferContents( );
+
+    _processRunner->deleteLater( );
+    _processRunner = nullptr;
+
+    debug( "  + restarting\n" );
+    system( "sudo shutdown -r now" );
+}
+
+void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {
+    _processRunner->deleteLater( );
+    _processRunner = nullptr;
+
+    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: apt-get dist-upgrade failed\n" );
+    _dumpBufferContents( );
+
+    emit upgradeFailed( );
+}
+
+void UpgradeManager::aptGetDistUpgrade_readyReadStandardOutput( QString const& data ) {
+    _stdoutBuffer += data;
+}
+
+void UpgradeManager::aptGetDistUpgrade_readyReadStandardError( QString const& data ) {
+    _stderrBuffer += data;
 }

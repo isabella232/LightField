@@ -9,6 +9,7 @@
 
 class GpgSignatureChecker;
 class Hasher;
+class ProcessRunner;
 class UpgradeKitUnpacker;
 
 //
@@ -89,12 +90,15 @@ private:
 
     GpgSignatureChecker* _gpgSignatureChecker    { };
     Hasher*              _hashChecker            { };
+    ProcessRunner*       _processRunner          { };
     UpgradeKitUnpacker*  _upgradeKitUnpacker     { };
 
     UpgradeKitInfoList   _unprocessedUpgradeKits;
     UpgradeKitInfoList   _processedUpgradeKits;
-
     UpgradeKitInfoList   _goodUpgradeKits;
+
+    QString              _stdoutBuffer;
+    QString              _stderrBuffer;
 
     void _checkForUpgrades( QString const& upgradesPath );
     void _checkNextKitSignature( );
@@ -103,16 +107,19 @@ private:
     bool _parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& info );
     void _examineUnpackedKits( );
     void _checkNextKitsHashes( );
+    void _dumpBufferContents( );
 
 signals:
     ;
 
     void upgradeCheckComplete( bool const upgradesFound );
+    void upgradeFailed( );
 
 public slots:
     ;
 
     void checkForUpgrades( QString const& upgradesPath );
+    void installUpgradeKit( UpgradeKitInfo const& kit );
 
 protected slots:
     ;
@@ -121,12 +128,21 @@ private slots:
     ;
 
     void gpgSignatureChecker_kit_complete( bool const result );
-
-    void upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError );
-
     void gpgSignatureChecker_versionInf_complete( bool const result );
 
     void hasher_hashCheckResult( bool const result );
+
+    void upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError );
+
+    void aptGetUpdate_succeeded( );
+    void aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error );
+    void aptGetUpdate_readyReadStandardOutput( QString const& data );
+    void aptGetUpdate_readyReadStandardError( QString const& data );
+
+    void aptGetDistUpgrade_succeeded( );
+    void aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error );
+    void aptGetDistUpgrade_readyReadStandardOutput( QString const& data );
+    void aptGetDistUpgrade_readyReadStandardError( QString const& data );
 
 };
 
