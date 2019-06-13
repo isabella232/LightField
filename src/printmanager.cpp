@@ -14,7 +14,7 @@
 //
 // A1. Raise the build platform to maximum Z.
 // A2. Prompt user to dispense print solution.
-// A3. Lower to 5 mm.
+// A3. Lower to 10 mm.
 // A4. Configure print speed as per job.
 // A5. Lower to first layer height.
 // A6. Wait for four seconds.
@@ -160,10 +160,10 @@ void PrintManager::stepA2_completed( ) {
 void PrintManager::stepA3_start( ) {
     _step = PrintStep::A3;
 
-    debug( "+ PrintManager::stepA3_start: lowering build platform to 5 mm\n" );
+    debug( "+ PrintManager::stepA3_start: lowering build platform to 10 mm\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA3_completed );
-    _shepherd->doMoveAbsolute( 5.00 );
+    _shepherd->doMoveAbsolute( 10.00 );
 }
 
 void PrintManager::stepA3_completed( bool const success ) {
