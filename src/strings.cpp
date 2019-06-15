@@ -106,8 +106,8 @@ namespace {
 
     char const* BuildTypeStrings[] {
         "unknown",
-        "Debug",
         "Release",
+        "Debug",
     };
 
 }

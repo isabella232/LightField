@@ -1,2 +1,7 @@
 .vs
 build
+mountmon/.qmake.stash
+mountmon/build
+mountmon/Makefile
+packaging
+usb-driver/set-projector-power

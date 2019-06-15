@@ -49,6 +49,15 @@ UpgradeManager::~UpgradeManager( ) {
     /*empty*/
 }
 
+void UpgradeManager::_dumpBufferContents( ) {
+    if ( !_stdoutBuffer.isEmpty( ) ) {
+        debug( "  + stdout:\n[apt-get] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+    }
+    if ( !_stderrBuffer.isEmpty( ) ) {
+        debug( "  + stderr:\n[apt-get] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+    }
+}
+
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
     debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in path %s\n", UpdatesRootPath.toUtf8( ).data( ) );
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
@@ -238,7 +247,11 @@ top:
     _upgradeKitUnpacker->startUnpacking( kitFilePath, dirName );
 }
 
+#if defined _DEBUG
 void UpgradeManager::upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError ) {
+#else
+void UpgradeManager::upgradeKitUnpacker_complete( bool const result ) {
+#endif // defined _DEBUG
     _upgradeKitUnpacker->deleteLater( );
     _upgradeKitUnpacker = nullptr;
 
@@ -473,15 +486,6 @@ void UpgradeManager::_checkNextKitsHashes( ) {
     _hashChecker->checkHashes( _unprocessedUpgradeKits[0].checksums, QCryptographicHash::Sha256 );
 }
 
-void UpgradeManager::_dumpBufferContents( ) {
-    if ( !_stdoutBuffer.isEmpty( ) ) {
-        debug( "  + stdout:\n[apt-get] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
-    }
-    if ( !_stderrBuffer.isEmpty( ) ) {
-        debug( "  + stderr:\n[apt-get] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
-    }
-}
-
 void UpgradeManager::hasher_hashCheckResult( bool const result ) {
     debug( "+ UpgradeManager::hasher_hashCheckResult: result is %s\n", ToString( result ) );
 
@@ -513,7 +517,7 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
     unlink( symlinkPath.toUtf8( ).data( ) );
     link( kit.directory.absolutePath( ).toUtf8( ).data( ), symlinkPath.toUtf8( ).data( ) );
 
-    debug( "+ UpgradeManager::installUpgradeKit: running `apt update`\n" );
+    debug( "+ UpgradeManager::installUpgradeKit: running `apt-get update`\n" );
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
     _processRunner = new ProcessRunner { this };
@@ -533,14 +537,13 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
 }
 
 void UpgradeManager::aptGetUpdate_succeeded( ) {
-    _processRunner->deleteLater( );
-
     debug( "+ UpgradeManager::aptGetUpdate_succeeded: apt-get update succeeded\n" );
     _dumpBufferContents( );
 
     debug( "  + running `apt-get dist-upgrade`\n" );
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
+    _processRunner->deleteLater( );
     _processRunner = new ProcessRunner { this };
     QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetDistUpgrade_succeeded               );
     QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetDistUpgrade_failed                  );

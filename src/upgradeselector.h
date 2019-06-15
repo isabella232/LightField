@@ -16,6 +16,9 @@ public:
     UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent = nullptr );
     virtual ~UpgradeSelector( ) override;
 
+    void showInProgressMessage( );
+    void showFailedMessage( );
+
 protected:
 
     virtual void _initialShowEvent( QShowEvent* event ) override;
@@ -26,6 +29,14 @@ private:
 
     QPushButton*     _upgradeButton;
     QPushButton*     _cancelButton;
+    QHBoxLayout*     _upgradeSelectLayout;
+
+    QLabel*          _upgradeInProgressMessage;
+    QHBoxLayout*     _upgradeInProgressLayout;
+
+    QLabel*          _upgradeFailedMessage;
+    QPushButton*     _okButton;
+    QHBoxLayout*     _upgradeFailedLayout;
 
     int              _currentSelection { -1 };
 
@@ -47,6 +58,7 @@ private slots:
     void kitsListView_clicked( QModelIndex const& index );
     void upgradeButton_clicked( bool );
     void cancelButton_clicked( bool );
+    void okButton_clicked( bool );
 
 };
 

@@ -132,7 +132,11 @@ private slots:
 
     void hasher_hashCheckResult( bool const result );
 
+#if defined _DEBUG
     void upgradeKitUnpacker_complete( bool const result, QString const& tarOutput, QString const& tarError );
+#else
+    void upgradeKitUnpacker_complete( bool const result );
+#endif // defined _DEBUG
 
     void aptGetUpdate_succeeded( );
     void aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error );

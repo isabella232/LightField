@@ -168,13 +168,6 @@ void MaintenanceTab::upgradeManager_upgradeCheckComplete( bool const upgradesFou
     _updateButtons( );
 }
 
-void MaintenanceTab::upgradeManager_upgradeFailed( ) {
-    // TODO
-
-    setPrinterAvailable( true );
-    emit printerAvailabilityChanged( true );
-}
-
 void MaintenanceTab::upgradeSelector_canceled( ) {
     debug( "+ MaintenanceTab::upgradeSelector_canceled\n" );
 
@@ -184,6 +177,9 @@ void MaintenanceTab::upgradeSelector_canceled( ) {
     _upgradeSelector->close( );
     _upgradeSelector->deleteLater( );
     _upgradeSelector = nullptr;
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 }
 
 void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
@@ -192,14 +188,13 @@ void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
 
-    auto mainWindow = getMainWindow( );
-    mainWindow->show( );
-
-    _upgradeSelector->close( );
-    _upgradeSelector->deleteLater( );
-    _upgradeSelector = nullptr;
-
     _upgradeManager->installUpgradeKit( kit );
+}
+
+void MaintenanceTab::upgradeManager_upgradeFailed( ) {
+    debug( "+ MaintenanceTab::upgradeManager_upgradeFailed\n" );
+
+    _upgradeSelector->showFailedMessage( );
 }
 
 void MaintenanceTab::setPrinterAvailable( bool const value ) {
