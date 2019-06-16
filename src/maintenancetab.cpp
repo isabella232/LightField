@@ -236,13 +236,13 @@ void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
 
 void MaintenanceTab::restartButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
-        system( "sudo shutdown -r now" );
+        system( "sudo systemctl reboot" );
     }
 }
 
 void MaintenanceTab::shutDownButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
-        system( "sudo shutdown -h now" );
+        system( "sudo systemctl poweroff" );
     }
 }
 

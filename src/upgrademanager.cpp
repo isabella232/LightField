@@ -586,7 +586,7 @@ void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
     _processRunner = nullptr;
 
     debug( "  + restarting\n" );
-    system( "sudo shutdown -r now" );
+    system( "sudo systemctl reboot" );
 }
 
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {
