@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 VERSION=1.0.1
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
@@ -19,6 +17,18 @@ function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
 
+function red-bar () {
+    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
+}
+
+function error-trap () {
+    red-bar Failed\!
+    exit 1
+}
+
+trap error-trap ERR
+set -e
+
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
@@ -30,9 +40,11 @@ LIGHTFIELD_FILES=${LIGHTFIELD_PACKAGE}/files
 
 if [ "$1" = "-q" ]
 then
-	VERBOSE=
+    VERBOSE=
+    CHXXXVERBOSE=
 else
-	VERBOSE=-v
+    VERBOSE=-v
+    CHXXXVERBOSE=-c
 fi
 
 clear
@@ -107,7 +119,8 @@ install ${VERBOSE} -DT -m 755 -s build/lf ${LIGHTFIELD_FILES}/usr/bin-release/lf
 
 blue-bar • Installing system files
 
-install ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                 ${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-lightfield-archive.gpg
+install ${VERBOSE} -DT -m 644 apt-files/volumetric-lightfield.list            ${LIGHTFIELD_FILES}/etc/apt/sources.list.d/volumetric-lightfield.list
+install ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                 ${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg
 install ${VERBOSE} -DT -m 440 system-stuff/lumen-lightfield                   ${LIGHTFIELD_FILES}/etc/sudoers.d/lumen-lightfield
 install ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf ${LIGHTFIELD_FILES}/etc/systemd/system/getty@tty1.service.d/override.conf
 install ${VERBOSE} -DT -m 600 system-stuff/lumen-bash_profile                 ${LIGHTFIELD_FILES}/home/lumen/.bash_profile
@@ -121,7 +134,7 @@ install ${VERBOSE} -DT -m 644 stdio-shepherd/printer.py                       ${
 install ${VERBOSE} -DT -m 755 stdio-shepherd/stdio-shepherd.py                ${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare.conf                  ${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf
 
-chmod 700 ${LIGHTFIELD_FILES}/home/lumen/.gnupg
+chmod ${CHXXXVERBOSE} -R go= ${LIGHTFIELD_FILES}/home/lumen/.gnupg
 
 ##################################################
 

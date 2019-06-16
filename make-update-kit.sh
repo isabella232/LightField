@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 VERSION=1.0.1
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
@@ -19,18 +17,35 @@ function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m"
 }
 
+function blue-bar () {
+    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
+}
+
+function red-bar () {
+    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
+}
+
+function error-trap () {
+    red-bar Failed\!
+    exit 1
+}
+
 function usage () {
     cat <<EOF
 Usage: $(basename $0) [-q] BUILDTYPE
 Where: -q         build quietly
 and:   BUILDTYPE  is one of
-                  release  create a release-build package
-                  debug    create a debugging-build package
+                  release  create a release-build kit
+                  debug    create a debug-build kit
+                  both     create both kits
 
-If the build is successful, the requested upgrade kit will be found in file
+If the build is successful, the requested upgrade kit(s) will be found in
   ${KIT_DIR}/lightfield-BUILDTYPE_${VERSION}_amd64.kit
 EOF
 }
+
+trap error-trap ERR
+set -e
 
 LIGHTFIELD_SRC="/home/lumen/Volumetric/LightField"
 PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}"
@@ -47,13 +62,13 @@ while [ -n "$1" ]
 do
     if [ "$1" = "-q" ]
     then
-	VERBOSE=
-    elif [ "$1" = "release" -o "$1" = "debug" ]
+        VERBOSE=
+    elif [ "$1" = "release" -o "$1" = "debug" -o "$1" = "both" ]
     then
-	BUILDTYPE="$1"
+        BUILDTYPE="$1"
     else
-	usage
-	exit 1
+        usage
+        exit 1
     fi
     shift
 done
@@ -62,6 +77,15 @@ if [ -z "${BUILDTYPE}" ]
 then
     usage
     exit 1
+elif [ "${BUILDTYPE}" = "both" ]
+then
+    ARG=
+    if [ -z "${VERBOSE}" ]
+    then
+        ARG=-q
+    fi
+    $0 ${ARG} release
+    $0 ${ARG} debug
 fi
 
 APT_CACHE_DIR="${PACKAGE_BUILD_DIR}/apt-cache"
@@ -97,10 +121,10 @@ fi
 
 apt-ftparchive                                                             \
     generate <(                                                            \
-	sed                                                                \
-	    -e "s:@@REPO_DIR@@:${REPO_DIR}:g"                              \
-	    -e "s:@@APT_CACHE_DIR@@:${APT_CACHE_DIR}:g"                    \
-	    "${LIGHTFIELD_SRC}/apt-files/apt-ftparchive.conf.in"           \
+        sed                                                                \
+            -e "s:@@REPO_DIR@@:${REPO_DIR}:g"                              \
+            -e "s:@@APT_CACHE_DIR@@:${APT_CACHE_DIR}:g"                    \
+            "${LIGHTFIELD_SRC}/apt-files/apt-ftparchive.conf.in"           \
     )
 
 apt-ftparchive                                                             \
@@ -119,7 +143,7 @@ gpg                                                                        \
 
 cd "${REPO_DIR}"
 
-rm ${VERBOSE} -rf                                                           \
+rm ${VERBOSE} -rf                                                          \
     "${APT_CACHE_DIR}"                                                     \
     "${REPO_DIR}/version.inf"                                              \
     "${REPO_DIR}/version.inf.sig"

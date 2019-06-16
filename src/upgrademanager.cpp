@@ -506,8 +506,8 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
-    QString symlinkPath { UpdatesRootPath % Slash % "to-install" };
-    QString kitPath     { kit.directory.absolutePath( )          };
+    QString symlinkPath { UpdatesRootPath % Slash % "selected" };
+    QString kitPath     { kit.directory.absolutePath( )        };
 
     debug(
         "+ UpgradeManager::installUpgradeKit:\n"

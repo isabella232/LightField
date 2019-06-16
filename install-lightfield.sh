@@ -1,12 +1,18 @@
 #!/bin/bash
 
-set -e
-
 #########################################################
 ##                                                     ##
 ##     No user-serviceable parts below this point.     ##
 ##                                                     ##
 #########################################################
+
+set -e
+
+if [ "${UID}" != "0" ]
+then
+    echo This script must be run as root.
+    exit 1
+fi
 
 function clear () {
     echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
@@ -24,10 +30,10 @@ USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
 if [ "$1" = "-q" ]
 then
     VERBOSE=
-    CHOWNVERBOSE=
+    CHXXXVERBOSE=
 else
     VERBOSE=-v
-    CHOWNVERBOSE=-c
+    CHXXXVERBOSE=-c
 fi
 
 clear
@@ -51,12 +57,13 @@ blue-bar • Creating any missing directories
 [ ! -d /var/lib/lightfield/software-updates ] && mkdir ${VERBOSE} -p /var/lib/lightfield/software-updates
 [ ! -d /var/log/lightfield                  ] && mkdir ${VERBOSE} -p /var/log/lightfield
 
-chown ${CHOWNVERBOSE} -R lumen:lumen /var/cache/lightfield
-chown ${CHOWNVERBOSE} -R lumen:lumen /var/lib/lightfield
-chown ${CHOWNVERBOSE} -R lumen:lumen /var/log/lightfield
+chown ${CHXXXVERBOSE} -R lumen:lumen /var/cache/lightfield
+chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
+chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
 blue-bar • Installing files
-install ${VERBOSE} -DT -m 644    gpg/pubring.gpg                                 /etc/apt/trusted.gpg.d/lightfield-archive.gpg
+install ${VERBOSE} -DT -m 644    apt-files/volumetric-lightfield.list            /etc/apt/sources.list.d/volumetric-lightfield.list
+install ${VERBOSE} -DT -m 644    gpg/pubring.gpg                                 /etc/apt/trusted.gpg.d/volumetric-keyring.gpg
 install ${VERBOSE} -DT -m 440    system-stuff/lumen-lightfield                   /etc/sudoers.d/lumen-lightfield
 install ${VERBOSE} -DT -m 644    system-stuff/getty@tty1.service.d_override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
 install ${VERBOSE} -DT -m 644    system-stuff/lumen-bash_profile                 /home/lumen/.bash_profile
