@@ -84,8 +84,9 @@ then
     then
         ARG=-q
     fi
-    $0 ${ARG} release
-    $0 ${ARG} debug
+    $0 ${ARG} release || exit $?
+    $0 ${ARG} debug   || exit $?
+    exit 0
 fi
 
 APT_CACHE_DIR="${PACKAGE_BUILD_DIR}/apt-cache"
