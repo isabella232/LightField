@@ -1,3 +1,5 @@
-files/usr/bin-debug/lf                  usr/bin
-files/usr/bin-debug/mountmon            usr/bin
-files/usr/bin-debug/set-projector-power usr/bin
+files/etc/systemd/system/getty@tty1.service.d/override.conf  etc/systemd/system/getty@tty1.service.d
+files/lib/systemd/system/set-projector-power.service         lib/systemd/system
+files/usr/bin-debug/lf                                       usr/bin
+files/usr/bin-debug/mountmon                                 usr/bin
+files/usr/bin-debug/set-projector-power                      usr/bin

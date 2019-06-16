@@ -20,19 +20,19 @@
 case "$1" in
     configure)
 	(
-	    mkdir -p                                 \
-		/var/cache/lightfield/print-jobs     \
-		/var/lib/lightfield/model-library    \
-		/var/lib/lightfield/software-updates \
-		/var/log/lightfield
-	    chown lumen:lumen -R                     \
-		/var/cache/lightfield                \
-		/var/lib/lightfield                  \
-		/var/log/lightfield
+	    systemctl daemon-reload
+	    systemctl enable getty@tty1.service
+	    systemctl enable set-projector-power.service
+	    systemctl set-default multi-user.target
 	) 1>/dev/null 2>&1
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
+	(
+	    systemctl disable getty@tty1.service
+	    systemctl disable set-projector-power.service
+	    systemctl set-default graphical.target
+	) 1>/dev/null 2>&1
     ;;
 
     *)
