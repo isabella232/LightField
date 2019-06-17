@@ -19,7 +19,7 @@
 
 case "$1" in
     remove|upgrade|deconfigure) (
-	systemctl set-default graphical.target
+	systemctl daemon-reload
 
 	systemctl stop set-projector-power.service
 	systemctl disable set-projector-power.service
@@ -31,6 +31,8 @@ case "$1" in
 	rmdir  /etc/systemd/system/getty.target.wants
 
 	rm -rd /etc/systemd/system/getty@tty1.service.d
+
+	systemctl daemon-reload
     ) 1>/dev/null 2>&1 ;;
 
     failed-upgrade)

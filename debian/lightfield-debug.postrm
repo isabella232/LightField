@@ -21,6 +21,8 @@
 
 case "$1" in
     purge|remove)
+	systemctl set-default graphical.target
+
 	systemctl start getty@tty1
     ;;
 
