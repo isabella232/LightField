@@ -1,5 +1,5 @@
-lightfield (1.0.1) unstable; urgency=medium
+lightfield (1.0.0) stable; urgency=medium
 
   * Initial Release.
 
- -- LightField packager <lightfield-packager@volumetricbio.com>  Fri, 15 Mar 2019 11:26:44 -0700
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 17 Jun 2019 12:41:30 -0700
