@@ -83,7 +83,6 @@ then
     exit 0
 fi
 
-APT_CACHE_DIR="${PACKAGE_BUILD_DIR}/apt-cache"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
 DISTRIBUTION=cosmic
 
@@ -93,10 +92,8 @@ cd "${PACKAGE_BUILD_DIR}"
 
 blue-bar • Creating LightField "${VERSION}" "${BUILDTYPE}"-build update kit
 
-[ -d "${APT_CACHE_DIR}" ] && rm ${VERBOSE} -rf "${APT_CACHE_DIR}"
 [ -d "${REPO_DIR}"      ] && rm ${VERBOSE} -rf "${REPO_DIR}"
 
-mkdir ${VERBOSE} -p "${APT_CACHE_DIR}"
 mkdir ${VERBOSE} -p "${REPO_DIR}"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
