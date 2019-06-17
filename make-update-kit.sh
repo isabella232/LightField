@@ -60,16 +60,20 @@ BUILDTYPE=
 
 while [ -n "$1" ]
 do
-    if [ "$1" = "-q" ]
-    then
-        VERBOSE=
-    elif [ "$1" = "release" -o "$1" = "debug" -o "$1" = "both" ]
-    then
-        BUILDTYPE="$1"
-    else
-        usage
-        exit 1
-    fi
+    case "$1" in
+	"-q")
+	    VERBOSE=
+	;;
+
+	"release" | "debug" | "both")
+	    BUILDTYPE=$1
+	;;
+
+	*)
+	    usage
+	    exit 1
+	;;
+    esac
     shift
 done
 
@@ -77,7 +81,9 @@ if [ -z "${BUILDTYPE}" ]
 then
     usage
     exit 1
-elif [ "${BUILDTYPE}" = "both" ]
+fi
+
+if [ "${BUILDTYPE}" = "both" ]
 then
     ARG=
     if [ -z "${VERBOSE}" ]
@@ -91,6 +97,7 @@ fi
 
 APT_CACHE_DIR="${PACKAGE_BUILD_DIR}/apt-cache"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
+DISTRIBUTION=cosmic
 
 RELEASEDATE=$(date "+%Y-%m-%d")
 
@@ -104,8 +111,8 @@ blue-bar • Creating LightField "${VERSION}" "${BUILDTYPE}"-build update kit
 [ -d "${REPO_DIR}"      ] && rm ${VERBOSE} -rf "${REPO_DIR}"
 
 mkdir ${VERBOSE} -p "${APT_CACHE_DIR}"
-mkdir ${VERBOSE} -p "${REPO_DIR}/dists/lightfield/main/binary-amd64"
-mkdir ${VERBOSE} -p "${REPO_DIR}/dists/lightfield/main/binary-all"
+mkdir ${VERBOSE} -p "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-amd64"
+mkdir ${VERBOSE} -p "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-all"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
 install ${VERBOSE} -Dt "${REPO_DIR}/pool/main/f/" -m 644 "${LIGHTFIELD_SRC}/fonts-montserrat_7.200_all.deb"
@@ -121,17 +128,59 @@ then
 fi
 
 apt-ftparchive                                                             \
-    generate <(                                                            \
-        sed                                                                \
-            -e "s:@@REPO_DIR@@:${REPO_DIR}:g"                              \
-            -e "s:@@APT_CACHE_DIR@@:${APT_CACHE_DIR}:g"                    \
-            "${LIGHTFIELD_SRC}/apt-files/apt-ftparchive.conf.in"           \
-    )
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch amd64                                                           \
+    packages "${REPO_DIR}/pool"                                            \
+    | xz -eT0                                                              \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-amd64/Packages.xz"
 
 apt-ftparchive                                                             \
-    -c "${LIGHTFIELD_SRC}/apt-files/release.conf"                          \
-    release "${REPO_DIR}/dists/lightfield"                                 \
-    > "${REPO_DIR}/dists/lightfield/Release"
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch all                                                             \
+    packages "${REPO_DIR}/pool"                                            \
+    | xz -eT0                                                              \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-all/Packages.xz"
+
+apt-ftparchive                                                             \
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch amd64                                                           \
+    contents "${REPO_DIR}/pool"                                            \
+    | xz -eT0                                                              \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/Contents-amd64.xz"
+
+apt-ftparchive                                                             \
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch all                                                             \
+    contents "${REPO_DIR}/pool"                                            \
+    | xz -eT0                                                              \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/Contents-all.xz"
+
+apt-ftparchive                                                             \
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch amd64                                                           \
+    release "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-amd64"          \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-amd64/Release"
+
+apt-ftparchive                                                             \
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    --arch all                                                             \
+    release "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-all"            \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/main/binary-all/Release"
+
+apt-ftparchive                                                             \
+    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+    release "${REPO_DIR}/dists/${DISTRIBUTION}"                            \
+    > "${REPO_DIR}/dists/${DISTRIBUTION}/Release"
+
+#apt-ftparchive                                                             \
+#    --config-file "${LIGHTFIELD_SRC}/apt-files/release.conf"               \
+#    generate <(                                                            \
+#        sed                                                                \
+#            -e "s:@@APT_CACHE_DIR@@:${APT_CACHE_DIR}:g"                    \
+#            -e "s:@@DISTRIBUTION@@:${DISTRIBUTION}:g"                      \
+#            -e "s:@@REPO_DIR@@:${REPO_DIR}:g"                              \
+#            "${LIGHTFIELD_SRC}/apt-files/apt-ftparchive.conf.in"           \
+#    )
 
 gpg                                                                        \
     ${VERBOSE}                                                             \
@@ -139,8 +188,8 @@ gpg                                                                        \
     --detach-sign                                                          \
     --armor                                                                \
     --local-user "lightfield-repo-maint@volumetricbio.com"                 \
-    --output "${REPO_DIR}/dists/lightfield/Release.gpg"                    \
-    "${REPO_DIR}/dists/lightfield/Release"
+    --output "${REPO_DIR}/dists/${DISTRIBUTION}/Release.gpg"               \
+    "${REPO_DIR}/dists/${DISTRIBUTION}/Release"
 
 cd "${REPO_DIR}"
 

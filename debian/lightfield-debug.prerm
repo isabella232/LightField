@@ -20,10 +20,16 @@
 case "$1" in
     remove|upgrade|deconfigure) (
 	systemctl set-default graphical.target
+
+	systemctl stop set-projector-power.service
 	systemctl disable set-projector-power.service
+
+	systemctl stop getty@tty1.service
 	systemctl disable getty@tty1.service
+
 	rm     /etc/systemd/system/getty.target.wants/getty@tty1.service
 	rmdir  /etc/systemd/system/getty.target.wants
+
 	rm -rd /etc/systemd/system/getty@tty1.service.d
     ) 1>/dev/null 2>&1 ;;
 

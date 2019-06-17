@@ -18,12 +18,17 @@
 # the debian-policy package
 
 case "$1" in
-    configure) (
+    configure) # (
 	systemctl daemon-reload
-	systemctl enable getty@tty1.service
-	systemctl enable set-projector-power.service
+
 	systemctl set-default multi-user.target
-    ) 1>/dev/null 2>&1 ;;
+
+	systemctl enable set-projector-power.service
+	systemctl start set-projector-power.service
+
+	systemctl enable getty@tty1.service
+	systemctl start getty@tty1.service
+    ;; # ) 1>/dev/null 2>&1 ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;

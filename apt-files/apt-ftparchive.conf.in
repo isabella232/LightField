@@ -1,21 +1,20 @@
 Dir {
-    ArchiveDir "@@REPO_DIR@@";
-    CacheDir "@@APT_CACHE_DIR@@";
+    ArchiveDir          "@@REPO_DIR@@";
+    CacheDir            "@@APT_CACHE_DIR@@";
 };
 
 Default {
-    Packages::Compress "xz";
-    Sources::Compress "xz";
-    Contents::Compress "xz";
+    Packages::Compress  "xz";
+    Sources::Compress   "xz";
+    Contents::Compress  "xz";
 };
 
-TreeDefault {
-    Directory "pool/$(SECTION)";
-    Packages "$(DIST)/$(SECTION)/binary-$(ARCH)/Packages";
-    Contents "$(DIST)/Contents-$(ARCH)";
-};
-
-Tree "dists/lightfield" {
+Tree "dists/$(DIST)" {
     Sections "main";
     Architectures "amd64 all";
 };
+
+BinDirectory "pool/main" {
+    Packages "dists/$(DIST)/main/binary-$(ARCH)/Packages";
+    Contents "dists/$(DIST)/main/Contents-$(ARCH)";
+}
