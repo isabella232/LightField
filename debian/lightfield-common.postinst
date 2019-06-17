@@ -19,7 +19,7 @@
 
 case "$1" in
     configure)
-	(
+	#(
 	    mkdir -p                                 \
 		/var/cache/lightfield/print-jobs     \
 		/var/lib/lightfield/model-library    \
@@ -29,7 +29,7 @@ case "$1" in
 		/var/cache/lightfield                \
 		/var/lib/lightfield                  \
 		/var/log/lightfield
-	) 1>/dev/null 2>&1
+	#) 1>/dev/null 2>&1
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

@@ -125,7 +125,7 @@ cd /home/lumen/Volumetric/
 
 # Activate TouchPrint Virtualenv
 ### START THE VIRTUAL ENVIRONMENT CORRECTLY
-. envTouchPrint/bin/activate
+#. envTouchPrint/bin/activate
 
 # Now go into the APP directory:
 cd /home/lumen/Volumetric/LightField/build
