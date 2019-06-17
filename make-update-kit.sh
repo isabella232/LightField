@@ -53,18 +53,18 @@ BUILDTYPE=
 while [ -n "$1" ]
 do
     case "$1" in
-	"-q")
-	    VERBOSE=
-	;;
+        "-q")
+            VERBOSE=
+        ;;
 
-	"release" | "debug" | "both")
-	    BUILDTYPE=$1
-	;;
+        "release" | "debug" | "both")
+            BUILDTYPE=$1
+        ;;
 
-	*)
-	    usage
-	    exit 1
-	;;
+        *)
+            usage
+            exit 1
+        ;;
     esac
     shift
 done
@@ -166,6 +166,7 @@ tar                                                               \
     -f "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"  \
     --owner=root                                                  \
     --group=root                                                  \
+    --sort=name                                                   \
     *
 
 cd ${KIT_DIR}
