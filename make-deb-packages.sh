@@ -161,3 +161,11 @@ cd ${LIGHTFIELD_PACKAGE}
 blue-bar • Building Debian packages
 
 dpkg-buildpackage --build=any,all
+
+##################################################
+
+blue-bar • Cleaning up
+
+cd ..
+
+rm ${VERBOSE} -rf ${LIGHTFIELD_PACKAGE}

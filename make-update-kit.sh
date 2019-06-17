@@ -180,6 +180,12 @@ gpg                                                               \
     --detach-sign                                                 \
     "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"
 
+blue-bar • Cleaning up
+
+cd ..
+
+rm ${VERBOSE} -rf ${REPO_DIR}
+
 blue-bar ""
 blue-bar "• Done!"
 blue-bar ""
