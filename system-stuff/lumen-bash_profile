@@ -1,5 +1,5 @@
 if [ "`tty`" = "/dev/tty1" ]; then
-        exec startx /home/lumen/Volumetric/LightField/build/lf -- -keeptty 1>/dev/null 2>&1
+    exec startx /usr/bin/lf 1>/dev/null 2>&1
 else
-        source /home/lumen/.real_bash_profile
+    source /home/lumen/.real_bash_profile
 fi
