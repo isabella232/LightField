@@ -17,9 +17,9 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.prerm: args are 1={$1} 2={$2} 3={$3} 4={$4} 5={$5} 6={$6} 7={$7} 8={$8} 9={$9}"
+echo "+ lightfield-debug.prerm: args are $*"
 case "$1" in
-    remove|upgrade|deconfigure) #(
+    remove) #(
 	systemctl daemon-reload
 
 	systemctl stop set-projector-power.service
@@ -28,15 +28,12 @@ case "$1" in
 	systemctl stop getty@tty1.service
 	systemctl disable getty@tty1.service
 
-	rm     /etc/systemd/system/getty.target.wants/getty@tty1.service
-	rmdir  /etc/systemd/system/getty.target.wants
-
-	rm -rd /etc/systemd/system/getty@tty1.service.d
+	rm -rf /etc/systemd/system/getty@tty1.service.d
 
 	systemctl daemon-reload
     ;; #) 1>/dev/null 2>&1 ;;
 
-    failed-upgrade)
+    upgrade|deconfigure|failed-upgrade)
     ;;
 
     *)

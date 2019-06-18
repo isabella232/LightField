@@ -9,10 +9,6 @@ PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 ##                                                     ##
 #########################################################
 
-function clear () {
-    echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
-}
-
 function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
@@ -46,8 +42,6 @@ else
     VERBOSE=-v
     CHXXXVERBOSE=-c
 fi
-
-clear
 
 ##################################################
 
