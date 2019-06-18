@@ -13,7 +13,6 @@ Vcs-Browser: https://github.com/VolumetricBio/LightField
 Vcs-Git: https://github.com/VolumetricBio/LightField.git
 
 Package: lightfield-debug
-Provides: lightfield
 Architecture: any
 Breaks: lightfield-release
 Conflicts: lightfield-release
@@ -35,7 +34,6 @@ Description: Printer software for Volumetric's Lumen X 3D printer - debug versio
  Selects, slices, and prints.
 
 Package: lightfield-release
-Provides: lightfield
 Architecture: any
 Breaks: lightfield-debug (<= ${binary:Version})
 Conflicts: lightfield-debug (<= ${binary:Version})
