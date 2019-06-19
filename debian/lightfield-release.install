@@ -1,4 +1,4 @@
-files/etc/systemd/system/getty@tty1.service.d/override.conf  etc/systemd/system
+files/etc/systemd/system/getty@tty1.service.d/override.conf  etc/systemd/system/getty@tty1.service.d
 files/lib/systemd/system/set-projector-power.service         lib/systemd/system
 files/usr/bin-release/lf                                     usr/bin
 files/usr/bin-release/mountmon                               usr/bin
