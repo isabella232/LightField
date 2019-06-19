@@ -140,10 +140,44 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ) );
 
+    _debugManager = new DebugManager;
+
+    QFile pidFile { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
+    if ( pidFile.exists( ) ) {
+        if ( pidFile.open( QIODevice::ReadOnly | QIODevice::ExistingOnly ) ) {
+            bool ok   = false;
+            pid_t pid = pidFile.readAll( ).toInt( &ok );
+
+            pidFile.close( );
+
+            if ( ok ) {
+                debug( "App::`ctor: checking for the existance of putative lf process pid %d\n", pid );
+                if ( 0 == kill( pid, 0 ) ) {
+                    debug( "App::`ctor: lf process already exists, exiting\n", pid );
+                    exit( 1 );
+                } else {
+                    debug( "App::`ctor: stale pid of old lf process %d\n", pid );
+                }
+            } else {
+                debug( "App::`ctor: couldn't understand contents of pid file\n" );
+            }
+        } else {
+            debug( "App::`ctor: couldn't open existing pid file\n" );
+        }
+        pidFile.remove( );
+    }
+
+    if ( pidFile.open( QIODevice::WriteOnly | QIODevice::NewOnly ) ) {
+        debug( "App::`ctor: saving our pid %d to file %s\n", getpid( ), QFileInfo { pidFile }.absoluteFilePath( ).toUtf8( ).data( ) );
+        pidFile.write( QString { "%1" }.arg( getpid( ) ).toUtf8( ) );
+        pidFile.close( );
+    } else {
+        debug( "App::`ctor: couldn't create new pid file\n" );
+    }
+
     QProcess::startDetached( SetpowerCommand, { "0" } );
 
     _parseCommandLine( );
-    _debugManager = new DebugManager;
     _setTheme( );
 
     _window = new Window;
