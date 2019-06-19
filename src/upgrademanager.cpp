@@ -29,6 +29,7 @@ namespace {
 
     QRegularExpression const MetadataFieldMatcherRegex { "^([-0-9A-Za-z]+):\\s*" };
     QRegularExpression const WhitespaceRegex           { "\\s+"                  };
+    QRegularExpression const CommentMatcherRegex       { "\\s+#.*$"              };
 
     QStringList ExpectedMetadataFields {
         "Metadata-Version",
@@ -322,7 +323,7 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
 
     while ( index < versionInfo.count( ) ) {
         auto line = versionInfo[index];
-        line.replace( EndsWithWhitespaceRegex, "" );
+        line.replace( EndsWithWhitespaceRegex, "" ).replace( CommentMatcherRegex, "" );
         debug( "  + line #%d: \"%s\"\n", index, line.toUtf8( ).data( ) );
 
         if ( auto result = MetadataFieldMatcherRegex.match( line ); result.hasMatch( ) ) {
@@ -426,7 +427,7 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
         }
     }
 
-    update.description = fields["Description"];
+    update.description = fields["Description"].trimmed( );
 
     update.checksums.clear( );
     auto path = update.directory.absolutePath( ) + Slash;

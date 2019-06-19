@@ -34,6 +34,20 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     kitsListView->setModel( new QStringListModel { kitsListStrings } );
     QObject::connect( kitsListView, &GestureListView::clicked, this, &UpgradeSelector::kitsListView_clicked );
 
+    _description = new QLabel;
+    _description->setFont( ModifyFont( _description->font( ), 14.0 ) );
+    _description->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _description->setFixedWidth( MainWindowSize.width( ) / 3 - 14 );
+    _description->setMinimumHeight( MainWindowSize.height( ) / 3 );
+    _description->setWordWrap( true );
+
+    _scrollArea = new QScrollArea;
+    _scrollArea->setFixedSize( MainWindowSize.width( ) / 3, MainWindowSize.height( ) / 3 );
+    _scrollArea->setFrameStyle( QFrame::Box | QFrame::Sunken );
+    _scrollArea->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+    _scrollArea->setWidget( _description );
+    _scrollArea->setWidgetResizable( true );
+
     _upgradeButton = new QPushButton { "Upgrade" };
     _upgradeButton->setDefault( false );
     _upgradeButton->setEnabled( false );
@@ -48,6 +62,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
         verticalLayout->addStretch( );
         verticalLayout->addWidget( availableKitsLabel );
         verticalLayout->addWidget( kitsListView );
+        verticalLayout->addWidget( _scrollArea );
         verticalLayout->addLayout( WrapWidgetsInHBox( { nullptr, _upgradeButton, nullptr, _cancelButton, nullptr } ) );
         verticalLayout->addStretch( );
 
@@ -109,12 +124,15 @@ void UpgradeSelector::kitsListView_clicked( QModelIndex const& index ) {
         debug( "+ UpgradeSelector::kitsListView_clicked: row %d selected\n", row );
         debug( "  + version:    %s\n", kitInfo.versionString.toUtf8( ).data( ) );
         debug( "  + build type: %s\n", ToString( kitInfo.buildType ) );
+        debug( "  + vscrollsz:  %s\n", ToString( _scrollArea->verticalScrollBar( )->size( ) ).toUtf8( ).data( ) );
         _currentSelection = row;
         _upgradeButton->setEnabled( true );
+        _description->setText( kitInfo.description );
     } else {
         debug( "+ UpgradeSelector::kitsListView_clicked: item deselected\n" );
         _currentSelection = -1;
         _upgradeButton->setEnabled( false );
+        _description->clear( );
     }
 }
 

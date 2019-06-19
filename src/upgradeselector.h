@@ -29,6 +29,8 @@ private:
 
     QPushButton*     _upgradeButton;
     QPushButton*     _cancelButton;
+    QLabel*          _description;
+    QScrollArea*     _scrollArea;
     QHBoxLayout*     _upgradeSelectLayout;
 
     QLabel*          _upgradeInProgressMessage;
