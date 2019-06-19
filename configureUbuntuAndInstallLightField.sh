@@ -138,15 +138,6 @@ sudo apt install simplescreenrecorder -y
 
 
 
-# INSTALL LIGHTFIELD!
-cd ~/Volumetric/LightField
-git reset —-hard HEAD
-git clean -df
-git pull
-chmod +x ./install-lightfield.sh
-./install-lightfield.sh
-
-
 # FLASH THE FIRMWARE ONTO THE ARDUINO
 sudo apt install avrdude -y
 cd ~/Volumetric/LightField/system-stuff/firmware
@@ -170,6 +161,17 @@ cp burn-in-noMotor.desktop ~/Desktop/
 
 # REMOVE MODEM MANAGER SO WE CAN CONNECT PROPERLY TO THE EINSY MOTHERBOARD
 sudo apt remove modemmanager -y
+
+
+# INSTALL LIGHTFIELD!
+cd ~/Volumetric/LightField
+git reset —-hard HEAD
+git clean -df
+git pull
+chmod +x ./install-lightfield.sh
+./install-lightfield.sh
+
+
 
 # SET PERMISSIONS FOR ALL USER FILES
 sudo chown -R lumen:lumen ~/
