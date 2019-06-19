@@ -1,1 +1,1 @@
-deb file:/var/lib/lightfield/software-updates/selected ./
+# Empty placeholder file -- will be recreated by the LightField software when the user asks to perform a software upgrade.
