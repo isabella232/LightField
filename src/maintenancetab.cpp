@@ -188,6 +188,8 @@ void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
 
+    _upgradeSelector->showInProgressMessage( );
+
     _upgradeManager->installUpgradeKit( kit );
 }
 
