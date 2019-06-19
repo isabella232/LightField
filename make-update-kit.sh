@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.0
+VERSION=1.0.1
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -137,12 +137,25 @@ rm ${VERBOSE} -rf                                                 \
     version.inf                                                   \
     version.inf.sig
 
-sed                                                               \
-    -e "s/@@VERSION@@/${VERSION}/g"                               \
-    -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g"                           \
-    -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g"                       \
-    "${LIGHTFIELD_SRC}/apt-files/version.inf.in"                  \
-    > version.inf
+sha256sum                                                         \
+    -b                                                            \
+    *                                                             \
+    | sed                                                         \
+    -r                                                            \
+    -e 's/^/ /'                                                   \
+    -e 's/ +\*/ /'                                                \
+    > .hashes
+
+(
+    sed                                                           \
+        -e "s/@@VERSION@@/${VERSION}/g"                           \
+        -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g"                       \
+        -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g"                   \
+        "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
+    cat                                                           \
+        .hashes
+) > version.inf
+rm .hashes
 
 gpg                                                               \
     ${VERBOSE}                                                    \
