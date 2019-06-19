@@ -183,8 +183,7 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 }
 
 Window::~Window( ) {
-    QObject::disconnect( g_signalHandler, nullptr, this, nullptr );
-    g_signalHandler->unsubscribe( signalList );
+    /*empty*/
 }
 
 void Window::_setPrinterPrepared( bool const value ) {
@@ -210,8 +209,27 @@ void Window::_setModelRendered( bool const value ) {
 void Window::closeEvent( QCloseEvent* event ) {
     debug( "+ Window::closeEvent\n" );
 
+    if ( _shepherd ) {
+        _shepherd->doTerminate( );
+    }
+
     if ( _printManager ) {
         _printManager->terminate( );
+    }
+
+    if ( _usbMountManager ) {
+        QObject::disconnect( _usbMountManager );
+        delete _usbMountManager;
+        _usbMountManager = nullptr;
+    }
+
+    if ( _upgradeManager ) {
+        if ( _maintenanceTab ) {
+            _maintenanceTab->setUpgradeManager( nullptr );
+        }
+        QObject::disconnect( _upgradeManager );
+        delete _upgradeManager;
+        _upgradeManager = nullptr;
     }
 
     if ( _pngDisplayer ) {
@@ -220,7 +238,12 @@ void Window::closeEvent( QCloseEvent* event ) {
         _pngDisplayer = nullptr;
     }
 
-    _shepherd->doTerminate( );
+    if ( g_signalHandler ) {
+        QObject::disconnect( g_signalHandler, nullptr, this, nullptr );
+        g_signalHandler->unsubscribe( signalList );
+    }
+
+    deleteLater( );
 
     event->accept( );
 

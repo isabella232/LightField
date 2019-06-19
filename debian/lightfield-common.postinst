@@ -17,19 +17,20 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+
+echo "+ lightfield-common.postinst: args are $*" 1>&2
 case "$1" in
     configure)
-	#(
-	    mkdir -p                                 \
-		/var/cache/lightfield/print-jobs     \
-		/var/lib/lightfield/model-library    \
-		/var/lib/lightfield/software-updates \
-		/var/log/lightfield
-	    chown lumen:lumen -R                     \
-		/var/cache/lightfield                \
-		/var/lib/lightfield                  \
-		/var/log/lightfield
-	#) 1>/dev/null 2>&1
+	mkdir -p                                               \
+	    /var/cache/lightfield/print-jobs                   \
+	    /var/lib/lightfield/model-library                  \
+	    /var/lib/lightfield/software-updates               \
+	    /var/log/lightfield
+	chown lumen:lumen -R                                   \
+	    /etc/apt/sources.list.d/volumetric-lightfield.list \
+	    /var/cache/lightfield                              \
+	    /var/lib/lightfield                                \
+	    /var/log/lightfield
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

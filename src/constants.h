@@ -9,14 +9,16 @@ QSize              extern const MainWindowSize;
 QSize              extern const MaximalRightHandPaneSize;
 QSize              extern const PngDisplayWindowSize;
 
-QString            extern const StlModelLibraryPath;
-QString            extern const JobWorkingDirectoryPath;
-QString            extern const SlicedSvgFileName;
-QString            extern const SetpowerCommand;
+QString            extern const AptSourcesFilePath;
 QString            extern const GpgKeyRingPath;
-QString            extern const ShepherdPath;
-QString            extern const UpdatesRootPath;
+QString            extern const JobWorkingDirectoryPath;
 QString            extern const MountmonCommand;
+QString            extern const ResetLumenArduinoPortCommand;
+QString            extern const SetpowerCommand;
+QString            extern const ShepherdPath;
+QString            extern const SlicedSvgFileName;
+QString            extern const StlModelLibraryPath;
+QString            extern const UpdatesRootPath;
 
 QChar              extern const LineFeed;
 QChar              extern const CarriageReturn;

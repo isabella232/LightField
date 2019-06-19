@@ -1,30 +1,39 @@
 #include "pch.h"
 
-#include <sys/stat.h>
-#ifdef WIN32
-extern int chmod( char const* pathname, int mode );
-#endif // WIN32
-
-#include "udisksmonitor.h"
 #include "usbdevicemounter.h"
+
+#include "signalhandler.h"
+#include "udisksmonitor.h"
 
 namespace {
 
     char const* DriveSizeUnits[] = { "iB", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" };
 
+    std::initializer_list<int> signalList {
+        SIGHUP,
+        SIGINT,
+        SIGPIPE,
+        SIGQUIT,
+        SIGTERM,
+    };
+
 }
+
 
 UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
     QObject  ( parent  ),
     _monitor ( monitor )
 {
-    QObject::connect( _monitor, &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
-    QObject::connect( _monitor, &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
-    QObject::connect( _monitor, &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+    QObject::connect( g_signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived     );
+    g_signalHandler->subscribe( signalList );
 
-    QObject::connect( _monitor, &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
-    QObject::connect( _monitor, &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
-    QObject::connect( _monitor, &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
+    QObject::connect( _monitor,        &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
+    QObject::connect( _monitor,        &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
+    QObject::connect( _monitor,        &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+                                       
+    QObject::connect( _monitor,        &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
+    QObject::connect( _monitor,        &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
+    QObject::connect( _monitor,        &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
 }
 
 UsbDeviceMounter::~UsbDeviceMounter( ) {
@@ -141,4 +150,9 @@ void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
     }
 
     _filesystems.remove( path );
+}
+
+void UsbDeviceMounter::_signalReceived( int const signalNumber ) {
+    debug( "+ UsbDeviceMounter::_signalReceived: signal %d\n", signalNumber );
+    qApp->exit( );
 }

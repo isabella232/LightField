@@ -1,15 +1,6 @@
 #if ! defined __UDISKS_H__
 #define __UDISKS_H__
 
-#include <QObject>
-#include <QList>
-#include <QString>
-#include <QStringList>
-#include <QVariantMap>
-#include <QtDBus/QDBusArgument>
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusObjectPath>
-
 namespace UDisks2 {
 
     inline QString Service( )                          { return "org.freedesktop.UDisks2";             }
@@ -36,7 +27,7 @@ class UFilesystem;
 
 class UDrive: public QObject {
 
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
@@ -44,34 +35,34 @@ public:
     virtual ~UDrive( ) override;
 
     bool                 CanPowerOff;
-	QDBusArgument        Configuration;
-	QString              ConnectionBus;
-	bool                 Ejectable;
-	QString              Id;
-	QString              Media;
-	bool                 MediaAvailable;
-	bool                 MediaChangeDetected;
-	QStringList          MediaCompatibility;
-	bool                 MediaRemovable;
-	QString              Model;
-	bool                 Optical;
-	bool                 OpticalBlank;
-	uint                 OpticalNumAudioTracks;
-	uint                 OpticalNumDataTracks;
-	uint                 OpticalNumSessions;
-	uint                 OpticalNumTracks;
-	bool                 Removable;
-	QString              Revision;
-	int                  RotationRate;
-	QString              Seat;
-	QString              Serial;
-	QString              SiblingId;
-	qulonglong           Size;
-	QString              SortKey;
-	qulonglong           TimeDetected;
-	qulonglong           TimeMediaDetected;
-	QString              Vendor;
-	QString              WWN;
+    QDBusArgument        Configuration;
+    QString              ConnectionBus;
+    bool                 Ejectable;
+    QString              Id;
+    QString              Media;
+    bool                 MediaAvailable;
+    bool                 MediaChangeDetected;
+    QStringList          MediaCompatibility;
+    bool                 MediaRemovable;
+    QString              Model;
+    bool                 Optical;
+    bool                 OpticalBlank;
+    uint                 OpticalNumAudioTracks;
+    uint                 OpticalNumDataTracks;
+    uint                 OpticalNumSessions;
+    uint                 OpticalNumTracks;
+    bool                 Removable;
+    QString              Revision;
+    int                  RotationRate;
+    QString              Seat;
+    QString              Serial;
+    QString              SiblingId;
+    qulonglong           Size;
+    QString              SortKey;
+    qulonglong           TimeDetected;
+    qulonglong           TimeMediaDetected;
+    QString              Vendor;
+    QString              WWN;
 
     QList<UBlockDevice*> BlockDevices;
     QDBusObjectPath      Path;
@@ -81,7 +72,7 @@ protected:
 private:
 
 signals:
-	;
+    ;
 
 public slots:
     ;

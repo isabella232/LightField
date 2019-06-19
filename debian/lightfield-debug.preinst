@@ -14,7 +14,7 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.preinst: args are $*"
+echo "+ lightfield-debug.preinst: args are $*" 1>&2
 case "$1" in
     install)
         systemctl stop getty@tty1.service

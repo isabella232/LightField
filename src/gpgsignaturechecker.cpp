@@ -163,6 +163,12 @@ void GpgSignatureChecker::gpg_failed( int const exitCode, QProcess::ProcessError
         exitCode,
         ToString( error )
     );
+    if ( !_stdout.isEmpty( ) ) {
+        debug( "  + stdout:\n%s", _stdout.toUtf8( ).data( ) );
+    }
+    if ( !_stderr.isEmpty( ) ) {
+        debug( "  + stderr:\n%s", _stderr.toUtf8( ).data( ) );
+    }
     emit signatureCheckComplete( false );
 }
 

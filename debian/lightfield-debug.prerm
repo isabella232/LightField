@@ -17,9 +17,9 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.prerm: args are $*"
+echo "+ lightfield-debug.prerm: args are $*" 1>&2
 case "$1" in
-    remove) #(
+    remove)
 	systemctl daemon-reload
 
 	systemctl stop set-projector-power.service
@@ -31,7 +31,7 @@ case "$1" in
 	rm -rf /etc/systemd/system/getty@tty1.service.d
 
 	systemctl daemon-reload
-    ;; #) 1>/dev/null 2>&1 ;;
+    ;;
 
     upgrade|deconfigure|failed-upgrade)
     ;;

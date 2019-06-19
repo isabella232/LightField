@@ -18,11 +18,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC OFF)
 
 set(Project_Sources src/main.cpp
+src/signalhandler.cpp
 src/udisks.cpp
 src/udisksmonitor.cpp
 src/usbdevicemounter.cpp)
 
 set(Project_Headers src/udisks.h
+src/signalhandler.h
 src/udisksmonitor.h
 src/usbdevicemounter.h)
 

@@ -19,7 +19,7 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.postrm: args are $*"
+echo "+ lightfield-debug.postrm: args are $*" 1>&2
 case "$1" in
     purge|remove)
 	systemctl set-default graphical.target
@@ -31,7 +31,7 @@ case "$1" in
     ;;
 
     *)
-        echo "postrm called with unknown argument \`$1'" >&2
+        echo "postrm called with unknown argument '$1'" 1>&2
         exit 1
     ;;
 esac

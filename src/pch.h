@@ -50,6 +50,9 @@
 #       include <io.h>
 
 using error_t = int;
+using gid_t   = int;
+using pid_t   = int;
+using uid_t   = int;
 
 int const R_OK = 4;
 int const W_OK = 2;
@@ -69,10 +72,10 @@ struct passwd {
 extern int access( char const* pathName, int mode );
 extern int clock_gettime( int clk_id, timespec* tp );
 extern int getpid( );
-extern int getpwuid_r( int uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
+extern int getpwuid_r( uid_t uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
 extern int getuid( );
+extern int kill( pid_t pid, int sig );
 extern struct tm* gmtime_r( time_t const* timep, tm* result );
-extern int link( char const* oldPath, char const* newPath );
 extern int mkdir( char const* pathName, int mode );
 extern char* strsignal( int sig );
 

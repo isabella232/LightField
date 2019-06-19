@@ -1,16 +1,6 @@
 #if ! defined __UDISKSMONITOR_H__
 #define __UDISKSMONITOR_H__
 
-#include <QObject>
-#include <QList>
-#include <QMetaType>
-#include <QString>
-#include <QStringList>
-#include <QVariant>
-#include <QtDBus/QDBusArgument>
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusObjectPath>
-
 using InterfaceList = QMap<QString, QVariantMap>;
 Q_DECLARE_METATYPE( InterfaceList )
 

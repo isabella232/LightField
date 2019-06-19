@@ -1,8 +1,5 @@
-#ifndef __USBDEVICEMOUNTER_H__
+#if ! defined __USBDEVICEMOUNTER_H__
 #define __USBDEVICEMOUNTER_H__
-
-#include <QObject>
-#include <QtDBus/QDBusObjectPath>
 
 class UDisksMonitor;
 class UDrive;
@@ -52,6 +49,8 @@ private slots:
     void _driveRemoved       ( QDBusObjectPath const& path );
     void _blockDeviceRemoved ( QDBusObjectPath const& path );
     void _filesystemRemoved  ( QDBusObjectPath const& path );
+
+    void _signalReceived     ( int const signalNumber );
 
 };
 

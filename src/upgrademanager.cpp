@@ -506,16 +506,24 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
-    QString symlinkPath { UpdatesRootPath % Slash % "selected" };
-    QString kitPath     { kit.directory.absolutePath( )        };
+    debug( "+ UpgradeManager::installUpgradeKit: installing version %s build type %s\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
 
-    debug(
-        "+ UpgradeManager::installUpgradeKit:\n"
-        "  + creating symlink from %s to %s\n",
-        symlinkPath.toUtf8( ).data( ), kitPath.toUtf8( ).data( )
-    );
-    unlink( symlinkPath.toUtf8( ).data( ) );
-    link( kit.directory.absolutePath( ).toUtf8( ).data( ), symlinkPath.toUtf8( ).data( ) );
+    QString kitPath { kit.directory.absolutePath( ) };
+
+    QFile aptSourcesFile { AptSourcesFilePath };
+    if ( !aptSourcesFile.exists( ) ) {
+        debug( "  + upgrade has failed: our apt sources list %s doesn't exist and can't create\n", AptSourcesFilePath.toUtf8( ).data( ) );
+        emit upgradeFailed( );
+        return;
+    }
+
+    if ( !aptSourcesFile.open( QIODevice::WriteOnly | QIODevice::Truncate ) ) {
+        debug( "  + upgrade has failed: can't open our apt sources list %s for writing\n", AptSourcesFilePath.toUtf8( ).data( ) );
+        emit upgradeFailed( );
+        return;
+    }
+    aptSourcesFile.write( QString { "deb file:" % kitPath % " ./\n" }.toUtf8( ).data( ) );
+    aptSourcesFile.close( );
 
     debug( "+ UpgradeManager::installUpgradeKit: running `apt-get update`\n" );
     _stdoutBuffer.clear( );
@@ -537,7 +545,7 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
 }
 
 void UpgradeManager::aptGetUpdate_succeeded( ) {
-    debug( "+ UpgradeManager::aptGetUpdate_succeeded: apt-get update succeeded\n" );
+    debug( "+ UpgradeManager::aptGetUpdate_succeeded: `apt-get update` succeeded\n" );
     _dumpBufferContents( );
 
     debug( "  + running `apt-get dist-upgrade`\n" );
@@ -564,7 +572,7 @@ void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessE
     _processRunner->deleteLater( );
     _processRunner = nullptr;
 
-    debug( "+ UpgradeManager::aptGetUpdate_failed: apt-get update failed\n" );
+    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed\n" );
     _dumpBufferContents( );
 
     emit upgradeFailed( );
@@ -579,7 +587,7 @@ void UpgradeManager::aptGetUpdate_readyReadStandardError( QString const& data ) 
 }
 
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
-    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: software upgrade succeeded\n" );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: `apt-get dist-upgrade` succeeded\n" );
     _dumpBufferContents( );
 
     _processRunner->deleteLater( );
@@ -593,7 +601,7 @@ void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::Pro
     _processRunner->deleteLater( );
     _processRunner = nullptr;
 
-    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: apt-get dist-upgrade failed\n" );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get dist-upgrade` failed\n" );
     _dumpBufferContents( );
 
     emit upgradeFailed( );

@@ -19,8 +19,10 @@ UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
 }
 
 UsbMountManager::~UsbMountManager( ) {
-    QObject::disconnect( _mountmonProcess, nullptr, this, nullptr );
+    debug( "+ UsbMountManager::`dtor\n" );
     if ( _mountmonProcess ) {
+        debug( "  + cleaning up after Mountmon\n" );
+        QObject::disconnect( _mountmonProcess, nullptr, this, nullptr );
         _mountmonProcess->kill( );
         _mountmonProcess->deleteLater( );
         _mountmonProcess = nullptr;

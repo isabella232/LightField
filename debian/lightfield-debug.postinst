@@ -18,9 +18,9 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.postinst: args are $*"
+echo "+ lightfield-debug.postinst: args are $*" 1>&2
 case "$1" in
-    configure) # (
+    configure)
 	systemctl daemon-reload
 
 	systemctl set-default multi-user.target
@@ -30,7 +30,7 @@ case "$1" in
 
 	systemctl enable getty@tty1.service
 	systemctl start getty@tty1.service
-    ;; # ) 1>/dev/null 2>&1 ;;
+    ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;

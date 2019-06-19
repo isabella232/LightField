@@ -136,7 +136,7 @@ void UDisksMonitor::_interfacesAdded( QDBusObjectPath const& path, InterfaceList
 
         if ( isDrive( interfaceName ) ) {
             debug( "    + gained drive %s\n", path.path( ).toUtf8( ).data( ) );
-			drive = new UDrive( path, values, this );
+            drive = new UDrive( path, values, this );
             _drives.insert( path, drive );
         }
 
