@@ -1,4 +1,3 @@
-files/etc/apt/sources.list.d/volumetric-lightfield.list      etc/apt/sources.list.d
 files/etc/apt/trusted.gpg.d/volumetric-keyring.gpg           etc/apt/trusted.gpg.d
 files/etc/sudoers.d/lumen-lightfield                         etc/sudoers.d
 files/home/lumen/.bash_profile                               home/lumen
