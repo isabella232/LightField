@@ -76,7 +76,7 @@ void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive )
         driveSize /= 1024.0;
     }
 
-    printf(
+    debug(
         "  + Media:  %s\n"
         "  + Vendor: %s\n"
         "  + Model:  %s\n"
