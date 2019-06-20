@@ -1,0 +1,55 @@
+diff --git a/debian/changelog b/debian/changelog
+index 4d06618..8e31481 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,3 +1,9 @@
++lightfield (1.0.1) stable; urgency=medium
++
++  * First update.
++
++ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 17 Jun 2019 14:12:21 -0700
++
+ lightfield (1.0.0) stable; urgency=medium
+ 
+   * Initial Release.
+diff --git a/make-deb-package.sh b/make-deb-package.sh
+index dfea097..cdc3aac 100755
+--- a/make-deb-package.sh
++++ b/make-deb-package.sh
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ 
+-VERSION=1.0.0
++VERSION=1.0.1
+ PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+ 
+ #########################################################
+diff --git a/make-upgrade-kit.sh b/make-upgrade-kit.sh
+index f4e2c59..1017197 100755
+--- a/make-upgrade-kit.sh
++++ b/make-upgrade-kit.sh
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ 
+-VERSION=1.0.0
++VERSION=1.0.1
+ PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+ 
+ #########################################################
+diff --git a/src/version.cpp b/src/version.cpp
+index cd5b791..abfa4ef 100644
+--- a/src/version.cpp
++++ b/src/version.cpp
+@@ -2,10 +2,10 @@
+ 
+ #include "version.h"
+ 
+-char      const* LIGHTFIELD_VERSION_STRING     = "1.0.0";
++char      const* LIGHTFIELD_VERSION_STRING     = "1.0.1";
+ unsigned  const  LIGHTFIELD_VERSION_MAJOR      = 1;
+ unsigned  const  LIGHTFIELD_VERSION_MINOR      = 0;
+-unsigned  const  LIGHTFIELD_VERSION_TEENY      = 0;
++unsigned  const  LIGHTFIELD_VERSION_TEENY      = 1;
+ unsigned  const  LIGHTFIELD_VERSION_CODE       = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY );
+ 
+ #if defined _DEBUG
