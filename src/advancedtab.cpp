@@ -19,7 +19,7 @@ namespace {
 AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
-    auto fontAwesome = ModifyFont( ModifyFont( origFont, "FontAwesome" ), 22.0 );
+    auto fontAwesome = ModifyFont( ModifyFont( origFont, "FontAwesome" ), LargeFontSize );
 
 
     _currentTemperatureLabel->setText( "Current temperature:" );

@@ -9,8 +9,8 @@
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     _label->setAlignment( Qt::AlignCenter );
 
-    QPoint topLeft    { g_settings.pngDisplayWindowPosition };
-    QSize  windowSize { PngDisplayWindowSize                };
+    QPoint topLeft    { g_settings.projectorWindowPosition };
+    QSize  windowSize { ProjectorWindowSize                };
 
     auto offsetX = g_settings.projectorOffset.x( );
     auto offsetY = g_settings.projectorOffset.y( );

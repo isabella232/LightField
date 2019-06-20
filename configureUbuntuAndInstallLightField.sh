@@ -1,4 +1,4 @@
-﻿sudo apt-get update
+﻿sudo apt update
 sudo apt install net-tools openssh-server -y
 ### AT THIS POINT YOU CAN RUN ifconfig TO FIND THE IP ADDRESS, SSH IN, BRING OVER THIS INSTALLATION SCRIPT, chmod +x it, AND FINALLY sudo RUN IT.
 sudo usermod -a -G tty lumen
@@ -47,7 +47,6 @@ sudo apt install pastebinit -y
 
 cd ~/Volumetric
 
-
 git clone --recursive https://github.com/VolumetricBio/LightField.git
 
 
@@ -75,7 +74,9 @@ python3 -m venv envTouchPrint
 cd ~/Volumetric
 git clone https://github.com/VolumetricBio/printrun.git
 cd printrun
-
+git reset --hard HEAD
+git clean -df
+git pull
 
 python -m pip install Cython
 sudo apt install python3-serial python3-numpy cython3 python3-libxml2 python3-gi python3-dbus python3-psutil python3-cairosvg libpython3-dev python3-appdirs python3-wxgtk4.0 -y
@@ -137,12 +138,6 @@ sudo apt install simplescreenrecorder -y
 
 
 
-# INSTALL LIGHTFIELD!
-cd ~/Volumetric/LightField
-chmod +x ./install-lightfield.sh
-./install-lightfield.sh
-
-
 # FLASH THE FIRMWARE ONTO THE ARDUINO
 sudo apt install avrdude -y
 cd ~/Volumetric/LightField/system-stuff/firmware
@@ -162,6 +157,20 @@ cp lumenLockPrimaryDisplay.desktop ~/.config/autostart/
 cp burn-in.desktop ~/Desktop/
 cp burn-in-noHeat.desktop ~/Desktop/
 cp burn-in-noFan.desktop ~/Desktop/
+cp burn-in-noMotor.desktop ~/Desktop/
+
+# REMOVE MODEM MANAGER SO WE CAN CONNECT PROPERLY TO THE EINSY MOTHERBOARD
+sudo apt remove modemmanager -y
+
+
+# INSTALL LIGHTFIELD!
+cd ~/Volumetric/LightField
+git reset —-hard HEAD
+git clean -df
+git pull
+chmod +x ./install-lightfield.sh
+./install-lightfield.sh
+
 
 
 # SET PERMISSIONS FOR ALL USER FILES

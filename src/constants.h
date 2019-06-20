@@ -4,11 +4,16 @@
 QRegularExpression extern const EndsWithWhitespaceRegex;
 QRegularExpression extern const NewLineRegex;
 
-QSize              extern const MainButtonSize;
-QSize              extern const MainWindowSize;
-QSize              extern const MaximalRightHandPaneSize;
-QSize              extern const PngDisplayWindowSize;
+QSize              extern const SmallMainWindowSize;
+QSize              extern const SmallMainButtonSize;
+QSize              extern const SmallMaximalRightHandPaneSize;
 
+QSize              extern       MainWindowSize;
+QSize              extern       MainButtonSize;
+QSize              extern       MaximalRightHandPaneSize;
+
+QSize              extern const ProjectorWindowSize;
+                                                             
 QString            extern const AptSourcesFilePath;
 QString            extern const GpgKeyRingPath;
 QString            extern const JobWorkingDirectoryPath;
@@ -43,5 +48,8 @@ double                    const PrinterRaiseToMaxZHeight = 70.00;
 
 double                    const AspectRatio5to3          =  5.0 /  3.0;
 double                    const AspectRatio16to10        = 16.0 / 10.0;
+
+double                    const LargeFontSize            = 22.0;
+double                    const NormalFontSize           = 12.0;
 
 #endif // __CONSTANTS_H__

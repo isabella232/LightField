@@ -65,7 +65,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
 
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
-    _selectButton->setFont( ModifyFont( _selectButton->font( ), 22.0 ) );
+    _selectButton->setFont( ModifyFont( _selectButton->font( ), LargeFontSize ) );
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
 

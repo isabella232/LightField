@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BurnIn-NoMotor
+Exec=/home/lumen/Volumetric/printrun/burn_in-noMotor.py
+Terminal=true
+Categories=Application;
+Comment[en_US]=Burn in the printer, noMotor.
+Comment=Burn in the printer, noMotor.

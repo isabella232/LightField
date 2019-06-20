@@ -76,6 +76,8 @@ private slots:
     void printer_online( );
     void printer_offline( );
 
+    void shepherd_firmwareVersionReport( QString const& version );
+
     void updateSoftwareButton_clicked( bool );
     void updateFirmwareButton_clicked( bool );
 

@@ -45,6 +45,9 @@ private:
     int            _expectedOkCount       { };
     bool           _isTerminationExpected { };
 
+    QString        _stdoutBuffer;
+    QString        _stderrBuffer;
+
     bool        getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
     QStringList splitLine( QString const& line );
     void        handleFromPrinter( QString const& input );
@@ -55,6 +58,8 @@ private:
     void        handleInput( QString const& input );
 
     void        doSendOne( QString& cmd );
+
+    void        launchShepherd( );
 
 signals:
 
@@ -67,6 +72,7 @@ signals:
     void printer_output( QString const& output );
     void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
+    void printer_firmwareVersionReport( QString const& version );
 
     void action_moveRelativeComplete( bool const successful );
     void action_moveAbsoluteComplete( bool const successful );
@@ -86,7 +92,9 @@ private slots:
     void process_finished( int exitCode, QProcess::ExitStatus exitStatus );
 
     void processRunner_succeeded( );
-    void processRunner_failed( int const, QProcess::ProcessError const error );
+    void processRunner_failed( int const exitCode, QProcess::ProcessError const processError );
+    void processRunner_stdout( QString const& data );
+    void processRunner_stderr( QString const& data );
 
 };
 

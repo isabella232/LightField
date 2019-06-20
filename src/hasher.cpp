@@ -11,7 +11,7 @@ void Hasher::_hash( QString const fileName, QCryptographicHash::Algorithm const 
         emit resultReady( { hasher.result( ).toHex( ) } );
     } else {
         debug( "+ Hasher::_hash: couldn't open file '%s'\n", fileName.toUtf8( ).data( ) );
-        emit resultReady( QString( ) );
+        emit resultReady( { } );
     }
 }
 

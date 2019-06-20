@@ -167,14 +167,13 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     // Tab widget
     //
 
-    double pointSize = _tabWidget->font( ).pointSizeF( );
-    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), 20.0 ) );
+    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), LargeFontSize ) );
     QObject::connect( _tabWidget, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
-    auto font9pt = ModifyFont( _fileTab->font( ), pointSize );
+    auto fontNormalSize = ModifyFont( _fileTab->font( ), NormalFontSize );
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
-        tab->setFont( font9pt );
+        tab->setFont( fontNormalSize );
     }
 
     setCentralWidget( _tabWidget );
@@ -409,13 +408,13 @@ void Window::prepareTab_preparePrinterStarted( ) {
 }
 
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
-    debug( "+ Window::prepareTab_preparePrinterComplete\n" );
-    _setPrinterPrepared(
+    debug( "+ Window::prepareTab_preparePrinterComplete: %s; PP? %s MR? %s current tab: %s\n", SucceededString( success ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( _tabWidget->currentIndex( ) ) );
+
 #if defined _DEBUG
-        g_settings.pretendPrinterIsPrepared ? true :
+    _setPrinterPrepared( g_settings.pretendPrinterIsPrepared ? true : success );
+#else
+    _setPrinterPrepared( success );
 #endif // _DEBUG
-        success
-    );
 
     if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
         debug( "+ Window::prepareTab_preparePrinterComplete: switching to Print tab\n" );
