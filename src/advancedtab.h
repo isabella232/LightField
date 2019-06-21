@@ -71,6 +71,7 @@ private:
 
     bool          _isPrinterOnline                 { false };
     bool          _isPrinterAvailable              { true  };
+    bool          _isFloodlightOn                  { false };
 
     void          _updateControlGroups( );
 

@@ -266,6 +266,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
     _powerLevelSlider->setEnabled( checked );
     _powerLevelValue->setEnabled( checked );
     _powerLevelValueLayout->setEnabled( checked );
+    _isFloodlightOn = checked;
 
     if ( checked ) {
         _pngDisplayer->loadImageFile( ":images/white-field.png" );
@@ -297,8 +298,8 @@ void AdvancedTab::shepherd_sendComplete( bool const success ) {
 }
 
 void AdvancedTab::_updateControlGroups( ) {
-    _bedHeatingGroup         ->setEnabled( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr )                                 );
-    _projectorFloodlightGroup->setEnabled( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) );
+    _bedHeatingGroup         ->setEnabled(                      _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr )                                   );
+    _projectorFloodlightGroup->setEnabled( _isFloodlightOn || ( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) ) );
 
     update( );
 }
