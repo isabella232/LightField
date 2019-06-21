@@ -1,6 +1,8 @@
 #ifndef __ADVANCEDTAB_H__
 #define __ADVANCEDTAB_H__
 
+#undef ENABLE_TEMPERATURE_SETTING
+
 #include "tabbase.h"
 
 class PngDisplayer;
@@ -36,10 +38,12 @@ private:
     QLabel*       _bedHeatingButtonLabel           { new QLabel      };
     QHBoxLayout*  _bedHeatingButtonLayout          {                 };
 
+#if defined ENABLE_TEMPERATURE_SETTING
     QLabel*       _bedTemperatureLabel             { new QLabel      };
     QLabel*       _bedTemperatureValue             { new QLabel      };
     QHBoxLayout*  _bedTemperatureValueLayout       {                 };
     QSlider*      _bedTemperatureSlider            { new QSlider     };
+#endif
     QVBoxLayout*  _bedTemperatureLayout            { new QVBoxLayout };
 
     QGroupBox*    _bedHeatingGroup                 { new QGroupBox   };
@@ -92,8 +96,10 @@ private slots:
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void printBedHeatingButton_clicked( bool checked );
+#if defined ENABLE_TEMPERATURE_SETTING
     void printBedTemperatureSlider_sliderReleased( );
     void printBedTemperatureSlider_valueChanged( int value );
+#endif
 
     void projectorFloodlightButton_clicked( bool checked );
 
