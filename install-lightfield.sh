@@ -61,8 +61,10 @@ chown ${CHXXXVERBOSE} -R lumen:lumen /var/cache/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
+echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.0_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+chown ${CHXXXVERBOSE} 	 lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
+
 blue-bar • Installing files
-install ${VERBOSE} -DT -m 644    apt-files/volumetric-lightfield.list            /etc/apt/sources.list.d/volumetric-lightfield.list
 install ${VERBOSE} -DT -m 644    gpg/pubring.gpg                                 /etc/apt/trusted.gpg.d/volumetric-keyring.gpg
 install ${VERBOSE} -DT -m 440    system-stuff/lumen-lightfield                   /etc/sudoers.d/lumen-lightfield
 install ${VERBOSE} -DT -m 644    system-stuff/getty@tty1.service.d_override.conf /etc/systemd/system/getty@tty1.service.d/override.conf
@@ -92,6 +94,13 @@ install ${VERBOSE} -DT -m 644    Util/constants.py                              
 
 blue-bar • Configuring system
 systemctl daemon-reload
-systemctl enable getty@tty1.service
-systemctl enable set-projector-power.service
+
 systemctl set-default multi-user.target
+
+systemctl enable set-projector-power.service
+systemctl start set-projector-power.service
+
+systemctl enable getty@tty1.service
+systemctl start getty@tty1.service
+
+systemctl daemon-reload

@@ -199,7 +199,7 @@ cd "${LIGHTFIELD_PACKAGE}"
 blue-bar • Building Debian packages
 
 cp -v "debian/${BUILDTYPE}-control" debian/control
-dpkg-buildpackage --build=any,all
+dpkg-buildpackage --build=any,all --no-sign
 
 ##################################################
 
