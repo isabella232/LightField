@@ -19,7 +19,7 @@
 # the debian-policy package
 
 
-echo "+ lightfield-release.postrm: args are $*" 1>&2
+#echo "+ lightfield-release.postrm: args are $*" 1>&2
 case "$1" in
     purge|remove)
 	systemctl set-default graphical.target

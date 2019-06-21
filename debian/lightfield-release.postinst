@@ -18,7 +18,7 @@
 # the debian-policy package
 
 
-echo "+ lightfield-release.postinst: args are $*" 1>&2
+#echo "+ lightfield-release.postinst: args are $*" 1>&2
 case "$1" in
     configure)
 	systemctl daemon-reload

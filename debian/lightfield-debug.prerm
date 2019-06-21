@@ -17,7 +17,7 @@
 # the debian-policy package
 
 
-echo "+ lightfield-debug.prerm: args are $*" 1>&2
+#echo "+ lightfield-debug.prerm: args are $*" 1>&2
 case "$1" in
     remove)
 	systemctl daemon-reload
