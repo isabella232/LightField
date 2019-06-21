@@ -40,4 +40,12 @@ inline QSize maxSize( QSize const& a, QSize const& b ) {
     return QSize { std::max( a.width( ), b.width( ) ), std::max( a.height( ), b.height( ) ) };
 }
 
+inline int PercentagePowerLevelToRawLevel( int percentage ) {
+    return static_cast<int>( static_cast<double>( percentage ) / 100.0 * 255.0 + 0.5 );
+}
+
+inline int RawPowerLevelToPercentage( int raw ) {
+    return static_cast<int>( static_cast<double>( raw ) / 255.0 * 100.0 + 0.5 );
+}
+
 #endif // __UTILS_H__

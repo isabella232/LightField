@@ -274,7 +274,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
         _pngDisplayer->clear( );
     }
 
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( checked ? _powerLevelSlider->value( ) : 0 ) } );
+    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( checked ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
 
     setPrinterAvailable( !checked );
     emit printerAvailabilityChanged( _isPrinterAvailable );
@@ -283,7 +283,7 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 }
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? _powerLevelSlider->value( ) : 0 ) } );
+    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
 }
 
 void AdvancedTab::powerLevelSlider_valueChanged( int value ) {

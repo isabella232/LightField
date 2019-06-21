@@ -156,8 +156,9 @@ void PrintTab::_connectPrintJob( ) {
     _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
     _exposureTimeScaleFactorValue->setText( QString( "%1×" ).arg( _printJob->exposureTimeScaleFactor ) );
 
-    _powerLevelSlider->setValue( _printJob->powerLevel / 255.0 * 100.0 + 0.5 );
-    _powerLevelValue->setText( QString( "%1%" ).arg( static_cast<int>( _printJob->powerLevel / 255.0 * 100.0 + 0.5 ) ) );
+    int powerLevelValue = RawPowerLevelToPercentage( _printJob->powerLevel );
+    _powerLevelSlider->setValue( powerLevelValue );
+    _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 
     _printSpeedSlider->setValue( _printJob->printSpeed );
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
@@ -218,7 +219,7 @@ void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
 }
 
 void PrintTab::powerLevelSlider_valueChanged( int value ) {
-    _printJob->powerLevel = value / 100.0 * 255.0 + 0.5;
+    _printJob->powerLevel = PercentagePowerLevelToRawLevel( value );
     _powerLevelValue->setText( QString( "%1%" ).arg( value ) );
 
     update( );
