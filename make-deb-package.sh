@@ -26,7 +26,8 @@ function usage () {
     cat <<EOF
 Usage: $(basename $0) [-q] BUILDTYPE
 Where: -q         build quietly
-and:   BUILDTYPE  is one of
+       -X         don't force rebuild
+       BUILDTYPE  is one of
                   release  create a release-build kit
                   debug    create a debug-build kit
                   both     create both kits
