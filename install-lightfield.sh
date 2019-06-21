@@ -6,8 +6,6 @@
 ##                                                     ##
 #########################################################
 
-set -e
-
 if [ "${UID}" != "0" ]
 then
     echo This script must be run as root.
@@ -21,6 +19,18 @@ function clear () {
 function blue-bar () {
     echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
 }
+
+function red-bar () {
+    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
+}
+
+function error-trap () {
+    red-bar Failed\!
+    exit 1
+}
+
+trap error-trap ERR
+set -e
 
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
