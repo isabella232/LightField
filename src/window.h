@@ -19,7 +19,7 @@ class PrepareTab;
 class PrintTab;
 class StatusTab;
 class AdvancedTab;
-class MaintenanceTab;
+class SystemTab;
 
 class Window: public InitialShowEventMixin<Window, QMainWindow> {
 
@@ -52,7 +52,7 @@ private:
     PrintTab*           _printTab;
     StatusTab*          _statusTab;
     AdvancedTab*        _advancedTab;
-    MaintenanceTab*     _maintenanceTab;
+    SystemTab*          _systemTab;
 
     bool                _isPrinterPrepared { };
     bool                _isModelRendered   { };

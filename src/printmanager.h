@@ -20,12 +20,6 @@ enum class PrintStep {
     C1, C2
 };
 
-inline constexpr int operator+( PrintResult const value ) { return static_cast<int>( value ); }
-inline constexpr int operator+( PrintStep   const value ) { return static_cast<int>( value ); }
-
-char const* ToString( PrintResult const value );
-char const* ToString( PrintStep   const value );
-
 class PrintManager: public QObject {
 
     Q_OBJECT
@@ -41,20 +35,20 @@ protected:
 
 private:
 
-    Shepherd*      _shepherd             { };
-    PrintJob*      _printJob             { };
-    PngDisplayer*  _pngDisplayer         { };
-    ProcessRunner* _setpowerProcess      { };
-    PrintResult    _printResult          { };
+    Shepherd*      _shepherd                 { };
+    PrintJob*      _printJob                 { };
+    PngDisplayer*  _pngDisplayer             { };
+    ProcessRunner* _setProjectorPowerProcess { };
+    PrintResult    _printResult              { };
 
-    bool           _lampOn               { };
-    PrintStep      _step                 { };
-    int            _currentLayer         { };
-    bool           _paused               { false };
+    bool           _lampOn                   { };
+    PrintStep      _step                     { };
+    int            _currentLayer             { };
+    bool           _paused                   { false };
 
-    QTimer*        _preProjectionTimer   { };
-    QTimer*        _layerProjectionTimer { };
-    QTimer*        _preLiftTimer         { };
+    QTimer*        _preProjectionTimer       { };
+    QTimer*        _layerProjectionTimer     { };
+    QTimer*        _preLiftTimer             { };
 
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );

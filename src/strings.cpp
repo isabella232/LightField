@@ -50,7 +50,7 @@ namespace {
         "Print",
         "Status",
         "Advanced",
-        "Maintenance",
+        "System",
     };
 
     char const* SwipeDirectionStrings[] {
@@ -76,20 +76,6 @@ namespace {
         "SliceCompleted",
         "PrintStarted",
         "PrintCompleted",
-    };
-
-    char const* PrintResultStrings[] {
-        "None",
-        "Failure",
-        "Success",
-        "Abort",
-    };
-
-    char const* PrintStepStrings[] {
-        "none",
-        "A1", "A2", "A3", "A4", "A5",
-        "B1", "B2", "B3", "B4", "B5", "B6", "B7",
-        "C1", "C2"
     };
 
     char const* BuildPlatformStateStrings[] {
@@ -217,7 +203,7 @@ char const* ToString( PendingCommand const value ) {
 
 char const* ToString( TabIndex const value ) {
 #if defined _DEBUG
-    if ( ( value >= TabIndex::File ) && ( value <= TabIndex::Maintenance ) ) {
+    if ( ( value >= TabIndex::File ) && ( value <= TabIndex::System ) ) {
 #endif
         return TabIndexStrings[static_cast<int>( value )];
 #if defined _DEBUG
@@ -256,30 +242,6 @@ char const* ToString( UiState const value ) {
     if ( ( value >= UiState::SelectStarted ) && ( value <= UiState::PrintCompleted ) ) {
 #endif
         return UiStateStrings[static_cast<int>( value )];
-#if defined _DEBUG
-    } else {
-        return nullptr;
-    }
-#endif
-}
-
-char const* ToString( PrintResult const value ) {
-#if defined _DEBUG
-    if ( ( value >= PrintResult::None ) && ( value <= PrintResult::Abort ) ) {
-#endif
-        return PrintResultStrings[static_cast<int>( value )];
-#if defined _DEBUG
-    } else {
-        return nullptr;
-    }
-#endif
-}
-
-char const* ToString( PrintStep const value ) {
-#if defined _DEBUG
-    if ( ( value >= PrintStep::none ) && ( value <= PrintStep::C2 ) ) {
-#endif
-        return PrintStepStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;

@@ -19,7 +19,7 @@ QString                   const GpgKeyRingPath                { "/home/lumen/Vol
 QString                   const JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
 QString                   const MountmonCommand               { "mountmon"                                               };
 QString                   const ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
-QString                   const SetpowerCommand               { "set-projector-power"                                    };
+QString                   const SetProjectorPowerCommand      { "set-projector-power"                                    };
 QString                   const ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
 QString                   const SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };

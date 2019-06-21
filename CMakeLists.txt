@@ -50,7 +50,7 @@ src/preparetab.cpp
 src/printtab.cpp
 src/statustab.cpp
 src/advancedtab.cpp
-src/maintenancetab.cpp
+src/systemtab.cpp
 src/constants.cpp
 src/utils.cpp
 src/gesturelistview.cpp
@@ -86,7 +86,7 @@ src/preparetab.h
 src/printtab.h
 src/statustab.h
 src/advancedtab.h
-src/maintenancetab.h
+src/systemtab.h
 src/constants.h
 src/utils.h
 src/gesturelistview.h

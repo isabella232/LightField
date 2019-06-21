@@ -7,7 +7,7 @@ enum class TabIndex {
     Print,
     Status,
     Advanced,
-    Maintenance,
+    System,
 };
 
 inline int operator+( TabIndex const value ) { return static_cast<int>( value ); }
