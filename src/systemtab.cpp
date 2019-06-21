@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "maintenancetab.h"
+#include "systemtab.h"
 
 #include "app.h"
 #include "shepherd.h"
@@ -21,7 +21,7 @@ namespace {
 
 }
 
-MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<MaintenanceTab, TabBase>( parent ) {
+SystemTab::SystemTab( QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );
@@ -60,13 +60,13 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     _updateSoftwareButton->setFont( font16pt );
     _updateSoftwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _updateSoftwareButton->setText( "Update software" );
-    QObject::connect( _updateSoftwareButton, &QPushButton::clicked, this, &MaintenanceTab::updateSoftwareButton_clicked );
+    QObject::connect( _updateSoftwareButton, &QPushButton::clicked, this, &SystemTab::updateSoftwareButton_clicked );
 
     _updateFirmwareButton->setEnabled( false );
     _updateFirmwareButton->setFont( font16pt );
     _updateFirmwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _updateFirmwareButton->setText( "Update firmware" );
-    QObject::connect( _updateFirmwareButton, &QPushButton::clicked, this, &MaintenanceTab::updateFirmwareButton_clicked );
+    QObject::connect( _updateFirmwareButton, &QPushButton::clicked, this, &SystemTab::updateFirmwareButton_clicked );
 
     auto updateButtonsLayout = WrapWidgetsInHBox( { nullptr, _updateSoftwareButton, nullptr, _updateFirmwareButton, nullptr } );
     updateButtonsLayout->setContentsMargins( { } );
@@ -75,12 +75,12 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     _restartButton->setFont( font16pt );
     _restartButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _restartButton->setText( "Restart" );
-    QObject::connect( _restartButton, &QPushButton::clicked, this, &MaintenanceTab::restartButton_clicked );
+    QObject::connect( _restartButton, &QPushButton::clicked, this, &SystemTab::restartButton_clicked );
 
     _shutDownButton->setFont( font16pt );
     _shutDownButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _shutDownButton->setText( "Shut down" );
-    QObject::connect( _shutDownButton, &QPushButton::clicked, this, &MaintenanceTab::shutDownButton_clicked );
+    QObject::connect( _shutDownButton, &QPushButton::clicked, this, &SystemTab::shutDownButton_clicked );
 
     auto mainButtonsLayout = WrapWidgetsInHBox( { nullptr, _restartButton, nullptr, _shutDownButton, nullptr } );
     mainButtonsLayout->setContentsMargins( { } );
@@ -100,19 +100,19 @@ MaintenanceTab::MaintenanceTab( QWidget* parent ): InitialShowEventMixin<Mainten
     setLayout( _layout );
 }
 
-MaintenanceTab::~MaintenanceTab( ) {
+SystemTab::~SystemTab( ) {
     /*empty*/
 }
 
-void MaintenanceTab::_connectShepherd( ) {
+void SystemTab::_connectShepherd( ) {
     if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,                this, &MaintenanceTab::printer_online                 );
-        QObject::connect( _shepherd, &Shepherd::printer_offline,               this, &MaintenanceTab::printer_offline                );
-        QObject::connect( _shepherd, &Shepherd::printer_firmwareVersionReport, this, &MaintenanceTab::shepherd_firmwareVersionReport );
+        QObject::connect( _shepherd, &Shepherd::printer_online,                this, &SystemTab::printer_online                 );
+        QObject::connect( _shepherd, &Shepherd::printer_offline,               this, &SystemTab::printer_offline                );
+        QObject::connect( _shepherd, &Shepherd::printer_firmwareVersionReport, this, &SystemTab::shepherd_firmwareVersionReport );
     }
 }
 
-void MaintenanceTab::_initialShowEvent( QShowEvent* event ) {
+void SystemTab::_initialShowEvent( QShowEvent* event ) {
     QSize newSize = maxSize( maxSize( maxSize( _updateSoftwareButton->size( ), _updateFirmwareButton->size( ) ), _restartButton->size( ) ), _shutDownButton->size( ) ) + QSize { 20, 4 };
 
     _updateSoftwareButton->setFixedSize( newSize );
@@ -125,7 +125,7 @@ void MaintenanceTab::_initialShowEvent( QShowEvent* event ) {
     update( );
 }
 
-void MaintenanceTab::_updateButtons( ) {
+void SystemTab::_updateButtons( ) {
     _updateSoftwareButton->setEnabled( _isSoftwareUpgradeAvailable && _isPrinterAvailable                     );
     _updateFirmwareButton->setEnabled( _isFirmwareUpgradeAvailable && _isPrinterAvailable && _isPrinterOnline );
     _restartButton       ->setEnabled(                                _isPrinterAvailable                     );
@@ -134,7 +134,7 @@ void MaintenanceTab::_updateButtons( ) {
     update( );
 }
 
-bool MaintenanceTab::_yesNoPrompt( QString const& title, QString const& text ) {
+bool SystemTab::_yesNoPrompt( QString const& title, QString const& text ) {
     QMessageBox messageBox { this };
     messageBox.setIcon( QMessageBox::Question );
     messageBox.setText( title );
@@ -151,8 +151,8 @@ bool MaintenanceTab::_yesNoPrompt( QString const& title, QString const& text ) {
     return ( result == QMessageBox::Yes );
 }
 
-void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ MaintenanceTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+    debug( "+ SystemTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
     switch ( _uiState ) {
@@ -170,7 +170,7 @@ void MaintenanceTab::tab_uiStateChanged( TabIndex const sender, UiState const st
     }
 }
 
-void MaintenanceTab::shepherd_firmwareVersionReport( QString const& version ) {
+void SystemTab::shepherd_firmwareVersionReport( QString const& version ) {
     _versionLabel->setText(
         VersionMessage
         .arg( QCoreApplication::applicationName( )    )
@@ -180,15 +180,15 @@ void MaintenanceTab::shepherd_firmwareVersionReport( QString const& version ) {
     );
 }
 
-void MaintenanceTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
+void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
     _isSoftwareUpgradeAvailable = upgradesFound;
-    debug( "+ MaintenanceTab::upgradeManager_upgradeCheckComplete: upgrades available? %s PO? %s PA? %s\n", YesNoString( _isSoftwareUpgradeAvailable ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+    debug( "+ SystemTab::upgradeManager_upgradeCheckComplete: upgrades available? %s PO? %s PA? %s\n", YesNoString( _isSoftwareUpgradeAvailable ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateButtons( );
 }
 
-void MaintenanceTab::upgradeSelector_canceled( ) {
-    debug( "+ MaintenanceTab::upgradeSelector_canceled\n" );
+void SystemTab::upgradeSelector_canceled( ) {
+    debug( "+ SystemTab::upgradeSelector_canceled\n" );
 
     auto mainWindow = getMainWindow( );
     mainWindow->show( );
@@ -201,8 +201,8 @@ void MaintenanceTab::upgradeSelector_canceled( ) {
     emit printerAvailabilityChanged( true );
 }
 
-void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
-    debug( "+ MaintenanceTab::upgradeSelector_kitSelected: version %s (%s)\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
+void SystemTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
+    debug( "+ SystemTab::upgradeSelector_kitSelected: version %s (%s)\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
 
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
@@ -212,66 +212,66 @@ void MaintenanceTab::upgradeSelector_kitSelected( UpgradeKitInfo const& kit ) {
     _upgradeManager->installUpgradeKit( kit );
 }
 
-void MaintenanceTab::upgradeManager_upgradeFailed( ) {
-    debug( "+ MaintenanceTab::upgradeManager_upgradeFailed\n" );
+void SystemTab::upgradeManager_upgradeFailed( ) {
+    debug( "+ SystemTab::upgradeManager_upgradeFailed\n" );
 
     _upgradeSelector->showFailedMessage( );
 }
 
-void MaintenanceTab::setPrinterAvailable( bool const value ) {
+void SystemTab::setPrinterAvailable( bool const value ) {
     _isPrinterAvailable = value;
-    debug( "+ MaintenanceTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+    debug( "+ SystemTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateButtons( );
 }
 
-void MaintenanceTab::printer_online( ) {
+void SystemTab::printer_online( ) {
     _isPrinterOnline = true;
-    debug( "+ MaintenanceTab::printer_online: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+    debug( "+ SystemTab::printer_online: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateButtons( );
 }
 
-void MaintenanceTab::printer_offline( ) {
+void SystemTab::printer_offline( ) {
     _isPrinterOnline = false;
-    debug( "+ MaintenanceTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+    debug( "+ SystemTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateButtons( );
 }
 
-void MaintenanceTab::updateSoftwareButton_clicked( bool ) {
-    debug( "+ MaintenanceTab::updateSoftwareButton_clicked\n" );
+void SystemTab::updateSoftwareButton_clicked( bool ) {
+    debug( "+ SystemTab::updateSoftwareButton_clicked\n" );
 
     _upgradeSelector = new UpgradeSelector( _upgradeManager, this );
-    QObject::connect( _upgradeSelector, &UpgradeSelector::canceled,    this, &MaintenanceTab::upgradeSelector_canceled    );
-    QObject::connect( _upgradeSelector, &UpgradeSelector::kitSelected, this, &MaintenanceTab::upgradeSelector_kitSelected );
+    QObject::connect( _upgradeSelector, &UpgradeSelector::canceled,    this, &SystemTab::upgradeSelector_canceled    );
+    QObject::connect( _upgradeSelector, &UpgradeSelector::kitSelected, this, &SystemTab::upgradeSelector_kitSelected );
     _upgradeSelector->show( );
 
     auto mainWindow = getMainWindow( );
     mainWindow->hide( );
 }
 
-void MaintenanceTab::updateFirmwareButton_clicked( bool ) {
-    debug( "+ MaintenanceTab::updateFirmwareButton_clicked\n" );
+void SystemTab::updateFirmwareButton_clicked( bool ) {
+    debug( "+ SystemTab::updateFirmwareButton_clicked\n" );
 }
 
-void MaintenanceTab::restartButton_clicked( bool ) {
+void SystemTab::restartButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
         system( "sudo systemctl reboot" );
     }
 }
 
-void MaintenanceTab::shutDownButton_clicked( bool ) {
+void SystemTab::shutDownButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
         system( "sudo systemctl poweroff" );
     }
 }
 
-void MaintenanceTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
+void SystemTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
     if ( upgradeManager ) {
         _upgradeManager = upgradeManager;
-        QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete, this, &MaintenanceTab::upgradeManager_upgradeCheckComplete );
-        QObject::connect( _upgradeManager, &UpgradeManager::upgradeFailed,        this, &MaintenanceTab::upgradeManager_upgradeFailed        );
+        QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete, this, &SystemTab::upgradeManager_upgradeCheckComplete );
+        QObject::connect( _upgradeManager, &UpgradeManager::upgradeFailed,        this, &SystemTab::upgradeManager_upgradeFailed        );
     } else {
         QObject::disconnect( _upgradeManager, nullptr, this, nullptr );
         _upgradeManager = nullptr;

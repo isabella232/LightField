@@ -1,5 +1,5 @@
-#ifndef __MAINTENANCETAB_H__
-#define __MAINTENANCETAB_H__
+#ifndef __SYSTEMTAB_H__
+#define __SYSTEMTAB_H__
 
 #include "tabbase.h"
 
@@ -7,16 +7,16 @@ class UpgradeKitInfo;
 class UpgradeManager;
 class UpgradeSelector;
 
-class MaintenanceTab: public InitialShowEventMixin<MaintenanceTab, TabBase> {
+class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    MaintenanceTab( QWidget* parent = nullptr );
-    virtual ~MaintenanceTab( ) override;
+    SystemTab( QWidget* parent = nullptr );
+    virtual ~SystemTab( ) override;
 
-    virtual TabIndex tabIndex( ) const override { return TabIndex::Maintenance; }
+    virtual TabIndex tabIndex( ) const override { return TabIndex::System; }
 
 protected:
 
@@ -86,4 +86,4 @@ private slots:
 
 };
 
-#endif // __MAINTENANCETAB_H__
+#endif // __SYSTEMTAB_H__
