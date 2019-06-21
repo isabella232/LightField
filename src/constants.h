@@ -19,7 +19,7 @@ QString            extern const GpgKeyRingPath;
 QString            extern const JobWorkingDirectoryPath;
 QString            extern const MountmonCommand;
 QString            extern const ResetLumenArduinoPortCommand;
-QString            extern const SetpowerCommand;
+QString            extern const SetProjectorPowerCommand;
 QString            extern const ShepherdPath;
 QString            extern const SlicedSvgFileName;
 QString            extern const StlModelLibraryPath;

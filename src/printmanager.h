@@ -41,20 +41,20 @@ protected:
 
 private:
 
-    Shepherd*      _shepherd             { };
-    PrintJob*      _printJob             { };
-    PngDisplayer*  _pngDisplayer         { };
-    ProcessRunner* _setpowerProcess      { };
-    PrintResult    _printResult          { };
+    Shepherd*      _shepherd                 { };
+    PrintJob*      _printJob                 { };
+    PngDisplayer*  _pngDisplayer             { };
+    ProcessRunner* _setProjectorPowerProcess { };
+    PrintResult    _printResult              { };
 
-    bool           _lampOn               { };
-    PrintStep      _step                 { };
-    int            _currentLayer         { };
-    bool           _paused               { false };
+    bool           _lampOn                   { };
+    PrintStep      _step                     { };
+    int            _currentLayer             { };
+    bool           _paused                   { false };
 
-    QTimer*        _preProjectionTimer   { };
-    QTimer*        _layerProjectionTimer { };
-    QTimer*        _preLiftTimer         { };
+    QTimer*        _preProjectionTimer       { };
+    QTimer*        _layerProjectionTimer     { };
+    QTimer*        _preLiftTimer             { };
 
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );

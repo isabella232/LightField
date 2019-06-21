@@ -188,7 +188,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
         debug( "App::`ctor: couldn't create new pid file\n" );
     }
 
-    QProcess::startDetached( SetpowerCommand, { "0" } );
+    QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
     _parseCommandLine( );
     _setTheme( );
@@ -198,7 +198,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
 }
 
 App::~App( ) {
-    QProcess::startDetached( SetpowerCommand, { "0" } );
+    QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
     delete _window;
     delete g_signalHandler;

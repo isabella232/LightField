@@ -21,9 +21,9 @@
 //
 // For each layer:
 //
-// B1. Start projection: "setpower ${powerLevel}".
+// B1. Start projection: "set-projector-power ${powerLevel}".
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
-// B3. Stop projection: "setpower 0".
+// B3. Stop projection: "set-projector-power 0".
 // B4. Pause before raise.
 // B5. Raise the build platform by LiftDistance.
 // B6. Lower the build platform by LiftDistance - LayerHeight.
@@ -59,7 +59,7 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
     _shepherd ( shepherd )
 {
-    _setpowerProcess = new ProcessRunner( this );
+    _setProjectorPowerProcess = new ProcessRunner( this );
 }
 
 PrintManager::~PrintManager( ) {
@@ -101,12 +101,12 @@ void PrintManager::_cleanUp( ) {
         _printJob = nullptr;
     }
 
-    if ( _setpowerProcess ) {
-        if ( _setpowerProcess->state( ) != QProcess::NotRunning ) {
-            _setpowerProcess->kill( );
+    if ( _setProjectorPowerProcess ) {
+        if ( _setProjectorPowerProcess->state( ) != QProcess::NotRunning ) {
+            _setProjectorPowerProcess->kill( );
         }
-        _setpowerProcess->deleteLater( );
-        _setpowerProcess = nullptr;
+        _setProjectorPowerProcess->deleteLater( );
+        _setProjectorPowerProcess = nullptr;
     }
 }
 
@@ -259,7 +259,7 @@ void PrintManager::stepA6_completed( ) {
     emit printPausable( true );
 }
 
-// B1. Start projection: "setpower ${_printJob->powerLevel}".
+// B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
 void PrintManager::stepB1_start( ) {
     _step = PrintStep::B1;
     if ( _paused ) {
@@ -267,7 +267,7 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    debug( "+ PrintManager::stepB1_start: running 'setpower %d'\n", _printJob->powerLevel );
+    debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", _printJob->powerLevel );
 
     QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
     if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
@@ -276,9 +276,9 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
-    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
-    _setpowerProcess->start( SetpowerCommand, { QString( "%1" ).arg( _printJob->powerLevel ) } );
+    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
+    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
+    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { QString( "%1" ).arg( _printJob->powerLevel ) } );
 
     emit startingLayer( _currentLayer );
 }
@@ -286,7 +286,7 @@ void PrintManager::stepB1_start( ) {
 void PrintManager::stepB1_completed( ) {
     debug( "+ PrintManager::stepB1_completed\n" );
 
-    QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
+    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
 
     if ( _printResult == PrintResult::Abort ) {
         stepC1_start( );
@@ -330,7 +330,7 @@ void PrintManager::stepB2_completed( ) {
     stepB3_start( );
 }
 
-// B3. Stop projection: "setpower 0".
+// B3. Stop projection: "set-projector-power 0".
 void PrintManager::stepB3_start( ) {
     _step = PrintStep::B3;
     if ( _paused ) {
@@ -338,19 +338,19 @@ void PrintManager::stepB3_start( ) {
         return;
     }
 
-    debug( "+ PrintManager::stepB3_start: running 'setpower 0'\n" );
+    debug( "+ PrintManager::stepB3_start: running 'set-projector-power 0'\n" );
 
     _pngDisplayer->clear( );
 
-    QObject::connect( _setpowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB3_completed );
-    QObject::connect( _setpowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB3_failed    );
-    _setpowerProcess->start( SetpowerCommand, { "0" } );
+    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB3_completed );
+    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB3_failed    );
+    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { "0" } );
 }
 
 void PrintManager::stepB3_completed( ) {
     debug( "+ PrintManager::stepB3_completed\n" );
 
-    QObject::disconnect( _setpowerProcess, nullptr, this, nullptr );
+    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
 
     if ( _printResult == PrintResult::Abort ) {
         stepC1_start( );
@@ -495,7 +495,7 @@ void PrintManager::stepC1_start( ) {
 
     if ( _lampOn ) {
         debug( "+ PrintManager::stepC1_start: Turning off lamp\n" );
-        QProcess::startDetached( SetpowerCommand, { "0" } );
+        QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
         _lampOn = false;
         emit lampStatusChange( false );
     }
