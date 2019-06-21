@@ -29,6 +29,14 @@ function error-trap () {
     exit 1
 }
 
+function usage () {
+    cat <<EOF
+Usage: $(basename $0) [-q] [-x]
+Where: -q         build quietly
+       -x         force rebuild all
+EOF
+}
+
 trap error-trap ERR
 set -e
 
@@ -37,14 +45,31 @@ LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
 USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
 
-if [ "$1" = "-q" ]
-then
-    VERBOSE=
-    CHXXXVERBOSE=
-else
-    VERBOSE=-v
-    CHXXXVERBOSE=-c
-fi
+VERBOSE=-v
+CHXXXVERBOSE=-c
+FORCEREBUILD=
+BUILDQUIETLY=
+
+while [ -n "$1" ]
+do
+    case "$1" in
+        "-q")
+            VERBOSE=
+	    CHXXXVERBOSE=
+	    BUILDQUIETLY=-q
+        ;;
+
+        "-x")
+            FORCEREBUILD=-x
+        ;;
+
+        *)
+            usage
+            exit 1
+        ;;
+    esac
+    shift
+done
 
 clear
 
@@ -55,11 +80,11 @@ g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTR
 
 blue-bar • Building debugging version of Mountmon
 cd ${MOUNTMON_SRC}
-./rebuild -x
+./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
 blue-bar • Building debugging version of LightField
 cd ${LIGHTFIELD_SRC}
-./rebuild -x
+./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
 blue-bar • Creating any missing directories
 [ ! -d /var/cache/lightfield/print-jobs     ] && mkdir ${VERBOSE} -p /var/cache/lightfield/print-jobs
