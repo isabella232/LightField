@@ -20,12 +20,6 @@ enum class PrintStep {
     C1, C2
 };
 
-inline constexpr int operator+( PrintResult const value ) { return static_cast<int>( value ); }
-inline constexpr int operator+( PrintStep   const value ) { return static_cast<int>( value ); }
-
-char const* ToString( PrintResult const value );
-char const* ToString( PrintStep   const value );
-
 class PrintManager: public QObject {
 
     Q_OBJECT

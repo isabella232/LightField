@@ -42,15 +42,27 @@ namespace {
     auto const PauseBeforeLift                  = 2000; // ms
     auto const LiftDistance                     = 2.00; // mm
 
-    char const* PrintResultStrings[] {
-        "None",
-        "Failure",
-        "Success",
-        "Abort",
+    char const* PrintStepStrings[] {
+        "none",
+        "A1", "A2", "A3", "A4", "A5",
+        "B1", "B2", "B3", "B4", "B5", "B6", "B7",
+        "C1", "C2"
     };
 
     bool IsBadPrintResult( PrintResult const printResult ) {
         return printResult < PrintResult::None;
+    }
+
+    char const* ToString( PrintStep const value ) {
+#if defined _DEBUG
+        if ( ( value >= PrintStep::none ) && ( value <= PrintStep::C2 ) ) {
+#endif
+            return PrintStepStrings[static_cast<int>( value )];
+#if defined _DEBUG
+        } else {
+            return nullptr;
+        }
+#endif
     }
 
 }
@@ -530,7 +542,7 @@ void PrintManager::stepC2_start( ) {
 }
 
 void PrintManager::stepC2_completed( bool const success ) {
-    debug( "+ PrintManager::stepC2_completed: action %s. print result %s [%d]\n", SucceededString( success ), PrintResultStrings[+_printResult], +_printResult );
+    debug( "+ PrintManager::stepC2_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC2_completed );
 
@@ -596,7 +608,7 @@ void PrintManager::terminate( ) {
 }
 
 void PrintManager::abort( ) {
-    debug( "+ PrintManager::abort: current step is %s; currrent print result is %s\n", ToString( _step ), ToString( _printResult ) );
+    debug( "+ PrintManager::abort: current step is %s\n", ToString( _step ) );
 
     _printResult = PrintResult::Abort;
     switch ( _step ) {
