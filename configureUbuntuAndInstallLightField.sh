@@ -127,7 +127,12 @@ pip3 install numpy-stl
 
 mkdir -p ~/Downloads
 cd ~/Downloads
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+if [ -f google-chrome-stable_current_amd64.deb]
+then
+    echo "CHROME ALREADY DOWNLOADED PREVIOUSLY"
+else
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+fi
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 
 
