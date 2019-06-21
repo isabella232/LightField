@@ -22,10 +22,12 @@
 // For each layer:
 //
 // B1. Start projection: "set-projector-power ${powerLevel}".
+// --- no-pause region starts
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
 // B3. Stop projection: "set-projector-power 0".
 // B4. Pause before raise.
 // B5. Raise the build platform by LiftDistance.
+// --- no-pause region ends
 // B6. Lower the build platform by LiftDistance - LayerHeight.
 // B7. Pause before projection.
 //
@@ -267,8 +269,9 @@ void PrintManager::stepA6_completed( ) {
         return;
     }
 
-    stepB1_start( );
     emit printPausable( true );
+
+    stepB1_start( );
 }
 
 // B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
@@ -318,10 +321,6 @@ void PrintManager::stepB1_failed( int const, QProcess::ProcessError const ) {
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
 void PrintManager::stepB2_start( ) {
     _step = PrintStep::B2;
-    if ( _paused ) {
-        emit printPaused( );
-        return;
-    }
 
     int layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
@@ -345,10 +344,6 @@ void PrintManager::stepB2_completed( ) {
 // B3. Stop projection: "set-projector-power 0".
 void PrintManager::stepB3_start( ) {
     _step = PrintStep::B3;
-    if ( _paused ) {
-        emit printPaused( );
-        return;
-    }
 
     debug( "+ PrintManager::stepB3_start: running 'set-projector-power 0'\n" );
 
@@ -382,10 +377,6 @@ void PrintManager::stepB3_failed( int const, QProcess::ProcessError const ) {
 // B4. Pause before raise.
 void PrintManager::stepB4_start( ) {
     _step = PrintStep::B4;
-    if ( _paused ) {
-        emit printPaused( );
-        return;
-    }
 
     debug( "+ PrintManager::stepB4_start: pausing for %d ms before raising build platform\n", PauseBeforeLift );
 
@@ -408,10 +399,6 @@ void PrintManager::stepB4_completed( ) {
 // B5. Raise the build platform by LiftDistance.
 void PrintManager::stepB5_start( ) {
     _step = PrintStep::B5;
-    if ( _paused ) {
-        emit printPaused( );
-        return;
-    }
 
     if ( ++_currentLayer == _printJob->layerCount ) {
         debug( "+ PrintManager::stepB5_start: print complete\n" );
