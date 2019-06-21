@@ -21,17 +21,18 @@
 echo "+ lightfield-common.postinst: args are $*" 1>&2
 case "$1" in
     configure)
-	echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.0_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
-	mkdir -p                                               \
-	    /var/cache/lightfield/print-jobs                   \
-	    /var/lib/lightfield/model-library                  \
-	    /var/lib/lightfield/software-updates               \
-	    /var/log/lightfield
-	chown lumen:lumen -R                                   \
-	    /etc/apt/sources.list.d/volumetric-lightfield.list \
-	    /var/cache/lightfield                              \
-	    /var/lib/lightfield                                \
-	    /var/log/lightfield
+        echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.0_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+        mkdir -p                                               \
+            /var/cache/lightfield/print-jobs                   \
+            /var/lib/lightfield/model-library                  \
+            /var/lib/lightfield/software-updates               \
+            /var/log/lightfield
+        chown lumen:lumen -R                                   \
+            /etc/apt/sources.list.d/volumetric-lightfield.list \
+            /var/cache/lightfield                              \
+            /var/lib/lightfield                                \
+            /var/log/lightfield
+        chmod -R go= /home/lumen/.gnupg
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
