@@ -176,7 +176,8 @@ git reset —-hard HEAD
 git clean -df
 git pull
 chmod +x ./install-lightfield.sh
-sudo ./install-lightfield.sh
+# Use the new -x flag to recompile from scratch FTW
+sudo ./install-lightfield.sh -x
 
 
 
