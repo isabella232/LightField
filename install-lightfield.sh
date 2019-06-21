@@ -104,3 +104,7 @@ systemctl enable getty@tty1.service
 systemctl start getty@tty1.service
 
 systemctl daemon-reload
+
+blue-bar ''
+blue-bar 'Done!'
+blue-bar ''
