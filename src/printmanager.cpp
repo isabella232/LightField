@@ -595,9 +595,15 @@ void PrintManager::terminate( ) {
 }
 
 void PrintManager::abort( ) {
-    debug( "+ PrintManager::abort: current step is %s\n", ToString( _step ) );
+    debug( "+ PrintManager::abort: current step is %s; paused? %s\n", ToString( _step ), YesNoString( _paused ) );
 
     _printResult = PrintResult::Abort;
+
+    if ( _paused ) {
+        debug( "  + Printer is paused, going directly to step C1\n" );
+        stepC1_start( );
+    }
+
     switch ( _step ) {
         case PrintStep::none:
             debug( "  + Going directly to step C1\n" );
