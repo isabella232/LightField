@@ -57,7 +57,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     auto mmHeight = svgElement.attribute( "height" ).toDouble( );
     _pxWidth  = mmWidth  * 20.0 + 0.5;
     _pxHeight = mmHeight * 20.0 + 0.5;
-    debug( "  + dimensions: mm %f×%f; px %d×%d\n", mmWidth, mmHeight, _pxWidth, _pxHeight );
+    debug( "  + dimensions: mm %.2f×%.2f; px %d×%d\n", mmWidth, mmHeight, _pxWidth, _pxHeight );
 
     QDomNodeList childNodes = svgElement.childNodes( );
     int limit = childNodes.length( );
