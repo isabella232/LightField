@@ -73,10 +73,6 @@ void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive )
         debug( "  + bad value for property MediaAvailable: '%s'\n", drive->MediaAvailable ? "true" : "false" );
         return;
     }
-    if ( ( 0 != drive->Media.compare( "thumb", Qt::CaseInsensitive ) ) && ( !drive->Media.startsWith( "flash_", Qt::CaseInsensitive ) ) ) {
-        debug( "  + bad value for property Media: '%s'\n", drive->Media.toUtf8( ).data( ) );
-        return;
-    }
 
     double driveSize = drive->Size;
     int unitIndex = 0;
@@ -110,6 +106,18 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
         debug( "  + not interested in this block device\n" );
         return;
     }
+
+    if ( blockDevice->HintIgnore ) {
+        debug( "  + block device says to ignore it, so ignoring\n" );
+        return;
+    }
+
+    debug(
+        "  + Size:   %Lu bytes\n"
+        "  + System? %s\n",
+        blockDevice->Size,
+        blockDevice->HintSystem ? "yes" : "no"
+    );
 
     blockDevice->setParent( this );
     _blockDevices.insert( path, blockDevice );
