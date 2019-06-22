@@ -136,7 +136,7 @@ systemctl enable set-projector-power.service
 systemctl start set-projector-power.service
 
 systemctl enable getty@tty1.service
-systemctl start getty@tty1.service
+#systemctl start getty@tty1.service
 
 systemctl daemon-reload
 
