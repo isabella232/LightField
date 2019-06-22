@@ -73,10 +73,6 @@ void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive )
         debug( "  + bad value for property MediaAvailable: '%s'\n", drive->MediaAvailable ? "true" : "false" );
         return;
     }
-    if ( ( 0 != drive->Media.compare( "thumb", Qt::CaseInsensitive ) ) && ( !drive->Media.startsWith( "flash_", Qt::CaseInsensitive ) ) ) {
-        debug( "  + bad value for property Media: '%s'\n", drive->Media.toUtf8( ).data( ) );
-        return;
-    }
 
     double driveSize = drive->Size;
     int unitIndex = 0;
