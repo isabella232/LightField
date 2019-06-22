@@ -20,8 +20,8 @@ public:
 
 protected:
 
-    virtual void _connectPrintManager( )               override;
-    virtual void _connectShepherd( )                   override;
+    virtual void _connectPrintManager( )                override;
+    virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:

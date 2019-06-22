@@ -32,7 +32,7 @@ public:
 
 protected:
 
-    virtual void closeEvent( QCloseEvent* event ) override;
+    virtual void closeEvent( QCloseEvent* event )       override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:

@@ -3,6 +3,8 @@
 
 #include "tabbase.h"
 
+#undef ENABLE_SPEED_SETTING
+
 enum class BuildPlatformState {
     Lowered,
     Raising,
@@ -29,8 +31,8 @@ public:
 
 protected:
 
-    virtual void _connectPrintJob( )                   override;
-    virtual void _connectShepherd( )                   override;
+    virtual void _connectPrintJob( )                    override;
+    virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:

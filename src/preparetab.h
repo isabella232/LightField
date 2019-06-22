@@ -22,7 +22,7 @@ public:
 
 protected:
 
-    virtual void _connectShepherd( )                   override;
+    virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:
