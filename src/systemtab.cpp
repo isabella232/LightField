@@ -175,7 +175,7 @@ void SystemTab::shepherd_firmwareVersionReport( QString const& version ) {
         VersionMessage
         .arg( QCoreApplication::applicationName( )    )
         .arg( QCoreApplication::applicationVersion( ) )
-        .arg( "(unknown)" )
+        .arg( version )
         .arg( QCoreApplication::organizationName( )   )
     );
 }
