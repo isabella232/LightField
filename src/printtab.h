@@ -68,9 +68,11 @@ private:
     QLabel*            _powerLevelValue                    { new QLabel      };
     QSlider*           _powerLevelSlider                   { new QSlider     };
 
+#if defined ENABLE_SPEED_SETTING
     QLabel*            _printSpeedLabel                    { new QLabel      };
     QLabel*            _printSpeedValue                    { new QLabel      };
     QSlider*           _printSpeedSlider                   { new QSlider     };
+#endif // defined ENABLE_SPEED_SETTING
 
     QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
@@ -115,7 +117,9 @@ private slots:
     void exposureTimeSlider_valueChanged( int value );
     void exposureTimeScaleFactorSlider_valueChanged( int value );
     void powerLevelSlider_valueChanged( int value );
+#if defined ENABLE_SPEED_SETTING
     void printSpeedSlider_valueChanged( int value );
+#endif // defined ENABLE_SPEED_SETTING
     void printButton_clicked( bool );
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );

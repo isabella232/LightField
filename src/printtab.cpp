@@ -83,6 +83,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
 
 
+#if defined ENABLE_SPEED_SETTING
     _printSpeedLabel->setText( "Print speed:" );
 
     _printSpeedValue->setAlignment( Qt::AlignRight );
@@ -96,13 +97,16 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _printSpeedSlider->setTickInterval( 10 );
     _printSpeedSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _printSpeedSlider, &QSlider::valueChanged, this, &PrintTab::printSpeedSlider_valueChanged );
+#endif // defined ENABLE_SPEED_SETTING
 
 
     _optionsLayout->addLayout( _exposureLayout );
     _optionsLayout->addLayout( WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } ) );
     _optionsLayout->addWidget( _powerLevelSlider );
+#if defined ENABLE_SPEED_SETTING
     _optionsLayout->addLayout( WrapWidgetsInHBox( { _printSpeedLabel, nullptr, _printSpeedValue } ) );
     _optionsLayout->addWidget( _printSpeedSlider );
+#endif // defined ENABLE_SPEED_SETTING
     _optionsLayout->addStretch( );
 
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -160,8 +164,10 @@ void PrintTab::_connectPrintJob( ) {
     _powerLevelSlider->setValue( powerLevelValue );
     _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 
+#if defined ENABLE_SPEED_SETTING
     _printSpeedSlider->setValue( _printJob->printSpeed );
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+#endif // defined ENABLE_SPEED_SETTING
 
     update( );
 }
@@ -225,12 +231,14 @@ void PrintTab::powerLevelSlider_valueChanged( int value ) {
     update( );
 }
 
+#if defined ENABLE_SPEED_SETTING
 void PrintTab::printSpeedSlider_valueChanged( int value ) {
     _printJob->printSpeed = value;
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( value ) );
 
     update( );
 }
+#endif // defined ENABLE_SPEED_SETTING
 
 void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
