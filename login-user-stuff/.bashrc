@@ -128,6 +128,6 @@ cd /home/lumen/Volumetric/
 . envTouchPrint/bin/activate
 
 # Now go into the APP directory:
-cd /home/lumen/Volumetric/LightField/build
+# cd /home/lumen/Volumetric/LightField/build
 
 
