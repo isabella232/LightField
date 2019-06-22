@@ -9,8 +9,6 @@
 
 namespace {
 
-    QString const ShepherdBaseDirectory          { "/usr/share/lightfield/libexec/stdio-shepherd"           };
-
     QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
     QRegularExpression TemperatureReportMatcher2 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
@@ -438,7 +436,7 @@ void Shepherd::launchShepherd( ) {
     QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
     QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
-    _process->setWorkingDirectory( ShepherdBaseDirectory );
+    _process->setWorkingDirectory( ShepherdPath );
     _process->start( "./stdio-shepherd.py" );
 }
 
