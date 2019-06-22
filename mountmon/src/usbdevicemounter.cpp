@@ -107,6 +107,18 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
         return;
     }
 
+    if ( blockDevice->HintIgnore ) {
+        debug( "  + block device says to ignore it, so ignoring\n" );
+        return;
+    }
+
+    debug(
+        "  + Size:   %Lu bytes\n"
+        "  + System? %s\n",
+        blockDevice->Size,
+        blockDevice->HintSystem ? "yes" : "no"
+    );
+
     blockDevice->setParent( this );
     _blockDevices.insert( path, blockDevice );
 }
