@@ -22,7 +22,7 @@
 #echo "+ lightfield-debug.postrm: args are $*" 1>&2
 case "$1" in
     purge|remove)
-		rm /etc/apt/sources.list.d/volumetric-lightfield.list
+        rm /etc/apt/sources.list.d/volumetric-lightfield.list
         systemctl set-default graphical.target
         systemctl start getty@tty1
     ;;
