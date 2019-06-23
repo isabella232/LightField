@@ -39,7 +39,6 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtWidgets>
-#include <QtOpenGL>
 #include <QtXml/QtXml>
 
 #include "constants.h"

@@ -101,11 +101,8 @@ src/usbmountmanager.h)
 #set project resources and icon resource
 set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)
 
-#set Policy CMP0072 FindOpenGL behavior
-set(OpenGL_GL_PREFERENCE GLVND)
-
 #find required packages. 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Xml)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml)
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -129,7 +126,7 @@ endif(WIN32)
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${PROJECT_VERSION}")
 
 #installer information that is platform independent
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fast .stl file viewer.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Lumen X printer user interface software.")
 set(CPACK_PACKAGE_VERSION_MAJOR ${LF_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${LF_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${LF_VERSION_PATCH})

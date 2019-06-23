@@ -1,7 +1,6 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <QtOpenGL>
 #include <QSurfaceFormat>
 #include <QOpenGLShaderProgram>
 

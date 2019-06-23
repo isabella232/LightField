@@ -1,4 +1,4 @@
-QT += core gui opengl widgets xml
+QT += core gui widgets xml
 
 TARGET   = lf
 TEMPLATE = app
