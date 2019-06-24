@@ -447,14 +447,14 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
     update( );
 }
 
-void StatusTab::shepherd_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
+void StatusTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
     if ( bedCurrentTemperature >= 30.0 ) {
         _warningHotLabel->setPixmap( *_warningHotImage );
     } else {
         _warningHotLabel->clear( );
     }
 
-    if ( bedPwm ) {
+    if ( bedTargetTemperature != 0.0 ) {
         _SetTextAndShow( _temperatureDisplay, QString { "Print bed is %1 °C/%2 °C" }.arg( bedCurrentTemperature, 0, 'f', 1 ).arg( bedTargetTemperature, 0, 'f', 1 ) );
     } else {
         _SetTextAndShow( _temperatureDisplay, "Print bed heating is off." );
@@ -534,8 +534,9 @@ void StatusTab::_connectPrintManager( ) {
 
 void StatusTab::_connectShepherd( ) {
     if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,  this, &StatusTab::printer_online  );
-        QObject::connect( _shepherd, &Shepherd::printer_offline, this, &StatusTab::printer_offline );
+        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &StatusTab::printer_online            );
+        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &StatusTab::printer_offline           );
+        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &StatusTab::printer_temperatureReport );
     }
 }
 
