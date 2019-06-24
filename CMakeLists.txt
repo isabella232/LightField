@@ -59,7 +59,8 @@ src/gpgsignaturechecker.cpp
 src/upgradekitunpacker.cpp
 src/upgrademanager.cpp
 src/upgradeselector.cpp
-src/usbmountmanager.cpp)
+src/usbmountmanager.cpp
+src/lightfieldstyle.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
@@ -96,7 +97,8 @@ src/gpgsignaturechecker.h
 src/upgradekitunpacker.h
 src/upgrademanager.h
 src/upgradeselector.h
-src/usbmountmanager.h)
+src/usbmountmanager.h
+src/lightfieldstyle.h)
 
 #set project resources and icon resource
 set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)

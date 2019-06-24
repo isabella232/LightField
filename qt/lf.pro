@@ -9,6 +9,7 @@ QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
 
 SOURCES +=                         \
     ../src/debug.cpp               \
+    ../src/version.cpp             \
     ../src/app.cpp                 \
     ../src/main.cpp                \
     ../src/canvas.cpp              \
@@ -40,7 +41,7 @@ SOURCES +=                         \
     ../src/upgrademanager.cpp      \
     ../src/upgradeselector.cpp     \
     ../src/usbmountmanager.cpp     \
-    ../src/version.cpp
+    ../src/lightfieldstyle.cpp
 
 HEADERS  +=                        \
     ../src/debug.h                 \
@@ -76,7 +77,8 @@ HEADERS  +=                        \
     ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h        \
     ../src/upgradeselector.h       \
-    ../src/usbmountmanager.h
+    ../src/usbmountmanager.h       \
+    ../src/lightfieldstyle.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h

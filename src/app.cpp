@@ -2,6 +2,7 @@
 
 #include "app.h"
 
+#include "lightfieldstyle.h"
 #include "signalhandler.h"
 #include "utils.h"
 #include "version.h"
@@ -111,7 +112,7 @@ void App::_parseCommandLine( ) {
 }
 
 void App::_setTheme( ) {
-    setStyle( QStyleFactory::create( "Fusion" ) );
+    setStyle( new LightFieldStyle( "Fusion" ) );
 
     if ( g_settings.theme != Theme::Dark ) {
         return;
@@ -152,8 +153,6 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ), NormalFontSize ) );
-
-    _debugManager = new DebugManager;
 
     QFile pidFile { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
     if ( pidFile.exists( ) ) {
