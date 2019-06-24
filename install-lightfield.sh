@@ -96,7 +96,7 @@ chown ${CHXXXVERBOSE} -R lumen:lumen /var/cache/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
-echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.0_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.1_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} 	 lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
 blue-bar • Installing files
