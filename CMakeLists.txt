@@ -103,7 +103,6 @@ set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)
 
 #find required packages. 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml)
-find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 
 #add resources to RCC
@@ -113,13 +112,13 @@ qt5_add_resources(Project_Resources_RCC ${Project_Resources})
 set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 
 #include opengl files. 
-include_directories(${QT_QTOPENGL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} )
+include_directories(${OPENGL_INCLUDE_DIR} )
 
 add_executable(lf WIN32 ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
-target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::OpenGL ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 if(WIN32)
-  set(Fstl_LINK_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/${Icon_Resource})
-  set_target_properties(lf PROPERTIES LINK_FLAGS ${Fstl_LINK_FLAGS})
+  set(Lf_LINK_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/${Icon_Resource})
+  set_target_properties(lf PROPERTIES LINK_FLAGS ${Lf_LINK_FLAGS})
 endif(WIN32)
 
 # Add version definitions to use within the code. 
