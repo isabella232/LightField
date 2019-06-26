@@ -165,8 +165,9 @@ void PrintTab::_connectPrintJob( ) {
     _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 
 #if defined ENABLE_SPEED_SETTING
-    _printSpeedSlider->setValue( _printJob->printSpeed );
-    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+    auto printSpeedValue = static_cast<int>( _printJob->printSpeed + 0.5 );
+    _printSpeedSlider->setValue( printSpeedValue );
+    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( printSpeedValue ) );
 #endif // defined ENABLE_SPEED_SETTING
 
     update( );
@@ -257,7 +258,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Raising;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+            _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
             break;
 
         case BuildPlatformState::Raised:
@@ -265,7 +266,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Lowering;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0 );
+            _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0, PrinterDefaultHighSpeed );
             break;
     }
 

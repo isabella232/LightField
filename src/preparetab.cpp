@@ -543,7 +543,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
 
     update( );
 }
