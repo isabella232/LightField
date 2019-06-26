@@ -7,8 +7,6 @@ from threading import Thread
 
 sys.path.append( '/usr/share/lightfield/libexec/printrun' )
 
-from Util.constants import MOTOR_AXIS
-
 from printrun import printcore
 from printrun.eventhandler import PrinterEventHandler
 
@@ -134,23 +132,23 @@ class printer(PrinterEventHandler):
             self.sendcb(output)
         self.p.send_now(output)
 
-    def move(self, d=1.0, axis=MOTOR_AXIS):
+    def move(self, d, r):
         if(self.p.online):
             self.send_noisy("G91")
-            self.send_noisy("G0 %s%f"%(axis,d))
+            self.send_noisy("G0 X%f F%f"%(d,r))
             self.send_noisy("M400")
             self.send_noisy("M114")
 
-    def moveto(self, d=1.0, axis=MOTOR_AXIS):
+    def moveto(self, d, r):
         if(self.p.online):
             self.send_noisy("G90")
-            self.send_noisy("G0 %s%f"%(axis,d))
+            self.send_noisy("G0 X%f F%f"%(d,r))
             self.send_noisy("M400")
             self.send_noisy("M114")
 
-    def home(self, axis=MOTOR_AXIS):
+    def home(self):
         if(self.p.online):
-            self.send_noisy("G28 "+axis)
+            self.send_noisy("G28 X")
             self.send_noisy("M400")
             self.send_noisy("M114")
 
