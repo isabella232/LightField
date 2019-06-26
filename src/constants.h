@@ -41,15 +41,19 @@ QChar              extern const FA_Backward;
 QChar              extern const FA_Forward;
 QChar              extern const FA_FastForward;
 
-double                    const PrinterMaximumX          = 64.00;
-double                    const PrinterMaximumY          = 40.00;
-double                    const PrinterMaximumZ          = 50.00;
-double                    const PrinterRaiseToMaxZHeight = 70.00;
+double                    const PrinterMaximumX          =  64.00; // mm
+double                    const PrinterMaximumY          =  40.00; // mm
+double                    const PrinterMaximumZ          =  50.00; // mm
+double                    const PrinterRaiseToMaximumZ   =  70.00; // mm
+double                    const PrinterHighSpeedLowerToZ =  10.00; // mm
 
-double                    const AspectRatio5to3          =  5.0 /  3.0;
-double                    const AspectRatio16to10        = 16.0 / 10.0;
+double                    const PrinterDefaultHighSpeed  = 200.00; // mm/min
+double                    const PrinterDefaultLowSpeed   =  50.00; // mm/min
 
-double                    const LargeFontSize            = 22.0;
-double                    const NormalFontSize           = 12.0;
+double                    const AspectRatio5to3          =   5.0 /  3.0;
+double                    const AspectRatio16to10        =  16.0 / 10.0;
+
+double                    const LargeFontSize            =  22.0; // pt
+double                    const NormalFontSize           =  12.0; // pt
 
 #endif // __CONSTANTS_H__
