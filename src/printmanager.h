@@ -15,9 +15,9 @@ enum class PrintResult {
 
 enum class PrintStep {
     none,
-    A1, A2, A3, A4, A5, A6,
+    A1, A2, A3, A4, A5,
     B1, B2, B3, B4, B5, B6, B7,
-    C1, C2
+    C1,
 };
 
 class PrintManager: public QObject {
@@ -96,10 +96,7 @@ private slots:
     void stepA4_completed( bool const success );
 
     void stepA5_start( );
-    void stepA5_completed( bool const success );
-
-    void stepA6_start( );
-    void stepA6_completed( );
+    void stepA5_completed( );
 
     void stepB1_start( );
     void stepB1_completed( );
@@ -127,9 +124,6 @@ private slots:
 
     void stepC1_start( );
     void stepC1_completed( bool const success );
-
-    void stepC2_start( );
-    void stepC2_completed( bool const success );
 
 };
 
