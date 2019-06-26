@@ -49,7 +49,7 @@ public:
     double     exposureTime            { 1.0 }; // unit: s
     double     exposureTimeScaleFactor { 1.0 }; // for first two layers
     int        powerLevel              { 128 }; // range: 0..255
-    int        printSpeed              {  50 }; // unit: mm/min; range: 50-200
+    double     printSpeed              { PrinterDefaultLowSpeed }; // unit: mm/min; range: 50-200
 
 };
 
