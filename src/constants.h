@@ -12,6 +12,7 @@ QSize              extern       MainWindowSize;
 QSize              extern       MainButtonSize;
 QSize              extern       MaximalRightHandPaneSize;
 
+QSize              extern const ButtonPadding;
 QSize              extern const ProjectorWindowSize;
                                                              
 QString            extern const AptSourcesFilePath;

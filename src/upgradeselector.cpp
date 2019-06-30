@@ -110,9 +110,9 @@ void UpgradeSelector::_initialShowEvent( QShowEvent* event ) {
     move( g_settings.mainWindowPosition );
     setFixedSize( MainWindowSize );
 
-    auto newSize = maxSize( _upgradeButton->size( ), _cancelButton->size( ) ) + QSize { 20, 4 };
+    auto newSize = maxSize( _upgradeButton->size( ), _cancelButton->size( ) ) + ButtonPadding;
     _upgradeButton->setFixedSize( newSize );
-    _cancelButton->setFixedSize( newSize );
+    _cancelButton ->setFixedSize( newSize );
 
     event->accept( );
 }

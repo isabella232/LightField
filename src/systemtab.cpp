@@ -113,8 +113,7 @@ void SystemTab::_connectShepherd( ) {
 }
 
 void SystemTab::_initialShowEvent( QShowEvent* event ) {
-    QSize newSize = maxSize( maxSize( maxSize( _updateSoftwareButton->size( ), _updateFirmwareButton->size( ) ), _restartButton->size( ) ), _shutDownButton->size( ) ) + QSize { 20, 4 };
-
+    QSize newSize = maxSize( maxSize( maxSize( _updateSoftwareButton->size( ), _updateFirmwareButton->size( ) ), _restartButton->size( ) ), _shutDownButton->size( ) ) + ButtonPadding;
     _updateSoftwareButton->setFixedSize( newSize );
     _updateFirmwareButton->setFixedSize( newSize );
     _restartButton       ->setFixedSize( newSize );

@@ -155,7 +155,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionLabel->setWordWrap( true );
 
     _startThePrintButton->setFont( font22pt );
-    _startThePrintButton->setFixedSize( MainButtonSize.width( ) + 20, MainButtonSize.height( ) );
+    _startThePrintButton->setFixedSize( MainButtonSize );
     _startThePrintButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _startThePrintButton->setText( "Start the print" );
     QObject::connect( _startThePrintButton, &QPushButton::clicked, this, &StatusTab::startThePrintButton_clicked );

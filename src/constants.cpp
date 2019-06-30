@@ -12,6 +12,7 @@ QSize                           MainWindowSize                { 1024, 600 };
 QSize                           MainButtonSize                {  279,  93 };
 QSize                           MaximalRightHandPaneSize      {  722, 530 };
 
+QSize                     const ButtonPadding                 {   20,   4 };
 QSize                     const ProjectorWindowSize           { 1280, 800 };
                                                              
 QString                   const AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
