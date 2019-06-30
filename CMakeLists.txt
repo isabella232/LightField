@@ -65,6 +65,7 @@ src/lightfieldstyle.cpp)
 #set project headers. 
 set(Project_Headers src/debug.h
 src/pch.h
+src/win32junk.h
 src/version.h
 src/app.h
 src/canvas.h
