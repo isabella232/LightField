@@ -23,8 +23,7 @@
 case "$1" in
     purge|remove)
         rm /etc/apt/sources.list.d/volumetric-lightfield.list
-        systemctl set-default graphical.target
-        systemctl start getty@tty1
+        sed -i 's/^##XX## //' /etc/apt/sources.list /etc/apt/sources.list.d/*
     ;;
 
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
