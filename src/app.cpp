@@ -34,7 +34,7 @@ namespace {
 
     QList<std::function<void( )>> commandLineActions {
         [] ( ) { // -? or --help
-            ::fputs( commandLineParser.helpText( ).toUtf8( ).data( ), stderr );
+            ::fputs( commandLineParser.helpText( ).toUtf8( ).data( ), stdout );
             ::exit( 0 );
         },
         [] ( ) { // -l or --light
