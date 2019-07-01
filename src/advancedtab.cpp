@@ -12,7 +12,7 @@
 
 namespace {
 
-    auto DefaultPrintBedTemperature = 40;
+    auto DefaultPrintBedTemperature = 60;
 
 }
 
