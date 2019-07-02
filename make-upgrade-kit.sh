@@ -137,23 +137,20 @@ rm ${VERBOSE} -rf                                                 \
     version.inf                                                   \
     version.inf.sig
 
-sha256sum                                                         \
-    -b                                                            \
-    *                                                             \
-    | sed                                                         \
-    -r                                                            \
-    -e 's/^/ /'                                                   \
-    -e 's/ +\*/ /'                                                \
-    > .hashes
-
 (
-    sed                                                           \
-        -e "s/@@VERSION@@/${VERSION}/g"                           \
-        -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g"                       \
-        -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g"                   \
-        "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
-    cat                                                           \
-        .hashes
+    sed -e "s/@@VERSION@@/${VERSION}/g" -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g" -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g" "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
+
+    # extract description from ${LIGHTFIELD_SRC}/debian/changelog
+    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_SRC}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
+    if [ -z "${linecount}" -o ( "${linecount}" -lt 1 ) ]
+    then
+        red-bar " *** Can't find end of first change in ${LIGHTFIELD_SRC}/debian/changelog, aborting"
+        exit 1
+    fi
+    head -$((linecount - 2)) ${LIGHTFIELD_SRC}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
+
+    echo 'Checksums-SHA256:'
+    sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /'
 ) > version.inf
 rm .hashes
 
