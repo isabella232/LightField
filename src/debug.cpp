@@ -2,7 +2,7 @@
 
 #include "debug.h"
 
-#if defined _DEBUG
+//#if defined _DEBUG
 
 namespace {
 
@@ -56,4 +56,4 @@ void debug( char const* str ) {
     ::fputs( str, OriginalStderr );
 }
 
-#endif // defined _DEBUG
+//#endif // defined _DEBUG

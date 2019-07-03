@@ -19,4 +19,10 @@ inline constexpr unsigned MakeVersionCode( int const major, int const minor, int
     return ( major << 24u ) | ( minor << 16u ) | ( teeny << 8u );
 }
 
+inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major, int& minor, int& teeny ) {
+    major = static_cast<int>( ( versionCode >> 24u ) & 0xFFu );
+    minor = static_cast<int>( ( versionCode >> 16u ) & 0xFFu );
+    teeny = static_cast<int>( ( versionCode >>  8u ) & 0xFFu );
+}
+
 #endif // __VERSION_H__

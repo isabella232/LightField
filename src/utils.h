@@ -1,8 +1,6 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment = Qt::AlignCenter );
-
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets );
 QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets );
 
@@ -15,12 +13,13 @@ QPalette ModifyPalette( QPalette const& palette, QPalette::ColorGroup const grou
 QPalette ModifyPalette( QPalette const& palette, QPalette::ColorRole const role, QColor const& color );
 
 QString GetUserName( );
-QString GetFirstDirectoryIn( QString const& directory );
 
 qreal Distance( QPointF const& a, QPointF const& b );
 int   Distance( QPoint  const& a, QPoint  const& b );
 
 double GetBootTimeClock( );
+
+QString ReadWholeFile( QString const& fileName );
 
 inline QString GetFileBaseName( QString const& fileName ) {
     return fileName.mid( fileName.lastIndexOf( Slash ) + 1 );
@@ -29,8 +28,6 @@ inline QString GetFileBaseName( QString const& fileName ) {
 inline QString RemoveFileExtension( QString const& fileName ) {
     return fileName.left( fileName.lastIndexOf( QChar( '.' ) ) );
 }
-
-QString ReadWholeFile( QString const& fileName );
 
 inline QSize minSize( QSize const& a, QSize const& b ) {
     return QSize { std::min( a.width( ), b.width( ) ), std::min( a.height( ), b.height( ) ) };

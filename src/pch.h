@@ -32,7 +32,6 @@
 #include <exception>
 #include <functional>
 #include <future>
-#include <memory>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
@@ -48,5 +47,7 @@
 #if defined WIN32
 #   include "win32junk.h"
 #endif // defined WIN32
+
+#define _countof(x) (sizeof(x) / sizeof(x[0]))
 
 #endif // __PCH_H__

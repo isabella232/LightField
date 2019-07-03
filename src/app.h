@@ -45,6 +45,8 @@ private:
     Window*       _window;
 
     void _parseCommandLine( );
+    bool _isAlreadyRunning( );
+    void _recordProcessId( );
     void _setTheme( );
 
 };

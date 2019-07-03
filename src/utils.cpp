@@ -4,15 +4,6 @@
 
 #include "utils.h"
 
-QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment ) {
-    auto layout = new QVBoxLayout;
-
-    layout->setAlignment( alignment );
-    layout->setContentsMargins( { } );
-    layout->addWidget( widget );
-    return layout;
-}
-
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
     auto layout = new QHBoxLayout;
 
@@ -90,19 +81,6 @@ QString GetUserName( ) {
 
     delete[] buf;
     return userName;
-}
-
-QString GetFirstDirectoryIn( QString const& directory ) {
-    auto dir = new QDir( directory );
-    dir->setFilter( QDir::Dirs | QDir::NoDotAndDotDot );
-
-    QString dirname;
-    for ( auto name : dir->entryList( ) ) {
-        dirname = name;
-        break;
-    }
-
-    return dirname;
 }
 
 qreal Distance( QPointF const& a, QPointF const& b ) {

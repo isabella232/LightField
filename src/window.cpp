@@ -30,6 +30,7 @@ namespace {
 #if defined _DEBUG
         SIGUSR1,
 #endif // defined _DEBUG
+        SIGUSR2,
     };
 
 }
@@ -50,8 +51,9 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     _pngDisplayer = new PngDisplayer;
     _pngDisplayer->show( );
 
-    QObject::connect( g_signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
-    g_signalHandler->subscribe( signalList );
+    _signalHandler = new SignalHandler;
+    QObject::connect( _signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
+    _signalHandler->subscribe( signalList );
 
     _shepherd = new Shepherd { parent };
     QObject::connect( _shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
@@ -237,9 +239,11 @@ void Window::closeEvent( QCloseEvent* event ) {
         _pngDisplayer = nullptr;
     }
 
-    if ( g_signalHandler ) {
-        QObject::disconnect( g_signalHandler, nullptr, this, nullptr );
-        g_signalHandler->unsubscribe( signalList );
+    if ( _signalHandler ) {
+        QObject::disconnect( _signalHandler );
+        _signalHandler->unsubscribe( signalList );
+        _signalHandler->deleteLater( );
+        _signalHandler = nullptr;
     }
 
     deleteLater( );
@@ -436,21 +440,23 @@ void Window::prepareTab_slicingNeeded( bool const needed ) {
     }
 }
 
-#if defined _DEBUG
-void Window::signalHandler_signalReceived( int const signalNumber ) {
-    debug( "+ Window::signalHandler_signalReceived: received signal %s [%d]\n", ::strsignal( signalNumber ), signalNumber );
+void Window::signalHandler_signalReceived( siginfo_t const& info ) {
+    debug( "+ Window::signalHandler_signalReceived: received signal %s [%d]\n", ::strsignal( info.si_signo ), info.si_signo );
 
-    if ( SIGUSR1 == signalNumber ) {
+    if ( ( SIGUSR2 == info.si_signo ) && ( getpid( ) != info.si_pid ) ) {
+        sigval_t val;
+        val.sival_int = LIGHTFIELD_VERSION_CODE;
+        sigqueue( info.si_pid, SIGUSR2, val );
+    }
+#if defined _DEBUG
+    if ( SIGUSR1 == info.si_signo ) {
         debug( "+ Window::signalHandler_signalReceived: object information dump:\n" );
         dumpObjectInfo( );
         debug( "+ Window::signalHandler_signalReceived: object tree dump:\n" );
         dumpObjectTree( );
-    } else {
-        close( );
+        return;
     }
-}
-#else
-void Window::signalHandler_signalReceived( int const signalNumber ) {
+#endif // defined _DEBUG
+
     close( );
 }
-#endif // defined _DEBUG
