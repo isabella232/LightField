@@ -95,6 +95,7 @@ SystemTab::SystemTab( QWidget* parent ): InitialShowEventMixin<SystemTab, TabBas
     _layout->addLayout( updateButtonsLayout );
     _layout->addStretch( );
     _layout->addLayout( mainButtonsLayout );
+    _layout->addStretch( );
     _layout->setAlignment( Qt::AlignCenter );
     _layout->setContentsMargins( { } );
     setLayout( _layout );
