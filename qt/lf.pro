@@ -41,7 +41,8 @@ SOURCES +=                         \
     ../src/upgrademanager.cpp      \
     ../src/upgradeselector.cpp     \
     ../src/usbmountmanager.cpp     \
-    ../src/lightfieldstyle.cpp
+    ../src/lightfieldstyle.cpp     \
+    ../src/filecopier.cpp
 
 HEADERS  +=                        \
     ../src/debug.h                 \
@@ -78,7 +79,8 @@ HEADERS  +=                        \
     ../src/upgrademanager.h        \
     ../src/upgradeselector.h       \
     ../src/usbmountmanager.h       \
-    ../src/lightfieldstyle.h
+    ../src/lightfieldstyle.h       \
+    ../src/filecopier.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h
