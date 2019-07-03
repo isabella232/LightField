@@ -15,12 +15,11 @@
 #include <bitset>
 #include <memory>
 
-#define debug(...) fprintf( stderr, __VA_ARGS__ )
-
+#define debug(...)  fprintf( stderr, __VA_ARGS__ )
 #define _countof(x) (sizeof(x) / sizeof(x[0]))
 
 #ifdef WIN32
-extern int chmod( char const* pathname, int mode );
+#include "../../src/win32junk.h"
 #endif // WIN32
 
 #endif // ! defined __PCH_H__

@@ -1,6 +1,7 @@
 #if ! defined __USBDEVICEMOUNTER_H__
 #define __USBDEVICEMOUNTER_H__
 
+class SignalHandler;
 class UDisksMonitor;
 class UDrive;
 class UPartitionTable;
@@ -14,17 +15,18 @@ class UsbDeviceMounter: public QObject {
 
 public:
 
-    UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent = nullptr );
+    UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent = nullptr );
     virtual ~UsbDeviceMounter( ) override;
 
 protected:
 
 private:
 
-    UDisksMonitor*                          _monitor;
-    QMap<QDBusObjectPath, UDrive*>          _drives;
-    QMap<QDBusObjectPath, UBlockDevice*>    _blockDevices;
-    QMap<QDBusObjectPath, UFilesystem*>     _filesystems;
+    SignalHandler*                       _signalHandler;
+    UDisksMonitor&                       _monitor;
+    QMap<QDBusObjectPath, UDrive*>       _drives;
+    QMap<QDBusObjectPath, UBlockDevice*> _blockDevices;
+    QMap<QDBusObjectPath, UFilesystem*>  _filesystems;
 
     void _mount( QDBusObjectPath const& path, UFilesystem* filesystem );
 
@@ -50,7 +52,7 @@ private slots:
     void _blockDeviceRemoved ( QDBusObjectPath const& path );
     void _filesystemRemoved  ( QDBusObjectPath const& path );
 
-    void _signalReceived     ( int const signalNumber );
+    void _signalReceived     ( siginfo_t const& info );
 
 };
 

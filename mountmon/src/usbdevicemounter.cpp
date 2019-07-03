@@ -19,26 +19,25 @@ namespace {
 
 }
 
-
-UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
+UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent ):
     QObject  ( parent  ),
     _monitor ( monitor )
 {
-    QObject::connect( g_signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived     );
-    g_signalHandler->subscribe( signalList );
+    _signalHandler = new SignalHandler;
+    QObject::connect( _signalHandler, &SignalHandler::signalReceived, this, &UsbDeviceMounter::_signalReceived     );
+    _signalHandler->subscribe( signalList );
 
-    QObject::connect( _monitor,        &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
-    QObject::connect( _monitor,        &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
-    QObject::connect( _monitor,        &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
-                                       
-    QObject::connect( _monitor,        &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
-    QObject::connect( _monitor,        &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
-    QObject::connect( _monitor,        &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
+    QObject::connect( &_monitor, &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
+    QObject::connect( &_monitor, &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
+    QObject::connect( &_monitor, &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+
+    QObject::connect( &_monitor, &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
+    QObject::connect( &_monitor, &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
+    QObject::connect( &_monitor, &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
 }
 
 UsbDeviceMounter::~UsbDeviceMounter( ) {
-    QObject::disconnect( _monitor, nullptr, this, nullptr );
-    _monitor = nullptr;
+    QObject::disconnect( &_monitor );
 }
 
 void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesystem ) {
@@ -47,16 +46,18 @@ void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesys
     mount.setArguments( QVariantList { } << QVariantMap { { "options", QString { "ro,noexec,umask=0222" } } } );
     QDBusReply<QString> reply = QDBusConnection::systemBus( ).call( mount, QDBus::Block, -1 );
     if ( reply.isValid( ) ) {
-        auto mountPoint = reply.value( );
+        auto mountPoint     = reply.value( );
         auto mountPointText = mountPoint.toUtf8( ).data( );
-        debug( "+ UsbDeviceMounter::_mount: filesystem at path %s mounted at %s\n", path.path( ).toUtf8( ).data( ), mountPointText );
-        printf( "mounted:%s\n", mountPointText );
+
         filesystem->OurMountPoint = mountPoint;
         chmod( mountPointText, 0555 );
         auto index = mountPoint.lastIndexOf( '/' );
         if ( index > 0 ) {
             chmod( mountPoint.left( index ).toUtf8( ).data( ), 0755 );
         }
+
+        debug( "+ UsbDeviceMounter::_mount: filesystem at path %s mounted at %s\n", path.path( ).toUtf8( ).data( ), mountPointText );
+        printf( "mounted:%s\n", mountPointText );
     } else {
         debug( "+ UsbDeviceMounter::_mount: failed to mount filesystem at path %s: %s\n", path.path( ).toUtf8( ).data( ), reply.error( ).message( ).toUtf8( ).data( ) );
     }
@@ -160,7 +161,7 @@ void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
     _filesystems.remove( path );
 }
 
-void UsbDeviceMounter::_signalReceived( int const signalNumber ) {
-    debug( "+ UsbDeviceMounter::_signalReceived: signal %d\n", signalNumber );
+void UsbDeviceMounter::_signalReceived( siginfo_t const& info ) {
+    debug( "+ UsbDeviceMounter::_signalReceived: signal %s [%d]\n", ::strsignal( info.si_signo ), info.si_signo );
     qApp->exit( );
 }
