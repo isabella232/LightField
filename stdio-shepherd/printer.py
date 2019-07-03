@@ -152,11 +152,11 @@ class printer(PrinterEventHandler):
             self.send_noisy("M400")
             self.send_noisy("M114")
 
-    def lift(self, d=0.1, l=2.0, axis=MOTOR_AXIS):
+    def lift(self, d=0.1, l=2.0):
         if(self.p.online):
             self.send_noisy("G91")
-            self.send_noisy("G0 %s%f"%(axis,l))
-            self.send_noisy("G0 %s%f"%(axis,d-l))
+            self.send_noisy("G0 X%f"%l)
+            self.send_noisy("G0 X%f"%(d-l))
             self.send_noisy("G90")
             self.send_noisy("M400")
             self.send_noisy("M114")
