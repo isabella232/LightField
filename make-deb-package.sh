@@ -158,7 +158,6 @@ install ${VERBOSE} -DT -m 755 build/lf ${LIGHTFIELD_FILES}/usr/bin/lf
 
 blue-bar • Copying files into packaging directory
 
-install ${VERBOSE} -DT -m 644 apt-files/volumetric-lightfield.list            "${LIGHTFIELD_FILES}/etc/apt/sources.list.d/volumetric-lightfield.list"
 install ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg"
 install ${VERBOSE} -DT -m 440 system-stuff/lumen-lightfield                   "${LIGHTFIELD_FILES}/etc/sudoers.d/lumen-lightfield"
 install ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf "${LIGHTFIELD_FILES}/etc/systemd/system/getty@tty1.service.d/override.conf"
