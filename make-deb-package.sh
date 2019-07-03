@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.1
+VERSION=1.0.2
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -111,7 +111,7 @@ cd "${USBDRIVER_SRC}"
 
 ##################################################
 
-blue-bar • Building and installing "${BUILDTYPE}" version of set-projector-power
+blue-bar • Building "${BUILDTYPE}" version of set-projector-power
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -126,7 +126,7 @@ cd "${MOUNTMON_SRC}"
 
 ##################################################
 
-blue-bar • Building and installing "${BUILDTYPE}" version of Mountmon
+blue-bar • Building "${BUILDTYPE}" version of Mountmon
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -143,7 +143,7 @@ cd "${LIGHTFIELD_SRC}"
 
 ##################################################
 
-blue-bar • Building and installing "${BUILDTYPE}" version of LightField
+blue-bar • Building "${BUILDTYPE}" version of LightField
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -156,9 +156,8 @@ install ${VERBOSE} -DT -m 755 build/lf ${LIGHTFIELD_FILES}/usr/bin/lf
 
 ##################################################
 
-blue-bar • Installing system files
+blue-bar • Copying files into packaging directory
 
-install ${VERBOSE} -DT -m 644 apt-files/volumetric-lightfield.list            "${LIGHTFIELD_FILES}/etc/apt/sources.list.d/volumetric-lightfield.list"
 install ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg"
 install ${VERBOSE} -DT -m 440 system-stuff/lumen-lightfield                   "${LIGHTFIELD_FILES}/etc/sudoers.d/lumen-lightfield"
 install ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf "${LIGHTFIELD_FILES}/etc/systemd/system/getty@tty1.service.d/override.conf"
@@ -181,7 +180,7 @@ cd "${PRINTRUN_SRC}"
 
 ##################################################
 
-blue-bar • Installing printrun
+blue-bar • Copying printrun files into packaging directory
 
 install ${VERBOSE} -DT -m 644 printrun/__init__.py                            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/__init__.py"
 install ${VERBOSE} -DT -m 644 printrun/eventhandler.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/eventhandler.py"

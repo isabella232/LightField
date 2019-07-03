@@ -1,3 +1,9 @@
+lightfield (1.0.2) stable; urgency=medium
+
+  * Change print bed temperature to 60 °C when print bed heating is enabled.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 03 Jul 2019 15:28:40 -0700
+
 lightfield (1.0.1) stable; urgency=medium
 
   * Display firmware version on System tab.

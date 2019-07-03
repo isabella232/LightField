@@ -3,9 +3,3 @@ Version: @@VERSION@@
 Build-Type: @@BUILDTYPE@@
 Release-Date: @@RELEASEDATE@@
 Description:
- This is the description for this update. Include information about changes here.
- .
- The description text needs to start in the *second* column, after a space. To add a blank line, put a single period ('.') in the second column.
- .
- Do not manually wrap long lines: the control in which this description is shown will do so automatically.
-Checksums-SHA256:
