@@ -137,6 +137,7 @@ rm ${VERBOSE} -rf                                                 \
     version.inf                                                   \
     version.inf.sig
 
+sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
 (
     sed -e "s/@@VERSION@@/${VERSION}/g" -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g" -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g" "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
 
@@ -150,8 +151,9 @@ rm ${VERBOSE} -rf                                                 \
     head -$((linecount - 2)) ${LIGHTFIELD_SRC}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
 
     echo 'Checksums-SHA256:'
-    sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /'
+    cat .hashes
 ) > version.inf
+rm .hashes
 
 gpg                                                               \
     ${VERBOSE}                                                    \
