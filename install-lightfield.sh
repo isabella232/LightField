@@ -96,6 +96,7 @@ chown ${CHXXXVERBOSE} -R lumen:lumen /var/cache/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
+perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.1_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} 	 lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
