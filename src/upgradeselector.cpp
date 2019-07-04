@@ -35,6 +35,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     QObject::connect( kitsListView, &GestureListView::clicked, this, &UpgradeSelector::kitsListView_clicked );
 
     _description = new QLabel;
+    _description->setAlignment( Qt::AlignLeft | Qt::AlignTop );
     _description->setFont( ModifyFont( _description->font( ), 14.0 ) );
     _description->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _description->setFixedWidth( MainWindowSize.width( ) / 3 - 14 );

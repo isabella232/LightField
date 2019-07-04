@@ -22,6 +22,11 @@ namespace {
         "lightfield-release_*_amd64"
     };
 
+    QMap<BuildType, QString> BuildTypeToString {
+        { BuildType::Release, "release" },
+        { BuildType::Debug,   "debug"   },
+    };
+
     QMap<QString, BuildType> StringToBuildType {
         { "release", BuildType::Release },
         { "debug",   BuildType::Debug   },
@@ -52,10 +57,16 @@ UpgradeManager::~UpgradeManager( ) {
 
 void UpgradeManager::_dumpBufferContents( ) {
     if ( !_stdoutBuffer.isEmpty( ) ) {
-        debug( "  + stdout:\n[apt-get] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+        if ( !_stdoutBuffer.endsWith( LineFeed ) ) {
+            _stdoutBuffer += LineFeed;
+        }
+        debug( "[stdout] %s", _stdoutBuffer.replace( NewLineRegex, "\n[stdout] " ).toUtf8( ).data( ) );
     }
     if ( !_stderrBuffer.isEmpty( ) ) {
-        debug( "  + stderr:\n[apt-get] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get] " ).toUtf8( ).data( ) );
+        if ( !_stderrBuffer.endsWith( LineFeed ) ) {
+            _stderrBuffer += LineFeed;
+        }
+        debug( "[stderr] %s", _stderrBuffer.replace( NewLineRegex, "\n[stderr] " ).toUtf8( ).data( ) );
     }
 }
 
@@ -506,10 +517,31 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
     _checkForUpgrades( upgradesPath );
 }
 
+void UpgradeManager::readyReadStandardOutput( QString const& data ) {
+    _stdoutBuffer += data;
+
+    int index = 0;
+    while ( -1 != ( index = _stdoutBuffer.indexOf( LineFeed ) ) ) {
+        debug( "[stdout] %s\n", _stdoutBuffer.left( index ).toUtf8( ).data( ) );
+        _stdoutBuffer.remove( 0, index + 1 );
+    }
+}
+
+void UpgradeManager::readyReadStandardError( QString const& data ) {
+    _stderrBuffer += data;
+
+    int index = 0;
+    while ( -1 != ( index = _stderrBuffer.indexOf( LineFeed ) ) ) {
+        debug( "[stderr] %s\n", _stderrBuffer.left( index ).toUtf8( ).data( ) );
+        _stderrBuffer.remove( 0, index + 1 );
+    }
+}
+
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
     debug( "+ UpgradeManager::installUpgradeKit: installing version %s build type %s\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
+    _kitToInstall = new UpgradeKitInfo { kit };
 
-    QString kitPath { kit.directory.absolutePath( ) };
+    QString kitPath { _kitToInstall->directory.absolutePath( ) };
 
     QFile aptSourcesFile { AptSourcesFilePath };
     if ( !aptSourcesFile.exists( ) ) {
@@ -530,10 +562,10 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
     _processRunner = new ProcessRunner { this };
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetUpdate_succeeded               );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetUpdate_failed                  );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::aptGetUpdate_readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::aptGetUpdate_readyReadStandardError  );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetUpdate_succeeded  );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetUpdate_failed     );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError  );
 
     _processRunner->start(
         { "sudo" },
@@ -546,18 +578,53 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
 }
 
 void UpgradeManager::aptGetUpdate_succeeded( ) {
-    debug( "+ UpgradeManager::aptGetUpdate_succeeded: `apt-get update` succeeded\n" );
     _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetUpdate_succeeded: `apt-get update` succeeded\n" );
+
+    debug( "  + running `apt-get install lightfield-%s`\n", BuildTypeToString[_kitToInstall->buildType].toUtf8( ).data( ) );
+    _stdoutBuffer.clear( );
+    _stderrBuffer.clear( );
+    _processRunner->deleteLater( );
+    _processRunner = new ProcessRunner { this };
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetInstall_succeeded );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetInstall_failed    );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError  );
+
+    _processRunner->start(
+        { "sudo" },
+        {
+            "apt-get",
+            "-y",
+            "install",
+            "lightfield-" % BuildTypeToString[_kitToInstall->buildType]
+        }
+    );
+}
+
+void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error ) {
+    _processRunner->deleteLater( );
+    _processRunner = nullptr;
+
+    _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed\n" );
+
+    emit upgradeFailed( );
+}
+
+void UpgradeManager::aptGetInstall_succeeded( ) {
+    _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetInstall_succeeded: `apt-get install` succeeded\n" );
 
     debug( "  + running `apt-get dist-upgrade`\n" );
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
     _processRunner->deleteLater( );
     _processRunner = new ProcessRunner { this };
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetDistUpgrade_succeeded               );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetDistUpgrade_failed                  );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::aptGetDistUpgrade_readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::aptGetDistUpgrade_readyReadStandardError  );
+    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetDistUpgrade_succeeded );
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetDistUpgrade_failed    );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput     );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError      );
 
     _processRunner->start(
         { "sudo" },
@@ -569,27 +636,19 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
     );
 }
 
-void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error ) {
+void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::ProcessError const error ) {
     _processRunner->deleteLater( );
     _processRunner = nullptr;
 
-    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed\n" );
     _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetInstall_failed: `apt-get install` failed\n" );
 
     emit upgradeFailed( );
 }
 
-void UpgradeManager::aptGetUpdate_readyReadStandardOutput( QString const& data ) {
-    _stdoutBuffer += data;
-}
-
-void UpgradeManager::aptGetUpdate_readyReadStandardError( QString const& data ) {
-    _stderrBuffer += data;
-}
-
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
-    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: `apt-get dist-upgrade` succeeded\n" );
     _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: `apt-get update` succeeded\n" );
 
     _processRunner->deleteLater( );
     _processRunner = nullptr;
@@ -602,16 +661,8 @@ void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::Pro
     _processRunner->deleteLater( );
     _processRunner = nullptr;
 
-    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get dist-upgrade` failed\n" );
     _dumpBufferContents( );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get update` failed\n" );
 
     emit upgradeFailed( );
-}
-
-void UpgradeManager::aptGetDistUpgrade_readyReadStandardOutput( QString const& data ) {
-    _stdoutBuffer += data;
-}
-
-void UpgradeManager::aptGetDistUpgrade_readyReadStandardError( QString const& data ) {
-    _stderrBuffer += data;
 }
