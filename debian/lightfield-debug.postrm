@@ -22,11 +22,11 @@
 #echo "+ lightfield-debug.postrm: args are $*" 1>&2
 case "$1" in
     remove)
-        echo Setting default back to graphical.target
+        echo + Setting default back to graphical.target
         systemctl set-default graphical.target
-        echo Getting default
+        echo + Getting default
         systemctl get-default
-        echo Starting tty1
+        echo + Starting tty1
         systemctl start getty@tty1
     ;;
 

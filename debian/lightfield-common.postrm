@@ -23,7 +23,7 @@
 case "$1" in
     remove)
         rm /etc/apt/sources.list.d/volumetric-lightfield.list 2>/dev/null
-        sed -i 's/^##XX## //' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
+        sed -i 's/^##LF## //' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
     ;;
 
     purge|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
