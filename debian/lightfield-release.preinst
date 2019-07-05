@@ -16,14 +16,7 @@
 
 #echo "+ lightfield-release.preinst: args are $*" 1>&2
 case "$1" in
-    install)
-        systemctl stop getty@tty1.service
-    ;;
-
-    upgrade)
-    ;;
-
-    abort-upgrade)
+    install|upgrade|abort-upgrade)
     ;;
 
     *)

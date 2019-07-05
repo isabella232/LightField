@@ -40,9 +40,5 @@ Multi-Arch: foreign
 Depends:
  ${misc:Depends},
  python3 (>= 3.6),
- python3-serial (>= 3.4),
- python3-zope.component (>= 4.3.0),
- python3-zope.event (>= 4.2.0),
- python3-zope.hookable (>= 4.0.4),
- python3-zope.interface (>= 4.3.2),
+ python3-serial (>= 3.4)
 Description: Printer software for Volumetric's Lumen X 3D printer - common files

@@ -21,15 +21,18 @@
 #echo "+ lightfield-debug.postinst: args are $*" 1>&2
 case "$1" in
     configure)
-	systemctl daemon-reload
-
-	systemctl set-default multi-user.target
-
-	systemctl enable set-projector-power.service
-	systemctl start set-projector-power.service
-
-	systemctl enable getty@tty1.service
-	systemctl start getty@tty1.service
+        echo + Reloading systemd
+        systemctl daemon-reload
+        echo + Setting default to multi-user.target
+        systemctl set-default multi-user.target
+        echo + Getting default
+        systemctl get-default
+        echo + Enabling set-projector-power.service
+        systemctl enable set-projector-power.service
+        echo + Starting set-projector-power.service
+        systemctl start set-projector-power.service
+        echo + Enabling getty@tty1.service
+        systemctl enable getty@tty1.service
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
