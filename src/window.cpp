@@ -160,10 +160,12 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
 
     _systemTab->setContentsMargins( { } );
     _systemTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _systemTab,  &SystemTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable  );
-    QObject::connect( _systemTab,  &SystemTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable    );
-    QObject::connect( _systemTab,  &SystemTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable   );
-    QObject::connect( _systemTab,  &SystemTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,    _systemTab,      &SystemTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted,  _systemTab,      &SystemTab::usbMountManager_filesystemUnmounted );
+    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable                );
+    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                  );
+    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                 );
+    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable               );
 
     //
     // Tab widget
