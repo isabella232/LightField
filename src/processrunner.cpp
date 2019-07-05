@@ -50,9 +50,15 @@ ProcessRunner::~ProcessRunner( ) {
     /*empty*/
 }
 
-void ProcessRunner::start( QString const& program, QStringList const& arguments, QProcess::OpenMode const mode ) {
-    debug( "+ ProcessRunner[%d]::start: command: '%s %s'\n", _instanceId, program.toUtf8( ).data( ), arguments.join( Space ).toUtf8( ).data( ) );
-    _process.start( program, arguments, mode );
+void ProcessRunner::start( QString const& program, QStringList const& arguments ) {
+    _process.start( program, arguments, QProcess::ReadWrite );
+
+    auto commandLine { program.trimmed( ) };
+    auto joinedArgs { arguments.join( Space ).trimmed( ) };
+    if ( !joinedArgs.isEmpty( ) ) {
+        commandLine += Space % joinedArgs;
+    }
+    debug( "+ ProcessRunner[%d]::start: pid %lld, command: '%s'\n", _instanceId, _process.processId( ), commandLine.toUtf8( ).data( ) );
 }
 
 void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {

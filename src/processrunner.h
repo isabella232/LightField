@@ -10,7 +10,7 @@ public:
     ProcessRunner( QObject* parent = nullptr );
     virtual ~ProcessRunner( ) override;
 
-    void start( QString const& program, QStringList const& arguments, QProcess::OpenMode const mode = QProcess::ReadWrite );
+    void start( QString const& program, QStringList const& arguments );
 
     int instanceId( ) const {
         return _instanceId;
