@@ -42,6 +42,7 @@ SOURCES +=                         \
     ../src/upgradeselector.cpp     \
     ../src/usbmountmanager.cpp     \
     ../src/lightfieldstyle.cpp     \
+    ../src/debuglogcopier.cpp      \
     ../src/filecopier.cpp
 
 HEADERS  +=                        \
@@ -80,6 +81,7 @@ HEADERS  +=                        \
     ../src/upgradeselector.h       \
     ../src/usbmountmanager.h       \
     ../src/lightfieldstyle.h       \
+    ../src/debuglogcopier.h        \
     ../src/filecopier.h
 
 CONFIG += c++1z precompile_header

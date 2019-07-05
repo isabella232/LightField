@@ -61,6 +61,7 @@ src/upgrademanager.cpp
 src/upgradeselector.cpp
 src/usbmountmanager.cpp
 src/lightfieldstyle.cpp
+src/debuglogcopier.cpp
 src/filecopier.cpp)
 
 #set project headers. 
@@ -101,6 +102,7 @@ src/upgrademanager.h
 src/upgradeselector.h
 src/usbmountmanager.h
 src/lightfieldstyle.h
+src/debuglogcopier.h
 src/filecopier.h)
 
 #set project resources and icon resource
