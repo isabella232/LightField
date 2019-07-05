@@ -6,7 +6,7 @@
 
 namespace {
 
-    FILE* DebugLog       { stderr };
+    FILE* DebugLog       {        };
     FILE* OriginalStderr { stderr };
 
 }
@@ -21,7 +21,6 @@ DebugManager::DebugManager( ) {
     if ( !DebugLog ) {
         error_t err = errno;
         ::fprintf( stderr, "failed to open log file '%s': %s [%d]", DebugLogPaths[0], strerror( err ), err );
-        DebugLog = stderr;
     } else {
         // save the original stderr
         int fd = ::dup( 2 );
@@ -43,7 +42,9 @@ DebugManager::~DebugManager( ) {
 }
 
 void debug( char const* str ) {
-    ::fputs( str, DebugLog       );
+    if ( DebugLog ) {
+        ::fputs( str, DebugLog );
+    }
     ::fputs( str, OriginalStderr );
 }
 
