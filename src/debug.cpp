@@ -9,15 +9,6 @@ namespace {
     FILE* DebugLog       { stderr };
     FILE* OriginalStderr { stderr };
 
-    char const* DebugLogPaths[] {
-        "/var/log/lightfield/debug.log",
-        "/var/log/lightfield/debug.1.log",
-        "/var/log/lightfield/debug.2.log",
-        "/var/log/lightfield/debug.3.log",
-        "/var/log/lightfield/debug.4.log",
-        "/var/log/lightfield/debug.5.log",
-    };
-
 }
 
 DebugManager::DebugManager( ) {
