@@ -1,13 +1,8 @@
-lumen ALL = NOPASSWD:                     \
+lumen ALL = NOPASSWD:                 \
 	/bin/systemctl poweroff,          \
 	/bin/systemctl reboot,            \
 	/bin/systemctl restart,           \
 	/bin/systemctl start,             \
 	/bin/systemctl stop,              \
-	/usr/bin/apt-get dist-upgrade,    \
-	/usr/bin/apt-get install,         \
-	/usr/bin/apt-get update,          \
-	/usr/bin/apt-get -y dist-upgrade, \
-	/usr/bin/apt-get -y install,      \
-	/usr/bin/apt-get -y update,       \
+	/usr/bin/apt-get,                 \
 	/usr/bin/mountmon
