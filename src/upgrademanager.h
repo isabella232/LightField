@@ -92,6 +92,7 @@ private:
     Hasher*              _hashChecker            { };
     ProcessRunner*       _processRunner          { };
     UpgradeKitUnpacker*  _upgradeKitUnpacker     { };
+    UpgradeKitInfo*      _kitToInstall           { };
 
     UpgradeKitInfoList   _unprocessedUpgradeKits;
     UpgradeKitInfoList   _processedUpgradeKits;
@@ -138,15 +139,17 @@ private slots:
     void upgradeKitUnpacker_complete( bool const result );
 #endif // defined _DEBUG
 
+    void readyReadStandardOutput( QString const& data );
+    void readyReadStandardError( QString const& data );
+
     void aptGetUpdate_succeeded( );
     void aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error );
-    void aptGetUpdate_readyReadStandardOutput( QString const& data );
-    void aptGetUpdate_readyReadStandardError( QString const& data );
+
+    void aptGetInstall_succeeded( );
+    void aptGetInstall_failed( int const exitCode, QProcess::ProcessError const error );
 
     void aptGetDistUpgrade_succeeded( );
     void aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error );
-    void aptGetDistUpgrade_readyReadStandardOutput( QString const& data );
-    void aptGetDistUpgrade_readyReadStandardError( QString const& data );
 
 };
 
