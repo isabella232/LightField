@@ -461,12 +461,7 @@ void UpgradeManager::_examineUnpackedKits( ) {
 
     for ( auto& update : _unprocessedUpgradeKits ) {
         if ( _parseVersionInfo( update.directory.absoluteFilePath( "version.inf" ), update ) ) {
-            if ( update.version > LIGHTFIELD_VERSION_CODE ) {
-                debug( "  + keeping newer version %s, build type %s\n", update.versionString.toUtf8( ).data( ), ToString( update.buildType ) );
-                _processedUpgradeKits.append( update );
-            } else {
-                debug( "  + discarding older version %s, build type %s\n", update.versionString.toUtf8( ).data( ), ToString( update.buildType ) );
-            }
+            _processedUpgradeKits.append( update );
         } else {
             debug( "+ UpgradeManager::_examineUnpackedKits: bad metadata in unpacked kit %s\n", update.directory.absolutePath( ).toUtf8( ).data( ) );
         }
