@@ -118,6 +118,7 @@ install ${VERBOSE} -DT -m 755                   stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-arduino-port           /usr/share/lightfield/libexec/reset-lumen-arduino-port
 install ${VERBOSE} -DT -m 644                   system-stuff/99-waveshare.conf                  /usr/share/X11/xorg.conf.d/99-waveshare.conf
 chmod 700 /home/lumen/.gnupg
+[ -f /home/lumen/.gnupg/pubring.kbx ] && rm ${VERBOSE} /home/lumen/.gnupg/pubring.kbx
 
 cd ${PRINTRUN_SRC}
 install ${VERBOSE} -DT -m 644                   printrun/__init__.py                            /usr/share/lightfield/libexec/printrun/printrun/__init__.py
