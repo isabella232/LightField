@@ -24,7 +24,7 @@ dir="lightfield-debug_${VERSION}_amd64"
 updatedir="${UPDATES_DIR}/${dir}"
 rm    -v -fr "${updatedir}"
 mkdir -v     "${updatedir}"
-tar   -vv -C "${updatedir}" -xf "${PACKAGE_BUILD_ROOT}/${dir}.kit"
+tar   -vv -C "${updatedir}" -xf "${PACKAGE_BUILD_ROOT}/${VERSION}/kit/${dir}.kit"
 
 chown -c -R  lumen:lumen "${UPDATES_DIR}"
 
