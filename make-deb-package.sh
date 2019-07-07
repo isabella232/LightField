@@ -116,9 +116,11 @@ blue-bar • Building "${BUILDTYPE}" version of set-projector-power
 if [ "${BUILDTYPE}" = "debug" ]
 then
     g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
-else
+elif [ "${BUILDTYPE}" = "release" ]
+then
     g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" -pipe -O3 -s -DNDEBUG -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
 fi
+chown ${CHXXXVERBOSE} lumen:lumen set-projector-power
 
 ##################################################
 
@@ -131,9 +133,11 @@ blue-bar • Building "${BUILDTYPE}" version of Mountmon
 if [ "${BUILDTYPE}" = "debug" ]
 then
     ./rebuild ${FORCEREBUILD}
-else
+elif [ "${BUILDTYPE}" = "release" ]
+then
     ./rebuild ${FORCEREBUILD} -r
 fi
+chown ${CHXXXVERBOSE} -R lumen:lumen build
 
 install ${VERBOSE} -DT -m 755 build/mountmon "${LIGHTFIELD_FILES}/usr/bin/mountmon"
 
@@ -148,9 +152,11 @@ blue-bar • Building "${BUILDTYPE}" version of LightField
 if [ "${BUILDTYPE}" = "debug" ]
 then
     ./rebuild ${FORCEREBUILD}
-else
+elif [ "${BUILDTYPE}" = "release" ]
+then
     ./rebuild ${FORCEREBUILD} -r
 fi
+chown ${CHXXXVERBOSE} -R lumen:lumen build
 
 install ${VERBOSE} -DT -m 755 build/lf ${LIGHTFIELD_FILES}/usr/bin/lf
 
