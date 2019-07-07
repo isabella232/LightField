@@ -106,7 +106,19 @@ then
 elif [ "${BUILDTYPE}" = "debug" ]
 then
     install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug_${VERSION}_amd64.deb"
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
+    if [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb" ]
+    then
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
+    elif [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb" ]
+    then
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
+    else
+	red-bar "!!! Unable to find either"
+	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
+	red-bar "!!! or"
+	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
+	red-bar "!!! Build failed!"
+    fi
 fi
 
 cd "${REPO_DIR}"
