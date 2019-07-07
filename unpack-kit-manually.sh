@@ -1,5 +1,14 @@
 #!/bin/bash
 
+VERSION=1.0.2
+PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
+
 if [ "${UID}" != "0" ]
 then
     echo This script must be run as root.
@@ -11,18 +20,13 @@ UPDATES_DIR=/var/lib/lightfield/software-updates
 rm    -v -dr "${UPDATES_DIR}"
 mkdir -v -p  "${UPDATES_DIR}"
 
-for ver in 1.0.1
-do
-	dir="lightfield-debug_${ver}_amd64"
-	updatedir="${UPDATES_DIR}/${dir}"
-	rm    -frv     "${updatedir}"
-	mkdir -v       "${updatedir}"
-	tar   -v -v -C "${updatedir}" -xf ~/"${dir}.kit"
-done
+dir="lightfield-debug_${VERSION}_amd64"
+updatedir="${UPDATES_DIR}/${dir}"
+rm    -v -fr "${updatedir}"
+mkdir -v     "${updatedir}"
+tar   -vv -C "${updatedir}" -xf "${PACKAGE_BUILD_ROOT}/${dir}.kit"
 
 chown -c -R  lumen:lumen "${UPDATES_DIR}"
 
-echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.1_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown -c lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
-
-cp    -v ~/volumetric-keyring.gpg /etc/apt/trusted.gpg.d/
