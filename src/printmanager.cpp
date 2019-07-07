@@ -226,7 +226,8 @@ void PrintManager::stepA4_completed( bool const success ) {
 void PrintManager::stepA5_start( ) {
     _step = PrintStep::A5;
 
-    auto firstLayerHeight = std::max( 100, _printJob->layerThickness ) / 1000.0;
+    // jmil adding hard-coded offset of ~300 micron from manually set position
+    auto firstLayerHeight = ( std::max( 100, _printJob->layerThickness ) + 300 ) / 1000.0;
 
     debug( "+ PrintManager::stepA5_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
