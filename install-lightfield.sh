@@ -133,7 +133,8 @@ perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources
 echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
-perl -lp -i -e 's/^(?!##LF## .*?motd)/##LF## /;' /etc/pam.d/*
+## DO NOT UNCOMMENT THIS NEXT LINE
+##perl -lp -i -e 's/^(?!##LF## .*?motd)/##LF## /;' /etc/pam.d/*
 
 systemctl daemon-reload
 
