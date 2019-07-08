@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.3
+VERSION=1.0.4
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -154,7 +154,6 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     ./rebuild ${FORCEREBUILD} -r
 fi
-chown ${CHXXXVERBOSE} -R lumen:lumen build
 
 install ${VERBOSE} -DT -m 755 build/lf ${LIGHTFIELD_FILES}/usr/bin/lf
 

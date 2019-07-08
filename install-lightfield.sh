@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.3
+VERSION=1.0.4
 
 #########################################################
 ##                                                     ##
@@ -87,6 +87,10 @@ cd ${MOUNTMON_SRC}
 blue-bar • Building debugging version of LightField
 cd ${LIGHTFIELD_SRC}
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
+
+chown ${CHXXXVERBOSE} -R lumen:lumen ${USBDRIVER_SRC}
+chown ${CHXXXVERBOSE} -R lumen:lumen ${MOUNTMON_SRC}/build
+chown ${CHXXXVERBOSE} -R lumen:lumen ${LIGHTFIELD_SRC}/build
 
 blue-bar • Creating any missing directories
 [ ! -d /var/cache/lightfield/print-jobs     ] && mkdir ${VERBOSE} -p /var/cache/lightfield/print-jobs

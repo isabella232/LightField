@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.3
+VERSION=1.0.4
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -145,7 +145,7 @@ gpg                                                               \
     --detach-sign                                                 \
     Release
 
-rm ${VERBOSE} -rf                                                 \
+rm ${VERBOSE} -f                                                  \
     version.inf                                                   \
     version.inf.sig
 
@@ -176,9 +176,12 @@ gpg                                                               \
     --detach-sign                                                 \
     version.inf
 
-rm ${VERBOSE} -f                                                  \
+rm                                                                \
+    ${VERBOSE}                                                    \
+    -f                                                            \
     "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"     \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"
+    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig" \
+    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"
 
 tar                                                               \
     ${VERBOSE} ${VERBOSE}                                         \
@@ -199,6 +202,12 @@ gpg                                                               \
     --output "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"   \
     --detach-sign                                                 \
     "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"
+
+zip                                                               \
+    -0joq                                                         \
+    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"            \
+    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"                \
+    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"
 
 blue-bar • Cleaning up
 
