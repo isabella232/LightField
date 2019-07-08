@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VERSION=1.0.2
+
 #########################################################
 ##                                                     ##
 ##     No user-serviceable parts below this point.     ##
@@ -96,10 +98,6 @@ chown ${CHXXXVERBOSE} -R lumen:lumen /var/cache/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
-perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
-echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.1_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
-chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
-
 blue-bar • Installing files
 install ${VERBOSE} -DT -m 644                   gpg/pubring.gpg                                 /etc/apt/trusted.gpg.d/volumetric-keyring.gpg
 install ${VERBOSE} -DT -m 440                   system-stuff/lumen-lightfield                   /etc/sudoers.d/lumen-lightfield
@@ -130,6 +128,13 @@ install ${VERBOSE} -DT -m 644                   printrun/plugins/__init__.py    
 install ${VERBOSE} -DT -m 644                   Util/constants.py                               /usr/share/lightfield/libexec/printrun/Util/constants.py
 
 blue-bar • Configuring system
+
+perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
+echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
+
+perl -lp -i -e 's/^(?!##LF## .*?motd)/##LF## /;' /etc/pam.d/*
+
 systemctl daemon-reload
 
 systemctl set-default multi-user.target
@@ -138,7 +143,6 @@ systemctl enable set-projector-power.service
 systemctl start set-projector-power.service
 
 systemctl enable getty@tty1.service
-#systemctl start getty@tty1.service
 
 systemctl daemon-reload
 
