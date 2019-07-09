@@ -10,8 +10,8 @@
 using error_t   = errno_t;
 using gid_t     = int;
 using pid_t     = int;
-using uid_t     = int;
 using socklen_t = unsigned;
+using uid_t     = int;
 
 //================================================
 // Constants
@@ -38,32 +38,16 @@ constexpr auto const MSG_DONTWAIT   = 0x40;
 // Forward type declarations
 //================================================
 
-struct iovec;
-struct msghdr;
 struct passwd;
 struct sigaction;
 struct siginfo_t;
 struct sigset_t;
 union  sigval_t;
+struct statfs;
 
 //================================================
 // Type declarations
 //================================================
-
-struct iovec {
-    void*  iov_base;
-    size_t iov_len;
-};
-
-struct msghdr {
-    void*     msg_name;
-    socklen_t msg_namelen;
-    iovec*    msg_iov;
-    size_t    msg_iovlen;
-    void*     msg_control;
-    size_t    msg_controllen;
-    int       msg_flags;
-};
 
 struct passwd {
     char* pw_name;
@@ -93,17 +77,23 @@ union sigval_t {
     void* sival_ptr;
 };
 
+struct statfs {
+    quint64 f_bsize;
+    quint64 f_blocks;
+    quint64 f_bfree;
+    quint64 f_bavail;
+    quint64 f_frsize;
+};
+
 //================================================
 // Function prototypes
 //================================================
 
-extern int   access( char const* pathName, int mode );
 extern int   clock_gettime( int clk_id, timespec* tp );
 extern int   getpid( );
 extern int   getpwuid_r( uid_t uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
 extern int   getuid( );
 extern int   kill( pid_t pid, int sig );
-extern tm*   gmtime_r( time_t const* timep, tm* result );
 extern int   mkdir( char const* pathName, int mode );
 extern int   sigaction( int signum, struct sigaction const* act, struct sigaction* oldact );
 extern int   sigaddset( sigset_t* set, int signum );
@@ -111,6 +101,7 @@ extern int   sigemptyset( sigset_t* set );
 extern int   sigqueue( pid_t pid, int sig, sigval_t const value );
 extern int   sigtimedwait( sigset_t const* set, siginfo_t* info, timespec const* timeout );
 extern int   socketpair( int domain, int type, int protocol, int sv[2] );
+extern int   statfs( char const* path, struct statfs* buf );
 extern char* strsignal( int sig );
 
 #endif // !__WIN32JUNK_H__
