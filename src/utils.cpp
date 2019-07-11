@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/statfs.h>
+
 #include <ctime>
 
 #include "utils.h"
@@ -107,4 +109,17 @@ QString ReadWholeFile( QString const& fileName ) {
         result = fileContents;
     }
     return result;
+}
+
+bool GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize ) {
+    QString filePath = QFileInfo { fileName }.canonicalPath( );
+    struct statfs buf;
+    if ( -1 == statfs( filePath.toUtf8( ).data( ), &buf ) ) {
+        debug( "+ GetFreeSpaceFromPath: path '%s': statfs failed: %s [%d]\n", filePath.toUtf8( ).data( ), strerror( errno ), errno );
+        return false;
+    }
+
+    bytesFree             = buf.f_bavail * buf.f_frsize;
+    optimalWriteBlockSize = buf.f_bsize;
+    return true;
 }

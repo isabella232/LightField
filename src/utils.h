@@ -21,6 +21,8 @@ double GetBootTimeClock( );
 
 QString ReadWholeFile( QString const& fileName );
 
+bool GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize );
+
 inline QString GetFileBaseName( QString const& fileName ) {
     return fileName.mid( fileName.lastIndexOf( Slash ) + 1 );
 }
