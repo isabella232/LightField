@@ -29,6 +29,7 @@ QString                   const  UpdatesRootPath               { "/var/lib/light
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };
 QChar                     const  Space                         { L'\u0020' };
+QChar                     const  FullStop                      { L'\u002E' };
 QChar                     const  Slash                         { L'\u002F' };
 QChar                     const  DigitZero                     { L'\u0030' };
 QChar                     const  FigureSpace                   { L'\u2007' };
