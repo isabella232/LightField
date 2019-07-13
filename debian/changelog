@@ -1,4 +1,4 @@
-lightfield (1.0.4.0) stable; urgency=medium
+lightfield (1.0.4) stable; urgency=medium
 
   * Only raise the print bed to a maximum of 60 mm during "raise" steps.
 
