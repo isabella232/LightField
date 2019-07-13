@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.3
+VERSION=1.0.4.0
 
 #########################################################
 ##                                                     ##
@@ -132,9 +132,6 @@ blue-bar • Configuring system
 perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
-
-## DO NOT UNCOMMENT THIS NEXT LINE
-##perl -lp -i -e 's/^(?!##LF## .*?motd)/##LF## /;' /etc/pam.d/*
 
 systemctl daemon-reload
 

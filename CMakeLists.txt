@@ -17,7 +17,7 @@ set (PROJECT_VERSION "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_PATCH
 
 if(WIN32)
 # Set the Qt5 path
-set (Qt5_DIR "F:\\\\Qt\\\\5.12.3\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set (Qt5_DIR "F:\\\\Qt\\\\5.13.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(lf)
@@ -28,7 +28,6 @@ set(CMAKE_AUTOUIC ON)
 
 #set project sources
 set(Project_Sources src/debug.cpp
-src/version.cpp
 src/app.cpp
 src/main.cpp
 src/canvas.cpp

@@ -1,0 +1,27 @@
+#ifndef __VERSION_H__
+#define __VERSION_H__
+
+enum class BuildType {
+    unknown,
+    Release,
+    Debug,
+};
+
+inline constexpr unsigned MakeVersionCode( unsigned const major, unsigned const minor, unsigned const teeny, unsigned const build ) {
+    return ( major << 24u ) | ( minor << 16u ) | ( teeny << 8u ) | build;
+}
+
+char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@@LIGHTFIELD_VERSION_STRING@@";
+unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = @@LIGHTFIELD_VERSION_MAJOR@@;
+unsigned  const  LIGHTFIELD_VERSION_MINOR                          = @@LIGHTFIELD_VERSION_MINOR@@;
+unsigned  const  LIGHTFIELD_VERSION_TEENY                          = @@LIGHTFIELD_VERSION_TEENY@@;
+unsigned  const  LIGHTFIELD_VERSION_BUILD                          = @@LIGHTFIELD_VERSION_BUILD@@;
+unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
+
+#if defined _DEBUG
+BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Debug;
+#else
+BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Release;
+#endif
+
+#endif // __VERSION_H__

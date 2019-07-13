@@ -3,5 +3,7 @@ build
 mountmon/.qmake.stash
 mountmon/build
 mountmon/Makefile
+out
 packaging
+src/version.h
 usb-driver/set-projector-power
