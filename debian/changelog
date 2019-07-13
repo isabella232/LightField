@@ -1,6 +1,13 @@
+lightfield (1.0.4) stable; urgency=medium
+
+  * Only raise the print bed to a maximum of 60 mm during "raise" steps.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Fri, 12 Jul 2019 18:11:46 -0700
+
 lightfield (1.0.3) stable; urgency=medium
 
-  * No user-visible changes in this release yet.
+  * Allow downgrading the LightField software.
+  * Adjust print bed offset.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 08 Jul 2019 09:16:20 -0700
 
