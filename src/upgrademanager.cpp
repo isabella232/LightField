@@ -404,8 +404,8 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
             return false;
         }
 
-        bool ok0, ok1, ok2, ok3;
-        update.version = MakeVersionCode( versionParts[0].toUInt( &ok0 ), versionParts[1].toUInt( &ok1 ), versionParts[2].toUInt( &ok2 ), versionParts.count( ) > 3 ? versionParts[3].toUInt( &ok3 ) : 0 );
+        bool ok0, ok1, ok2;
+        update.version = MakeVersionCode( versionParts[0].toUInt( &ok0 ), versionParts[1].toUInt( &ok1 ), versionParts[2].toUInt( &ok2 ) );
         if ( !ok0 || !ok1 || !ok2 ) {
             debug( "  + bad software version \"%s\" (2)\n", update.versionString.toUtf8( ).data( ) );
             return false;
