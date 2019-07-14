@@ -11,10 +11,10 @@ inline constexpr unsigned MakeVersionCode( unsigned const major, unsigned const 
     return ( major << 24u ) | ( minor << 16u ) | ( teeny << 8u );
 }
 
-char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "1.0.5";
-unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = 1;
-unsigned  const  LIGHTFIELD_VERSION_MINOR                          = 0;
-unsigned  const  LIGHTFIELD_VERSION_TEENY                          = 5;
+char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@@LIGHTFIELD_VERSION_STRING@@";
+unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = @@LIGHTFIELD_VERSION_MAJOR@@;
+unsigned  const  LIGHTFIELD_VERSION_MINOR                          = @@LIGHTFIELD_VERSION_MINOR@@;
+unsigned  const  LIGHTFIELD_VERSION_TEENY                          = @@LIGHTFIELD_VERSION_TEENY@@;
 unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY );
 
 #if defined _DEBUG

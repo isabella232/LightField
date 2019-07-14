@@ -21,17 +21,13 @@
 #echo "+ lightfield-debug.postinst: args are $*" 1>&2
 case "$1" in
     configure)
-        echo + Reloading systemd
+        perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
+        echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.5_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+
         systemctl daemon-reload
-        echo + Setting default to multi-user.target
         systemctl set-default multi-user.target
-        echo + Getting default
-        systemctl get-default
-        echo + Enabling set-projector-power.service
         systemctl enable set-projector-power.service
-        echo + Starting set-projector-power.service
         systemctl start set-projector-power.service
-        echo + Enabling getty@tty1.service
         systemctl enable getty@tty1.service
     ;;
 

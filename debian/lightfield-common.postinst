@@ -21,9 +21,6 @@
 #echo "+ lightfield-common.postinst: args are $*" 1>&2
 case "$1" in
     configure)
-        perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
-        echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.3_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
-
         mkdir -p                                               \
             /var/cache/lightfield/print-jobs                   \
             /var/lib/lightfield/model-library                  \
