@@ -177,9 +177,12 @@ bool App::_isAlreadyRunning( ) {
         return true;
     }
 
-    int major, minor, teeny;
-    DecodeVersionCode( info.si_value.sival_int, major, minor, teeny );
-    debug( "+ App::_isAlreadyRunning: reply from other instance: pid %d, version %d.%d.%d\n", info.si_pid, major, minor, teeny );
+    int major = 0;
+    int minor = 0;
+    int teeny = 0;
+    int build = 0;
+    DecodeVersionCode( info.si_value.sival_int, major, minor, teeny, build );
+    debug( "+ App::_isAlreadyRunning: reply from other instance: pid %d, version %d.%d.%d.%d\n", info.si_pid, major, minor, teeny, build );
 
     errno = 0;
     return true;

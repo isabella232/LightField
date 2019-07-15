@@ -11,15 +11,11 @@ inline constexpr unsigned MakeVersionCode( unsigned const major, unsigned const 
     return ( ( major & 0xFFu ) << 24u ) | ( ( minor & 0xFFu ) << 16u ) | ( ( teeny & 0xFFu ) << 8u ) | ( build & 0xFFu );
 }
 
-inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major, int& minor, int& teeny ) {
+inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major, int& minor, int& teeny, int& build ) {
     major = static_cast<int>( ( versionCode >> 24u ) & 0xFFu );
     minor = static_cast<int>( ( versionCode >> 16u ) & 0xFFu );
     teeny = static_cast<int>( ( versionCode >>  8u ) & 0xFFu );
-}
-
-inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major, int& minor, int& teeny, int& build ) {
-    DecodeVersionCode( versionCode, major, minor, teeny );
-    build = static_cast<int>( versionCode & 0xFFu );
+    build = static_cast<int>(   versionCode          & 0xFFu );
 }
 
 char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@@LIGHTFIELD_VERSION_STRING@@";
