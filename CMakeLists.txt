@@ -28,7 +28,6 @@ set(CMAKE_AUTOUIC ON)
 
 #set project sources
 set(Project_Sources src/debug.cpp
-src/version.cpp
 src/app.cpp
 src/main.cpp
 src/canvas.cpp

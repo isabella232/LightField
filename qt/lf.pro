@@ -9,7 +9,6 @@ QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
 
 SOURCES +=                         \
     ../src/debug.cpp               \
-    ../src/version.cpp             \
     ../src/app.cpp                 \
     ../src/main.cpp                \
     ../src/canvas.cpp              \
