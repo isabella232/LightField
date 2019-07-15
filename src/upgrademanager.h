@@ -20,9 +20,9 @@ class UpgradeKitInfo {
 
 public:
 
-    UpgradeKitInfo( QDir const& directory_ ):
-        isAlreadyUnpacked { true       },
-        directory         { directory_ }
+    UpgradeKitInfo( QString const& directory_ ):
+        isAlreadyUnpacked { true                },
+        directory         { QDir { directory_ } }
     {
         /*empty*/
     }
