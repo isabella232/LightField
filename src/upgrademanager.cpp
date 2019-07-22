@@ -73,6 +73,8 @@ void UpgradeManager::_dumpBufferContents( ) {
 }
 
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
+    _goodUpgradeKits.clear( );
+
     debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in '%s'\n", UpdatesRootPath.toUtf8( ).data( ) );
 
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
