@@ -12,18 +12,28 @@ public:
     UsbMountManager( QObject* parent = nullptr );
     virtual ~UsbMountManager( ) override;
 
+    void remount( bool const writable );
+
 protected:
 
 private:
 
-    ProcessRunner* _mountmonProcess { };
-    QString        _stdoutBuffer;
-    QString        _stderrBuffer;
+    QString        _mountPoint;
+    bool           _isWritable           { };
+
+    ProcessRunner* _mountmonProcess      { };
+    QString        _mountmonStdoutBuffer;
+    QString        _mountmonStderrBuffer;
+
+    ProcessRunner* _mountProcess         { };
+    QString        _mountStdoutBuffer;
+    QString        _mountStderrBuffer;
 
 signals:
     ;
 
     void filesystemMounted( QString const& mountPoint );
+    void filesystemRemounted( bool const succeeded, bool const writable );
     void filesystemUnmounted( QString const& mountPoint );
 
 public slots:
@@ -38,6 +48,9 @@ private slots:
     void mountmon_failed( int const exitCode, QProcess::ProcessError const error );
     void mountmon_readyReadStandardOutput( QString const& data );
     void mountmon_readyReadStandardError( QString const& data );
+
+    void mount_readyReadStandardOutput( QString const& data );
+    void mount_readyReadStandardError( QString const& data );
 
 };
 
