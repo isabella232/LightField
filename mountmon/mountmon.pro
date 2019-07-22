@@ -18,12 +18,16 @@ QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wextra -Winvalid-pch -Wno-unused-paramet
 PRECOMPILED_HEADER      = pch.h
 
 SOURCES                += main.cpp             \
+                          commandreader.cpp    \
+                          processrunner.cpp    \
                           signalhandler.cpp    \
                           udisks.cpp           \
                           udisksmonitor.cpp    \
                           usbdevicemounter.cpp
 
-HEADERS                += signalhandler.h      \
+HEADERS                += commandreader.h      \
+                          processrunner.h      \
+                          signalhandler.h      \
                           udisks.h             \
                           udisksmonitor.h      \
                           usbdevicemounter.h
