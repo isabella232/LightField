@@ -134,21 +134,22 @@ void UsbDeviceMounter::_mount_readyReadStandardError( QString const& data ) {
 }
 
 void UsbDeviceMounter::_remount( QString const& path, bool const writable ) {
-    UFilesystem* filesystem { };
-    for ( auto item : _filesystems ) {
-        if ( item->OurMountPoint == path ) {
-            filesystem = item;
-            break;
-        }
-    }
+    UFilesystem* filesystem;
+
+    auto iter = std::find_if( _filesystems.begin( ), _filesystems.end( ), [ path ] ( UFilesystem* item ) { return item->OurMountPoint == path; } );
+    if ( iter == _filesystems.end( ) ) {
+        debug( "+ UsbDeviceMounter::_remount: couldn't find mount point '%s' in our list of mounted filesystems, returning failure\n", path.toUtf8( ).data( ) );
+        printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
+        return;
+    } 
+    filesystem = *iter;
     if ( filesystem->IsReadWrite == writable ) {
         debug( "+ UsbDeviceMounter::_remount: already mounted read-%s, returning success\n", writable ? "write" : "only" );
-        printf( "remount %d 1 %s\n", writable ? 1 : 0, path.toUtf8( ).data( ) );
+        printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
         return;
     }
 
     debug( "+ UsbDeviceMounter::_remount: starting `/bin/mount` to remount mount point '%s' read-%s\n", path.toUtf8( ).data( ), writable ? "write" : "only" );
-
     _mountProcess = new ProcessRunner;
 
     (void) QObject::connect( _mountProcess, &ProcessRunner::succeeded, this, [ this, filesystem, writable ] ( ) {
