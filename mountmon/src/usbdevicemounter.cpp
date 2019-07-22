@@ -6,6 +6,9 @@
 #include "signalhandler.h"
 #include "udisksmonitor.h"
 
+extern uid_t LightFieldUserId;
+extern gid_t LightFieldGroupId;
+
 namespace {
 
     char const* DriveSizeUnits[] = { "iB", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" };
@@ -22,25 +25,13 @@ namespace {
 
     void ScaleSize( qulonglong const inputSize, double& scaledSize, char const*& suffix ) {
         int unitIndex = 0;
+
+        scaledSize = inputSize;
         while ( scaledSize > 1024.0 ) {
             ++unitIndex;
             scaledSize /= 1024.0;
         }
         suffix = DriveSizeUnits[unitIndex];
-    }
-
-    bool GetGroupIdForName( QString const& groupName, gid_t& gid ) {
-        char buf[16384];
-        group  grp;
-        group* result;
-
-        if ( 0 == ::getgrnam_r( groupName.toUtf8( ).data( ), &grp, buf, 16384, &result ) ) {
-            gid = grp.gr_gid;
-            return true;
-        } else {
-            debug( "+ GetGroupIdForName: getgrnam_r failed?! %s [%d]\n", strerror( errno ), errno );
-            return false;
-        }
     }
 
 }
@@ -66,44 +57,42 @@ UsbDeviceMounter::~UsbDeviceMounter( ) {
     QObject::disconnect( &_monitor );
 }
 
+void UsbDeviceMounter::_fixUpMountPoint( QString const& mountPoint ) {
+    if ( -1 == chmod( mountPoint.toUtf8( ).constData( ), 0555 ) ) {
+        error_t err = errno;
+        debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change permissions on mount point directory '%s', continuing anyway: %s [%d]\n", mountPoint.toUtf8( ).constData( ), strerror( err ), err );
+    }
+
+    if ( -1 == chown( mountPoint.toUtf8( ).constData( ), LightFieldUserId, LightFieldGroupId ) ) {
+        error_t err = errno;
+        debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change owner and group of mount point directory '%s', continuing anyway: %s [%d]\n", mountPoint.toUtf8( ).constData( ), strerror( err ), err );
+    }
+
+    auto index = mountPoint.lastIndexOf( '/' );
+    if ( index > 0 ) {
+        auto mountParentDirText = mountPoint.left( index ).toUtf8( ).constData( );
+        if ( -1 == chmod( mountParentDirText, 0755 ) ) {
+            error_t err = errno;
+            debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change permissions on user mount directory '%s', continuing anyway: %s [%d]\n", mountParentDirText, strerror( err ), err );
+        }
+    }
+}
+
 void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesystem ) {
     debug( "+ UsbDeviceMounter::_mount: attempting to mount filesystem at D-Bus object path '%s'\n", path.path( ).toUtf8( ).data( ) );
     auto mount = QDBusMessage::createMethodCall( UDisks2::Service( ), path.path( ), Interface::UDisks2( "Filesystem" ), "Mount" );
-    mount.setArguments( QVariantList { } << QVariantMap { { "options", QString { "ro,noexec,umask=0002" } } } );
+    mount.setArguments( QVariantList { } << QVariantMap { { "options", "ro,noexec,umask=0002" } } );
     QDBusReply<QString> reply = QDBusConnection::systemBus( ).call( mount, QDBus::Block, -1 );
     if ( reply.isValid( ) ) {
-        auto mountPoint     = reply.value( );
-        auto mountPointText = mountPoint.toUtf8( ).constData( );
-        debug( "+ UsbDeviceMounter::_mount: filesystem at D-Bus object path '%s' mounted at '%s', fixing permissions\n", path.path( ).toUtf8( ).data( ), mountPointText );
+        auto mountPoint = reply.value( );
+        debug( "+ UsbDeviceMounter::_mount: filesystem at D-Bus object path '%s' mounted at '%s', fixing permissions\n", path.path( ).toUtf8( ).data( ), mountPoint.toUtf8( ).constData( ) );
 
         filesystem->OurMountPoint = mountPoint;
         filesystem->IsReadWrite   = false;
 
-        if ( -1 == chmod( mountPointText, 0555 ) ) {
-            error_t err = errno;
-            debug( "+ UsbDeviceMounter:_mount: couldn't change permissions on mount point directory '%s', continuing anyway: %s [%d]\n", mountPointText, strerror( err ), err );
-        }
+        _fixUpMountPoint( mountPoint );
 
-        gid_t gid;
-        if ( !GetGroupIdForName( "lumen", gid ) ) {
-            debug( "+ UsbDeviceMounter:_mount: couldn't look up gid for group 'lumen', continuing anyway\n" );
-        } else {
-            if ( -1 == chown( mountPointText, 0, gid ) ) {
-                error_t err = errno;
-                debug( "+ UsbDeviceMounter:_mount: couldn't change owner and group of mount point '%s', continuing anyway: %s [%d]\n", mountPointText, strerror( err ), err );
-            }
-        }
-
-        auto index = mountPoint.lastIndexOf( '/' );
-        if ( index > 0 ) {
-            auto mountParentDirText = mountPoint.left( index ).toUtf8( ).constData( );
-            if ( -1 == chmod( mountParentDirText, 0755 ) ) {
-                error_t err = errno;
-                debug( "+ UsbDeviceMounter:_mount: couldn't change permissions on user mount directory '%s', continuing anyway: %s [%d]\n", mountParentDirText, strerror( err ), err );
-            }
-        }
-
-        printf( "mounted:%s\n", mountPointText );
+        printf( "mounted:%s\n", mountPoint.toUtf8( ).constData( ) );
     } else {
         debug( "+ UsbDeviceMounter::_mount: failed to mount filesystem at D-Bus object path '%s': %s\n", path.path( ).toUtf8( ).data( ), reply.error( ).message( ).toUtf8( ).data( ) );
     }
@@ -153,21 +142,14 @@ void UsbDeviceMounter::_remount( QString const& path, bool const writable ) {
     _mountProcess = new ProcessRunner;
 
     (void) QObject::connect( _mountProcess, &ProcessRunner::succeeded, this, [ this, filesystem, writable ] ( ) {
-        char const* mountPointText = filesystem->OurMountPoint.toUtf8( ).data( );
-        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s succeeded\n", writable ? "write" : "only", mountPointText );
+        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s succeeded\n", writable ? "write" : "only", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
         _mountProcess->deleteLater( );
         _mountProcess = nullptr;
+
         filesystem->IsReadWrite = writable;
 
-        chmod( mountPointText, writable ? 0775 : 0555 );
-        gid_t gid;
-        if ( !GetGroupIdForName( "lumen", gid ) ) {
-            debug( "+ UsbDeviceMounter:_remount: couldn't look up gid for group 'lumen', continuing anyway\n" );
-        } else {
-            if ( -1 == chown( mountPointText, 0, gid ) ) {
-                debug( "+ UsbDeviceMounter:_remount: couldn't change mount point group to group 'lumen', continuing anyway: %s [%d]\n", strerror( errno ), errno );
-            }
-        }
+        _fixUpMountPoint( filesystem->OurMountPoint );
 
         printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', filesystem->OurMountPoint.toUtf8( ).data( ) );
     } );
@@ -306,6 +288,6 @@ void UsbDeviceMounter::commandReader_commandReceived( QStringList const& command
     } else if ( command[0] == "remount-rw" ) {
         _remount( command[1], true );
     } else {
-        printf( "error Unrecognized command '%s'\n", command[0].toUtf8( ).data( ) );
+        printf( "error:%s:Unrecognized command\n", command[0].toUtf8( ).data( ) );
     }
 }

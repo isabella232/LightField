@@ -33,6 +33,7 @@ private:
     QString                              _mountStdoutBuffer;
     QString                              _mountStderrBuffer;
 
+    void _fixUpMountPoint( QString const& mountPoint );
     void _mount( QDBusObjectPath const& path, UFilesystem* filesystem );
     void _remount( QString const& path, bool const writable );
 
