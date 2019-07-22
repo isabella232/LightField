@@ -227,6 +227,8 @@ public:
     QDBusObjectPath Path;
     QString         OurMountPoint;
 
+    bool            IsReadWrite   { };
+
 protected:
 
 private:

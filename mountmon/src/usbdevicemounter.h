@@ -1,6 +1,7 @@
 #if ! defined __USBDEVICEMOUNTER_H__
 #define __USBDEVICEMOUNTER_H__
 
+class ProcessRunner;
 class SignalHandler;
 class UDisksMonitor;
 class UDrive;
@@ -22,13 +23,18 @@ protected:
 
 private:
 
-    SignalHandler*                       _signalHandler;
+    SignalHandler*                       _signalHandler     { };
     UDisksMonitor&                       _monitor;
     QMap<QDBusObjectPath, UDrive*>       _drives;
     QMap<QDBusObjectPath, UBlockDevice*> _blockDevices;
     QMap<QDBusObjectPath, UFilesystem*>  _filesystems;
 
+    ProcessRunner*                       _mountProcess      { };
+    QString                              _mountStdoutBuffer;
+    QString                              _mountStderrBuffer;
+
     void _mount( QDBusObjectPath const& path, UFilesystem* filesystem );
+    void _remount( QString const& path, bool const writable );
 
 signals:
     ;
@@ -37,6 +43,8 @@ signals:
 
 public slots:
     ;
+
+    void commandReader_commandReceived( QStringList const& command );
 
 protected slots:
     ;
@@ -54,6 +62,9 @@ private slots:
 
     void _signalReceived     ( siginfo_t const& info );
 
+    void _mount_readyReadStandardOutput( QString const& data );
+    void _mount_readyReadStandardError( QString const& data );
+
 };
 
-#endif // __USBDEVICEMOUNTER_H__
+#endif // ! defined __USBDEVICEMOUNTER_H__
