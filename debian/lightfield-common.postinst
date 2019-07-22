@@ -25,18 +25,20 @@ case "$1" in
             /var/cache/lightfield/print-jobs                   \
             /var/lib/lightfield/model-library                  \
             /var/lib/lightfield/software-updates               \
-            /var/log/lightfield 2>/dev/null
+            /var/log/lightfield                                \
+        2>/dev/null
 
         chown lumen:lumen -R                                   \
             /home/lumen/.gnupg                                 \
             /var/cache/lightfield                              \
             /var/lib/lightfield                                \
-            /var/log/lightfield 2>/dev/null
+            /var/log/lightfield                                \
+        2>/dev/null
 
         chown lumen:lumen                                      \
-            /etc/apt/sources.list.d/volumetric-lightfield.list \
             /home/lumen/.bash_profile                          \
-            /home/lumen/.real_bash_profile 2>/dev/null
+            /home/lumen/.real_bash_profile                     \
+        2>/dev/null
 
         chmod -R go= /home/lumen/.gnupg 2>/dev/null
     ;;

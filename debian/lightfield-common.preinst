@@ -17,10 +17,10 @@
 #echo "+ lightfield-debug.preinst: args are $*" 1>&2
 case "$1" in
     install)
-		rm /etc/sudoers.d/lumen-lightfield 2>/dev/null
-	;;
+        rm /etc/sudoers.d/lumen-lightfield 2>/dev/null
+    ;;
 
-	upgrade|abort-upgrade)
+    upgrade|abort-upgrade)
     ;;
 
     *)
