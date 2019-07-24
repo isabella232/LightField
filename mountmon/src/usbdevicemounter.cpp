@@ -11,17 +11,29 @@ extern gid_t LightFieldGroupId;
 
 namespace {
 
-    char const* DriveSizeUnits[] = { "iB", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" };
+    char const* DriveSizeUnits[] = {
+        "iB",
+        "KiB",
+        "MiB",
+        "GiB",
+        "TiB",
+        "PiB",
+        "EiB",
+        "ZiB",
+        "YiB"
+    };
 
-    QRegularExpression const NewLineRegex { "\\r?\\n" };
-
-    std::initializer_list<int> signalList {
+    std::initializer_list<int> SignalList {
         SIGHUP,
         SIGINT,
         SIGPIPE,
         SIGQUIT,
         SIGTERM,
     };
+
+    QRegularExpression const NewLineRegex        { "\\r?\\n" };
+    QChar              const LineFeed            { '\n'      };
+    std::atomic_int          NextMountPointIndex { 0         };
 
     void ScaleSize( qulonglong const inputSize, double& scaledSize, char const*& suffix ) {
         int unitIndex = 0;
@@ -40,62 +52,195 @@ UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent ):
     QObject  ( parent  ),
     _monitor ( monitor )
 {
-    _signalHandler = new SignalHandler;
-    (void) QObject::connect( _signalHandler, &SignalHandler::signalReceived, this, &UsbDeviceMounter::_signalReceived );
-    _signalHandler->subscribe( signalList );
+    _signalHandler = new SignalHandler { this };
 
-    (void) QObject::connect( &_monitor, &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
-    (void) QObject::connect( &_monitor, &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
-    (void) QObject::connect( &_monitor, &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+                                             
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
+    (void) QObject::connect( &_monitor,      &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
 
-    (void) QObject::connect( &_monitor, &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
-    (void) QObject::connect( &_monitor, &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
-    (void) QObject::connect( &_monitor, &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
+    (void) QObject::connect( _signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived     );
+
+    _signalHandler->subscribe( SignalList );
+
+    ::mkdir( "/media/lumen", 0755 );
+    ::chown( "/media/lumen", LightFieldUserId, LightFieldGroupId );
 }
 
 UsbDeviceMounter::~UsbDeviceMounter( ) {
     QObject::disconnect( &_monitor );
 }
 
-void UsbDeviceMounter::_fixUpMountPoint( QString const& mountPoint ) {
-    if ( -1 == chmod( mountPoint.toUtf8( ).constData( ), 0555 ) ) {
-        error_t err = errno;
-        debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change permissions on mount point directory '%s', continuing anyway: %s [%d]\n", mountPoint.toUtf8( ).constData( ), strerror( err ), err );
-    }
-
-    if ( -1 == chown( mountPoint.toUtf8( ).constData( ), LightFieldUserId, LightFieldGroupId ) ) {
-        error_t err = errno;
-        debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change owner and group of mount point directory '%s', continuing anyway: %s [%d]\n", mountPoint.toUtf8( ).constData( ), strerror( err ), err );
-    }
-
-    auto index = mountPoint.lastIndexOf( '/' );
-    if ( index > 0 ) {
-        auto mountParentDirText = mountPoint.left( index ).toUtf8( ).constData( );
-        if ( -1 == chmod( mountParentDirText, 0755 ) ) {
-            error_t err = errno;
-            debug( "+ UsbDeviceMounter:_fixUpMountPoint: couldn't change permissions on user mount directory '%s', continuing anyway: %s [%d]\n", mountParentDirText, strerror( err ), err );
+void UsbDeviceMounter::_dumpStdioBuffers( ) {
+    if ( !_mountStderrBuffer.isEmpty( ) ) {
+        if ( _mountStderrBuffer.endsWith( LineFeed ) ) {
+            _mountStderrBuffer.chop( 1 );
         }
+        debug( "[mount/stderr] %s\n", _mountStderrBuffer.replace( NewLineRegex, "\n[mount/stderr] " ).toUtf8( ).data( ) );
+        _mountStderrBuffer.clear( );
+    }
+    if ( !_mountStdoutBuffer.isEmpty( ) ) {
+        if ( _mountStdoutBuffer.endsWith( LineFeed ) ) {
+            _mountStdoutBuffer.chop( 1 );
+        }
+        debug( "[mount/stdout] %s\n", _mountStdoutBuffer.replace( NewLineRegex, "\n[mount/stdout] " ).toUtf8( ).data( ) );
+        _mountStdoutBuffer.clear( );
     }
 }
 
 void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesystem ) {
     debug( "+ UsbDeviceMounter::_mount: attempting to mount filesystem at D-Bus object path '%s'\n", path.path( ).toUtf8( ).data( ) );
-    auto mount = QDBusMessage::createMethodCall( UDisks2::Service( ), path.path( ), Interface::UDisks2( "Filesystem" ), "Mount" );
-    mount.setArguments( QVariantList { } << QVariantMap { { "options", "ro,noexec,umask=0002" } } );
-    QDBusReply<QString> reply = QDBusConnection::systemBus( ).call( mount, QDBus::Block, -1 );
-    if ( reply.isValid( ) ) {
-        auto mountPoint = reply.value( );
-        debug( "+ UsbDeviceMounter::_mount: filesystem at D-Bus object path '%s' mounted at '%s', fixing permissions\n", path.path( ).toUtf8( ).data( ), mountPoint.toUtf8( ).constData( ) );
 
-        filesystem->OurMountPoint = mountPoint;
-        filesystem->IsReadWrite   = false;
-
-        _fixUpMountPoint( mountPoint );
-
-        printf( "mounted:%s\n", mountPoint.toUtf8( ).constData( ) );
-    } else {
-        debug( "+ UsbDeviceMounter::_mount: failed to mount filesystem at D-Bus object path '%s': %s\n", path.path( ).toUtf8( ).data( ), reply.error( ).message( ).toUtf8( ).data( ) );
+    if ( !_blockDevices.contains( path ) ) {
+        debug( "+ UsbDeviceMounter::_mount: can't find block device for D-Bus object path\n" );
+        return;
     }
+    UBlockDevice* blockDevice = _blockDevices[path];
+
+    QString newMountPoint;
+    while ( true ) {
+        newMountPoint = QString { "/media/lumen/%1" }.arg( NextMountPointIndex++ );
+
+        QDir newMountPointDir { newMountPoint };
+        if ( -1 == ::mkdir( newMountPoint.toUtf8( ).data( ), 0755 ) ) {
+            continue;
+        }
+        ::chown( newMountPoint.toUtf8( ).data( ), LightFieldUserId, LightFieldGroupId );
+
+        break;
+    }
+
+    debug( "+ UsbDeviceMounter::_mount: starting `/bin/mount` to mount '%s' read-only\n", blockDevice->Device.data( ) );
+    auto mountProcess { new ProcessRunner };
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::succeeded, this, [ this, path, filesystem, newMountPoint, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_mount: mount of '%s' succeeded\n", newMountPoint.toUtf8( ).data( ) );
+
+        filesystem->IsReadWrite   = false;
+        filesystem->OurMountPoint = newMountPoint;
+
+        _objectPathsToMountPoints.insert( path, newMountPoint );
+        _mountPointsToObjectPaths.insert( newMountPoint, path );
+
+        printf( "mounted:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::failed, this, [ this, filesystem, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_mount: mount of %s failed\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbDeviceMounter::_mount_readyReadStandardOutput );
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardError,  this, &UsbDeviceMounter::_mount_readyReadStandardError  );
+
+    mountProcess->start(
+        QString { "/bin/mount" },
+        QStringList {
+            "-o",
+            QString { "ro,nosuid,nodev,noexec,relatime,fmask=0133,dmask=0022,allow_utime=0020,codepage=437,iocharset=utf8,utf8,flush,errors=remount-ro,uid=%1,gid=%2" }.arg( LightFieldUserId ).arg( LightFieldGroupId ),
+            blockDevice->Device,
+            newMountPoint
+        }
+    );
+}
+
+void UsbDeviceMounter::_remount( QString const& path, bool const writable ) {
+    auto iter = std::find_if( _filesystems.begin( ), _filesystems.end( ), [ path ] ( UFilesystem* item ) { return item->OurMountPoint == path; } );
+    if ( iter == _filesystems.end( ) ) {
+        debug( "+ UsbDeviceMounter::_remount: couldn't find mount point '%s' in our list of mounted filesystems, returning failure\n", path.toUtf8( ).data( ) );
+        printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
+        return;
+    } 
+    UFilesystem* filesystem = *iter;
+    if ( filesystem->IsReadWrite == writable ) {
+        debug( "+ UsbDeviceMounter::_remount: already mounted read-%s, returning success\n", writable ? "write" : "only" );
+        printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
+        return;
+    }
+
+    debug( "+ UsbDeviceMounter::_remount: starting `/bin/mount` to remount mount point '%s' read-%s\n", path.toUtf8( ).data( ), writable ? "write" : "only" );
+    auto mountProcess { new ProcessRunner };
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::succeeded, this, [ this, filesystem, writable, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s succeeded\n", writable ? "write" : "only", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        filesystem->IsReadWrite = writable;
+
+        printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::failed, this, [ this, filesystem, writable, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s failed\n", writable ? "write" : "only", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbDeviceMounter::_mount_readyReadStandardOutput );
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardError,  this, &UsbDeviceMounter::_mount_readyReadStandardError  );
+
+    mountProcess->start(
+        QString { "/bin/mount" },
+        QStringList {
+            "-o",
+            "remount,r" % QChar { writable ? 'w' : 'o' },
+            path
+        }
+    );
+}
+
+void UsbDeviceMounter::_unmount( UFilesystem* filesystem ) {
+    debug( "+ UsbDeviceMounter::_unmount: starting `/bin/umount` to unmount '%s'\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+    auto mountProcess { new ProcessRunner };
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::succeeded, this, [ this, filesystem, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_unmount: unmount of '%s' succeeded\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        if ( -1 == ::rmdir( filesystem->OurMountPoint.toUtf8( ).data( ) ) ) {
+            error_t err = errno;
+            debug( "+ UsbDeviceMounter::_filesystemRemoved: couldn't delete now-unused mount point directory '%s': %s [%d]\n", filesystem->OurMountPoint.toUtf8( ).data( ), strerror( err ), err );
+        }
+
+        printf( "unmounted:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        auto path = _mountPointsToObjectPaths[filesystem->OurMountPoint];
+        _objectPathsToMountPoints.remove( path );
+        _mountPointsToObjectPaths.remove( filesystem->OurMountPoint );
+        _filesystems.remove( path );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::failed, this, [ this, filesystem, mountProcess ] ( ) {
+        _dumpStdioBuffers( );
+        debug( "+ UsbDeviceMounter::_unmount: unmount of '%s' failed\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        mountProcess->deleteLater( );
+    } );
+
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbDeviceMounter::_mount_readyReadStandardOutput );
+    (void) QObject::connect( mountProcess, &ProcessRunner::readyReadStandardError,  this, &UsbDeviceMounter::_mount_readyReadStandardError  );
+
+    mountProcess->start(
+        QString { "/bin/umount" },
+        QStringList {
+            filesystem->OurMountPoint
+        }
+    );
 }
 
 void UsbDeviceMounter::_mount_readyReadStandardOutput( QString const& data ) {
@@ -120,59 +265,6 @@ void UsbDeviceMounter::_mount_readyReadStandardError( QString const& data ) {
 
     debug( "[mount/stderr] %s\n", _mountStderrBuffer.left( index ).replace( NewLineRegex, "\n[mount/stderr] " ).toUtf8( ).data( ) );
     _mountStderrBuffer.remove( 0, index + 1 );
-}
-
-void UsbDeviceMounter::_remount( QString const& path, bool const writable ) {
-    UFilesystem* filesystem;
-
-    auto iter = std::find_if( _filesystems.begin( ), _filesystems.end( ), [ path ] ( UFilesystem* item ) { return item->OurMountPoint == path; } );
-    if ( iter == _filesystems.end( ) ) {
-        debug( "+ UsbDeviceMounter::_remount: couldn't find mount point '%s' in our list of mounted filesystems, returning failure\n", path.toUtf8( ).data( ) );
-        printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
-        return;
-    } 
-    filesystem = *iter;
-    if ( filesystem->IsReadWrite == writable ) {
-        debug( "+ UsbDeviceMounter::_remount: already mounted read-%s, returning success\n", writable ? "write" : "only" );
-        printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
-        return;
-    }
-
-    debug( "+ UsbDeviceMounter::_remount: starting `/bin/mount` to remount mount point '%s' read-%s\n", path.toUtf8( ).data( ), writable ? "write" : "only" );
-    _mountProcess = new ProcessRunner;
-
-    (void) QObject::connect( _mountProcess, &ProcessRunner::succeeded, this, [ this, filesystem, writable ] ( ) {
-        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s succeeded\n", writable ? "write" : "only", filesystem->OurMountPoint.toUtf8( ).data( ) );
-
-        _mountProcess->deleteLater( );
-        _mountProcess = nullptr;
-
-        filesystem->IsReadWrite = writable;
-
-        _fixUpMountPoint( filesystem->OurMountPoint );
-
-        printf( "remount:success:r%c:%s\n", writable ? 'w' : 'o', filesystem->OurMountPoint.toUtf8( ).data( ) );
-    } );
-
-    (void) QObject::connect( _mountProcess, &ProcessRunner::failed, this, [ this, filesystem, writable ] ( ) {
-        char const* mountPointText = filesystem->OurMountPoint.toUtf8( ).data( );
-        debug( "+ UsbDeviceMounter::_remount: remount read-%s of %s failed\n", writable ? "write" : "only", mountPointText );
-        _mountProcess->deleteLater( );
-        _mountProcess = nullptr;
-        printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', mountPointText );
-    } );
-
-    (void) QObject::connect( _mountProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbDeviceMounter::_mount_readyReadStandardOutput );
-    (void) QObject::connect( _mountProcess, &ProcessRunner::readyReadStandardError,  this, &UsbDeviceMounter::_mount_readyReadStandardError  );
-
-    _mountProcess->start(
-        QString { "/bin/mount" },
-        QStringList {
-            "-o",
-            "remount,r" % QChar { writable ? 'w' : 'o' },
-            path
-        }
-    );
 }
 
 void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive ) {
@@ -227,11 +319,13 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
     ScaleSize( blockDevice->Size, driveSize, unit );
 
     debug(
-        "  + System? %s\n"
+        "  + Device: '%s'\n"
         "  + Size:   %.2f %s\n"
+        "  + System? %s\n"
         "",
-        blockDevice->HintSystem ? "yes" : "no",
-        driveSize, unit
+        blockDevice->Device.data( ),
+        driveSize, unit,
+        blockDevice->HintSystem ? "yes" : "no"
     );
 
     blockDevice->setParent( this );
@@ -268,11 +362,8 @@ void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
     debug( "+ UsbDeviceMounter::_filesystemRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
 
     if ( _filesystems.contains( path ) ) {
-        UFilesystem* filesystem = _filesystems[path];
-        printf( "unmounted:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+        _unmount( _filesystems[path] );
     }
-
-    _filesystems.remove( path );
 }
 
 void UsbDeviceMounter::_signalReceived( siginfo_t const& info ) {

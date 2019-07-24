@@ -35,8 +35,8 @@ namespace {
 
     void _GetLightFieldIds( ) {
         auto environment { QProcessEnvironment::systemEnvironment( ) };
-        auto sudoUid     { environment.value( "SUDO_UID"  )          };
-        auto sudoGid     { environment.value( "SUDO_GID"  )          };
+        auto sudoUid     { environment.value( "SUDO_UID" )           };
+        auto sudoGid     { environment.value( "SUDO_GID" )           };
         bool ok;
 
         LightFieldUserId = sudoUid.toUInt( &ok );
