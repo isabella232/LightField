@@ -25,10 +25,6 @@ private:
     QString        _mountmonStdoutBuffer;
     QString        _mountmonStderrBuffer;
 
-    ProcessRunner* _mountProcess         { };
-    QString        _mountStdoutBuffer;
-    QString        _mountStderrBuffer;
-
 signals:
     ;
 
@@ -48,9 +44,6 @@ private slots:
     void mountmon_failed( int const exitCode, QProcess::ProcessError const error );
     void mountmon_readyReadStandardOutput( QString const& data );
     void mountmon_readyReadStandardError( QString const& data );
-
-    void mount_readyReadStandardOutput( QString const& data );
-    void mount_readyReadStandardError( QString const& data );
 
 };
 
