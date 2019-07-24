@@ -20,7 +20,6 @@ signals:
     ;
 
     void _commandReceived( QString const );
-    void _terminate( int );
 
     void commandReceived( QStringList const& );
 
