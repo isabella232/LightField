@@ -38,6 +38,7 @@ constexpr auto const MSG_DONTWAIT   = 0x40;
 // Forward type declarations
 //================================================
 
+struct group;
 struct passwd;
 struct sigaction;
 struct siginfo_t;
@@ -49,8 +50,13 @@ struct statfs;
 // Type declarations
 //================================================
 
+struct group {
+    gid_t gr_gid;
+};
+
 struct passwd {
     char* pw_name;
+    uid_t pw_uid;
 };
 
 struct sigaction {
@@ -89,19 +95,25 @@ struct statfs {
 // Function prototypes
 //================================================
 
-extern int   clock_gettime( int clk_id, timespec* tp );
-extern int   getpid( );
-extern int   getpwuid_r( uid_t uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
-extern int   getuid( );
-extern int   kill( pid_t pid, int sig );
-extern int   mkdir( char const* pathName, int mode );
-extern int   sigaction( int signum, struct sigaction const* act, struct sigaction* oldact );
-extern int   sigaddset( sigset_t* set, int signum );
-extern int   sigemptyset( sigset_t* set );
-extern int   sigqueue( pid_t pid, int sig, sigval_t const value );
-extern int   sigtimedwait( sigset_t const* set, siginfo_t* info, timespec const* timeout );
-extern int   socketpair( int domain, int type, int protocol, int sv[2] );
-extern int   statfs( char const* path, struct statfs* buf );
-extern char* strsignal( int sig );
+extern int     chown( char const* pathname, uid_t owner, gid_t group );
+extern int     clock_gettime( int clk_id, timespec* tp );
+extern int     getpid( );
+extern group*  getgrnam( const char* name );
+extern int     getgrnam_r( char const* name, group* grp, char* buf, size_t buflen, group** result );
+extern passwd* getpwnam( const char* name );
+extern int     getpwnam_r( char const* name, passwd* pwd, char* buf, size_t buflen, passwd** result );
+extern int     getpwuid_r( uid_t uid, passwd* pwd, char* buf, size_t buflen, passwd** result );
+extern int     getuid( );
+extern int     kill( pid_t pid, int sig );
+extern int     mkdir( char const* pathName, int mode );
+extern int     rmdir( char const* pathName );
+extern int     sigaction( int signum, struct sigaction const* act, struct sigaction* oldact );
+extern int     sigaddset( sigset_t* set, int signum );
+extern int     sigemptyset( sigset_t* set );
+extern int     sigqueue( pid_t pid, int sig, sigval_t const value );
+extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec const* timeout );
+extern int     socketpair( int domain, int type, int protocol, int sv[2] );
+extern int     statfs( char const* path, struct statfs* buf );
+extern char*   strsignal( int sig );
 
 #endif // !__WIN32JUNK_H__
