@@ -126,7 +126,7 @@ void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesys
         _objectPathsToMountPoints.insert( path, newMountPoint );
         _mountPointsToObjectPaths.insert( newMountPoint, path );
 
-        printf( "mounted:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+        printf( "mount:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
 
         mountProcess->deleteLater( );
     } );
@@ -215,7 +215,7 @@ void UsbDeviceMounter::_unmount( UFilesystem* filesystem ) {
             debug( "+ UsbDeviceMounter::_filesystemRemoved: couldn't delete now-unused mount point directory '%s': %s [%d]\n", filesystem->OurMountPoint.toUtf8( ).data( ), strerror( err ), err );
         }
 
-        printf( "unmounted:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+        printf( "unmount:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
 
         auto path = _mountPointsToObjectPaths[filesystem->OurMountPoint];
         _objectPathsToMountPoints.remove( path );
