@@ -61,6 +61,18 @@ void ProcessRunner::start( QString const& program, QStringList const& arguments 
     debug( "+ ProcessRunner[%d]::start: pid %lld, command: '%s'\n", _instanceId, _process.processId( ), commandLine.toUtf8( ).data( ) );
 }
 
+qint64 ProcessRunner::write( char const* data, qint64 const maxSize ) {
+    return _process.write( data, maxSize );
+}
+
+qint64 ProcessRunner::write( char const* data ) {
+    return _process.write( data );
+}
+
+qint64 ProcessRunner::write( QByteArray const& byteArray ) {
+    return _process.write( byteArray );
+}
+
 void ProcessRunner::process_errorOccurred( QProcess::ProcessError error ) {
     debug( "+ ProcessRunner[%d]::process_errorOccurred: %s [%d]\n", _instanceId, ToString( error ), error );
 
