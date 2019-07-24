@@ -56,19 +56,19 @@ UpgradeManager::~UpgradeManager( ) {
 }
 
 void UpgradeManager::_dumpBufferContents( ) {
-    if ( !_stdoutBuffer.isEmpty( ) ) {
-        if ( _stdoutBuffer.endsWith( LineFeed ) ) {
-            _stdoutBuffer.chop( 1 );
-        }
-        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get/stdout] " ).toUtf8( ).data( ) );
-        _stdoutBuffer.clear( );
-    }
     if ( !_stderrBuffer.isEmpty( ) ) {
         if ( _stderrBuffer.endsWith( LineFeed ) ) {
             _stderrBuffer.chop( 1 );
         }
         debug( "[apt-get/stderr] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get/stderr] " ).toUtf8( ).data( ) );
         _stderrBuffer.clear( );
+    }
+    if ( !_stdoutBuffer.isEmpty( ) ) {
+        if ( _stdoutBuffer.endsWith( LineFeed ) ) {
+            _stdoutBuffer.chop( 1 );
+        }
+        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get/stdout] " ).toUtf8( ).data( ) );
+        _stdoutBuffer.clear( );
     }
 }
 
