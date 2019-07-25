@@ -3,7 +3,6 @@
 #include "upgradekitunpacker.h"
 
 #include "processrunner.h"
-#include "utils.h"
 
 UpgradeKitUnpacker::UpgradeKitUnpacker( QObject* parent ): QObject( parent ) {
     /*empty*/

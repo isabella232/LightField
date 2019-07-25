@@ -3,7 +3,6 @@
 #include "usbmountmanager.h"
 
 #include "processrunner.h"
-#include "strings.h"
 
 UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
     _mountmonProcess = new ProcessRunner;

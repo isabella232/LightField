@@ -3,7 +3,6 @@
 #include "svgrenderer.h"
 
 #include "processrunner.h"
-#include "strings.h"
 
 namespace {
 

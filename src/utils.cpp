@@ -4,8 +4,6 @@
 
 #include <ctime>
 
-#include "utils.h"
-
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
     auto layout = new QHBoxLayout;
 

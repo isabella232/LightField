@@ -2,12 +2,10 @@
 
 #include "printmanager.h"
 
-#include "app.h"
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
-#include "strings.h"
 
 //
 // Before printing:

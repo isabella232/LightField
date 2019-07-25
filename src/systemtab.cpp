@@ -2,12 +2,9 @@
 
 #include "systemtab.h"
 
-#include "app.h"
 #include "shepherd.h"
-#include "strings.h"
 #include "upgrademanager.h"
 #include "upgradeselector.h"
-#include "utils.h"
 #include "window.h"
 
 namespace {

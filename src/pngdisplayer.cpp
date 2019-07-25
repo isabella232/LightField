@@ -2,10 +2,6 @@
 
 #include "pngdisplayer.h"
 
-#include "app.h"
-#include "strings.h"
-#include "utils.h"
-
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     _label->setAlignment( Qt::AlignCenter );
 

@@ -2,9 +2,7 @@
 
 #include "shepherd.h"
 
-#include "app.h"
 #include "processrunner.h"
-#include "strings.h"
 #include "window.h"
 
 namespace {

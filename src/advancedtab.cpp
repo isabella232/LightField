@@ -2,13 +2,10 @@
 
 #include "advancedtab.h"
 
-#include "app.h"
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 namespace {
 

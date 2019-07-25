@@ -43,6 +43,9 @@
 
 #include "constants.h"
 #include "debug.h"
+#include "app.h"
+#include "strings.h"
+#include "utils.h"
 
 #if defined WIN32
 #   include "win32junk.h"

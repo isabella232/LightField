@@ -5,9 +5,7 @@
 #include "gpgsignaturechecker.h"
 #include "hasher.h"
 #include "processrunner.h"
-#include "strings.h"
 #include "upgradekitunpacker.h"
-#include "utils.h"
 #include "version.h"
 
 namespace {

@@ -2,15 +2,12 @@
 
 #include "filetab.h"
 
-#include "app.h"
 #include "canvas.h"
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 namespace {
 

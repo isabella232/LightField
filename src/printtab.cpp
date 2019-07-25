@@ -2,12 +2,9 @@
 
 #include "printtab.h"
 
-#include "app.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
 #if defined _DEBUG

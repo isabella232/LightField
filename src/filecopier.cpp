@@ -1,8 +1,6 @@
 #include "pch.h"
 
-#include "app.h"
 #include "filecopier.h"
-#include "utils.h"
 
 FileCopier::FileCopier( QWidget* parent ): InitialShowEventMixin<FileCopier, QMainWindow>( parent ) {
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );

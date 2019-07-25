@@ -1,10 +1,7 @@
 #include "pch.h"
 
-#include "app.h"
-
 #include "lightfieldstyle.h"
 #include "signalhandler.h"
-#include "utils.h"
 #include "version.h"
 #include "window.h"
 

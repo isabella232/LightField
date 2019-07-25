@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "processrunner.h"
-#include "strings.h"
 
 #include <atomic>
 

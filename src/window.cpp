@@ -2,16 +2,13 @@
 
 #include "window.h"
 
-#include "app.h"
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
 #include "signalhandler.h"
-#include "strings.h"
 #include "upgrademanager.h"
 #include "usbmountmanager.h"
-#include "utils.h"
 
 #include "filetab.h"
 #include "preparetab.h"

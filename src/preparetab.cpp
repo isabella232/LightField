@@ -5,9 +5,7 @@
 #include "hasher.h"
 #include "printjob.h"
 #include "shepherd.h"
-#include "strings.h"
 #include "svgrenderer.h"
-#include "utils.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
