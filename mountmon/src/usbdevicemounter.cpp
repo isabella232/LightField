@@ -46,6 +46,68 @@ namespace {
         suffix = DriveSizeUnits[unitIndex];
     }
 
+    QString ToString( UDrive* drive ) {
+        return QString::asprintf(
+            "  + Path:                  %s\n"
+            "  + CanPowerOff:           %s\n"
+            "  + ConnectionBus:         %s\n"
+            "  + Ejectable:             %s\n"
+            "  + Id:                    %s\n"
+            "  + Media:                 %s\n"
+            "  + MediaAvailable:        %s\n"
+            "  + MediaChangeDetected:   %s\n"
+            "  + MediaRemovable:        %s\n"
+            "  + Model:                 %s\n"
+            "  + Optical:               %s\n"
+            "  + OpticalBlank:          %s\n"
+            "  + OpticalNumAudioTracks: %u\n"
+            "  + OpticalNumDataTracks:  %u\n"
+            "  + OpticalNumSessions:    %u\n"
+            "  + OpticalNumTracks:      %u\n"
+            "  + Removable:             %s\n"
+            "  + Revision:              %s\n"
+            "  + RotationRate:          %d\n"
+            "  + Seat:                  %s\n"
+            "  + Serial:                %s\n"
+            "  + SiblingId:             %s\n"
+            "  + Size:                  %llu\n"
+            "  + SortKey:               %s\n"
+            "  + TimeDetected:          %llu\n"
+            "  + TimeMediaDetected:     %llu\n"
+            "  + Vendor:                %s\n"
+            "  + WWN:                   %s\n"
+            "",
+            drive->Path.path( ).toUtf8( ).data( ),
+            drive->CanPowerOff ? "true" : "false",
+            drive->ConnectionBus.toUtf8( ).data( ),
+            drive->Ejectable ? "true" : "false",
+            drive->Id.toUtf8( ).data( ),
+            drive->Media.toUtf8( ).data( ),
+            drive->MediaAvailable ? "true" : "false",
+            drive->MediaChangeDetected ? "true" : "false",
+            drive->MediaRemovable ? "true" : "false",
+            drive->Model.toUtf8( ).data( ),
+            drive->Optical ? "true" : "false",
+            drive->OpticalBlank ? "true" : "false",
+            drive->OpticalNumAudioTracks,
+            drive->OpticalNumDataTracks,
+            drive->OpticalNumSessions,
+            drive->OpticalNumTracks,
+            drive->Removable ? "true" : "false",
+            drive->Revision.toUtf8( ).data( ),
+            drive->RotationRate,
+            drive->Seat.toUtf8( ).data( ),
+            drive->Serial.toUtf8( ).data( ),
+            drive->SiblingId.toUtf8( ).data( ),
+            drive->Size,
+            drive->SortKey.toUtf8( ).data( ),
+            drive->TimeDetected,
+            drive->TimeMediaDetected,
+            drive->Vendor.toUtf8( ).data( ),
+            drive->WWN.toUtf8( ).data( )
+        );
+    }
+
 }
 
 UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent ):
@@ -268,34 +330,20 @@ void UsbDeviceMounter::_mount_readyReadStandardError( QString const& data ) {
 }
 
 void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive ) {
-    debug( "+ UsbDeviceMounter::_driveAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
+    debug( "+ UsbDeviceMounter::_driveAdded: path %s; properties:\n", path.path( ).toUtf8( ).data( ) );
+
+    char const* unit;
+    double driveSize;
+    ScaleSize( drive->Size, driveSize, unit );
+    debug( "%s  + Size:           %.2f %s\n", ToString( drive ).toUtf8( ).data( ), driveSize, unit );
 
     if ( 0 != drive->ConnectionBus.compare( "usb", Qt::CaseInsensitive ) ) {
         debug( "  + bad value for property ConnectionBus: '%s'\n", drive->ConnectionBus.toUtf8( ).data( ) );
         return;
     }
     if ( !drive->MediaAvailable ) {
-        debug( "  + bad value for property MediaAvailable: '%s'\n", drive->MediaAvailable ? "true" : "false" );
-        return;
+        debug( "  + [[warning]] bad value for property MediaAvailable: '%s'\n", drive->MediaAvailable ? "true" : "false" );
     }
-
-    char const* unit;
-    double driveSize;
-    ScaleSize( drive->Size, driveSize, unit );
-
-    debug(
-        "  + Media:  %s\n"
-        "  + Vendor: %s\n"
-        "  + Model:  %s\n"
-        "  + Serial: %s\n"
-        "  + Size:   %.2f %s\n"
-        "",
-        drive->Media.toUtf8( ).data( ),
-        drive->Vendor.toUtf8( ).data( ),
-        drive->Model.toUtf8( ).data( ),
-        drive->Serial.toUtf8( ).data( ),
-        driveSize, unit
-    );
 
     drive->setParent( this );
     _drives.insert( path, drive );
@@ -308,9 +356,8 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
         debug( "  + not interested in this block device\n" );
         return;
     }
-
     if ( blockDevice->HintIgnore ) {
-        debug( "  + block device says to ignore it, so ignoring\n" );
+        debug( "  + block device has ignore hint set, so ignoring it\n" );
         return;
     }
 
