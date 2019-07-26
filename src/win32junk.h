@@ -92,7 +92,7 @@ struct statfs {
 };
 
 //================================================
-// Function prototypes
+// POSIX function prototypes
 //================================================
 
 extern int     chown( char const* pathname, uid_t owner, gid_t group );
@@ -115,5 +115,12 @@ extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec cons
 extern int     socketpair( int domain, int type, int protocol, int sv[2] );
 extern int     statfs( char const* path, struct statfs* buf );
 extern char*   strsignal( int sig );
+
+//================================================
+// GNU C Library function prototypes
+//================================================
+
+extern int     backtrace( void** buffer, int size );
+extern char**  backtrace_symbols( void* const* buffer, int size );
 
 #endif // !__WIN32JUNK_H__
