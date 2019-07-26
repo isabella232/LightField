@@ -3,9 +3,11 @@
 
 #include "tabbase.h"
 
+class DebugLogCopier;
 class UpgradeKitInfo;
 class UpgradeManager;
 class UpgradeSelector;
+class UsbMountManager;
 
 class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
@@ -13,7 +15,7 @@ class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
 public:
 
-    SystemTab( QWidget* parent = nullptr );
+    SystemTab( UsbMountManager* manager, QWidget* parent = nullptr );
     virtual ~SystemTab( ) override;
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::System; }
@@ -29,13 +31,20 @@ private:
     bool             _isPrinterAvailable         { true            };
     bool             _isFirmwareUpgradeAvailable { false           };
     bool             _isSoftwareUpgradeAvailable { false           };
+
+    DebugLogCopier*  _debugLogCopier             {                 };
     UpgradeManager*  _upgradeManager             {                 };
     UpgradeSelector* _upgradeSelector            {                 };
+    UsbMountManager* _usbMountManager            {                 };
+
+    QString          _mountPoint                  {                 };
 
     QLabel*          _logoLabel                  { new QLabel      };
     QLabel*          _versionLabel               { new QLabel      };
 
     QLabel*          _copyrightsLabel            { new QLabel      };
+
+    QPushButton*     _copyLogsButton             { new QPushButton };
 
     QPushButton*     _updateSoftwareButton       { new QPushButton };
     QPushButton*     _updateFirmwareButton       { new QPushButton };
@@ -56,16 +65,13 @@ signals:
 public slots:
     ;
 
-    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
-    void upgradeManager_upgradeCheckComplete( bool const upgradesFound );
-    void upgradeManager_upgradeFailed( );
-
-    void upgradeSelector_canceled( );
-    void upgradeSelector_kitSelected( UpgradeKitInfo const& kit );
-
     void setPrinterAvailable( bool const value );
     void setUpgradeManager( UpgradeManager* upgradeManager );
+
+    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
 protected slots:
     ;
@@ -73,10 +79,18 @@ protected slots:
 private slots:
     ;
 
+    void upgradeManager_upgradeCheckComplete( bool const upgradesFound );
+    void upgradeManager_upgradeFailed( );
+
+    void upgradeSelector_canceled( );
+    void upgradeSelector_kitSelected( UpgradeKitInfo const& kit );
+
     void printer_online( );
     void printer_offline( );
 
     void shepherd_firmwareVersionReport( QString const& version );
+
+    void copyLogsButton_clicked( bool );
 
     void updateSoftwareButton_clicked( bool );
     void updateFirmwareButton_clicked( bool );

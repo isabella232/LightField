@@ -69,7 +69,7 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
         _printTab    = new PrintTab,
         _statusTab   = new StatusTab,
         _advancedTab = new AdvancedTab,
-        _systemTab   = new SystemTab,
+        _systemTab   = new SystemTab   ( _usbMountManager ),
     };
 
     for ( auto tabA : tabs ) {
