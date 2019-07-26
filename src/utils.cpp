@@ -2,7 +2,25 @@
 
 #include <sys/statfs.h>
 
+#include <execinfo.h>
+
 #include <ctime>
+
+namespace {
+
+    char const* DriveSizeUnits[] = {
+        "iB",
+        "KiB",
+        "MiB",
+        "GiB",
+        "TiB",
+        "PiB",
+        "EiB",
+        "ZiB",
+        "YiB"
+    };
+
+}
 
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
     auto layout = new QHBoxLayout;
@@ -120,4 +138,32 @@ bool GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint
     bytesFree             = buf.f_bavail * buf.f_frsize;
     optimalWriteBlockSize = buf.f_bsize;
     return true;
+}
+
+void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix ) {
+    int unitIndex = 0;
+
+    scaledSize = inputSize;
+    while ( scaledSize > 1024.0 ) {
+        ++unitIndex;
+        scaledSize /= 1024.0;
+    }
+    suffix = DriveSizeUnits[unitIndex];
+}
+
+void PrintBacktrace( char const* tracerName ) {
+    char** strings;
+    void* frames[256];
+    size_t size;
+    size_t i;
+
+    size    = backtrace( frames, _countof( frames ) );
+    strings = backtrace_symbols( frames, size );
+
+    debug( "+ %s: %zu frames:\n", tracerName, size );
+
+    for ( i = 0; i < size; i++ )
+        debug( "  + %s\n", strings[i] );
+
+    free( strings );
 }

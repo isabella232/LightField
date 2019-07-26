@@ -47,4 +47,8 @@ inline int RawPowerLevelToPercentage( int raw ) {
     return static_cast<int>( static_cast<double>( raw ) / 255.0 * 100.0 + 0.5 );
 }
 
+void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix );
+
+void PrintBacktrace( char const* tracerName );
+
 #endif // __UTILS_H__
