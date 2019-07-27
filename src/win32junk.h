@@ -44,7 +44,7 @@ struct sigaction;
 struct siginfo_t;
 struct sigset_t;
 union  sigval_t;
-struct statfs;
+struct statvfs;
 
 //================================================
 // Type declarations
@@ -83,12 +83,9 @@ union sigval_t {
     void* sival_ptr;
 };
 
-struct statfs {
-    quint64 f_bsize;
-    quint64 f_blocks;
-    quint64 f_bfree;
-    quint64 f_bavail;
-    quint64 f_frsize;
+struct statvfs {
+    unsigned long f_bsize;
+    unsigned long f_bavail;
 };
 
 //================================================
@@ -113,7 +110,7 @@ extern int     sigemptyset( sigset_t* set );
 extern int     sigqueue( pid_t pid, int sig, sigval_t const value );
 extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec const* timeout );
 extern int     socketpair( int domain, int type, int protocol, int sv[2] );
-extern int     statfs( char const* path, struct statfs* buf );
+extern int     statvfs( char const* path, struct statvfs* buf );
 extern char*   strsignal( int sig );
 
 //================================================
