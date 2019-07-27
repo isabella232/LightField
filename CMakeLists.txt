@@ -2,11 +2,13 @@
 # Original Project Author: Matt Keeter Copyright 2014 -2017
 # Author: Paul Tsouchlos Copyright 2017
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.14)
 
-# Setting -std=c++17
-set(CMAKE_CXX_STANDARD 17)
-# Setting standard to required, as requisted by DeveloperPaul123 on github
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS ON)
+set(CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 
 # Set the version number
