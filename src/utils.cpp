@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include <sys/statfs.h>
+#include <sys/statvfs.h>
 
 #include <execinfo.h>
 
@@ -129,13 +129,13 @@ QString ReadWholeFile( QString const& fileName ) {
 
 bool GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize ) {
     QString filePath = QFileInfo { fileName }.canonicalPath( );
-    struct statfs buf;
-    if ( -1 == statfs( filePath.toUtf8( ).data( ), &buf ) ) {
-        debug( "+ GetFreeSpaceFromPath: path '%s': statfs failed: %s [%d]\n", filePath.toUtf8( ).data( ), strerror( errno ), errno );
+    struct statvfs buf;
+    if ( -1 == statvfs( filePath.toUtf8( ).data( ), &buf ) ) {
+        debug( "+ GetFreeSpaceFromPath: path '%s': statvfs failed: %s [%d]\n", filePath.toUtf8( ).data( ), strerror( errno ), errno );
         return false;
     }
 
-    bytesFree             = buf.f_bavail * buf.f_frsize;
+    bytesFree             = buf.f_bsize * buf.f_bavail;
     optimalWriteBlockSize = buf.f_bsize;
     return true;
 }
@@ -152,18 +152,14 @@ void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix 
 }
 
 void PrintBacktrace( char const* tracerName ) {
-    char** strings;
     void* frames[256];
-    size_t size;
-    size_t i;
-
-    size    = backtrace( frames, _countof( frames ) );
-    strings = backtrace_symbols( frames, size );
+    auto size    = backtrace( frames, _countof( frames ) );
+    auto strings = backtrace_symbols( frames, size );
 
     debug( "+ %s: %zu frames:\n", tracerName, size );
-
-    for ( i = 0; i < size; i++ )
+    for ( decltype( size ) i = 0; i < size; i++ ) {
         debug( "  + %s\n", strings[i] );
+    }
 
     free( strings );
 }
