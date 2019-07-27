@@ -32,7 +32,6 @@ private:
     bool             _isFirmwareUpgradeAvailable { false           };
     bool             _isSoftwareUpgradeAvailable { false           };
 
-    DebugLogCopier*  _debugLogCopier             {                 };
     UpgradeManager*  _upgradeManager             {                 };
     UpgradeSelector* _upgradeSelector            {                 };
     UsbMountManager* _usbMountManager            {                 };

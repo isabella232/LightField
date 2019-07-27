@@ -268,7 +268,7 @@ void SystemTab::copyLogsButton_clicked( bool ) {
 
     auto debugLogCopier { new DebugLogCopier { _usbMountManager, this } };
     QObject::connect( debugLogCopier, &DebugLogCopier::finished, debugLogCopier, &DebugLogCopier::deleteLater );
-    _debugLogCopier->copyTo( _mountPoint );
+    debugLogCopier->copyTo( _mountPoint );
 }
 
 void SystemTab::updateSoftwareButton_clicked( bool ) {
