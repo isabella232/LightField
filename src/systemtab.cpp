@@ -185,13 +185,13 @@ void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 }
 
 void SystemTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
-    debug( "SystemTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+    debug( "+ SystemTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
     _mountPoint = mountPoint;
     _updateButtons( );
 }
 
 void SystemTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
-    debug( "SystemTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+    debug( "+ SystemTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
     _mountPoint.clear( );
     _updateButtons( );
 }
