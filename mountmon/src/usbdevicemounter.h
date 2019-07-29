@@ -15,7 +15,7 @@ class UsbDeviceMounter: public QObject {
 
 public:
 
-    UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent = nullptr );
+    UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent = nullptr );
     virtual ~UsbDeviceMounter( ) override;
 
 protected:
@@ -23,7 +23,7 @@ protected:
 private:
 
     SignalHandler*                       _signalHandler            { };
-    UDisksMonitor&                       _monitor;
+    UDisksMonitor*                       _monitor;
     QMap<QDBusObjectPath, UDrive*>       _drives;
     QMap<QDBusObjectPath, UBlockDevice*> _blockDevices;
     QMap<QDBusObjectPath, UFilesystem*>  _filesystems;

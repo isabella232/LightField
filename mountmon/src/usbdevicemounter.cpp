@@ -110,19 +110,19 @@ namespace {
 
 }
 
-UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent ):
+UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
     QObject  ( parent  ),
     _monitor ( monitor )
 {
     _signalHandler = new SignalHandler { this };
 
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
                                              
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
-    (void) QObject::connect( &_monitor,      &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
 
     (void) QObject::connect( _signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived     );
 
@@ -133,7 +133,7 @@ UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor& monitor, QObject* parent ):
 }
 
 UsbDeviceMounter::~UsbDeviceMounter( ) {
-    QObject::disconnect( &_monitor );
+    QObject::disconnect( _monitor );
 }
 
 void UsbDeviceMounter::_dumpStdioBuffers( ) {
@@ -415,12 +415,12 @@ void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
 
 void UsbDeviceMounter::_signalReceived( siginfo_t const& info ) {
     debug( "+ UsbDeviceMounter::_signalReceived: signal %s [%d]\n", ::strsignal( info.si_signo ), info.si_signo );
-    qApp->exit( );
+    ::exit( 35 );
 }
 
 void UsbDeviceMounter::commandReader_commandReceived( QStringList const& command ) {
     if ( command[0] == "terminate" ) {
-        qApp->exit( 0 );
+        ::exit( 36 );
     } else if ( command[0] == "remount-ro" ) {
         _remount( command[1], false );
     } else if ( command[0] == "remount-rw" ) {

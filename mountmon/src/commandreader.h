@@ -16,12 +16,12 @@ private:
 
     QThread* _thread;
 
+    void _readCommands( );
+
 signals:
     ;
 
-    void _commandReceived( QString const );
-
-    void commandReceived( QStringList const& );
+    void commandReceived( QStringList const );
 
 public slots:
     ;
@@ -31,8 +31,6 @@ protected slots:
 
 private slots:
     ;
-
-    void thread_commandReceived( QString const command );
 
 };
 

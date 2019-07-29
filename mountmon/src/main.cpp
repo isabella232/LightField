@@ -60,7 +60,7 @@ namespace {
         debug( "+ _GetLightFieldIds: uid=%u gid=%u\n", LightFieldUserId, LightFieldGroupId );
         if ( NegativeOne == LightFieldUserId || NegativeOne == LightFieldGroupId ) {
             debug( "+ _GetLightFieldIds: FATAL: Couldn't look up user ID or group ID for LightField user!!\n" );
-            ::exit( 2 );
+            ::exit( 34 );
         }
     }
 }
@@ -70,12 +70,12 @@ int main( int argc, char** argv ) {
 
     _GetLightFieldIds( );
 
-    auto             app              { QCoreApplication { argc, argv } };
-    CommandReader    commandReader    { &app                            };
-    UDisksMonitor    udisksMonitor    { &app                            };
-    UsbDeviceMounter usbDeviceMounter { udisksMonitor, &app             };
+    auto app              { new QCoreApplication { argc, argv         } };
+    auto commandReader    { new CommandReader    { app                } };
+    auto udisksMonitor    { new UDisksMonitor    { app                } };
+    auto usbDeviceMounter { new UsbDeviceMounter { udisksMonitor, app } };
 
-    (void) QObject::connect( &commandReader, &CommandReader::commandReceived, &usbDeviceMounter, &UsbDeviceMounter::commandReader_commandReceived );
+    (void) QObject::connect( commandReader, &CommandReader::commandReceived, usbDeviceMounter, &UsbDeviceMounter::commandReader_commandReceived, Qt::QueuedConnection );
 
-    app.exec( );
+    app->exec( );
 }
