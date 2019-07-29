@@ -4,12 +4,9 @@
 
 #include "statustab.h"
 
-#include "app.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 namespace {
 
@@ -134,12 +131,18 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _leftColumn->setLayout( _leftColumnLayout );
 
 
-    _currentLayerImage->setAlignment( Qt::AlignCenter );
+    _currentLayerImage->setAlignment( Qt::AlignHCenter );
     _currentLayerImage->setContentsMargins( { } );
     _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _currentLayerImage->setStyleSheet( "QWidget { background: black }" );
 
-    _currentLayerLayout = WrapWidgetInVBox( _currentLayerImage );
+    _fileNameLabel->setAlignment( Qt::AlignLeft );
+    _fileNameLabel->setContentsMargins( { } );
+    _fileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _fileNameLabel->setTextFormat( Qt::RichText );
+    _fileNameLabel->setWordWrap( true );
+
+    _currentLayerLayout = WrapWidgetsInVBox( { _currentLayerImage, nullptr, _fileNameLabel } );
     _currentLayerLayout->setAlignment( Qt::AlignHCenter | Qt::AlignTop );
     _currentLayerLayout->setContentsMargins( { } );
 
@@ -155,7 +158,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionLabel->setWordWrap( true );
 
     _startThePrintButton->setFont( font22pt );
-    _startThePrintButton->setFixedSize( MainButtonSize.width( ) + 20, MainButtonSize.height( ) );
+    _startThePrintButton->setFixedSize( MainButtonSize );
     _startThePrintButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _startThePrintButton->setText( "Start the print" );
     QObject::connect( _startThePrintButton, &QPushButton::clicked, this, &StatusTab::startThePrintButton_clicked );
@@ -208,7 +211,7 @@ StatusTab::~StatusTab( ) {
 }
 
 void StatusTab::_updateReprintButtonState( ) {
-    _reprintButton->setEnabled( _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
+    _reprintButton->setEnabled( ( UiState::PrintCompleted == _uiState ) && _isPrinterOnline && _isPrinterAvailable && _isPrinterPrepared && _isModelRendered );
 
     update( );
 }
@@ -549,16 +552,22 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
-        case UiState::PrintCompleted:
+            _fileNameLabel->clear( );
             _stopButton->setVisible( false );
             _reprintButton->setVisible( true );
             break;
 
         case UiState::PrintStarted:
-            _reprintButton->setVisible( false );
+            _fileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
             _stopButton->setEnabled( true );
             _stopButton->setText( "STOP" );
             _stopButton->setVisible( true );
+            _reprintButton->setVisible( false );
+            break;
+
+        case UiState::PrintCompleted:
+            _stopButton->setVisible( false );
+            _reprintButton->setVisible( true );
             break;
     }
 

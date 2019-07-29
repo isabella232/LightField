@@ -2,12 +2,9 @@
 
 #include "printtab.h"
 
-#include "app.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
 #if defined _DEBUG
@@ -165,8 +162,9 @@ void PrintTab::_connectPrintJob( ) {
     _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 
 #if defined ENABLE_SPEED_SETTING
-    _printSpeedSlider->setValue( _printJob->printSpeed );
-    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( _printJob->printSpeed ) );
+    auto printSpeedValue = static_cast<int>( _printJob->printSpeed + 0.5 );
+    _printSpeedSlider->setValue( printSpeedValue );
+    _printSpeedValue->setText( QString( "%1 mm/min" ).arg( printSpeedValue ) );
 #endif // defined ENABLE_SPEED_SETTING
 
     update( );
@@ -189,10 +187,7 @@ void PrintTab::_updateUiState( ) {
 }
 
 void PrintTab::_initialShowEvent( QShowEvent* event ) {
-    auto size = QSize {
-        std::max( { _raiseOrLowerButton->width( ),  _homeButton->width( ),  } ),
-        std::max( { _raiseOrLowerButton->height( ), _homeButton->height( ), } )
-    };
+    auto size = maxSize( _raiseOrLowerButton->size( ), _homeButton->size( ) ) + ButtonPadding;
 
     auto fm = _raiseOrLowerButton->fontMetrics( );
     auto raiseSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, "Raise Build Platform" );
@@ -200,7 +195,6 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     if ( lowerSize.width( ) > raiseSize.width( ) ) {
         size.setWidth( size.width( ) + lowerSize.width( ) - raiseSize.width( ) );
     }
-    size.setWidth( size.width( ) + 20 );
 
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
@@ -257,7 +251,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Raising;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+            _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
             break;
 
         case BuildPlatformState::Raised:
@@ -265,7 +259,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Lowering;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0 );
+            _shepherd->doMoveAbsolute( std::max( 100, _printJob->layerThickness ) / 1000.0, PrinterDefaultHighSpeed );
             break;
     }
 

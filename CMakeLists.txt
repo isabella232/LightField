@@ -2,11 +2,13 @@
 # Original Project Author: Matt Keeter Copyright 2014 -2017
 # Author: Paul Tsouchlos Copyright 2017
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.14)
 
-# Setting -std=c++17
-set(CMAKE_CXX_STANDARD 17)
-# Setting standard to required, as requisted by DeveloperPaul123 on github
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS ON)
+set(CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 
 # Set the version number
@@ -59,11 +61,14 @@ src/upgradekitunpacker.cpp
 src/upgrademanager.cpp
 src/upgradeselector.cpp
 src/usbmountmanager.cpp
-src/lightfieldstyle.cpp)
+src/lightfieldstyle.cpp
+src/debuglogcopier.cpp
+src/filecopier.cpp)
 
 #set project headers. 
 set(Project_Headers src/debug.h
 src/pch.h
+src/win32junk.h
 src/version.h
 src/app.h
 src/canvas.h
@@ -97,7 +102,9 @@ src/upgradekitunpacker.h
 src/upgrademanager.h
 src/upgradeselector.h
 src/usbmountmanager.h
-src/lightfieldstyle.h)
+src/lightfieldstyle.h
+src/debuglogcopier.h
+src/filecopier.h)
 
 #set project resources and icon resource
 set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)

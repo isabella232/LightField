@@ -2,21 +2,12 @@
 
 #include "debug.h"
 
-#if defined _DEBUG
+//#if defined _DEBUG
 
 namespace {
 
-    FILE* DebugLog       { stderr };
+    FILE* DebugLog       {        };
     FILE* OriginalStderr { stderr };
-
-    char const* DebugLogPaths[] {
-        "/var/log/lightfield/debug.log",
-        "/var/log/lightfield/debug.1.log",
-        "/var/log/lightfield/debug.2.log",
-        "/var/log/lightfield/debug.3.log",
-        "/var/log/lightfield/debug.4.log",
-        "/var/log/lightfield/debug.5.log",
-    };
 
 }
 
@@ -30,7 +21,6 @@ DebugManager::DebugManager( ) {
     if ( !DebugLog ) {
         error_t err = errno;
         ::fprintf( stderr, "failed to open log file '%s': %s [%d]", DebugLogPaths[0], strerror( err ), err );
-        DebugLog = stderr;
     } else {
         // save the original stderr
         int fd = ::dup( 2 );
@@ -52,8 +42,10 @@ DebugManager::~DebugManager( ) {
 }
 
 void debug( char const* str ) {
-    ::fputs( str, DebugLog       );
+    if ( DebugLog ) {
+        ::fputs( str, DebugLog );
+    }
     ::fputs( str, OriginalStderr );
 }
 
-#endif // defined _DEBUG
+//#endif // defined _DEBUG

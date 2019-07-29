@@ -2,15 +2,12 @@
 
 #include "filetab.h"
 
-#include "app.h"
 #include "canvas.h"
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
-#include "strings.h"
-#include "utils.h"
 
 namespace {
 
@@ -34,12 +31,8 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
-    _usbFsModel->setFilter( QDir::Files );
-    _usbFsModel->setNameFilterDisables( false );
-    _usbFsModel->setNameFilters( { { "*.stl" } } );
-    QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
-
     _toggleLocationButton->setEnabled( false );
+    _toggleLocationButton->setFont( ModifyFont( _toggleLocationButton->font( ), 16.0 ) );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
 
@@ -112,6 +105,25 @@ void FileTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
+void FileTab::_createUsbFsModel( ) {
+    _destroyUsbFsModel( );
+
+    _usbFsModel = new QFileSystemModel;
+    _usbFsModel->setFilter( QDir::Files );
+    _usbFsModel->setNameFilterDisables( false );
+    _usbFsModel->setNameFilters( { { "*.stl" } } );
+    (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
+    _usbFsModel->setRootPath( _usbPath );
+}
+
+void FileTab::_destroyUsbFsModel( ) {
+    if ( _usbFsModel ) {
+        QObject::disconnect( _usbFsModel );
+        _usbFsModel->deleteLater( );
+        _usbFsModel = nullptr;
+    }
+}
+
 void FileTab::_loadModel( QString const& fileName ) {
     debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
     _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
@@ -176,28 +188,28 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 }
 
 void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
-    debug( "+ FileTab::usbMountManager_filesystemMounted: mount point %s\n", mountPoint.toUtf8( ).data( ) );
+    debug( "+ FileTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
 
     if ( !_usbPath.isEmpty( ) ) {
-        debug( "  + USB storage device at %s already mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
+        debug( "  + We already have a USB storage device at '%s' mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
         return;
     }
 
     QFileInfo usbPathInfo { mountPoint };
     if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
-        debug( "  + USB path is inaccessible (uid: %u; gid: %u; mode: %04o)\n", usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
+        debug( "  + Unable to access mount point '%s' (uid: %u; gid: %u; mode: 0%03o)\n", _usbPath.toUtf8( ).data( ), usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
         return;
     }
 
     _usbPath = mountPoint;
-    _usbFsModel->setRootPath( mountPoint );
+    _createUsbFsModel( );
     _toggleLocationButton->setEnabled( true );
 
     update( );
 }
 
 void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
-    debug( "+ FileTab::usbMountManager_filesystemUnmounted: mount point %s\n", mountPoint.toUtf8( ).data( ) );
+    debug( "+ FileTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
 
     if ( mountPoint != _usbPath ) {
         debug( "  + not our filesystem; ignoring\n", _usbPath.toUtf8( ).data( ) );
@@ -207,6 +219,7 @@ void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
     if ( _modelsLocation == ModelsLocation::Usb ) {
         _showLibrary( );
     }
+
     if ( _modelSelection.fileName.startsWith( _usbPath ) ) {
         _canvas->clear( );
         _dimensionsLabel->clear( );
@@ -216,6 +229,7 @@ void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
     }
 
     _usbPath.clear( );
+    _destroyUsbFsModel( );
     _toggleLocationButton->setEnabled( false );
 
     update( );

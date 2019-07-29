@@ -1,4 +1,4 @@
-#if ! defined __SIGNALHANDLER_H__
+#ifndef __SIGNALHANDLER_H__
 #define __SIGNALHANDLER_H__
 
 class SignalHandler: public QObject {
@@ -20,26 +20,30 @@ protected:
 
 private:
 
-    static void signalHandler( int signum );
+    void _cleanUp( );
 
-    void cleanUp( );
+    QSocketNotifier* _signalNotifier { };
 
-    QSocketNotifier* signalNotifier { nullptr };
+private /*static*/:
+
+    static void _signalAction( int signalNumber, siginfo_t* info, void* ucontext );
 
 signals:
+    ;
 
-    void signalReceived( int const signalNumber );
+    void signalReceived( siginfo_t const& info );
 
 public slots:
+    ;
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void dispatchSignal( int );
 
 };
-
-extern SignalHandler* g_signalHandler;
 
 #endif // __SIGNALHANDLER_H__

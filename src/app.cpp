@@ -1,10 +1,7 @@
 #include "pch.h"
 
-#include "app.h"
-
 #include "lightfieldstyle.h"
 #include "signalhandler.h"
-#include "utils.h"
 #include "version.h"
 #include "window.h"
 
@@ -12,11 +9,11 @@ AppSettings g_settings;
 
 namespace {
 
-    QCommandLineParser commandLineParser;
+    QCommandLineParser CommandLineParser;
+    QFile              PidFile           { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
+    bool               MoveMainWindow    { };
 
-    bool moveMainWindow = false;
-
-    QList<QCommandLineOption> commandLineOptions {
+    QList<QCommandLineOption> CommandLineOptions {
         QCommandLineOption { QStringList { "?", "help"  }, "Displays this help."                                                                    },
         QCommandLineOption { QStringList { "l", "light" }, "Selects the \"light\" theme."                                                           },
         QCommandLineOption {               "s",            "Run at 800×480.",                                                                       },
@@ -32,9 +29,9 @@ namespace {
 #endif // defined _DEBUG
     };
 
-    QList<std::function<void( )>> commandLineActions {
+    QList<std::function<void( )>> CommandLineActions {
         [] ( ) { // -? or --help
-            ::fputs( commandLineParser.helpText( ).toUtf8( ).data( ), stderr );
+            ::fputs( CommandLineParser.helpText( ).toUtf8( ).data( ), stdout );
             ::exit( 0 );
         },
         [] ( ) { // -l or --light
@@ -46,7 +43,7 @@ namespace {
             MaximalRightHandPaneSize = SmallMaximalRightHandPaneSize;
         },
         [] ( ) { // -x
-            auto value = commandLineParser.value( commandLineOptions[3] );
+            auto value = CommandLineParser.value( CommandLineOptions[3] );
 
             bool ok = false;
             auto xOffset = value.toInt( &ok, 10 );
@@ -58,7 +55,7 @@ namespace {
             }
         },
         [] ( ) { // -y
-            auto value = commandLineParser.value( commandLineOptions[4] );
+            auto value = CommandLineParser.value( CommandLineOptions[4] );
 
             bool ok = false;
             auto yOffset = value.toInt( &ok, 10 );
@@ -71,7 +68,7 @@ namespace {
         },
 #if defined _DEBUG
         [] ( ) { // -h
-            moveMainWindow = true;
+            MoveMainWindow = true;
         },
         [] ( ) { // -i
             g_settings.frameless = true;
@@ -94,20 +91,107 @@ namespace {
 }
 
 void App::_parseCommandLine( ) {
-    commandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
-    commandLineParser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
-    commandLineParser.addOptions( commandLineOptions );
-    commandLineParser.process( *this );
+    CommandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
+    CommandLineParser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
+    CommandLineParser.addOptions( CommandLineOptions );
+    CommandLineParser.process( *this );
 
-    for ( auto i = 0; i < commandLineOptions.count( ); ++i ) {
-        if ( commandLineParser.isSet( commandLineOptions[i] ) ) {
-            commandLineActions[i]( );
+    for ( auto i = 0; i < CommandLineOptions.count( ); ++i ) {
+        if ( CommandLineParser.isSet( CommandLineOptions[i] ) ) {
+            CommandLineActions[i]( );
         }
     }
 
-    if ( moveMainWindow ) {
+    if ( MoveMainWindow ) {
         g_settings.mainWindowPosition.setY( 0 );
         g_settings.projectorWindowPosition.setY( MainWindowSize.height( ) );
+    }
+}
+
+bool App::_isAlreadyRunning( ) {
+    if ( !PidFile.exists( ) ) {
+        debug( "+ App:_isAlreadyRunning: pid file doesn't exist\n" );
+        errno = 0;
+        return false;
+    }
+
+    if ( !PidFile.open( QIODevice::ReadOnly | QIODevice::ExistingOnly ) ) {
+        error_t err = errno;
+        debug( "+ App::_isAlreadyRunning: couldn't open pid file: %s [%d]\n", strerror( err ), err );
+        errno = err;
+        return true;
+    }
+
+    bool ok = false;
+    pid_t pid = PidFile.readAll( ).toInt( &ok );
+    PidFile.close( );
+    if ( !ok ) {
+        debug( "+ App::_isAlreadyRunning: couldn't get pid from file\n" );
+        errno = EINVAL;
+        return true;
+    }
+
+    debug( "+ App::_isAlreadyRunning: pid from pid file is %d\n", pid );
+
+    if ( getpid( ) == pid ) {
+        debug( "+ App::_isAlreadyRunning: pid file contains our pid, so no other instance is running\n" );
+        PidFile.remove( );
+        errno = 0;
+        return false;
+    }
+
+    sigval_t val;
+    val.sival_int = getpid( );
+    if ( -1 == sigqueue( pid, SIGUSR2, val ) ) {
+        error_t err = errno;
+        if ( ESRCH == err ) {
+            debug( "+ App::_isAlreadyRunning: process from pid file doesn't exist\n" );
+            PidFile.remove( );
+            errno = 0;
+            return false;
+        }
+
+        debug( "+ App::_isAlreadyRunning: couldn't send signal to other instance: %s [%d]\n", strerror( err ), err );
+        errno = err;
+        return true;
+    }
+
+    sigset_t signalsToWaitFor;
+    sigemptyset( &signalsToWaitFor );
+    sigaddset( &signalsToWaitFor, SIGUSR2 );
+
+    siginfo_t info            { };
+    timespec  timeoutDuration { 5L, 0L };
+
+    if ( -1 == sigtimedwait( &signalsToWaitFor, &info, &timeoutDuration ) ) {
+        error_t err = errno;
+        if ( EAGAIN == err ) {
+            debug( "+ App::_isAlreadyRunning: timed out waiting for reply from other instance\n" );
+        } else {
+            debug( "+ App::_isAlreadyRunning: sigtimedwait failed: %s [%d]\n", strerror( err ), err );
+        }
+        errno = err;
+        return true;
+    }
+
+    int major = 0;
+    int minor = 0;
+    int teeny = 0;
+    int build = 0;
+    DecodeVersionCode( info.si_value.sival_int, major, minor, teeny, build );
+    debug( "+ App::_isAlreadyRunning: reply from other instance: pid %d, version %d.%d.%d.%d\n", info.si_pid, major, minor, teeny, build );
+
+    errno = 0;
+    return true;
+}
+
+void App::_recordProcessId( ) {
+    if ( PidFile.open( QIODevice::WriteOnly | QIODevice::NewOnly ) ) {
+        debug( "App::_recordProcessId: saving our pid %d to file %s\n", getpid( ), PidFile.fileName( ).toUtf8( ).data( ) );
+        PidFile.write( QString { "%1" }.arg( getpid( ) ).toUtf8( ) );
+        PidFile.close( );
+    } else {
+        debug( "App::_recordProcessId: couldn't create new pid file\n" );
     }
 }
 
@@ -145,8 +229,7 @@ void App::_setTheme( ) {
 }
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
-    _debugManager   = new DebugManager;
-    g_signalHandler = new SignalHandler;
+    _debugManager = new DebugManager;
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
@@ -154,42 +237,17 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ), NormalFontSize ) );
 
-    QFile pidFile { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
-    if ( pidFile.exists( ) ) {
-        if ( pidFile.open( QIODevice::ReadOnly | QIODevice::ExistingOnly ) ) {
-            bool ok   = false;
-            pid_t pid = pidFile.readAll( ).toInt( &ok );
+    _parseCommandLine( );
 
-            pidFile.close( );
-
-            if ( ok ) {
-                debug( "App::`ctor: checking for the existance of putative lf process pid %d\n", pid );
-                if ( 0 == kill( pid, 0 ) ) {
-                    debug( "App::`ctor: lf process already exists, exiting\n", pid );
-                    exit( 1 );
-                } else {
-                    debug( "App::`ctor: stale pid of old lf process %d\n", pid );
-                }
-            } else {
-                debug( "App::`ctor: couldn't understand contents of pid file\n" );
-            }
-        } else {
-            debug( "App::`ctor: couldn't open existing pid file\n" );
-        }
-        pidFile.remove( );
-    }
-
-    if ( pidFile.open( QIODevice::WriteOnly | QIODevice::NewOnly ) ) {
-        debug( "App::`ctor: saving our pid %d to file %s\n", getpid( ), QFileInfo { pidFile }.absoluteFilePath( ).toUtf8( ).data( ) );
-        pidFile.write( QString { "%1" }.arg( getpid( ) ).toUtf8( ) );
-        pidFile.close( );
+    if ( !_isAlreadyRunning( ) ) {
+        _recordProcessId( );
     } else {
-        debug( "App::`ctor: couldn't create new pid file\n" );
+        debug( "+ App::`ctor: there %s an instance of LightField already running. this instance is terminating.\n", ( 0 == errno ) ? "is" : "may be" );
+        ::exit( 1 );
     }
 
     QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
-    _parseCommandLine( );
     _setTheme( );
 
     _window = new Window;
@@ -199,7 +257,9 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
 App::~App( ) {
     QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
-    delete _window;
-    delete g_signalHandler;
+    _window->deleteLater( );
+    _window = nullptr;
+
     delete _debugManager;
+    _debugManager = nullptr;
 }

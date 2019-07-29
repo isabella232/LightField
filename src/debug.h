@@ -10,17 +10,17 @@ class DebugManager {
 
 public:
 
-#if defined _DEBUG
+//#if defined _DEBUG
     DebugManager( );
     ~DebugManager( );
-#else
-    DebugManager( )  { /*empty*/ }
-    ~DebugManager( ) { /*empty*/ }
-#endif //defined _DEBUG
+//#else
+//    DebugManager( )  { /*empty*/ }
+//    ~DebugManager( ) { /*empty*/ }
+//#endif //defined _DEBUG
 
 };
 
-#if defined _DEBUG
+//#if defined _DEBUG
 void debug( char const* str );
 
 template<typename... Args>
@@ -30,10 +30,10 @@ inline void debug( char const* fmt, Args... args ) {
     debug( buf );
     free( buf );
 }
-#else
-inline void debug( ... ) {
-    /*empty*/
-}
-#endif // _DEBUG
+//#else
+//inline void debug( ... ) {
+//    /*empty*/
+//}
+//#endif // _DEBUG
 
 #endif // __DEBUG_H__

@@ -1,9 +1,5 @@
 #include "pch.h"
 
-#include "app.h"
-
-int main(int argc, char *argv[])
-{
-    App a(argc, argv);
-    return a.exec();
+int main( int argc, char* argv[] ) {
+    return App( argc, argv ).exec( );
 }

@@ -51,6 +51,7 @@ private:
 
 
     QLabel*             _currentLayerImage          { new QLabel      };
+    QLabel*             _fileNameLabel              { new QLabel      };
     QVBoxLayout*        _currentLayerLayout         {                 };
     QGroupBox*          _currentLayerGroup          { new QGroupBox   };
 

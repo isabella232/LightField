@@ -5,9 +5,7 @@
 #include "hasher.h"
 #include "printjob.h"
 #include "shepherd.h"
-#include "strings.h"
 #include "svgrenderer.h"
-#include "utils.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -543,7 +541,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaxZHeight );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
 
     update( );
 }

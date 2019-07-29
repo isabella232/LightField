@@ -2,9 +2,7 @@
 
 #include "shepherd.h"
 
-#include "app.h"
 #include "processrunner.h"
-#include "strings.h"
 #include "window.h"
 
 namespace {
@@ -387,15 +385,15 @@ void Shepherd::start( ) {
     _processRunner->start( ResetLumenArduinoPortCommand, { } );
 }
 
-void Shepherd::doMoveRelative( float const relativeDistance ) {
+void Shepherd::doMoveRelative( float const relativeDistance, float const speed ) {
     if ( getReady( "doMoveRelative", PendingCommand::moveRelative, 4 ) ) {
-        _process->write( QString( "move %1\n" ).arg( relativeDistance, 0, 'f', 2 ).toUtf8( ) );
+        _process->write( QString::asprintf( "moveRel %.2f %.2f\n", relativeDistance, speed ).toUtf8( ) );
     }
 }
 
-void Shepherd::doMoveAbsolute( float const absolutePosition ) {
+void Shepherd::doMoveAbsolute( float const absolutePosition, float const speed ) {
     if ( getReady( "doMoveAbsolute", PendingCommand::moveAbsolute, 4 ) ) {
-        _process->write( QString( "moveTo %1\n" ).arg( absolutePosition, 0, 'f', 2 ).toUtf8( ) );
+        _process->write( QString::asprintf( "moveAbs %.2f %.2f\n", absolutePosition, speed ).toUtf8( ) );
     }
 }
 

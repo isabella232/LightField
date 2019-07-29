@@ -1,14 +1,19 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS ON)
+set(CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
+
 set(MOUNTMON_VERSION_MAJOR "1")
 set(MOUNTMON_VERSION_MINOR "0")
 set(MOUNTMON_VERSION_PATCH "0")
 set(PROJECT_VERSION "${MOUNTMON_VERSION_MAJOR}.${MOUNTMON_VERSION_MINOR}.${MOUNTMON_VERSION_PATCH}")
 
 if(WIN32)
-set(Qt5_DIR "F:\\\\Qt\\\\5.12.3\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set (Qt5_DIR "F:\\\\Qt\\\\5.13.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(mountmon)
@@ -18,13 +23,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC OFF)
 
 set(Project_Sources src/main.cpp
+src/commandreader.cpp
+src/processrunner.cpp
 src/signalhandler.cpp
 src/udisks.cpp
 src/udisksmonitor.cpp
 src/usbdevicemounter.cpp)
 
-set(Project_Headers src/udisks.h
+set(Project_Headers src/commandreader.h
+src/processrunner.h
 src/signalhandler.h
+src/udisks.h
 src/udisksmonitor.h
 src/usbdevicemounter.h)
 

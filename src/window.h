@@ -11,6 +11,7 @@ class PngDisplayer;
 class PrintManager;
 class PrintJob;
 class Shepherd;
+class SignalHandler;
 class UpgradeManager;
 class UsbMountManager;
 
@@ -37,6 +38,7 @@ protected:
 
 private:
 
+    SignalHandler*      _signalHandler     { };
     ModelSelectionInfo* _modelSelection    { };
     PngDisplayer*       _pngDisplayer      { };
     PrintJob*           _printJob          { };
@@ -94,7 +96,7 @@ private slots:
     void prepareTab_preparePrinterStarted( );
     void prepareTab_preparePrinterComplete( bool const success );
 
-    void signalHandler_signalReceived( int const signalNumber );
+    void signalHandler_signalReceived( siginfo_t const& info );
 
 };
 

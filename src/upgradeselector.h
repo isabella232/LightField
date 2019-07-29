@@ -3,8 +3,8 @@
 
 #include "gesturelistview.h"
 #include "initialshoweventmixin.h"
+#include "upgrademanager.h"
 
-class UpgradeKitInfo;
 class UpgradeManager;
 
 class UpgradeSelector: public InitialShowEventMixin<UpgradeSelector, QMainWindow> {
@@ -25,22 +25,24 @@ protected:
 
 private:
 
-    UpgradeManager*  _upgradeManager;
+    UpgradeManager*    _upgradeManager;
 
-    QPushButton*     _upgradeButton;
-    QPushButton*     _cancelButton;
-    QLabel*          _description;
-    QScrollArea*     _scrollArea;
-    QHBoxLayout*     _upgradeSelectLayout;
+    QPushButton*       _upgradeButton;
+    QPushButton*       _cancelButton;
+    QLabel*            _description;
+    QScrollArea*       _scrollArea;
+    QHBoxLayout*       _upgradeSelectLayout;
 
-    QLabel*          _upgradeInProgressMessage;
-    QHBoxLayout*     _upgradeInProgressLayout;
+    QLabel*            _upgradeInProgressMessage;
+    QHBoxLayout*       _upgradeInProgressLayout;
 
-    QLabel*          _upgradeFailedMessage;
-    QPushButton*     _okButton;
-    QHBoxLayout*     _upgradeFailedLayout;
+    QLabel*            _upgradeFailedMessage;
+    QPushButton*       _okButton;
+    QHBoxLayout*       _upgradeFailedLayout;
 
-    int              _currentSelection { -1 };
+    UpgradeKitInfoList _availableKits            { };
+
+    int                _currentSelection         { -1 };
 
 signals:
     ;

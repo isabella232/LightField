@@ -20,10 +20,6 @@ public:
         return _process.state( );
     }
 
-    qint64 write( char const* data, qint64 const maxSize );
-    qint64 write( char const* data );
-    qint64 write( QByteArray const& byteArray );
-
 protected:
 
 private:

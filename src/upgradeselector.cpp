@@ -2,10 +2,7 @@
 
 #include "upgradeselector.h"
 
-#include "app.h"
-#include "strings.h"
 #include "upgrademanager.h"
-#include "utils.h"
 
 UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent ): InitialShowEventMixin<UpgradeSelector, QMainWindow>( parent ), _upgradeManager( upgradeManager ) {
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
@@ -16,8 +13,27 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
 
     auto availableKitsLabel = new QLabel { "Available versions:" };
 
+    _availableKits = _upgradeManager->availableUpgrades( );
+    std::sort( _availableKits.begin( ), _availableKits.end( ), [ ] ( UpgradeKitInfo const& a, UpgradeKitInfo const& b ) {
+        // sort reverse by version number
+        if ( a.version > b.version ) {
+            return -1;
+        }
+        if ( a.version < b.version ) {
+            return 1;
+        }
+        // then sort forward by build type
+        if ( a.buildType < b.buildType ) {
+            return -1;
+        }
+        if ( a.buildType > b.buildType ) {
+            return 1;
+        }
+        return 0;
+    } );
+
     QStringList kitsListStrings;
-    for ( auto const& kitInfo : _upgradeManager->availableUpgrades( ) ) {
+    for ( auto const& kitInfo : _availableKits ) {
         if ( kitInfo.buildType == BuildType::Debug ) {
             kitsListStrings.append( kitInfo.versionString % " (debug version)" );
         } else {
@@ -111,9 +127,9 @@ void UpgradeSelector::_initialShowEvent( QShowEvent* event ) {
     move( g_settings.mainWindowPosition );
     setFixedSize( MainWindowSize );
 
-    auto newSize = maxSize( _upgradeButton->size( ), _cancelButton->size( ) ) + QSize { 20, 4 };
+    auto newSize = maxSize( _upgradeButton->size( ), _cancelButton->size( ) ) + ButtonPadding;
     _upgradeButton->setFixedSize( newSize );
-    _cancelButton->setFixedSize( newSize );
+    _cancelButton ->setFixedSize( newSize );
 
     event->accept( );
 }
@@ -121,7 +137,7 @@ void UpgradeSelector::_initialShowEvent( QShowEvent* event ) {
 void UpgradeSelector::kitsListView_clicked( QModelIndex const& index ) {
     if ( index.isValid( ) ) {
         auto row = index.row( );
-        auto kitInfo = _upgradeManager->availableUpgrades( )[row];
+        auto kitInfo = _availableKits[row];
         debug( "+ UpgradeSelector::kitsListView_clicked: row %d selected\n", row );
         debug( "  + version:    %s\n", kitInfo.versionString.toUtf8( ).data( ) );
         debug( "  + build type: %s\n", ToString( kitInfo.buildType ) );
@@ -139,7 +155,7 @@ void UpgradeSelector::kitsListView_clicked( QModelIndex const& index ) {
 
 void UpgradeSelector::upgradeButton_clicked( bool ) {
     debug( "+ UpgradeSelector::upgradeButton_clicked\n" );
-    emit kitSelected( _upgradeManager->availableUpgrades( )[_currentSelection] );
+    emit kitSelected( _availableKits[_currentSelection] );
 }
 
 void UpgradeSelector::cancelButton_clicked( bool ) {

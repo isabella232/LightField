@@ -1,16 +1,25 @@
 #include "pch.h"
 
+#include <sys/statvfs.h>
+
+#include <execinfo.h>
+
 #include <ctime>
 
-#include "utils.h"
+namespace {
 
-QVBoxLayout* WrapWidgetInVBox( QWidget* widget, Qt::AlignmentFlag const alignment ) {
-    auto layout = new QVBoxLayout;
+    char const* DriveSizeUnits[] = {
+        "iB",
+        "KiB",
+        "MiB",
+        "GiB",
+        "TiB",
+        "PiB",
+        "EiB",
+        "ZiB",
+        "YiB"
+    };
 
-    layout->setAlignment( alignment );
-    layout->setContentsMargins( { } );
-    layout->addWidget( widget );
-    return layout;
 }
 
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
@@ -92,19 +101,6 @@ QString GetUserName( ) {
     return userName;
 }
 
-QString GetFirstDirectoryIn( QString const& directory ) {
-    auto dir = new QDir( directory );
-    dir->setFilter( QDir::Dirs | QDir::NoDotAndDotDot );
-
-    QString dirname;
-    for ( auto name : dir->entryList( ) ) {
-        dirname = name;
-        break;
-    }
-
-    return dirname;
-}
-
 qreal Distance( QPointF const& a, QPointF const& b ) {
     return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
 }
@@ -129,4 +125,41 @@ QString ReadWholeFile( QString const& fileName ) {
         result = fileContents;
     }
     return result;
+}
+
+bool GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize ) {
+    QString filePath = QFileInfo { fileName }.canonicalPath( );
+    struct statvfs buf;
+    if ( -1 == statvfs( filePath.toUtf8( ).data( ), &buf ) ) {
+        debug( "+ GetFreeSpaceFromPath: path '%s': statvfs failed: %s [%d]\n", filePath.toUtf8( ).data( ), strerror( errno ), errno );
+        return false;
+    }
+
+    bytesFree             = buf.f_bsize * buf.f_bavail;
+    optimalWriteBlockSize = buf.f_bsize;
+    return true;
+}
+
+void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix ) {
+    int unitIndex = 0;
+
+    scaledSize = inputSize;
+    while ( scaledSize > 1024.0 ) {
+        ++unitIndex;
+        scaledSize /= 1024.0;
+    }
+    suffix = DriveSizeUnits[unitIndex];
+}
+
+void PrintBacktrace( char const* tracerName ) {
+    void* frames[256];
+    auto size    = backtrace( frames, _countof( frames ) );
+    auto strings = backtrace_symbols( frames, size );
+
+    debug( "+ %s: %zu frames:\n", tracerName, size );
+    for ( decltype( size ) i = 0; i < size; i++ ) {
+        debug( "  + %s\n", strings[i] );
+    }
+
+    free( strings );
 }

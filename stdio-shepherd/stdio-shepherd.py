@@ -26,22 +26,16 @@ class StdioPrinterDriver( ):
 
     def __init__( self ):
         self.printer      = printer.printer( self.printer_onlineCallback, self.printer_offlineCallback, self.printer_positionCallback, self.printer_temperatureCallback, self.printer_receiveCallback, self.printer_sendCallback )
-        self.printProcess = printer.printprocess( self.printer, self.printProcess_showImageCallback, self.printProcess_hideImageCallback, self.printProcess_startedPrintingCallback, self.printProcess_finishedPrintingCallback )
         self.isOnline     = False
         self.isPrinting   = False
         self.reader       = csv.reader( sys.stdin,  csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.writer       = csv.writer( sys.stdout, csv.get_dialect( 'StdioPrinterDriverCustom' ) )
         self.verbMap      = {
-            'move':          self.move,
-            'moveTo':        self.moveTo,
-            'home':          self.home,
-            'lift':          self.lift,
-            'askTemp':       self.askTemp,
-            'send':          self.send,
-            'queryOnline':   self.queryOnline,
-            'queryPrinting': self.queryPrinting,
-            'stopPrinting':  self.stopPrinting,
-            'terminate':     self.terminate
+            'moveRel':   self.moveRel,
+            'moveAbs':   self.moveAbs,
+            'home':      self.home,
+            'send':      self.send,
+            'terminate': self.terminate
         }
 
     ##
@@ -77,29 +71,6 @@ class StdioPrinterDriver( ):
         sys.stdout.flush( )
 
     ##
-    ## Callbacks for printprocess instance
-    ##
-
-    def printProcess_showImageCallback( self, fileName, brightness, index, total ):
-        print( "+ printProcess_showImageCallback: file name %s, brightness %s, index %s, total %s" % ( fileName, brightness, index, total ), file = sys.stderr )
-        self.writer.writerow( [ 'printProcess_showImage', fileName, brightness, index, total ] )
-        sys.stdout.flush( )
-
-    def printProcess_hideImageCallback( self ):
-        self.writer.writerow( [ 'printProcess_hideImage' ] )
-        sys.stdout.flush( )
-
-    def printProcess_startedPrintingCallback( self ):
-        self.isPrinting = True
-        self.writer.writerow( [ 'printProcess_startedPrinting' ] )
-        sys.stdout.flush( )
-
-    def printProcess_finishedPrintingCallback( self ):
-        self.isPrinting = False
-        self.writer.writerow( [ 'printProcess_finishedPrinting' ] )
-        sys.stdout.flush( )
-
-    ##
     ## Methods
     ##
 
@@ -111,26 +82,21 @@ class StdioPrinterDriver( ):
             self.stopPrint( )
         self.printer.disconnect( )
 
-    def stopPrint( self ):
-        if not self.isPrinting:
-            return
-        self.printProcess.stop( )
-
     ##
     ## Verbs
     ##
 
-    def move( self, *args ):
+    def moveRel( self, *args ):
         if not self.isOnline:
-            return [ 'fail', 'move', 'not online', *args ]
-        self.printer.move( *map( float, args[0:1] ) )
-        return [ 'ok', 'move', *args ]
+            return [ 'fail', 'moveRel', 'not online', *args ]
+        self.printer.move( *map( float, args[0:2] ) )
+        return [ 'ok', 'moveRel', *args ]
 
-    def moveTo( self, *args ):
+    def moveAbs( self, *args ):
         if not self.isOnline:
-            return [ 'fail', 'moveTo', 'not online', *args ]
-        self.printer.moveto( *map( float, args[0:1] ) )
-        return [ 'ok', 'moveTo', *args ]
+            return [ 'fail', 'moveAbs', 'not online', *args ]
+        self.printer.moveto( *map( float, args[0:2] ) )
+        return [ 'ok', 'moveAbs', *args ]
 
     def home( self, *args ):
         if not self.isOnline:
@@ -138,33 +104,11 @@ class StdioPrinterDriver( ):
         self.printer.home( )
         return [ 'ok', 'home' ]
 
-    def lift( self, *args ):
-        if not self.isOnline:
-            return [ 'fail', 'lift', 'not online', *args ]
-        self.printer.lift( *map( float, args[0:2] ) )
-        return [ 'ok', 'lift', *args ]
-
-    def askTemp( self, *args ):
-        if not self.isOnline:
-            return [ 'fail', 'askTemp', 'not online' ]
-        self.printer.asktemp( )
-        return [ 'ok', 'askTemp' ]
-
     def send( self, *args ):
         if not self.isOnline or len( args ) == 0:
             return [ 'fail', 'send', 'not online', *args ]
         self.printer.send( args[0] )
         return [ 'ok', 'send', *args ]
-
-    def queryOnline( self, *args ):
-        return [ 'ok', 'queryOnline', 'true' if self.isOnline else 'false' ]
-
-    def queryPrinting( self, *args ):
-        return [ 'ok', 'queryPrinting', 'true' if self.isPrinting else 'false' ]
-
-    def stopPrinting( self, *args ):
-        self.stopPrint( )
-        return [ 'ok', 'stopPrinting' ]
 
     def terminate( self, *args ):
         self.writer.writerow( [ 'ok', 'terminate' ] )

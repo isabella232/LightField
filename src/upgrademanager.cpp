@@ -5,9 +5,7 @@
 #include "gpgsignaturechecker.h"
 #include "hasher.h"
 #include "processrunner.h"
-#include "strings.h"
 #include "upgradekitunpacker.h"
-#include "utils.h"
 #include "version.h"
 
 namespace {
@@ -56,13 +54,6 @@ UpgradeManager::~UpgradeManager( ) {
 }
 
 void UpgradeManager::_dumpBufferContents( ) {
-    if ( !_stdoutBuffer.isEmpty( ) ) {
-        if ( _stdoutBuffer.endsWith( LineFeed ) ) {
-            _stdoutBuffer.chop( 1 );
-        }
-        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get/stdout] " ).toUtf8( ).data( ) );
-        _stdoutBuffer.clear( );
-    }
     if ( !_stderrBuffer.isEmpty( ) ) {
         if ( _stderrBuffer.endsWith( LineFeed ) ) {
             _stderrBuffer.chop( 1 );
@@ -70,9 +61,18 @@ void UpgradeManager::_dumpBufferContents( ) {
         debug( "[apt-get/stderr] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get/stderr] " ).toUtf8( ).data( ) );
         _stderrBuffer.clear( );
     }
+    if ( !_stdoutBuffer.isEmpty( ) ) {
+        if ( _stdoutBuffer.endsWith( LineFeed ) ) {
+            _stdoutBuffer.chop( 1 );
+        }
+        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get/stdout] " ).toUtf8( ).data( ) );
+        _stdoutBuffer.clear( );
+    }
 }
 
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
+    _goodUpgradeKits.clear( );
+
     debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in '%s'\n", UpdatesRootPath.toUtf8( ).data( ) );
 
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
@@ -404,9 +404,9 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
             return false;
         }
 
-        bool ok0, ok1, ok2;
-        update.version = MakeVersionCode( versionParts[0].toUInt( &ok0 ), versionParts[1].toUInt( &ok1 ), versionParts[2].toUInt( &ok2 ) );
-        if ( !ok0 || !ok1 || !ok2 ) {
+        bool ok0 = false, ok1 = false, ok2 = false, ok3 = false;
+        update.version = MakeVersionCode( versionParts[0].toUInt( &ok0 ), versionParts[1].toUInt( &ok1 ), versionParts[2].toUInt( &ok2 ), ( ( versionParts.count( ) == 4 ) ? versionParts[3] : QString { "0" } ).toUInt( &ok3 ) );
+        if ( !ok0 || !ok1 || !ok2 || !ok3 ) {
             debug( "  + bad software version \"%s\" (2)\n", update.versionString.toUtf8( ).data( ) );
             return false;
         }

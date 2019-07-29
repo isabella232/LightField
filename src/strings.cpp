@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include "strings.h"
-
 #include "filetab.h"
 #include "printmanager.h"
 #include "printtab.h"
