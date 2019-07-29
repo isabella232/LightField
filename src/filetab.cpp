@@ -32,6 +32,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
     _toggleLocationButton->setEnabled( false );
+    _toggleLocationButton->setFont( ModifyFont( _toggleLocationButton->font( ), 16.0 ) );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
 

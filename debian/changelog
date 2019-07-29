@@ -2,6 +2,7 @@ lightfield (1.0.5) stable; urgency=medium
 
   * EXPERIMENTAL PRERELEASE—DO NOT SHIP!
   * New feature: "Copy logs to USB" button on System tab.
+  * Change: Enlarged the "Show USB stick"/"Show Library" button on the File tab to make it easier to hit.
   * Bug fix: The same upgrade could appear in the upgrade selector more than once.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Sun, 28 Jul 2019 17:45:23 -0700
