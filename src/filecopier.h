@@ -1,36 +1,55 @@
-#ifndef __FILE_COPIER__
-#define __FILE_COPIER__
+#ifndef __FILECOPIER_H__
+#define __FILECOPIER_H__
 
-#include "initialshoweventmixin.h"
+using FileNamePair     = QPair<QString, QString>;
+using FileNamePairList = QList<FileNamePair>;
 
-class FileCopier: public InitialShowEventMixin<FileCopier, QMainWindow> {
+class FileCopier: public QObject {
 
     Q_OBJECT
 
 public:
 
-    FileCopier( QWidget* parent = nullptr );
+    FileCopier( QObject* parent = nullptr );
     virtual ~FileCopier( ) override;
 
-    void setFileList( QVector<QPair<QString, QString>> const& fileList );
+    void copy( FileNamePairList const& fileList );
+    void abort( );
 
-    void startCopy( );
-    void abortCopy( );
+    bool isAborted( ) const {
+        return _abortRequested;
+    }
+
+    bool isStarted( ) const {
+        return _started;
+    }
+
+    bool isCopying( ) const {
+        return isStarted( ) && !isAborted( );
+    }
 
 protected:
 
-    virtual void _initialShowEvent( QShowEvent* event ) override;
-
 private:
 
-    QVector<QPair<QString, QString>> _fileList;
+    FileNamePairList _fileList;
+    QThread*         _thread;
+
+    std::atomic_bool _started        { };
+    std::atomic_bool _abortRequested { };
+
+    void _copy( );
 
 signals:
     ;
 
-    void progress( int const index, quint64 const fileBytesCopied, quint64 const fileBytesTotal, quint64 const totalBytesCopied, quint64 const totalBytesTotal );
-    void error( int const index, QString const& message );
-    void finished( );
+    void fileStarted( int const index, qint64 const totalSize );
+    void fileProgress( int const index, qint64 const bytesCopied );
+    void fileFinished( int const index, qint64 const bytesCopied );
+
+    void notify( int const index, QString const message );
+    void failure( int const index, QString const message );
+    void finished( int const copiedFiles, int const skippedFiles );
 
 public slots:
     ;
@@ -43,4 +62,4 @@ private slots:
 
 };
 
-#endif // !__FILE_COPIER__
+#endif // __FILECOPIER_H__
