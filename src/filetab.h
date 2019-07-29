@@ -64,7 +64,7 @@ protected:
 private:
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
-    QFileSystemModel*   _usbFsModel              { new QFileSystemModel    };
+    QFileSystemModel*   _usbFsModel              {                         };
     QFileSystemModel*   _currentFsModel          {                         };
     QPushButton*        _toggleLocationButton    { new QPushButton         };
     GestureListView*    _availableFilesListView  { new GestureListView     };
@@ -89,6 +89,9 @@ private:
     ModelsLocation      _modelsLocation          { ModelsLocation::Library };
     QPointF             _swipeLastPoint          {                         };
     ProcessRunner*      _processRunner           {                         };
+
+    void _createUsbFsModel( );
+    void _destroyUsbFsModel( );
 
     void _loadModel( QString const& filename );
 
