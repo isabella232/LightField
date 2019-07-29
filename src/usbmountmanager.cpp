@@ -43,7 +43,7 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
     auto lines = _mountmonStdoutBuffer.left( index ).split( NewLineRegex );
     _mountmonStdoutBuffer.remove( 0, index + 1 );
     for ( auto const& line : lines ) {
-        debug( "[mountmon/stdout] %s\n", line.toUtf8( ).data( ) );
+        debug( "[Mountmon/stdout] %s\n", line.toUtf8( ).data( ) );
 
         auto tokens = line.split( ':' );
         if ( tokens.count( ) < 2 ) {
@@ -73,8 +73,9 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
                 continue;
             }
 
-            _mountPoint.clear( );
             emit filesystemUnmounted( _mountPoint );
+
+            _mountPoint.clear( );
         } else if ( tokens[0] == "remount" ) {
             // "remount:(failure|success):r[wo]:<mountPoint>"
 
@@ -106,9 +107,9 @@ void UsbMountManager::mountmon_readyReadStandardError( QString const& data ) {
         return;
     }
 
-    auto lines = _mountmonStderrBuffer.left( index ).replace( NewLineRegex, "\n[mountmon/stderr] " );
+    auto lines = _mountmonStderrBuffer.left( index ).replace( NewLineRegex, "\n[Mountmon/stderr] " );
     _mountmonStderrBuffer.remove( 0, index + 1 );
-    debug( "[mountmon/stderr] %s\n", lines.toUtf8( ).data( ) );
+    debug( "[Mountmon/stderr] %s\n", lines.toUtf8( ).data( ) );
 }
 
 void UsbMountManager::remount( bool const writable ) {
@@ -118,6 +119,6 @@ void UsbMountManager::remount( bool const writable ) {
         return;
     }
 
-    debug( "+ UsbMountManager::remount: asking mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
+    debug( "+ UsbMountManager::remount: asking Mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
     _mountmonProcess->write( ( QString { writable ? "remount-rw:" : "remount-ro:" } % _mountPoint % '\n' ).toUtf8( ).data( ) );
 }
