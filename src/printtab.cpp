@@ -77,7 +77,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelSlider->setSingleStep( 1 );
     _powerLevelSlider->setTickInterval( 1 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _powerLevelSlider, &QSlider::valueChanged, this, &PrintTab::powerLevelSlider_valueChanged );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
+    QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &PrintTab::powerLevelSlider_sliderReleased );
 
 
 #if defined ENABLE_SPEED_SETTING
@@ -218,9 +219,22 @@ void PrintTab::exposureTimeScaleFactorSlider_valueChanged( int value ) {
     update( );
 }
 
-void PrintTab::powerLevelSlider_valueChanged( int value ) {
-    _printJob->powerLevel = PercentagePowerLevelToRawLevel( value );
-    _powerLevelValue->setText( QString( "%1%" ).arg( value ) );
+void PrintTab::powerLevelSlider_sliderReleased( ) {
+    _printJob->powerLevel = PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) );
+
+    emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
+}
+
+void PrintTab::powerLevelSlider_valueChanged( int percentage ) {
+    _printJob->powerLevel = PercentagePowerLevelToRawLevel( percentage );
+    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
+
+    update( );
+}
+
+void PrintTab::projectorPowerLevel_changed( int const percentage ) {
+    _powerLevelSlider->setValue( percentage );
+    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
 
     update( );
 }

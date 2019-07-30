@@ -280,10 +280,20 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
     QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+
+    emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
 
-void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
-    _powerLevelValue->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
+void AdvancedTab::powerLevelSlider_valueChanged( int percentage ) {
+    _printJob->powerLevel = PercentagePowerLevelToRawLevel( percentage );
+    _powerLevelValue->setText( QString { "%1%" }.arg( percentage ) );
+
+    update( );
+}
+
+void AdvancedTab::projectorPowerLevel_changed( int const percentage ) {
+    _powerLevelSlider->setValue( percentage );
+    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
 
     update( );
 }
