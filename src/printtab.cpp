@@ -24,11 +24,11 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
 
     _exposureTimeSlider->setMinimum( 1 );
-    _exposureTimeSlider->setMaximum( 40 );
+    _exposureTimeSlider->setMaximum( 120 );
     _exposureTimeSlider->setOrientation( Qt::Horizontal );
-    _exposureTimeSlider->setPageStep( 1 );
+    _exposureTimeSlider->setPageStep( 4 );
     _exposureTimeSlider->setSingleStep( 1 );
-    _exposureTimeSlider->setTickInterval( 5 );
+    _exposureTimeSlider->setTickInterval( 8 );
     _exposureTimeSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _exposureTimeSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
@@ -149,10 +149,8 @@ void PrintTab::_connectPrintJob( ) {
     debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
 
     {
-        int value = _printJob->exposureTime / 0.5;
-        _printJob->exposureTime = value / 2.0;
-        _exposureTimeSlider->setValue( value );
-        _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+        _exposureTimeSlider->setValue( _printJob->exposureTime * 4.0 );
+        _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 2 ) );
     }
 
     _exposureTimeScaleFactorSlider->setValue( _printJob->exposureTimeScaleFactor );
@@ -206,8 +204,8 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 }
 
 void PrintTab::exposureTimeSlider_valueChanged( int value ) {
-    _printJob->exposureTime = value / 2.0;
-    _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 1 ) );
+    _printJob->exposureTime = value / 4.0;
+    _exposureTimeValue->setText( QString( "%1 s" ).arg( _printJob->exposureTime, 0, 'f', 2 ) );
 
     update( );
 }
