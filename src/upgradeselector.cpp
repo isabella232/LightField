@@ -11,8 +11,6 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
 
     setFont( ModifyFont( font( ), 22.0 ) );
 
-    auto availableKitsLabel = new QLabel { "Available versions:" };
-
     _availableKits = _upgradeManager->availableUpgrades( );
     std::sort( _availableKits.begin( ), _availableKits.end( ), [ ] ( UpgradeKitInfo const& a, UpgradeKitInfo const& b ) {
         // sort reverse by version number
@@ -41,25 +39,28 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
         }
     }
 
+    auto availableKitsLabel = new QLabel { "Available versions:" };
+
     auto kitsListView = new GestureListView;
     kitsListView->setFlow( QListView::TopToBottom );
     kitsListView->setLayoutMode( QListView::SinglePass );
     kitsListView->setMovement( QListView::Static );
     kitsListView->setSelectionMode( QListView::SingleSelection );
     kitsListView->setViewMode( QListView::ListMode );
+    kitsListView->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    kitsListView->setFixedSize( MainWindowSize.width( ) / 3 - 14, MainWindowSize.height( ) / 3 );
     kitsListView->setModel( new QStringListModel { kitsListStrings } );
     QObject::connect( kitsListView, &GestureListView::clicked, this, &UpgradeSelector::kitsListView_clicked );
 
     _description = new QLabel;
     _description->setAlignment( Qt::AlignLeft | Qt::AlignTop );
     _description->setFont( ModifyFont( _description->font( ), 14.0 ) );
-    _description->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _description->setFixedWidth( MainWindowSize.width( ) / 3 - 14 );
-    _description->setMinimumHeight( MainWindowSize.height( ) / 3 );
+    _description->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _description->setFixedSize( MainWindowSize.width( ) * 2 / 3 - 14, MainWindowSize.height( ) / 3 );
     _description->setWordWrap( true );
 
     _scrollArea = new QScrollArea;
-    _scrollArea->setFixedSize( MainWindowSize.width( ) / 3, MainWindowSize.height( ) / 3 );
+    _scrollArea->setFixedSize( MainWindowSize.width( ) * 2 / 3, MainWindowSize.height( ) / 3 );
     _scrollArea->setFrameStyle( QFrame::Box | QFrame::Sunken );
     _scrollArea->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
     _scrollArea->setWidget( _description );
@@ -75,10 +76,12 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     QObject::connect( _cancelButton,  &QPushButton::clicked, this, &UpgradeSelector::cancelButton_clicked );
 
     {
+        auto kitsListLayout = WrapWidgetsInVBox( { availableKitsLabel, kitsListView } );
+        kitsListLayout->setAlignment( Qt::AlignHCenter );
+
         auto verticalLayout = new QVBoxLayout;
         verticalLayout->addStretch( );
-        verticalLayout->addWidget( availableKitsLabel );
-        verticalLayout->addWidget( kitsListView );
+        verticalLayout->addLayout( kitsListLayout );
         verticalLayout->addWidget( _scrollArea );
         verticalLayout->addLayout( WrapWidgetsInHBox( { nullptr, _upgradeButton, nullptr, _cancelButton, nullptr } ) );
         verticalLayout->addStretch( );
