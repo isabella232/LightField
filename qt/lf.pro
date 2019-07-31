@@ -76,7 +76,6 @@ HEADERS  +=                        \
     ../src/svgrenderer.h           \
     ../src/systemtab.h             \
     ../src/tabbase.h               \
-    ../src/uistate.h               \
     ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h        \
     ../src/upgradeselector.h       \
