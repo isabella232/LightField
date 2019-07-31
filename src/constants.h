@@ -48,7 +48,7 @@ char               extern const* DebugLogPaths[DebugLogPathCount];
 double                    const  PrinterMaximumX          =  64.00; // mm
 double                    const  PrinterMaximumY          =  40.00; // mm
 double                    const  PrinterMaximumZ          =  50.00; // mm
-double                    const  PrinterRaiseToMaximumZ   =  70.00; // mm
+double                    const  PrinterRaiseToMaximumZ   =  60.00; // mm
 double                    const  PrinterHighSpeedLowerToZ =  10.00; // mm
 
 double                    const  PrinterDefaultHighSpeed  = 200.00; // mm/min

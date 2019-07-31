@@ -399,7 +399,7 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
         update.versionString = fields["Version"];
 
         auto versionParts = update.versionString.split( "." );
-        if ( versionParts.count( ) < 3 && versionParts.count( ) > 4 ) {
+        if ( versionParts.count( ) < 3 || versionParts.count( ) > 4 ) {
             debug( "  + bad software version \"%s\" (1)\n", update.versionString.toUtf8( ).data( ) );
             return false;
         }
