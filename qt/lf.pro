@@ -50,6 +50,7 @@ HEADERS  +=                        \
     ../src/backdrop.h              \
     ../src/canvas.h                \
     ../src/constants.h             \
+    ../src/coordinate.h            \
     ../src/debug.h                 \
     ../src/debuglogcopier.h        \
     ../src/filecopier.h            \
@@ -58,6 +59,7 @@ HEADERS  +=                        \
     ../src/glmesh.h                \
     ../src/gpgsignaturechecker.h   \
     ../src/hasher.h                \
+    ../src/initialshoweventmixin.h \
     ../src/lightfieldstyle.h       \
     ../src/loader.h                \
     ../src/mesh.h                  \
@@ -81,6 +83,7 @@ HEADERS  +=                        \
     ../src/usbmountmanager.h       \
     ../src/utils.h                 \
     ../src/version.h               \
+    ../src/vertex.h                \
     ../src/window.h
 
 CONFIG += c++1z precompile_header
