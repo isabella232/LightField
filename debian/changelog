@@ -1,11 +1,14 @@
 lightfield (1.0.5) stable; urgency=medium
 
   * EXPERIMENTAL PRERELEASE—DO NOT SHIP!
-  * New feature: "Copy logs to USB" button on System tab.
-  * Change: Enlarged the "Show USB stick"/"Show Library" button on the File tab to make it easier to hit.
-  * Bug fix: The same upgrade could appear in the upgrade selector more than once.
+  * New: "Copy logs to USB" button on System tab.
+  * Changed: The "Show USB stick"/"Show Library" button on the File tab has been enlarged to make it easier to hit.
+  * Changed: The "Projector power level" sliders on the Print and Advanced tabs are now linked together: changing one will change the other.
+  * Changed: The "Exposure time" slider now has a range of 30 s, and is adjustable in steps of 0.25 s.
+  * Changed: Make the description text box on the software upgrade selector wider.
+  * Fixed: The same upgrade could appear in the upgrade selector more than once.
 
- -- LightField packager <lightfield-packager@volumetricbio.com>  Sun, 28 Jul 2019 17:45:23 -0700
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 31 Jul 2019 14:38:37 -0700
 
 lightfield (1.0.4) stable; urgency=medium
 
