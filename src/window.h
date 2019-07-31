@@ -3,8 +3,7 @@
 
 #include "coordinate.h"
 #include "initialshoweventmixin.h"
-#include "tabindex.h"
-#include "uistate.h"
+#include "tabbase.h"
 
 class ModelSelectionInfo;
 class PngDisplayer;

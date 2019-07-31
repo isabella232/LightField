@@ -2,8 +2,6 @@
 #define __TABBASE_H__
 
 #include "initialshoweventmixin.h"
-#include "tabindex.h"
-#include "uistate.h"
 
 class PrintJob;
 class PrintManager;
@@ -11,9 +9,34 @@ class Shepherd;
 
 class TabBase: public QWidget {
 
-    Q_OBJECT
+    Q_OBJECT;
+    Q_PROPERTY( PrintJob*     printJob     READ printJob     WRITE setPrintJob     );
+    Q_PROPERTY( PrintManager* printManager READ printManager WRITE setPrintManager );
+    Q_PROPERTY( Shepherd*     shepherd     READ shepherd     WRITE setShepherd     );
+    Q_PROPERTY( TabIndex      tabIndex     READ tabIndex                           );
+    Q_PROPERTY( UiState       uiState      READ uiState                            );
 
 public:
+
+    enum class TabIndex {
+        File,
+        Prepare,
+        Print,
+        Status,
+        Advanced,
+        System,
+    };
+    Q_ENUM( TabIndex );
+
+    enum class UiState {
+        SelectStarted,
+        SelectCompleted,
+        SliceStarted,
+        SliceCompleted,
+        PrintStarted,
+        PrintCompleted,
+    };
+    Q_ENUM( UiState );
 
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
@@ -59,5 +82,14 @@ protected slots:
 private slots:
 
 };
+
+using TabIndex = TabBase::TabIndex;
+using UiState  = TabBase::UiState;
+
+inline int operator+( TabIndex const value ) { return static_cast<int>( value ); }
+inline int operator+( UiState  const value ) { return static_cast<int>( value ); }
+
+char const* ToString( TabIndex const value );
+char const* ToString( UiState  const value );
 
 #endif // !__TABBASE_H__
