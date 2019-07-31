@@ -154,8 +154,9 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     ./rebuild ${FORCEREBUILD} -r
 fi
+chown ${CHXXXVERBOSE} -R lumen:lumen build
 
-install ${VERBOSE} -DT -m 755 build/lf ${LIGHTFIELD_FILES}/usr/bin/lf
+install ${VERBOSE} -DT -m 755 build/lf "${LIGHTFIELD_FILES}/usr/bin/lf"
 
 ##################################################
 
