@@ -251,14 +251,14 @@ bool PrepareTab::_checkJobDirectory( ) {
     return preSliced;
 }
 
-void PrepareTab::layerThickness50Button_clicked( bool checked ) {
+void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
 
     _checkJobDirectory( );
 }
 
-void PrepareTab::layerThickness100Button_clicked( bool checked ) {
+void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
     _printJob->layerThickness = 100;
 

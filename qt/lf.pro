@@ -103,5 +103,5 @@ static {
 }
 
 debug {
-    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess -Wno-unused-parameter -Wno-unused-result
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
 }

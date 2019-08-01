@@ -345,7 +345,7 @@ void FileTab::loader_finished( ) {
     _loader = nullptr;
 }
 
-void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
+void FileTab::libraryFsModel_directoryLoaded( QString const& /*name*/ ) {
     debug( "+ FileTab::libraryFsModel_directoryLoaded\n" );
     if ( _modelsLocation == ModelsLocation::Library ) {
         _libraryFsModel->sort( 0, Qt::AscendingOrder );
@@ -354,7 +354,7 @@ void FileTab::libraryFsModel_directoryLoaded( QString const& name ) {
     }
 }
 
-void FileTab::usbFsModel_directoryLoaded( QString const& name ) {
+void FileTab::usbFsModel_directoryLoaded( QString const& /*name*/ ) {
     debug( "+ FileTab::usbFsModel_directoryLoaded\n" );
     if ( _modelsLocation == ModelsLocation::Usb ) {
         _usbFsModel->sort( 0, Qt::AscendingOrder );

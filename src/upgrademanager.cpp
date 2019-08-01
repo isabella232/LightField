@@ -608,7 +608,7 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
 void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error ) {
     QObject::disconnect( _processRunner );
     _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed\n" );
+    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _processRunner->deleteLater( );
     _processRunner = nullptr;
@@ -640,7 +640,7 @@ void UpgradeManager::aptGetInstall_succeeded( ) {
 void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::ProcessError const error ) {
     QObject::disconnect( _processRunner );
     _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetInstall_failed: `apt-get install` failed\n" );
+    debug( "+ UpgradeManager::aptGetInstall_failed: `apt-get install` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _processRunner->deleteLater( );
     _processRunner = nullptr;
@@ -662,7 +662,7 @@ void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {
     QObject::disconnect( _processRunner );
     _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get dist-upgrade` failed\n" );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get dist-upgrade` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _processRunner->deleteLater( );
     _processRunner = nullptr;
