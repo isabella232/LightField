@@ -19,7 +19,7 @@ set (PROJECT_VERSION "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_PATCH
 
 if(WIN32)
 # Set the Qt5 path
-set (Qt5_DIR "F:\\\\Qt\\\\5.13.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set(Qt5_DIR "F:\\\\Qt\\\\5.13.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(lf)
@@ -29,82 +29,83 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 #set project sources
-set(Project_Sources src/debug.cpp
+set(Project_Sources src/advancedtab.cpp
 src/app.cpp
-src/main.cpp
-src/canvas.cpp
-src/mesh.cpp
-src/glmesh.cpp
-src/loader.cpp
-src/window.cpp
 src/backdrop.cpp
-src/shepherd.cpp
-src/strings.cpp
-src/printmanager.cpp
-src/pngdisplayer.cpp
-src/svgrenderer.cpp
-src/processrunner.cpp
-src/signalhandler.cpp
-src/tabbase.cpp
-src/filetab.cpp
-src/preparetab.cpp
-src/printtab.cpp
-src/statustab.cpp
-src/advancedtab.cpp
-src/systemtab.cpp
+src/canvas.cpp
 src/constants.cpp
-src/utils.cpp
+src/debug.cpp
+src/debuglogcopier.cpp
+src/filecopier.cpp
+src/filetab.cpp
 src/gesturelistview.cpp
-src/hasher.cpp
+src/glmesh.cpp
 src/gpgsignaturechecker.cpp
+src/hasher.cpp
+src/lightfieldstyle.cpp
+src/loader.cpp
+src/main.cpp
+src/mesh.cpp
+src/pngdisplayer.cpp
+src/preparetab.cpp
+src/printmanager.cpp
+src/printtab.cpp
+src/processrunner.cpp
+src/shepherd.cpp
+src/signalhandler.cpp
+src/statustab.cpp
+src/strings.cpp
+src/svgrenderer.cpp
+src/systemtab.cpp
+src/tabbase.cpp
 src/upgradekitunpacker.cpp
 src/upgrademanager.cpp
 src/upgradeselector.cpp
 src/usbmountmanager.cpp
-src/lightfieldstyle.cpp
-src/debuglogcopier.cpp
-src/filecopier.cpp)
+src/utils.cpp
+src/window.cpp
+)
 
 #set project headers. 
-set(Project_Headers src/debug.h
-src/pch.h
-src/win32junk.h
-src/version.h
+set(Project_Headers src/advancedtab.h
 src/app.h
-src/canvas.h
-src/mesh.h
-src/glmesh.h
-src/loader.h
-src/window.h
 src/backdrop.h
-src/shepherd.h
-src/strings.h
-src/printmanager.h
-src/printjob.h
-src/pngdisplayer.h
-src/svgrenderer.h
-src/processrunner.h
-src/signalhandler.h
-src/tabbase.h
-src/filetab.h
-src/preparetab.h
-src/printtab.h
-src/statustab.h
-src/advancedtab.h
-src/systemtab.h
+src/canvas.h
 src/constants.h
-src/utils.h
+src/coordinate.h
+src/debug.h
+src/debuglogcopier.h
+src/filecopier.h
+src/filetab.h
 src/gesturelistview.h
-src/hasher.h
-src/uistate.h
+src/glmesh.h
 src/gpgsignaturechecker.h
+src/hasher.h
+src/initialshoweventmixin.h
+src/lightfieldstyle.h
+src/loader.h
+src/mesh.h
+src/pngdisplayer.h
+src/preparetab.h
+src/printjob.h
+src/printmanager.h
+src/printtab.h
+src/processrunner.h
+src/shepherd.h
+src/signalhandler.h
+src/statustab.h
+src/strings.h
+src/svgrenderer.h
+src/systemtab.h
+src/tabbase.h
 src/upgradekitunpacker.h
 src/upgrademanager.h
 src/upgradeselector.h
 src/usbmountmanager.h
-src/lightfieldstyle.h
-src/debuglogcopier.h
-src/filecopier.h)
+src/utils.h
+src/version.h
+src/vertex.h
+src/window.h)
 
 #set project resources and icon resource
 set(Project_Resources images/images.qrc gl/gl.qrc text/text.qrc)
