@@ -4,8 +4,8 @@ TARGET   = lf
 TEMPLATE = app
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Winvalid-pch
-QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Winvalid-pch
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 
 SOURCES +=                         \
     ../src/advancedtab.cpp         \

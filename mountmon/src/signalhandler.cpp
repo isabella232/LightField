@@ -79,7 +79,7 @@ void SignalHandler::_cleanUp( ) {
     ::close( signalFds[1] );
 }
 
-void SignalHandler::_signalAction( int signalNumber, siginfo_t* info, void* ucontext ) {
+void SignalHandler::_signalAction( int /*signalNumber*/, siginfo_t* info, void* /*ucontext*/ ) {
     auto rc = ::write( signalFds[0], info, sizeof( siginfo_t ) );
     if ( -1 == rc ) {
         error_t err = errno;

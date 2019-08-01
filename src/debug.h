@@ -25,10 +25,10 @@ void debug( char const* str );
 
 template<typename... Args>
 inline void debug( char const* fmt, Args... args ) {
-    char* buf { };
-    asprintf( &buf, fmt, args... );
-    debug( buf );
-    free( buf );
+    if ( char* buf; asprintf( &buf, fmt, args... ) > 0 ) {
+        debug( buf );
+        free( buf );
+    }
 }
 //#else
 //inline void debug( ... ) {

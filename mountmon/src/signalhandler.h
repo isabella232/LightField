@@ -26,7 +26,7 @@ private:
 
 private /*static*/:
 
-    static void _signalAction( int signalNumber, siginfo_t* info, void* ucontext );
+    static void _signalAction( int /*signalNumber*/, siginfo_t* info, void* /*ucontext*/ );
 
 signals:
     ;
