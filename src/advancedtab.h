@@ -79,12 +79,16 @@ signals:
 
     void printerAvailabilityChanged( bool const available );
 
+    void projectorPowerLevelChanged( int const value );
+
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
     void setPrinterAvailable( bool const value );
+
+    void projectorPowerLevel_changed( int const percentage );
 
 protected slots:
 
@@ -93,7 +97,7 @@ private slots:
     void printer_online( );
     void printer_offline( );
 
-    void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
+    void printer_positionReport( double const px, double const /*py*/, double const /*pz*/, double const /*pe*/, double const cx, double const /*cy*/, double const /*cz*/ );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void printBedHeatingButton_clicked( bool checked );
@@ -105,7 +109,7 @@ private slots:
     void projectorFloodlightButton_clicked( bool checked );
 
     void powerLevelSlider_sliderReleased( );
-    void powerLevelSlider_valueChanged( int value );
+    void powerLevelSlider_valueChanged( int percentage );
 
     void shepherd_sendComplete( bool const success );
 

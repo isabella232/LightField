@@ -113,7 +113,7 @@ void DebugLogCopier::_remountRw_start( ) {
     _usbMountManager->remount( true );
 }
 
-void DebugLogCopier::remountRw_finished( bool const succeeded, bool const writable ) {
+void DebugLogCopier::remountRw_finished( bool const succeeded, bool const /*writable*/ ) {
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &DebugLogCopier::remountRw_finished );
 
     debug( "+ DebugLogCopier::remountRw_finished: remounting USB stick read-write %s\n", SucceededString( succeeded ) );
@@ -228,7 +228,7 @@ void DebugLogCopier::_remountRo_start( ) {
     _usbMountManager->remount( false );
 }
 
-void DebugLogCopier::remountRo_finished( bool const succeeded, bool const writable ) {
+void DebugLogCopier::remountRo_finished( bool const succeeded, bool const /*writable*/ ) {
     debug( "+ DebugLogCopier::remountRo_finished: remount USB stick read-only %s\n", SucceededString( succeeded ) );
 
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &DebugLogCopier::remountRo_finished );

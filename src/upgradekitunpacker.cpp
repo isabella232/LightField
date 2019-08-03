@@ -51,7 +51,7 @@ void UpgradeKitUnpacker::tar_failed( int const exitCode, QProcess::ProcessError 
     _processRunner->deleteLater( );
     _processRunner = nullptr;
 
-    debug( "+ UpgradeKitUnpacker::tar_failed: unpacking upgrade kit: exit status %d\n", exitCode );
+    debug( "+ UpgradeKitUnpacker::tar_failed: unpacking upgrade kit: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
 #if defined _DEBUG
     emit unpackComplete( false, _tarOutput, _tarError );

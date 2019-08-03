@@ -119,8 +119,8 @@ private slots:
     void loader_errorMissingFile( );
     void loader_finished( );
 
-    void libraryFsModel_directoryLoaded( QString const& name );
-    void usbFsModel_directoryLoaded( QString const& name );
+    void libraryFsModel_directoryLoaded( QString const& /*name*/ );
+    void usbFsModel_directoryLoaded( QString const& /*name*/ );
 
     void availableFilesListView_clicked( QModelIndex const& index );
     void availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture );

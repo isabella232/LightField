@@ -450,7 +450,7 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
     update( );
 }
 
-void StatusTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
+void StatusTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const /*bedPwm*/ ) {
     if ( bedCurrentTemperature >= 30.0 ) {
         _warningHotLabel->setPixmap( *_warningHotImage );
     } else {

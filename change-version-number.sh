@@ -15,7 +15,7 @@ function error-trap () {
 
 if [ -z "$1" ]
 then
-    red-bar 'Usage: change-version-number.sh <newversion>'
+    red-bar 'Usage: change-version-number.sh <a.b.c[.d]>'
     exit 1
 fi
 

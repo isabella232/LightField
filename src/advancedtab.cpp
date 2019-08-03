@@ -203,7 +203,7 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     }
 }
 
-void AdvancedTab::printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz ) {
+void AdvancedTab::printer_positionReport( double const px, double const /*py*/, double const /*pz*/, double const /*pe*/, double const cx, double const /*cy*/, double const /*cz*/ ) {
     debug( "AdvancedTab::printer_positionReport: px %.2f mm, cx %.0f counts\n", px, cx );
     _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );
 
@@ -280,10 +280,20 @@ void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
     QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+
+    emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
 
-void AdvancedTab::powerLevelSlider_valueChanged( int value ) {
-    _powerLevelValue->setText( QString { "%1%" }.arg( _powerLevelSlider->value( ) ) );
+void AdvancedTab::powerLevelSlider_valueChanged( int percentage ) {
+    _printJob->powerLevel = PercentagePowerLevelToRawLevel( percentage );
+    _powerLevelValue->setText( QString { "%1%" }.arg( percentage ) );
+
+    update( );
+}
+
+void AdvancedTab::projectorPowerLevel_changed( int const percentage ) {
+    _powerLevelSlider->setValue( percentage );
+    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
 
     update( );
 }

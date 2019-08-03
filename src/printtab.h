@@ -93,6 +93,8 @@ signals:
     void printerAvailabilityChanged( bool const available );
     void printRequested( );
 
+    void projectorPowerLevelChanged( int const value );
+
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
@@ -102,6 +104,8 @@ public slots:
     void clearPrinterPrepared( );
 
     void setPrinterAvailable( bool const value );
+
+    void projectorPowerLevel_changed( int const percentage );
 
 protected slots:
 
@@ -116,7 +120,8 @@ private slots:
 
     void exposureTimeSlider_valueChanged( int value );
     void exposureTimeScaleFactorSlider_valueChanged( int value );
-    void powerLevelSlider_valueChanged( int value );
+    void powerLevelSlider_sliderReleased( );
+    void powerLevelSlider_valueChanged( int percentage );
 #if defined ENABLE_SPEED_SETTING
     void printSpeedSlider_valueChanged( int value );
 #endif // defined ENABLE_SPEED_SETTING

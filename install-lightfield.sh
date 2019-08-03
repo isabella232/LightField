@@ -103,6 +103,7 @@ chown ${CHXXXVERBOSE} -R lumen:lumen /var/lib/lightfield
 chown ${CHXXXVERBOSE} -R lumen:lumen /var/log/lightfield
 
 blue-bar • Installing files
+install ${VERBOSE} -DT -m 644                   system-stuff/99untrustworthy-clock              /etc/apt/apt.conf.d/99untrustworthy-clock
 install ${VERBOSE} -DT -m 644                   gpg/pubring.gpg                                 /etc/apt/trusted.gpg.d/volumetric-keyring.gpg
 install ${VERBOSE} -DT -m 440                   system-stuff/lumen-lightfield                   /etc/sudoers.d/lumen-lightfield
 install ${VERBOSE} -DT -m 644                   system-stuff/getty@tty1.service.d_override.conf /etc/systemd/system/getty@tty1.service.d/override.conf

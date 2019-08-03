@@ -12,13 +12,13 @@ OBJECTS_DIR             = build
 VPATH                   = src
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wextra -Winvalid-pch -Wno-unused-parameter
-QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wextra -Winvalid-pch -Wno-unused-parameter
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 
 PRECOMPILED_HEADER      = pch.h
 
-SOURCES                += main.cpp             \
-                          commandreader.cpp    \
+SOURCES                += commandreader.cpp    \
+                          main.cpp             \
                           processrunner.cpp    \
                           signalhandler.cpp    \
                           udisks.cpp           \
