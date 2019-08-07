@@ -82,6 +82,9 @@ public:
         return value;
     }
 
+    QString const& stdoutLog( ) const { return _stdoutLog; }
+    QString const& stderrLog( ) const { return _stderrLog; }
+
 protected:
 
 private:
@@ -101,6 +104,11 @@ private:
     QString              _stdoutBuffer;
     QString              _stderrBuffer;
 
+    QString              _stdoutLog;
+    QString              _stderrLog;
+
+    void _dumpBufferContents( );
+    void _clearLogs( );
     void _checkForUpgrades( QString const& upgradesPath );
     void _checkNextKitSignature( );
     void _unpackNextKit( );
@@ -108,7 +116,6 @@ private:
     bool _parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& info );
     void _examineUnpackedKits( );
     void _checkNextKitsHashes( );
-    void _dumpBufferContents( );
 
 signals:
     ;
