@@ -415,12 +415,12 @@ void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
 
 void UsbDeviceMounter::_signalReceived( siginfo_t const& info ) {
     debug( "+ UsbDeviceMounter::_signalReceived: signal %s [%d]\n", ::strsignal( info.si_signo ), info.si_signo );
-    ::exit( 35 );
+    ::exit( 0 );
 }
 
 void UsbDeviceMounter::commandReader_commandReceived( QStringList const& command ) {
     if ( command[0] == "terminate" ) {
-        ::exit( 36 );
+        ::exit( 0 );
     } else if ( command[0] == "remount-ro" ) {
         _remount( command[1], false );
     } else if ( command[0] == "remount-rw" ) {

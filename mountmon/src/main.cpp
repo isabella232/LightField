@@ -60,7 +60,7 @@ namespace {
         debug( "+ _GetLightFieldIds: uid=%u gid=%u\n", LightFieldUserId, LightFieldGroupId );
         if ( NegativeOne == LightFieldUserId || NegativeOne == LightFieldGroupId ) {
             debug( "+ _GetLightFieldIds: FATAL: Couldn't look up user ID or group ID for LightField user!!\n" );
-            ::exit( 34 );
+            ::exit( 2 );
         }
     }
 }
