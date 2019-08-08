@@ -21,7 +21,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
     _currentTemperatureLabel->setText( "Current temperature:" );
     _targetTemperatureLabel ->setText( "Target temperature:"  );
-    _pwmLabel               ->setText( "Heater PWM:"          );
+    _pwmLabel               ->setText( "Heating element:"     );
     _zPositionLabel         ->setText( "Z position:"          );
 
 
@@ -213,7 +213,7 @@ void AdvancedTab::printer_positionReport( double const px, double const /*py*/, 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
-    _pwm               ->setText( QString( "%1"    ).arg( bedPwm                           ) );
+    _pwm               ->setText( bedPwm ? "on" : "off"                                      );
 
     update( );
 }
