@@ -1,6 +1,12 @@
-lightfield (1.0.5) stable; urgency=medium
+lightfield (1.0.6.0) stable; urgency=medium
 
   * EXPERIMENTAL PRERELEASE—DO NOT SHIP!
+  * New: Display diagnostic information if a software upgrade fails.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 07 Aug 2019 17:26:22 -0700
+
+lightfield (1.0.5) stable; urgency=medium
+
   * New: "Copy logs to USB" button on System tab.
   * Changed: The "Show USB stick"/"Show Library" button on the File tab has been enlarged to make it easier to hit.
   * Changed: The "Projector power level" sliders on the Print and Advanced tabs are now linked together: changing one will change the other.
