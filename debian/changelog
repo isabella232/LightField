@@ -1,3 +1,9 @@
+lightfield (1.0.6.1) stable; urgency=medium
+
+  * New: Attempt to handle the printer controller crashing.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 07 Aug 2019 19:32:57 -0700
+
 lightfield (1.0.6.0) stable; urgency=medium
 
   * EXPERIMENTAL PRERELEASE—DO NOT SHIP!
