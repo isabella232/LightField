@@ -487,7 +487,10 @@ void PrepareTab::_handlePrepareFailed( ) {
     _prepareButton->setText( "Retry" );
     _prepareButton->setEnabled( true );
 
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
     emit preparePrinterComplete( false );
+
     update( );
 }
 
