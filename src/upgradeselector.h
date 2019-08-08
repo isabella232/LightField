@@ -25,24 +25,21 @@ protected:
 
 private:
 
-    UpgradeManager*    _upgradeManager;
+    UpgradeManager*    _upgradeManager          { };
 
-    QPushButton*       _upgradeButton;
-    QPushButton*       _cancelButton;
-    QLabel*            _description;
-    QScrollArea*       _scrollArea;
-    QHBoxLayout*       _upgradeSelectLayout;
+    QPushButton*       _upgradeButton           { };
+    QPushButton*       _cancelButton            { };
+    QLabel*            _description             { };
+    QHBoxLayout*       _upgradeSelectLayout     { };
 
-    QLabel*            _upgradeInProgressMessage;
-    QHBoxLayout*       _upgradeInProgressLayout;
+    QHBoxLayout*       _upgradeInProgressLayout { };
 
-    QLabel*            _upgradeFailedMessage;
-    QPushButton*       _okButton;
-    QHBoxLayout*       _upgradeFailedLayout;
+    QLabel*            _aptOutput               { };
+    QHBoxLayout*       _upgradeFailedLayout     { };
 
-    UpgradeKitInfoList _availableKits            { };
+    UpgradeKitInfoList _availableKits;
 
-    int                _currentSelection         { -1 };
+    int                _currentSelection        { -1 };
 
 signals:
     ;
@@ -60,9 +57,6 @@ private slots:
     ;
 
     void kitsListView_clicked( QModelIndex const& index );
-    void upgradeButton_clicked( bool );
-    void cancelButton_clicked( bool );
-    void okButton_clicked( bool );
 
 };
 
