@@ -78,7 +78,7 @@ signals:
     void printer_online( );
     void printer_offline( );
     void printer_output( QString const& output );
-    void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
+    void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
     void printer_firmwareVersionReport( QString const& version );
 

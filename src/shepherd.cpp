@@ -176,60 +176,39 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handleFromPrinter( QString const& input ) {
-    debug(
-        "+ Shepherd::handleFromPrinter: input: '%s'; pendingCommand: %s [%d]; expectedOkCount: %d; okCount: %d\n",
-        input.toUtf8( ).data( ),
-        ToString( _pendingCommand ), static_cast<int>( _pendingCommand ),
-        _expectedOkCount,
-        _okCount
-    );
     if ( input == "ok" ) {
-        if ( ++_okCount == _expectedOkCount ) {
-            debug( "+ Shepherd::handleFromPrinter: got final expected ok, dispatching completion notification\n" );
+        ++_okCount;
+        if ( _okCount == _expectedOkCount ) {
+            debug( "+ Shepherd::handleFromPrinter/ok: pendingCommand: %s; expectedOkCount: %d; okCount: %d; got final expected 'ok', dispatching completion notification\n", ToString( _pendingCommand ), _expectedOkCount, _okCount );
+
             auto pending = _pendingCommand;
             _pendingCommand = PendingCommand::none;
-            if ( _actionCompleteMap.contains( pending ) ) {
-                _actionCompleteMap[pending]( true );
-            } else {
-                debug( "+ Shepherd::handleFromPrinter/ok: unknown pending command\n" );
-            }
+            _actionCompleteMap[pending]( true );
+        } else {
+            debug( "+ Shepherd::handleFromPrinter/ok: pendingCommand: %s; expectedOkCount: %d; okCount: %d\n", ToString( _pendingCommand ), _expectedOkCount, _okCount );
         }
     } else if ( 0 == input.left( 6 ).compare( "error:", Qt::CaseInsensitive ) ) {
-        if ( input.compare( "Error:Printer halted. kill() called!", Qt::CaseInsensitive ) ) {
-            debug( "+ Shepherd::handleFromPrinter: PANIC: printer crashed!\n" );
-        }
+        debug( "+ Shepherd::handleFromPrinter/error: printer says: '%s'\n", input.toUtf8( ).data( ) );
+
         auto pending = _pendingCommand;
         _pendingCommand = PendingCommand::none;
-        if ( _actionCompleteMap.contains( pending ) ) {
-            _actionCompleteMap[pending]( false );
-        } else {
-            debug( "+ Shepherd::handleFromPrinter/error: unknown pending command\n" );
-        }
+        _actionCompleteMap[pending]( false );
     } else if ( auto match = PositionReportMatcher.match( input ); match.hasMatch( ) ) {
         auto px = match.captured( 1 ).toDouble( );
-        auto py = match.captured( 2 ).toDouble( );
-        auto pz = match.captured( 3 ).toDouble( );
-        auto pe = match.captured( 4 ).toDouble( );
-        auto cx = match.captured( 5 ).toDouble( );
-        auto cy = match.captured( 6 ).toDouble( );
-        auto cz = match.captured( 7 ).toDouble( );
-        //debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
-        emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
+        auto cx = match.captured( 5 ).toInt( );
+        emit printer_positionReport( px, cx );
     } else if ( auto match = TemperatureReport1Matcher.match( input ); match.hasMatch( ) ) {
         auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
         auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
         auto bedPwm                = match.captured( 6 ).toInt( );
-        //debug( "+ Shepherd::handleFromPrinter: temperature report (type 1): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     } else if ( auto match = TemperatureReport2Matcher.match( input ); match.hasMatch( ) ) {
         auto bedCurrentTemperature = match.captured( 1 ).toDouble( );
         auto bedTargetTemperature  = match.captured( 2 ).toDouble( );
         auto bedPwm                = match.captured( 3 ).toInt( );
-        //debug( "+ Shepherd::handleFromPrinter: temperature report (type 2): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     } else if ( auto match = FirmwareVersionMatcher.match( input ); match.hasMatch( ) ) {
         auto firmwareVersion = match.captured( 1 );
-        //debug( "+ Shepherd::handleFromPrinter: firmware version string: %s\n", firmwareVersion.toUtf8( ).data( ) );
         emit printer_firmwareVersionReport( firmwareVersion );
     }
 }
