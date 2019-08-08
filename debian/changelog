@@ -1,3 +1,9 @@
+lightfield (1.0.6.2) stable; urgency=medium
+
+  * Bug fix: Handle failure during preparation step.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 07 Aug 2019 20:11:27 -0700
+
 lightfield (1.0.6.1) stable; urgency=medium
 
   * New: Attempt to handle the printer controller crashing.
