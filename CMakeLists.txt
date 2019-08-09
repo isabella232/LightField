@@ -54,6 +54,7 @@ src/processrunner.cpp
 src/shepherd.cpp
 src/signalhandler.cpp
 src/statustab.cpp
+src/stdiologger.cpp
 src/strings.cpp
 src/svgrenderer.cpp
 src/systemtab.cpp
@@ -94,6 +95,7 @@ src/processrunner.h
 src/shepherd.h
 src/signalhandler.h
 src/statustab.h
+src/stdiologger.h
 src/strings.h
 src/svgrenderer.h
 src/systemtab.h
