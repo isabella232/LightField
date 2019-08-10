@@ -204,7 +204,7 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
 }
 
 void AdvancedTab::printer_positionReport( double const px, int const cx ) {
-    debug( "AdvancedTab::printer_positionReport: px %.2f mm, cx %d\n", px, cx );
+    debug( "+ AdvancedTab::printer_positionReport: px %.2f mm, cx %d\n", px, cx );
     _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );
 
     update( );
