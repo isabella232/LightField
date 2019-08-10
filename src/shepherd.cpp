@@ -56,9 +56,7 @@ void Shepherd::process_readyReadStandardError( ) {
 
 void Shepherd::process_readyReadStandardOutput( ) {
     _process->setReadChannel( QProcess::StandardOutput );
-
-    QString input = _process->readAllStandardOutput( );
-    if ( input.length( ) ) {
+    if ( auto input = _process->readAllStandardOutput( ); !input.isEmpty( ) ) {
         handleInput( input );
     }
 }
@@ -296,22 +294,20 @@ void Shepherd::handleInput( QString const& input ) {
     for ( auto line : lines ) {
         if ( line.endsWith( CarriageReturn ) ) {
             line.chop( 1 );
-            line.resize( line.length( ) - 1 );
         }
         if ( line.isEmpty( ) ) {
             continue;
         }
 
         auto pieces = splitLine( line );
-        debug( "+ Shepherd::handleInput: '%s' [%d]\n", pieces[0].toUtf8( ).data( ), pieces.count( ) );
         if ( pieces[0] == "ok" ) {
             if ( pieces.count( ) > 1 ) {
-                debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+                debug( "+ Shepherd::handleInput: ok %s\n", pieces[1].toUtf8( ).data( ) );
             } else {
-                debug( "  + ok\n" );
+                debug( "+ Shepherd::handleInput: ok\n" );
             }
         } else if ( pieces[0] == "fail" ) {
-            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: fail %s\n", pieces[1].toUtf8( ).data( ) );
 #if defined _DEBUG
             if ( g_settings.ignoreShepherdFailures ) {
                 handleCommandFailAlternate( pieces );
@@ -322,9 +318,9 @@ void Shepherd::handleInput( QString const& input ) {
             handleCommandFail( pieces );
 #endif // defined _DEBUG
         } else if ( pieces[0] == "warning" ) {
-            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "info" ) {
-            debug( "  + info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
         } else if ( pieces[0] == "from_printer" ) {
             debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
             handleFromPrinter( pieces[1] );
@@ -336,18 +332,15 @@ void Shepherd::handleInput( QString const& input ) {
             emit printer_offline( );
         }
     }
-
-    if ( !_buffer.isEmpty( ) ) {
-        debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
-    }
 }
 
 void Shepherd::start( ) {
     debug( "+ Shepherd::start\n" );
 
-    _processRunner = new ProcessRunner( this );
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
+
+    _processRunner = new ProcessRunner( this );
     QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &Shepherd::processRunner_succeeded );
     QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &Shepherd::processRunner_failed    );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &Shepherd::processRunner_stdout    );
