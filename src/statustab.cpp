@@ -471,7 +471,7 @@ void StatusTab::initializationCommands_sendComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
 
     if ( success ) {
-        debug( "+ StatusTab::setFanSpeed_sendComplete: first-online tasks completed\n" );
+        debug( "+ StatusTab::initializationCommands_sendComplete: first-online tasks completed\n" );
         _isFirstOnlineTaskDone = true;
     }
 }
