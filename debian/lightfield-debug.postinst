@@ -23,7 +23,7 @@ case "$1" in
     configure)
         perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 
-        echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.6.2_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+        echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_1.0.6.3_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
     chown lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
     chmod 644 /etc/apt/sources.list.d/volumetric-lightfield.list
 

@@ -1,6 +1,13 @@
+lightfield (1.0.6.3) stable; urgency=medium
+
+  * New: Upon inserting a USB stick, the "Update software" button is disabled. If valid updates are found, the button is re-enabled.
+  * Bug fix: The Prepare tab will now automatically advance to the Print tab if the printer is prepared and the model has been sliced.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 10 Aug 2019 18:25:21 -0700
+
 lightfield (1.0.6.2) stable; urgency=medium
 
-  * Bug fix: Handle failure during preparation step.
+  * Bug fix: Unlock the System tab's buttons if the preparation step fails.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 07 Aug 2019 20:11:27 -0700
 
@@ -12,8 +19,7 @@ lightfield (1.0.6.1) stable; urgency=medium
 
 lightfield (1.0.6.0) stable; urgency=medium
 
-  * EXPERIMENTAL PRERELEASE—DO NOT SHIP!
-  * New: Display diagnostic information if a software upgrade fails.
+  * New: Display diagnostic information if a software update fails.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 07 Aug 2019 17:26:22 -0700
 
@@ -23,8 +29,8 @@ lightfield (1.0.5) stable; urgency=medium
   * Changed: The "Show USB stick"/"Show Library" button on the File tab has been enlarged to make it easier to hit.
   * Changed: The "Projector power level" sliders on the Print and Advanced tabs are now linked together: changing one will change the other.
   * Changed: The "Exposure time" slider now has a range of 30 s, and is adjustable in steps of 0.25 s.
-  * Changed: Make the description text box on the software upgrade selector wider.
-  * Fixed: The same upgrade could appear in the upgrade selector more than once.
+  * Changed: Make the description text box on the software update selector wider.
+  * Fixed: The same update could appear in the update selector more than once.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 31 Jul 2019 14:38:37 -0700
 
