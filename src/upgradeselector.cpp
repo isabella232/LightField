@@ -182,13 +182,13 @@ void UpgradeSelector::showInProgressMessage( ) {
 void UpgradeSelector::showFailedMessage( ) {
     debug( "+ UpgradeSelector::showFailedMessage\n" );
 
-    auto stdoutLog { _upgradeManager->stdoutLog( ) };
+    auto stdoutLog { _upgradeManager->stdoutJournal( ) };
     stdoutLog.replace( CarriageReturn, LineFeed );
     if ( stdoutLog.endsWith( LineFeed ) ) {
         stdoutLog.chop( 1 );
     }
 
-    auto stderrLog { _upgradeManager->stderrLog( ) };
+    auto stderrLog { _upgradeManager->stderrJournal( ) };
     stderrLog.replace( CarriageReturn, LineFeed );
     if ( stderrLog.endsWith( LineFeed ) ) {
         stderrLog.chop( 1 );
