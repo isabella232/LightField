@@ -513,6 +513,9 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
         return;
     }
 
+    debug( "+ UpgradeManager::checkForUpgrades: starting check\n" );
+    emit upgradeCheckStarting( );
+
     _checkForUpgrades( upgradesPath );
 }
 

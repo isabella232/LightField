@@ -112,6 +112,7 @@ private:
 signals:
     ;
 
+    void upgradeCheckStarting( );
     void upgradeCheckComplete( bool const upgradesFound );
     void upgradeFailed( );
 
