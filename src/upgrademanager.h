@@ -10,6 +10,7 @@
 class GpgSignatureChecker;
 class Hasher;
 class ProcessRunner;
+class StdioLogger;
 class UpgradeKitUnpacker;
 
 //
@@ -72,15 +73,10 @@ public:
     UpgradeManager( QObject* parent = nullptr );
     virtual ~UpgradeManager( ) override;
 
-    UpgradeKitInfoList const& availableUpgrades( ) { return _goodUpgradeKits; }
+    UpgradeKitInfoList const& availableUpgrades( )       { return _goodUpgradeKits; }
 
-    bool isCheckingForUpgrades( ) {
-        bool value = _isChecking.test_and_set( );
-        if ( !value ) {
-            _isChecking.clear( );
-        }
-        return value;
-    }
+    QString            const& stderrJournal( )     const { return _stderrJournal;   }
+    QString            const& stdoutJournal( )     const { return _stdoutJournal;   }
 
 protected:
 
@@ -93,14 +89,18 @@ private:
     ProcessRunner*       _processRunner          { };
     UpgradeKitUnpacker*  _upgradeKitUnpacker     { };
     UpgradeKitInfo*      _kitToInstall           { };
+    StdioLogger*         _stderrLogger           { };
+    StdioLogger*         _stdoutLogger           { };
 
     UpgradeKitInfoList   _unprocessedUpgradeKits;
     UpgradeKitInfoList   _processedUpgradeKits;
     UpgradeKitInfoList   _goodUpgradeKits;
 
-    QString              _stdoutBuffer;
-    QString              _stderrBuffer;
+    QString              _stderrJournal;
+    QString              _stdoutJournal;
 
+    void _flushLoggers( );
+    void _clearJournals( );
     void _checkForUpgrades( QString const& upgradesPath );
     void _checkNextKitSignature( );
     void _unpackNextKit( );
@@ -108,11 +108,11 @@ private:
     bool _parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& info );
     void _examineUnpackedKits( );
     void _checkNextKitsHashes( );
-    void _dumpBufferContents( );
 
 signals:
     ;
 
+    void upgradeCheckStarting( );
     void upgradeCheckComplete( bool const upgradesFound );
     void upgradeFailed( );
 
@@ -138,9 +138,6 @@ private slots:
 #else
     void upgradeKitUnpacker_complete( bool const result );
 #endif // defined _DEBUG
-
-    void readyReadStandardOutput( QString const& data );
-    void readyReadStandardError( QString const& data );
 
     void aptGetUpdate_succeeded( );
     void aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error );

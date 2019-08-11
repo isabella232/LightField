@@ -5,10 +5,10 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_CXX_EXTENSIONS ON)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS ON)
-set(CXX_STANDARD 20)
+set(CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
 
 # Set the version number
@@ -54,6 +54,7 @@ src/processrunner.cpp
 src/shepherd.cpp
 src/signalhandler.cpp
 src/statustab.cpp
+src/stdiologger.cpp
 src/strings.cpp
 src/svgrenderer.cpp
 src/systemtab.cpp
@@ -94,6 +95,7 @@ src/processrunner.h
 src/shepherd.h
 src/signalhandler.h
 src/statustab.h
+src/stdiologger.h
 src/strings.h
 src/svgrenderer.h
 src/systemtab.h

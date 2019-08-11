@@ -29,7 +29,7 @@ void CommandReader::_readCommands( ) {
     if ( !standardInput->open( 0, QFileDevice::ReadOnly, QFileDevice::DontCloseHandle ) ) {
         debug( "+ CommandReader::_readCommands: couldn't reopen stdin\n" );
         standardInput->deleteLater( );
-        ::exit( 32 );
+        ::exit( 1 );
         return;
     }
 
@@ -46,5 +46,5 @@ void CommandReader::_readCommands( ) {
             }
         }
     } while ( bytesRead > -1 );
-    ::exit( 33 );
+    ::exit( 0 );
 }

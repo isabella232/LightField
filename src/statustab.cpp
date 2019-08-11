@@ -467,13 +467,10 @@ void StatusTab::printer_temperatureReport( double const bedCurrentTemperature, d
 }
 
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
-    debug( "+ StatusTab::initializationCommands_sendComplete: success %s\n", ToString( success ) );
     QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
 
-    if ( success ) {
-        debug( "+ StatusTab::setFanSpeed_sendComplete: first-online tasks completed\n" );
-        _isFirstOnlineTaskDone = true;
-    }
+    debug( "+ StatusTab::initializationCommands_sendComplete: first-online tasks %s\n", SucceededString( success ) );
+    _isFirstOnlineTaskDone = success;
 }
 
 void StatusTab::updatePrintTimeInfo_timeout( ) {
@@ -489,18 +486,20 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
 
     debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n", delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString( _isPaused ), currentLayer );
 
-    _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) + QString { " elapsed" } );
+    _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) % " elapsed" );
 
     update( );
 
-    if ( _isPaused || ( currentLayer < 4 ) || !( estimatedTimeLeft > 0.0 ) ) {
+    if ( _isPaused || ( currentLayer < 4 ) || ( estimatedTimeLeft < 0.5 ) ) {
         return;
     }
 
     if ( currentLayer == 4 ) {
         _estimatedTimeLeftDisplay->setFont( _boldFont );
     }
-    _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) + QString { " remaining" } );
+    _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) % " remaining" );
+
+    update( );
 }
 
 void StatusTab::printerOnlineTimer_timeout( ) {

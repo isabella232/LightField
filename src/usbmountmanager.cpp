@@ -3,28 +3,45 @@
 #include "usbmountmanager.h"
 
 #include "processrunner.h"
+#include "stdiologger.h"
+
+// ===============================================
+// Mountmon messages:
+// "terminate:<reason>"
+// "mount:<mountPoint>"
+// "unmount:<mountPoint>"
+// "remount:(failure|success):r[wo]:<mountPoint>"
+// ===============================================
 
 UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
-    _mountmonProcess = new ProcessRunner;
-    QObject::connect( _mountmonProcess, &ProcessRunner::failed,                  this, &UsbMountManager::mountmon_failed                  );
-    QObject::connect( _mountmonProcess, &ProcessRunner::readyReadStandardOutput, this, &UsbMountManager::mountmon_readyReadStandardOutput );
-    QObject::connect( _mountmonProcess, &ProcessRunner::readyReadStandardError,  this, &UsbMountManager::mountmon_readyReadStandardError  );
-    _mountmonProcess->start(
-        QString     { "sudo" },
-        QStringList {
-            MountmonCommand,
-        }
-    );
+    _stderrLogger  = new StdioLogger   { "mountmon/stderr", this };
+    _stdoutLogger  = new StdioLogger   { "mountmon/stdout", this };
+    _processRunner = new ProcessRunner {                    this };
+
+    QObject::connect( _processRunner, &ProcessRunner::failed,                  this,          &UsbMountManager::mountmon_failed                  );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  _stderrLogger, &StdioLogger::read                                 );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, _stdoutLogger, &StdioLogger::read                                 );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this,          &UsbMountManager::mountmon_readyReadStandardOutput );
+
+    _processRunner->start( QString { "sudo" }, QStringList { MountmonCommand } );
 }
 
 UsbMountManager::~UsbMountManager( ) {
-    debug( "+ UsbMountManager::`dtor\n" );
-    if ( _mountmonProcess ) {
-        debug( "  + cleaning up after Mountmon\n" );
-        _mountmonProcess->write( "terminate\n" );
-        QObject::disconnect( _mountmonProcess, nullptr, this, nullptr );
-        _mountmonProcess->deleteLater( );
-        _mountmonProcess = nullptr;
+    if ( _stderrLogger ) {
+        QObject::disconnect( _stderrLogger );
+        _stderrLogger->deleteLater( );
+        _stderrLogger = nullptr;
+    }
+    if ( _stdoutLogger ) {
+        QObject::disconnect( _stdoutLogger );
+        _stdoutLogger->deleteLater( );
+        _stdoutLogger = nullptr;
+    }
+    if ( _processRunner ) {
+        _processRunner->write( "terminate\n" );
+        QObject::disconnect( _processRunner );
+        _processRunner->deleteLater( );
+        _processRunner = nullptr;
     }
 }
 
@@ -33,37 +50,36 @@ void UsbMountManager::mountmon_failed( int const exitCode, QProcess::ProcessErro
 }
 
 void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
-    _mountmonStdoutBuffer += data;
+    _stdoutBuffer += data;
 
-    auto index = _mountmonStdoutBuffer.lastIndexOf( '\n' );
+    auto index = _stdoutBuffer.lastIndexOf( '\n' );
     if ( -1 == index ) {
         return;
     }
 
-    auto lines = _mountmonStdoutBuffer.left( index ).split( NewLineRegex );
-    _mountmonStdoutBuffer.remove( 0, index + 1 );
+    auto lines = _stdoutBuffer.left( index ).split( NewLineRegex );
+    _stdoutBuffer.remove( 0, index + 1 );
     for ( auto const& line : lines ) {
-        debug( "[Mountmon/stdout] %s\n", line.toUtf8( ).data( ) );
-
         auto tokens = line.split( ':' );
         if ( tokens.count( ) < 2 ) {
-            debug( "UsbMountManager::mountmon_readyReadStandardOutput: short line\n" );
+            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: short line\n" );
             continue;
         }
 
-        if ( tokens[0] == "mount" ) {
-            // "mount:<mountPoint>"
+        if ( tokens[0] == "terminate" ) {
+            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: mountmon terminated: reason '%s'\n", tokens[1].toUtf8( ).data( ) );
 
+            _stdoutBuffer.clear( );
+            break;
+        } else if ( tokens[0] == "mount" ) {
             if ( !_mountPoint.isEmpty( ) ) {
                 debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'mount' notification for mount point '%s', when we already have a mounted filesystem?\n", tokens[1].toUtf8( ).data( ) );
                 continue;
             }
-
             _mountPoint = tokens[1];
+
             emit filesystemMounted( _mountPoint );
         } else if ( tokens[0] == "unmount" ) {
-            // "unmount:<mountPoint>"
-
             if ( _mountPoint.isEmpty( ) ) {
                 debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'unmount' notification for mount point '%s', when we don't have a mounted filesystem?\n", tokens[1].toUtf8( ).data( ) );
                 continue;
@@ -73,18 +89,21 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
                 continue;
             }
 
-            emit filesystemUnmounted( _mountPoint );
-
+            auto mountPoint = _mountPoint;
             _mountPoint.clear( );
-        } else if ( tokens[0] == "remount" ) {
-            // "remount:(failure|success):r[wo]:<mountPoint>"
 
+            emit filesystemUnmounted( mountPoint );
+        } else if ( tokens[0] == "remount" ) {
+            if ( tokens.count( ) < 4 ) {
+                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received short 'remount' notification with only %d fields\n", tokens.count( ) );
+                continue;
+            }
             if ( _mountPoint.isEmpty( ) ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount-ro' notification for mount point '%s', when we don't have a mounted filesystem?\n", tokens[3].toUtf8( ).data( ) );
+                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount' notification for mount point '%s', when we don't have a mounted filesystem?\n", tokens[3].toUtf8( ).data( ) );
                 continue;
             }
             if ( _mountPoint != tokens[3] ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount-ro' notification for mount point '%s', which is not the mount point '%s' that we know about?\n", tokens[3].toUtf8( ).data( ), _mountPoint.toUtf8( ).data( ) );
+                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount' notification for mount point '%s', which is not the mount point '%s' that we know about?\n", tokens[3].toUtf8( ).data( ), _mountPoint.toUtf8( ).data( ) );
                 continue;
             }
 
@@ -92,33 +111,21 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
             if ( succeeded ) {
                 _isWritable = ( tokens[2] == "rw" );
             }
+
             emit filesystemRemounted( succeeded, _isWritable );
         } else {
-            debug( "UsbMountManager::mountmon_readyReadStandardOutput: unknown verb '%s'\n", tokens[0].toUtf8( ).data( ) );
+            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: unknown verb '%s'\n", tokens[0].toUtf8( ).data( ) );
         }
     }
 }
 
-void UsbMountManager::mountmon_readyReadStandardError( QString const& data ) {
-    _mountmonStderrBuffer += data;
-
-    auto index = _mountmonStderrBuffer.lastIndexOf( '\n' );
-    if ( -1 == index ) {
-        return;
-    }
-
-    auto lines = _mountmonStderrBuffer.left( index ).replace( NewLineRegex, "\n[Mountmon/stderr] " );
-    _mountmonStderrBuffer.remove( 0, index + 1 );
-    debug( "[Mountmon/stderr] %s\n", lines.toUtf8( ).data( ) );
-}
-
 void UsbMountManager::remount( bool const writable ) {
     if ( _mountPoint.isEmpty( ) ) {
-        debug( "+ UsbMountManager::remount: asked to remount our filesystem, when there isn't one mounted?\n" );
+        debug( "+ UsbMountManager::remount: asked to remount our filesystem, when we don't have one?\n" );
         emit filesystemRemounted( false, writable );
         return;
     }
 
     debug( "+ UsbMountManager::remount: asking Mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
-    _mountmonProcess->write( ( QString { writable ? "remount-rw:" : "remount-ro:" } % _mountPoint % '\n' ).toUtf8( ).data( ) );
+    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'r' ).arg( _mountPoint ).toUtf8( ) );
 }

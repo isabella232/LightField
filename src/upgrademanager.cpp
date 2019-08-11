@@ -5,6 +5,7 @@
 #include "gpgsignaturechecker.h"
 #include "hasher.h"
 #include "processrunner.h"
+#include "stdiologger.h"
 #include "upgradekitunpacker.h"
 #include "version.h"
 
@@ -46,28 +47,43 @@ namespace {
 }
 
 UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
-    /*empty*/
+    _stderrLogger  = new StdioLogger   { "apt-get/stderr", this };
+    _stdoutLogger  = new StdioLogger   { "apt-get/stdout", this };
+    _processRunner = new ProcessRunner {                   this };
+
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  _stderrLogger, &StdioLogger::read );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, _stdoutLogger, &StdioLogger::read );
+
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  [ this ] ( QString const& data ) { _stderrJournal += data; } );
+    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, [ this ] ( QString const& data ) { _stdoutJournal += data; } );
 }
 
 UpgradeManager::~UpgradeManager( ) {
-    /*empty*/
+    if ( _stderrLogger ) {
+        QObject::disconnect( _stderrLogger );
+        _stderrLogger->deleteLater( );
+        _stderrLogger = nullptr;
+    }
+    if ( _stdoutLogger ) {
+        QObject::disconnect( _stdoutLogger );
+        _stdoutLogger->deleteLater( );
+        _stdoutLogger = nullptr;
+    }
+    if ( _processRunner ) {
+        QObject::disconnect( _processRunner );
+        _processRunner->deleteLater( );
+        _processRunner = nullptr;
+    }
 }
 
-void UpgradeManager::_dumpBufferContents( ) {
-    if ( !_stderrBuffer.isEmpty( ) ) {
-        if ( _stderrBuffer.endsWith( LineFeed ) ) {
-            _stderrBuffer.chop( 1 );
-        }
-        debug( "[apt-get/stderr] %s\n", _stderrBuffer.replace( NewLineRegex, "\n[apt-get/stderr] " ).toUtf8( ).data( ) );
-        _stderrBuffer.clear( );
-    }
-    if ( !_stdoutBuffer.isEmpty( ) ) {
-        if ( _stdoutBuffer.endsWith( LineFeed ) ) {
-            _stdoutBuffer.chop( 1 );
-        }
-        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.replace( NewLineRegex, "\n[apt-get/stdout] " ).toUtf8( ).data( ) );
-        _stdoutBuffer.clear( );
-    }
+void UpgradeManager::_flushLoggers( ) {
+    _stderrLogger->flush( );
+    _stdoutLogger->flush( );
+}
+
+void UpgradeManager::_clearJournals( ) {
+    _stderrJournal.clear( );
+    _stdoutJournal.clear( );
 }
 
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
@@ -76,27 +92,28 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
     debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in '%s'\n", UpdatesRootPath.toUtf8( ).data( ) );
 
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
-        QString kitDirName { kitDirInfo.absoluteFilePath( ) };
-        debug( "  + found unpacked kit '%s'\n", kitDirName.toUtf8( ).data( ) );
+        QString kitPath { kitDirInfo.absoluteFilePath( ) };
+        QDir    kitDir  { kitPath };
+        debug( "  + found unpacked kit in '%s'\n", kitPath.toUtf8( ).data( ) );
 
-        if ( !( QFileInfo { kitDirName % "/version.inf" } ).exists( ) ) {
+        if ( !kitDir.exists( "version.inf" ) ) {
             debug( "  + deleting bad unpacked kit: version.inf file is missing\n" );
-            QDir { kitDirName }.removeRecursively( );
+            kitDir.removeRecursively( );
             continue;
         }
-        if ( !( QFileInfo { kitDirName % "/version.inf.sig" } ).exists( ) ) {
+        if ( !kitDir.exists( "version.inf.sig" ) ) {
             debug( "  + deleting bad unpacked kit: version.inf.sig file is missing\n" );
-            QDir { kitDirName }.removeRecursively( );
+            kitDir.removeRecursively( );
             continue;
         }
 
-        _unprocessedUpgradeKits.append( UpgradeKitInfo { kitDirName } );
+        _unprocessedUpgradeKits.append( UpgradeKitInfo { kitPath } );
     }
 
     if ( !upgradesPath.isEmpty( ) ) {
-        debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path %s\n", upgradesPath.toUtf8( ).data( ) );
+        debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path '%s'\n", upgradesPath.toUtf8( ).data( ) );
         for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
-            debug( "+ UpgradeManager::_checkForUpgrades: found kit file %s\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
+            debug( "+ UpgradeManager::_checkForUpgrades: found kit file '%s'\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
 
             QFileInfo sigFile { kitFile.absoluteFilePath( ) % ".sig" };
             if ( !sigFile.exists( ) ) {
@@ -115,12 +132,7 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
         return;
     }
 
-    debug(
-        "+ UpgradeManager::_checkForUpgrades: found %d upgrade kits\n"
-        "==================================================\n"
-        "",
-        _unprocessedUpgradeKits.count( )
-    );
+    debug( "+ UpgradeManager::_checkForUpgrades: found %d upgrade kits\n", _unprocessedUpgradeKits.count( ) );
     _checkNextKitSignature( );
 }
 
@@ -137,12 +149,7 @@ top:
             _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
-            debug(
-                "  + starting unpacking %d kits\n"
-                "==================================================\n"
-                "",
-                _unprocessedUpgradeKits.count( )
-            );
+            debug( "  + starting unpacking %d kits\n", _unprocessedUpgradeKits.count( ) );
             _unpackNextKit( );
         }
         return;
@@ -151,7 +158,7 @@ top:
     auto& currentUpgradeKit = _unprocessedUpgradeKits.front( );
 
     if ( currentUpgradeKit.isAlreadyUnpacked ) {
-        debug( "  + skipping unpacked upgrade kit %s\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
+        debug( "  + skipping unpacked upgrade kit '%s'\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
         _processedUpgradeKits.append( currentUpgradeKit );
         _unprocessedUpgradeKits.removeFirst( );
         goto top;
@@ -161,8 +168,8 @@ top:
     auto sigFilePath = currentUpgradeKit.sigFileInfo.absoluteFilePath( );
     debug(
         "  + checking signature for upgrade kit\n"
-        "    + upgrade kit file name: %s\n"
-        "    + signature file name:   %s\n"
+        "    + upgrade kit file name: '%s'\n"
+        "    + signature file name:   '%s'\n"
         "",
         kitFilePath.toUtf8( ).data( ),
         sigFilePath.toUtf8( ).data( )
@@ -199,12 +206,7 @@ top:
             _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
-            debug(
-                "  + starting checking version.inf signatures for %d kits\n"
-                "==================================================\n"
-                "",
-                _unprocessedUpgradeKits.count( )
-            );
+            debug( "  + starting checking version.inf signatures for %d kits\n", _unprocessedUpgradeKits.count( ) );
             _checkNextVersionInfSignature( );
         }
         return;
@@ -213,14 +215,14 @@ top:
     auto& currentUpgradeKit = _unprocessedUpgradeKits.front( );
 
     if ( currentUpgradeKit.isAlreadyUnpacked ) {
-        debug( "  + skipping unpacked upgrade kit %s\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
+        debug( "  + skipping unpacked upgrade kit '%s'\n", currentUpgradeKit.directory.absolutePath( ).toUtf8( ).data( ) );
         _processedUpgradeKits.append( currentUpgradeKit );
         _unprocessedUpgradeKits.removeFirst( );
         goto top;
     }
 
     QString kitFilePath { currentUpgradeKit.kitFileInfo.absoluteFilePath( ) };
-    debug( "  + kit file name: %s\n", kitFilePath.toUtf8( ).data( ) );
+    debug( "  + kit file name: '%s'\n", kitFilePath.toUtf8( ).data( ) );
 
     QString dirName { UpdatesRootPath + Slash + currentUpgradeKit.kitFileInfo.fileName( ) };
     if ( dirName.endsWith( ".kit" ) ) {
@@ -299,7 +301,7 @@ void UpgradeManager::_checkNextVersionInfSignature( ) {
     }
 
     auto versionInfFilePath = _unprocessedUpgradeKits[0].directory.absoluteFilePath( "version.inf" );
-    debug( "  + checking signature for version.inf file %s\n", versionInfFilePath.toUtf8( ).data( ) );
+    debug( "  + checking signature for version.inf file '%s'\n", versionInfFilePath.toUtf8( ).data( ) );
 
     _gpgSignatureChecker = new GpgSignatureChecker( this );
     QObject::connect( _gpgSignatureChecker, &GpgSignatureChecker::signatureCheckComplete, this, &UpgradeManager::gpgSignatureChecker_versionInf_complete );
@@ -326,7 +328,7 @@ void UpgradeManager::gpgSignatureChecker_versionInf_complete( bool const result 
 }
 
 bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, UpgradeKitInfo& update ) {
-    debug( "+ UpgradeManager::_parseVersionInfo: file name is \"%s\"\n", versionInfoFileName.toUtf8( ).data( ) );
+    debug( "+ UpgradeManager::_parseVersionInfo: file name is '%s'\n", versionInfoFileName.toUtf8( ).data( ) );
     auto versionInfo = ReadWholeFile( versionInfoFileName ).replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
 
     QMap<QString, QString> fields;
@@ -342,7 +344,7 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
             currentKey = result.captured( 1 );
             line.remove( result.capturedStart( 0 ), result.capturedLength( 0 ) );
             if ( fields.contains( currentKey ) ) {
-                debug( "    + metadata for this kit contains duplicate key '%s'\n", currentKey.toUtf8( ).data( ) );
+                debug( "    + metadata for this kit contains duplicate key \"%s\"\n", currentKey.toUtf8( ).data( ) );
                 return false;
             }
             fields.insert( currentKey, line );
@@ -371,7 +373,7 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
     bool missingMetadata = false;
     for ( auto const& field : ExpectedMetadataFields ) {
         if ( !fields.contains( field ) ) {
-            debug( "  + metadata is missing field %s\n", field.toUtf8( ).data( ) );
+            debug( "  + metadata is missing field \"%s\"\n", field.toUtf8( ).data( ) );
             missingMetadata = true;
         }
     }
@@ -439,7 +441,8 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
         }
     }
 
-    update.description = fields["Description"].trimmed( );
+    update.description = fields["Description"];
+    update.description.replace( EndsWithWhitespaceRegex, "" );
 
     update.checksums.clear( );
     auto path = update.directory.absolutePath( ) + Slash;
@@ -510,27 +513,10 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
         return;
     }
 
+    debug( "+ UpgradeManager::checkForUpgrades: starting check\n" );
+    emit upgradeCheckStarting( );
+
     _checkForUpgrades( upgradesPath );
-}
-
-void UpgradeManager::readyReadStandardOutput( QString const& data ) {
-    _stdoutBuffer += data;
-
-    int index = 0;
-    while ( -1 != ( index = _stdoutBuffer.indexOf( LineFeed ) ) ) {
-        debug( "[apt-get/stdout] %s\n", _stdoutBuffer.left( index ).toUtf8( ).data( ) );
-        _stdoutBuffer.remove( 0, index + 1 );
-    }
-}
-
-void UpgradeManager::readyReadStandardError( QString const& data ) {
-    _stderrBuffer += data;
-
-    int index = 0;
-    while ( -1 != ( index = _stderrBuffer.indexOf( LineFeed ) ) ) {
-        debug( "[apt-get/stderr] %s\n", _stderrBuffer.left( index ).toUtf8( ).data( ) );
-        _stderrBuffer.remove( 0, index + 1 );
-    }
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
@@ -555,33 +541,22 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
     aptSourcesFile.close( );
 
     debug( "+ UpgradeManager::installUpgradeKit: running `apt-get update`\n" );
-    _processRunner = new ProcessRunner { this };
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetUpdate_succeeded  );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetUpdate_failed     );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError  );
+    _clearJournals( );
 
-    _processRunner->start(
-        { "sudo" },
-        {
-            "apt-get",
-            "-y",
-            "update",
-        }
-    );
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
+    QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetUpdate_succeeded );
+    QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetUpdate_failed    );
+
+    _processRunner->start( { "sudo" }, { "apt-get", "-y", "update", } );
 }
 
 void UpgradeManager::aptGetUpdate_succeeded( ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetUpdate_succeeded: `apt-get update` succeeded; running `apt-get install`\n" );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetUpdate_succeeded: running `apt-get install`\n" );
 
+    QStringList processArgs { "apt-get", "-y", "install", };
     QString versionNumberSuffix;
-    QStringList processArgs {
-        "apt-get",
-        "-y",
-        "install",
-    };
 
     if ( _kitToInstall->version < LIGHTFIELD_VERSION_CODE ) {
         versionNumberSuffix = '=' % _kitToInstall->versionString;
@@ -596,76 +571,66 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
 
     processArgs.append( QString { "lightfield-" % BuildTypeToString[_kitToInstall->buildType] % versionNumberSuffix } );
 
-    _processRunner->deleteLater( );
-    _processRunner = new ProcessRunner { this };
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetInstall_succeeded );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetInstall_failed    );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError  );
+    _clearJournals( );
+
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
+    QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetInstall_succeeded );
+    QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetInstall_failed    );
+
     _processRunner->start( { "sudo" }, processArgs );
 }
 
 void UpgradeManager::aptGetUpdate_failed( int const exitCode, QProcess::ProcessError const error ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetUpdate_failed: `apt-get update` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetUpdate_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
     emit upgradeFailed( );
 }
 
 void UpgradeManager::aptGetInstall_succeeded( ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetInstall_succeeded: `apt-get install` succeeded; running `apt-get dist-upgrade`\n" );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetInstall_succeeded: running `apt-get dist-upgrade`\n" );
 
-    _processRunner->deleteLater( );
-    _processRunner = new ProcessRunner { this };
-    QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &UpgradeManager::aptGetDistUpgrade_succeeded );
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &UpgradeManager::aptGetDistUpgrade_failed    );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &UpgradeManager::readyReadStandardOutput     );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &UpgradeManager::readyReadStandardError      );
-    _processRunner->start(
-        { "sudo" },
-        {
-            "apt-get",
-            "-y",
-            "dist-upgrade",
-        }
-    );
+    _clearJournals( );
+
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
+    QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetDistUpgrade_succeeded );
+    QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetDistUpgrade_failed    );
+
+    _processRunner->start( { "sudo" }, { "apt-get", "-y", "dist-upgrade", } );
 }
 
 void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::ProcessError const error ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetInstall_failed: `apt-get install` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetInstall_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
     emit upgradeFailed( );
 }
 
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: `apt-get dist-upgrade` succeeded; rebooting system\n" );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting system\n" );
 
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
     system( "sudo systemctl reboot" );
 }
 
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {
-    QObject::disconnect( _processRunner );
-    _dumpBufferContents( );
-    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: `apt-get dist-upgrade` failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    _flushLoggers( );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
-    _processRunner->deleteLater( );
-    _processRunner = nullptr;
+    QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
+    QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
     emit upgradeFailed( );
 }

@@ -479,7 +479,7 @@ void FileTab::processRunner_succeeded( ) {
 }
 
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
-    debug( "FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );

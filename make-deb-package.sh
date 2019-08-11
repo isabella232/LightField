@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.5
+VERSION=1.0.6.3
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -86,7 +86,7 @@ fi
 
 if [ "${BUILDTYPE}" = "both" ]
 then
-    ARG=$(if [ -z ${VERBOSE} ]; then echo -q; fi)
+    ARG=$([ -z ${VERBOSE} ] && echo -q)
     $0 "${ARG}" release || exit $?
     $0 "${ARG}" debug   || exit $?
     exit 0
@@ -96,12 +96,13 @@ fi
 
 blue-bar • Setting up build environment
 
-[ -d "${PACKAGE_BUILD_ROOT}" ] || mkdir ${VERBOSE} -p  "${PACKAGE_BUILD_ROOT}"
-[ -d "${DEB_BUILD_DIR}"      ] && rm    ${VERBOSE} -rf "${DEB_BUILD_DIR}"
+[ -d "${PACKAGE_BUILD_ROOT}"        ] || mkdir ${VERBOSE} -p  "${PACKAGE_BUILD_ROOT}"
+[ -h "${PACKAGE_BUILD_ROOT}/latest" ] && rm    ${VERBOSE}     "${PACKAGE_BUILD_ROOT}/latest"
+[ -d "${DEB_BUILD_DIR}"             ] && rm    ${VERBOSE} -rf "${DEB_BUILD_DIR}"
 
-mkdir ${VERBOSE} -p "${LIGHTFIELD_FILES}"
-
-cp ${VERBOSE} -ar "${LIGHTFIELD_SRC}/debian" "${LIGHTFIELD_PACKAGE}/"
+mkdir ${VERBOSE} -p  "${LIGHTFIELD_FILES}"
+cp    ${VERBOSE} -ar "${LIGHTFIELD_SRC}/debian" "${LIGHTFIELD_PACKAGE}/"
+ln    ${VERBOSE} -s  "${PACKAGE_BUILD_DIR}"     "${PACKAGE_BUILD_ROOT}/latest"
 
 [ -d "${LIGHTFIELD_FILES}/usr/bin" ] || mkdir ${VERBOSE} -p "${LIGHTFIELD_FILES}/usr/bin"
 
@@ -115,11 +116,12 @@ blue-bar • Building "${BUILDTYPE}" version of set-projector-power
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
-    g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
+    OPTS="-g -Og -D_DEBUG"
 elif [ "${BUILDTYPE}" = "release" ]
 then
-    g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" -pipe -O3 -s -DNDEBUG -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
+    OPTS="-s -O3 -DNDEBUG"
 fi
+g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
 
 ##################################################
 

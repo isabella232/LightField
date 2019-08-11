@@ -48,6 +48,14 @@ private:
     QString        _stdoutBuffer;
     QString        _stderrBuffer;
 
+    QMap<PendingCommand, std::function<void( bool const )>> _actionCompleteMap {
+        { PendingCommand::moveRelative, [ this ] ( bool const success ) { emit action_moveRelativeComplete( success );                    } },
+        { PendingCommand::moveAbsolute, [ this ] ( bool const success ) { emit action_moveAbsoluteComplete( success );                    } },
+        { PendingCommand::home,         [ this ] ( bool const success ) { emit action_homeComplete( success );                            } },
+        { PendingCommand::send,         [ this ] ( bool const success ) { emit action_sendComplete( success );                            } },
+        { PendingCommand::none,         [ this ] ( bool const )         { debug( "+ Shepherd::handleFromPrinter: no pending command\n" ); } },
+    };
+
     bool        getReady( char const* functionName, PendingCommand const pendingCommand, int const expectedOkCount = 0 );
     QStringList splitLine( QString const& line );
     void        handleFromPrinter( QString const& input );
@@ -70,7 +78,7 @@ signals:
     void printer_online( );
     void printer_offline( );
     void printer_output( QString const& output );
-    void printer_positionReport( double const px, double const py, double const pz, double const pe, double const cx, double const cy, double const cz );
+    void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
     void printer_firmwareVersionReport( QString const& version );
 

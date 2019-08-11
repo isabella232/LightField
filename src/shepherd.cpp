@@ -7,10 +7,10 @@
 
 namespace {
 
-    QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
-    QRegularExpression TemperatureReportMatcher1 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
-    QRegularExpression TemperatureReportMatcher2 { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
     QRegularExpression FirmwareVersionMatcher    { "^echo:.*?Author:\\s*(.+?)(?:\\s|;|$)",                                                                                    QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression PositionReportMatcher     { "^X:(-?\\d+\\.\\d\\d) Y:(-?\\d+\\.\\d\\d) Z:(-?\\d+\\.\\d\\d) E:(-?\\d+\\.\\d\\d) Count X:(-?\\d+) Y:(-?\\d+) Z:(-?\\d+)", QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression TemperatureReport1Matcher { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) B:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+) B@:(-?\\d+)",             QRegularExpression::CaseInsensitiveOption };
+    QRegularExpression TemperatureReport2Matcher { "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",                                                                   QRegularExpression::CaseInsensitiveOption };
 
 }
 
@@ -56,9 +56,7 @@ void Shepherd::process_readyReadStandardError( ) {
 
 void Shepherd::process_readyReadStandardOutput( ) {
     _process->setReadChannel( QProcess::StandardOutput );
-
-    QString input = _process->readAllStandardOutput( );
-    if ( input.length( ) ) {
+    if ( auto input = _process->readAllStandardOutput( ); !input.isEmpty( ) ) {
         handleInput( input );
     }
 }
@@ -176,69 +174,39 @@ QStringList Shepherd::splitLine( QString const& line ) {
 }
 
 void Shepherd::handleFromPrinter( QString const& input ) {
-    debug(
-        "+ Shepherd::handleFromPrinter: input: '%s'; pendingCommand: %s [%d]; expectedOkCount: %d; okCount: %d\n",
-        input.toUtf8( ).data( ),
-        ToString( _pendingCommand ), static_cast<int>( _pendingCommand ),
-        _expectedOkCount,
-        _okCount
-    );
     if ( input == "ok" ) {
-        if ( ++_okCount == _expectedOkCount ) {
-            debug( "+ Shepherd::handleFromPrinter: got final expected ok, dispatching completion notification\n" );
+        ++_okCount;
+        if ( _okCount == _expectedOkCount ) {
+            debug( "+ Shepherd::handleFromPrinter/ok: pendingCommand: %s; expectedOkCount: %d; okCount: %d; got final expected 'ok', dispatching completion notification\n", ToString( _pendingCommand ), _expectedOkCount, _okCount );
+
             auto pending = _pendingCommand;
             _pendingCommand = PendingCommand::none;
-            switch ( pending ) {
-                case PendingCommand::moveRelative:
-                    emit action_moveRelativeComplete( true );
-                    break;
-
-                case PendingCommand::moveAbsolute:
-                    emit action_moveAbsoluteComplete( true );
-                    break;
-
-                case PendingCommand::home:
-                    emit action_homeComplete( true );
-                    break;
-
-                case PendingCommand::send:
-                    emit action_sendComplete( true );
-                    break;
-
-                case PendingCommand::none:
-                    debug( "+ Shepherd::handleFromPrinter: no pending command\n" );
-                    break;
-
-                default:
-                    debug( "+ Shepherd::handleFromPrinter: unknown pending command\n" );
-                    break;
-            }
+            _actionCompleteMap[pending]( true );
+        } else {
+            debug( "+ Shepherd::handleFromPrinter/ok: pendingCommand: %s; expectedOkCount: %d; okCount: %d\n", ToString( _pendingCommand ), _expectedOkCount, _okCount );
         }
+    } else if ( 0 == input.left( 6 ).compare( "error:", Qt::CaseInsensitive ) ) {
+        debug( "+ Shepherd::handleFromPrinter/error: printer says: '%s'\n", input.toUtf8( ).data( ) );
+
+        auto pending = _pendingCommand;
+        _pendingCommand = PendingCommand::none;
+        _actionCompleteMap[pending]( false );
     } else if ( auto match = PositionReportMatcher.match( input ); match.hasMatch( ) ) {
         auto px = match.captured( 1 ).toDouble( );
-        auto py = match.captured( 2 ).toDouble( );
-        auto pz = match.captured( 3 ).toDouble( );
-        auto pe = match.captured( 4 ).toDouble( );
-        auto cx = match.captured( 5 ).toDouble( );
-        auto cy = match.captured( 6 ).toDouble( );
-        auto cz = match.captured( 7 ).toDouble( );
-        debug( "+ Shepherd::handleFromPrinter: position report: XYZ (%.2f,%.2f,%.2f) E %.2f; counts: XYZ (%.0f,%.0f,%.0f)\n", px, py, pz, pe, cx, cy, cz );
-        emit printer_positionReport( px, py, pz, pe, cx, cy, cz );
-    } else if ( auto match = TemperatureReportMatcher1.match( input ); match.hasMatch( ) ) {
+        auto cx = match.captured( 5 ).toInt( );
+        emit printer_positionReport( px, cx );
+    } else if ( auto match = TemperatureReport1Matcher.match( input ); match.hasMatch( ) ) {
         auto bedCurrentTemperature = match.captured( 3 ).toDouble( );
         auto bedTargetTemperature  = match.captured( 4 ).toDouble( );
         auto bedPwm                = match.captured( 6 ).toInt( );
-        debug( "+ Shepherd::handleFromPrinter: temperature report (type 1): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
-    } else if ( auto match = TemperatureReportMatcher2.match( input ); match.hasMatch( ) ) {
+    } else if ( auto match = TemperatureReport2Matcher.match( input ); match.hasMatch( ) ) {
         auto bedCurrentTemperature = match.captured( 1 ).toDouble( );
         auto bedTargetTemperature  = match.captured( 2 ).toDouble( );
         auto bedPwm                = match.captured( 3 ).toInt( );
-        debug( "+ Shepherd::handleFromPrinter: temperature report (type 2): current %.2f °C, target %.2f °C, PWM %d\n", bedCurrentTemperature, bedTargetTemperature, bedPwm );
         emit printer_temperatureReport( bedCurrentTemperature, bedTargetTemperature, bedPwm );
     } else if ( auto match = FirmwareVersionMatcher.match( input ); match.hasMatch( ) ) {
         auto firmwareVersion = match.captured( 1 );
-        debug( "+ Shepherd::handleFromPrinter: firmware version string: %s\n", firmwareVersion.toUtf8( ).data( ) );
         emit printer_firmwareVersionReport( firmwareVersion );
     }
 }
@@ -326,22 +294,20 @@ void Shepherd::handleInput( QString const& input ) {
     for ( auto line : lines ) {
         if ( line.endsWith( CarriageReturn ) ) {
             line.chop( 1 );
-            line.resize( line.length( ) - 1 );
         }
         if ( line.isEmpty( ) ) {
             continue;
         }
 
         auto pieces = splitLine( line );
-        debug( "+ Shepherd::handleInput: '%s' [%d]\n", pieces[0].toUtf8( ).data( ), pieces.count( ) );
         if ( pieces[0] == "ok" ) {
             if ( pieces.count( ) > 1 ) {
-                debug( "  + ok %s\n", pieces[1].toUtf8( ).data( ) );
+                debug( "+ Shepherd::handleInput: ok %s\n", pieces[1].toUtf8( ).data( ) );
             } else {
-                debug( "  + ok\n" );
+                debug( "+ Shepherd::handleInput: ok\n" );
             }
         } else if ( pieces[0] == "fail" ) {
-            debug( "  + FAIL %s\n", pieces[1].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: fail %s\n", pieces[1].toUtf8( ).data( ) );
 #if defined _DEBUG
             if ( g_settings.ignoreShepherdFailures ) {
                 handleCommandFailAlternate( pieces );
@@ -352,9 +318,9 @@ void Shepherd::handleInput( QString const& input ) {
             handleCommandFail( pieces );
 #endif // defined _DEBUG
         } else if ( pieces[0] == "warning" ) {
-            debug( "  + warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: warning from shepherd: %s\n", pieces[1].toUtf8( ).data( ) );
         } else if ( pieces[0] == "info" ) {
-            debug( "  + info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
+            debug( "+ Shepherd::handleInput: info from shepherd about '%s': %s\n", pieces[1].toUtf8( ).data( ), pieces[2].toUtf8( ).data( ) );
         } else if ( pieces[0] == "from_printer" ) {
             debug( "<<< '%s'\n", pieces[1].toUtf8( ).data( ) );
             handleFromPrinter( pieces[1] );
@@ -366,18 +332,15 @@ void Shepherd::handleInput( QString const& input ) {
             emit printer_offline( );
         }
     }
-
-    if ( !_buffer.isEmpty( ) ) {
-        debug( "  + left over in buffer: '%s'\n", _buffer.toUtf8( ).data( ) );
-    }
 }
 
 void Shepherd::start( ) {
     debug( "+ Shepherd::start\n" );
 
-    _processRunner = new ProcessRunner( this );
     _stdoutBuffer.clear( );
     _stderrBuffer.clear( );
+
+    _processRunner = new ProcessRunner( this );
     QObject::connect( _processRunner, &ProcessRunner::succeeded,               this, &Shepherd::processRunner_succeeded );
     QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &Shepherd::processRunner_failed    );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &Shepherd::processRunner_stdout    );

@@ -206,10 +206,17 @@ void SystemTab::shepherd_firmwareVersionReport( QString const& version ) {
     );
 }
 
-void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
-    _isSoftwareUpgradeAvailable = upgradesFound;
-    debug( "+ SystemTab::upgradeManager_upgradeCheckComplete: upgrades available? %s PO? %s PA? %s\n", YesNoString( _isSoftwareUpgradeAvailable ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
+void SystemTab::upgradeManager_upgradeCheckStarting( ) {
+    debug( "+ SystemTab::upgradeManager_upgradeCheckStarting\n" );
 
+    _isSoftwareUpgradeAvailable = false;
+    _updateButtons( );
+}
+
+void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
+    debug( "+ SystemTab::upgradeManager_upgradeCheckComplete: upgrades available? %s\n", YesNoString( upgradesFound ) );
+
+    _isSoftwareUpgradeAvailable = upgradesFound;
     _updateButtons( );
 }
 
@@ -301,6 +308,7 @@ void SystemTab::shutDownButton_clicked( bool ) {
 void SystemTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
     if ( upgradeManager ) {
         _upgradeManager = upgradeManager;
+        QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckStarting, this, &SystemTab::upgradeManager_upgradeCheckStarting );
         QObject::connect( _upgradeManager, &UpgradeManager::upgradeCheckComplete, this, &SystemTab::upgradeManager_upgradeCheckComplete );
         QObject::connect( _upgradeManager, &UpgradeManager::upgradeFailed,        this, &SystemTab::upgradeManager_upgradeFailed        );
     } else {

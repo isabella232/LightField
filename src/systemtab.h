@@ -36,7 +36,7 @@ private:
     UpgradeSelector* _upgradeSelector            {                 };
     UsbMountManager* _usbMountManager            {                 };
 
-    QString          _mountPoint                  {                 };
+    QString          _mountPoint                 {                 };
 
     QLabel*          _logoLabel                  { new QLabel      };
     QLabel*          _versionLabel               { new QLabel      };
@@ -78,6 +78,7 @@ protected slots:
 private slots:
     ;
 
+    void upgradeManager_upgradeCheckStarting( );
     void upgradeManager_upgradeCheckComplete( bool const upgradesFound );
     void upgradeManager_upgradeFailed( );
 

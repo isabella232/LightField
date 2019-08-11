@@ -110,7 +110,7 @@ void App::_parseCommandLine( ) {
 
 bool App::_isAlreadyRunning( ) {
     if ( !PidFile.exists( ) ) {
-        debug( "+ App:_isAlreadyRunning: pid file doesn't exist\n" );
+        debug( "+ App::_isAlreadyRunning: pid file doesn't exist\n" );
         errno = 0;
         return false;
     }
@@ -187,11 +187,11 @@ bool App::_isAlreadyRunning( ) {
 
 void App::_recordProcessId( ) {
     if ( PidFile.open( QIODevice::WriteOnly | QIODevice::NewOnly ) ) {
-        debug( "App::_recordProcessId: saving our pid %d to file %s\n", getpid( ), PidFile.fileName( ).toUtf8( ).data( ) );
+        debug( "+ App::_recordProcessId: saving our pid %d to file %s\n", getpid( ), PidFile.fileName( ).toUtf8( ).data( ) );
         PidFile.write( QString { "%1" }.arg( getpid( ) ).toUtf8( ) );
         PidFile.close( );
     } else {
-        debug( "App::_recordProcessId: couldn't create new pid file\n" );
+        debug( "+ App::_recordProcessId: couldn't create new pid file\n" );
     }
 }
 

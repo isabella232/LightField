@@ -4,6 +4,12 @@
 
 #include "upgrademanager.h"
 
+namespace {
+
+    QRegularExpression const AsciiBulletLineRegex { "^\\s+\\*", QRegularExpression::MultilineOption };
+
+}
+
 UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent ): InitialShowEventMixin<UpgradeSelector, QMainWindow>( parent ), _upgradeManager( upgradeManager ) {
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
     setFixedSize( MainWindowSize );
@@ -31,13 +37,9 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     } );
 
     QStringList kitsListStrings;
-    for ( auto const& kitInfo : _availableKits ) {
-        if ( kitInfo.buildType == BuildType::Debug ) {
-            kitsListStrings.append( kitInfo.versionString % " (debug version)" );
-        } else {
-            kitsListStrings.append( kitInfo.versionString );
-        }
-    }
+    std::transform( _availableKits.begin( ), _availableKits.end( ), std::back_inserter( kitsListStrings ), [ ] ( auto const& kit ) {
+        return kit.versionString % ( ( kit.buildType == BuildType::Debug ) ? " (debug version)" : "" );
+    } );
 
     auto availableKitsLabel = new QLabel { "Available versions:" };
 
@@ -54,35 +56,35 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
 
     _description = new QLabel;
     _description->setAlignment( Qt::AlignLeft | Qt::AlignTop );
-    _description->setFont( ModifyFont( _description->font( ), 14.0 ) );
+    _description->setFont( ModifyFont( _description->font( ), 12.0 ) );
     _description->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _description->setFixedSize( MainWindowSize.width( ) * 2 / 3 - 14, MainWindowSize.height( ) / 3 );
     _description->setWordWrap( true );
 
-    _scrollArea = new QScrollArea;
-    _scrollArea->setFixedSize( MainWindowSize.width( ) * 2 / 3, MainWindowSize.height( ) / 3 );
-    _scrollArea->setFrameStyle( QFrame::Box | QFrame::Sunken );
-    _scrollArea->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-    _scrollArea->setWidget( _description );
-    _scrollArea->setWidgetResizable( true );
-
     _upgradeButton = new QPushButton { "Upgrade" };
     _upgradeButton->setDefault( false );
     _upgradeButton->setEnabled( false );
-    QObject::connect( _upgradeButton, &QPushButton::clicked, this, &UpgradeSelector::upgradeButton_clicked );
+    QObject::connect( _upgradeButton, &QPushButton::clicked, [ this ] ( bool ) { emit kitSelected( _availableKits[_currentSelection] );  } );
 
     _cancelButton = new QPushButton { "Cancel" };
     _cancelButton->setDefault( true );
-    QObject::connect( _cancelButton,  &QPushButton::clicked, this, &UpgradeSelector::cancelButton_clicked );
+    QObject::connect( _cancelButton,  &QPushButton::clicked, [ this ] ( bool ) { emit canceled( ); } );
 
     {
         auto kitsListLayout = WrapWidgetsInVBox( { availableKitsLabel, kitsListView } );
         kitsListLayout->setAlignment( Qt::AlignHCenter );
 
+        auto scrollArea = new QScrollArea;
+        scrollArea->setFixedSize( MainWindowSize.width( ) * 2 / 3, MainWindowSize.height( ) / 3 );
+        scrollArea->setFrameStyle( QFrame::Box | QFrame::Sunken );
+        scrollArea->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+        scrollArea->setWidget( _description );
+        scrollArea->setWidgetResizable( true );
+
         auto verticalLayout = new QVBoxLayout;
         verticalLayout->addStretch( );
         verticalLayout->addLayout( kitsListLayout );
-        verticalLayout->addWidget( _scrollArea );
+        verticalLayout->addWidget( scrollArea );
         verticalLayout->addLayout( WrapWidgetsInHBox( { nullptr, _upgradeButton, nullptr, _cancelButton, nullptr } ) );
         verticalLayout->addStretch( );
 
@@ -97,27 +99,39 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     }
 
     {
-        _upgradeInProgressMessage = new QLabel { "Please wait, software update in progress..." };
-
-        auto verticalLayout = WrapWidgetsInVBox( { nullptr, _upgradeInProgressMessage, nullptr } );
+        auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress..." };
+        upgradeInProgressMessage->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
         _upgradeInProgressLayout = new QHBoxLayout;
         _upgradeInProgressLayout->addStretch( );
-        _upgradeInProgressLayout->addLayout( verticalLayout );
+        _upgradeInProgressLayout->addLayout( WrapWidgetsInVBox( { nullptr, upgradeInProgressMessage, nullptr } ) );
         _upgradeInProgressLayout->addStretch( );
     }
 
     {
-        _upgradeFailedMessage = new QLabel { "Software update failed." };
+        auto upgradeFailedMessage = new QLabel { "Software update failed." };
+        upgradeFailedMessage->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
-        _okButton = new QPushButton { "OK" };
-        QObject::connect( _okButton, &QPushButton::clicked, this, &UpgradeSelector::okButton_clicked );
+        _aptOutput = new QLabel;
+        _aptOutput->setAlignment( Qt::AlignLeft | Qt::AlignTop );
+        _aptOutput->setFont( ModifyFont( _aptOutput->font( ), 12.0 ) );
+        _aptOutput->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+        _aptOutput->setFixedSize( MainWindowSize.width( ) * 2 / 3 - 14, MainWindowSize.height( ) / 3 );
+        _aptOutput->setWordWrap( true );
 
-        auto verticalLayout = WrapWidgetsInVBox( { nullptr, _upgradeFailedMessage, nullptr, _okButton, nullptr } );
+        auto scrollArea = new QScrollArea;
+        scrollArea->setFixedSize( MainWindowSize.width( ) * 2 / 3, MainWindowSize.height( ) * 2 / 3 );
+        scrollArea->setFrameStyle( QFrame::Box | QFrame::Sunken );
+        scrollArea->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+        scrollArea->setWidget( _aptOutput );
+        scrollArea->setWidgetResizable( true );
+
+        auto okButton = new QPushButton { "OK" };
+        QObject::connect( okButton, &QPushButton::clicked, [ this ] ( bool ) { emit canceled( ); } );
 
         _upgradeFailedLayout = new QHBoxLayout;
         _upgradeFailedLayout->addStretch( );
-        _upgradeFailedLayout->addLayout( verticalLayout );
+        _upgradeFailedLayout->addLayout( WrapWidgetsInVBox( { nullptr, upgradeFailedMessage, nullptr, scrollArea, nullptr, okButton, nullptr } ) );
         _upgradeFailedLayout->addStretch( );
     }
 }
@@ -141,40 +155,26 @@ void UpgradeSelector::kitsListView_clicked( QModelIndex const& index ) {
     if ( index.isValid( ) ) {
         auto row = index.row( );
         auto kitInfo = _availableKits[row];
-        debug( "+ UpgradeSelector::kitsListView_clicked: row %d selected\n", row );
-        debug( "  + version:    %s\n", kitInfo.versionString.toUtf8( ).data( ) );
-        debug( "  + build type: %s\n", ToString( kitInfo.buildType ) );
-        debug( "  + vscrollsz:  %s\n", ToString( _scrollArea->verticalScrollBar( )->size( ) ).toUtf8( ).data( ) );
+        debug( "+ UpgradeSelector::kitsListView_clicked: row %d selected: version %s, build type %s\n", row, kitInfo.versionString.toUtf8( ).data( ), ToString( kitInfo.buildType ) );
+
         _currentSelection = row;
+        auto description { kitInfo.description };
+        description.replace( AsciiBulletLineRegex, Bullet );
+        _description->setText( description );
         _upgradeButton->setEnabled( true );
-        _description->setText( kitInfo.description );
     } else {
-        debug( "+ UpgradeSelector::kitsListView_clicked: item deselected\n" );
+        debug( "+ UpgradeSelector::kitsListView_clicked: row %d deselected\n", _currentSelection );
+
         _currentSelection = -1;
-        _upgradeButton->setEnabled( false );
         _description->clear( );
+        _upgradeButton->setEnabled( false );
     }
-}
-
-void UpgradeSelector::upgradeButton_clicked( bool ) {
-    debug( "+ UpgradeSelector::upgradeButton_clicked\n" );
-    emit kitSelected( _availableKits[_currentSelection] );
-}
-
-void UpgradeSelector::cancelButton_clicked( bool ) {
-    debug( "+ UpgradeSelector::cancelButton_clicked\n" );
-    emit canceled( );
-}
-
-void UpgradeSelector::okButton_clicked( bool ) {
-    debug( "+ UpgradeSelector::okButton_clicked\n" );
-    emit canceled( );
 }
 
 void UpgradeSelector::showInProgressMessage( ) {
     debug( "+ UpgradeSelector::showInProgressMessage\n" );
 
-    auto centralWidget = new QWidget;
+    auto centralWidget { new QWidget };
     centralWidget->setLayout( _upgradeInProgressLayout );
     setCentralWidget( centralWidget );
 }
@@ -182,7 +182,21 @@ void UpgradeSelector::showInProgressMessage( ) {
 void UpgradeSelector::showFailedMessage( ) {
     debug( "+ UpgradeSelector::showFailedMessage\n" );
 
-    auto centralWidget = new QWidget;
+    auto stdoutLog { _upgradeManager->stdoutJournal( ) };
+    stdoutLog.replace( CarriageReturn, LineFeed );
+    if ( stdoutLog.endsWith( LineFeed ) ) {
+        stdoutLog.chop( 1 );
+    }
+
+    auto stderrLog { _upgradeManager->stderrJournal( ) };
+    stderrLog.replace( CarriageReturn, LineFeed );
+    if ( stderrLog.endsWith( LineFeed ) ) {
+        stderrLog.chop( 1 );
+    }
+
+    _aptOutput->setText( stdoutLog % LineFeed % QString { 50, '=' } % LineFeed % stderrLog );
+
+    auto centralWidget { new QWidget };
     centralWidget->setLayout( _upgradeFailedLayout );
     setCentralWidget( centralWidget );
 }

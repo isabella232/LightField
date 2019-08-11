@@ -194,7 +194,9 @@ void Window::_setPrinterPrepared( bool const value ) {
         g_settings.pretendPrinterIsPrepared ? true :
 #endif // _DEBUG
         value;
+
     debug( "+ Window::_setPrinterPrepared: old value: %s; new value: %s\n", ToString( _isPrinterPrepared ), ToString( newValue ) );
+    _isPrinterPrepared = newValue;
     emit printerPrepared( newValue );
 
     update( );
@@ -306,7 +308,7 @@ void Window::startPrinting( ) {
 }
 
 void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ Window::tab_uiStateChanged: from %sTab: %s => %s [MR? %s PP? %s]\n", ToString( sender ), ToString( _uiState ), ToString( state ), ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );
+    debug( "+ Window::tab_uiStateChanged: from %sTab: %s => %s [PP? %s MR? %s current tab %s]\n", ToString( sender ), ToString( _uiState ), ToString( state ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( static_cast<TabIndex>( _tabWidget->currentIndex( ) ) ) );
 
     _uiState = state;
     switch ( _uiState ) {
@@ -413,13 +415,8 @@ void Window::prepareTab_preparePrinterStarted( ) {
 }
 
 void Window::prepareTab_preparePrinterComplete( bool const success ) {
-    debug( "+ Window::prepareTab_preparePrinterComplete: %s; PP? %s MR? %s current tab: %s\n", SucceededString( success ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( _tabWidget->currentIndex( ) ) );
-
-#if defined _DEBUG
-    _setPrinterPrepared( g_settings.pretendPrinterIsPrepared ? true : success );
-#else
+    debug( "+ Window::prepareTab_preparePrinterComplete: %s; [PP? %s MR? %s current tab %s]\n", SucceededString( success ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( static_cast<TabIndex>( _tabWidget->currentIndex( ) ) ) );
     _setPrinterPrepared( success );
-#endif // _DEBUG
 
     if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
         debug( "+ Window::prepareTab_preparePrinterComplete: switching to Print tab\n" );
@@ -430,7 +427,7 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
 }
 
 void Window::prepareTab_slicingNeeded( bool const needed ) {
-    debug( "+ Window::prepareTab_slicingNeeded\n" );
+    debug( "+ Window::prepareTab_slicingNeeded: %s; [PP? %s MR? %s current tab %s]\n", YesNoString( needed ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( static_cast<TabIndex>( _tabWidget->currentIndex( ) ) ) );
     _setModelRendered( !needed );
 
     if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
