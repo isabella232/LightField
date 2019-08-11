@@ -194,7 +194,9 @@ void Window::_setPrinterPrepared( bool const value ) {
         g_settings.pretendPrinterIsPrepared ? true :
 #endif // _DEBUG
         value;
+
     debug( "+ Window::_setPrinterPrepared: old value: %s; new value: %s\n", ToString( _isPrinterPrepared ), ToString( newValue ) );
+    _isPrinterPrepared = newValue;
     emit printerPrepared( newValue );
 
     update( );
