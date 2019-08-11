@@ -110,7 +110,7 @@ void App::_parseCommandLine( ) {
 
 bool App::_isAlreadyRunning( ) {
     if ( !PidFile.exists( ) ) {
-        debug( "+ App:_isAlreadyRunning: pid file doesn't exist\n" );
+        debug( "+ App::_isAlreadyRunning: pid file doesn't exist\n" );
         errno = 0;
         return false;
     }
