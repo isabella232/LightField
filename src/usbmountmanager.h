@@ -2,6 +2,7 @@
 #define __USBMOUNTMANAGER_H__
 
 class ProcessRunner;
+class StdioLogger;
 
 class UsbMountManager: public QObject {
 
@@ -19,11 +20,12 @@ protected:
 private:
 
     QString        _mountPoint;
-    bool           _isWritable           { };
+    bool           _isWritable    { };
 
-    ProcessRunner* _mountmonProcess      { };
-    QString        _mountmonStdoutBuffer;
-    QString        _mountmonStderrBuffer;
+    ProcessRunner* _processRunner { };
+    StdioLogger*   _stderrLogger  { };
+    StdioLogger*   _stdoutLogger  { };
+    QString        _stdoutBuffer;
 
 signals:
     ;
@@ -43,7 +45,6 @@ private slots:
 
     void mountmon_failed( int const exitCode, QProcess::ProcessError const error );
     void mountmon_readyReadStandardOutput( QString const& data );
-    void mountmon_readyReadStandardError( QString const& data );
 
 };
 
