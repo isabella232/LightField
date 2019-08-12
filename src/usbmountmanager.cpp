@@ -7,6 +7,7 @@
 
 // ===============================================
 // Mountmon messages:
+// "error:<verb>:<errorMessage>"
 // "terminate:<reason>"
 // "mount:<mountPoint>"
 // "unmount:<mountPoint>"
@@ -93,6 +94,13 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
             _mountPoint.clear( );
 
             emit filesystemUnmounted( mountPoint );
+        } else if ( tokens[0] == "error" ) {
+            if ( tokens.count( ) < 3 ) {
+                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received short 'error' notification with only %d fields\n", tokens.count( ) );
+                continue;
+            }
+
+            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received error notification: verb '%s', error message '%s'\n", tokens[1].toUtf8( ).data( ), tokens[2].toUtf8( ).data( ) );
         } else if ( tokens[0] == "remount" ) {
             if ( tokens.count( ) < 4 ) {
                 debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received short 'remount' notification with only %d fields\n", tokens.count( ) );
@@ -127,5 +135,5 @@ void UsbMountManager::remount( bool const writable ) {
     }
 
     debug( "+ UsbMountManager::remount: asking Mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
-    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'r' ).arg( _mountPoint ).toUtf8( ) );
+    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'o' ).arg( _mountPoint ).toUtf8( ) );
 }

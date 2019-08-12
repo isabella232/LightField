@@ -39,7 +39,8 @@ private:
     QLabel*          _notifications        { new QLabel       };
     QVBoxLayout*     _copyStatusLayout     { new QVBoxLayout  };
 
-    QWidget*         _innerWidget          { new QWidget      };
+    QWidget*         _messageWidget        { new QWidget      };
+    QWidget*         _copyStatusWidget     { new QWidget      };
 
     QPushButton*     _button               { new QPushButton  };
 
