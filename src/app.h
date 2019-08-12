@@ -19,6 +19,8 @@ public:
     Theme  theme                    {        };
     bool   frameless                { false  };
 
+    int    buildPlatformOffset      {    300 }; // µm
+
 #if defined _DEBUG
     bool   pretendPrinterIsPrepared { false  };
     bool   ignoreShepherdFailures   { false  };

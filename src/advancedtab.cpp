@@ -56,6 +56,34 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _leftColumn->setLayout( _leftColumnLayout );
 
 
+    _offsetLabel->setText( "Build platform offset:" );
+
+    _offsetValue->setAlignment( Qt::AlignRight );
+    _offsetValue->setFont( boldFont );
+    _offsetValue->setText( QString { "%1 µm" }.arg( g_settings.buildPlatformOffset ) );
+
+    _offsetValueLayout = WrapWidgetsInHBox( { _offsetLabel, nullptr, _offsetValue } );
+    _offsetValueLayout->setContentsMargins( { } );
+
+    _offsetSlider->setMinimum( 0 );
+    _offsetSlider->setMaximum( 1000 );
+    _offsetSlider->setOrientation( Qt::Horizontal );
+    _offsetSlider->setPageStep( 25 );
+    _offsetSlider->setSingleStep( 100 );
+    _offsetSlider->setTickInterval( 25 );
+    _offsetSlider->setTickPosition( QSlider::TicksBothSides );
+    _offsetSlider->setValue( g_settings.buildPlatformOffset );
+    QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
+    QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
+
+    _offsetLayout->addLayout( _offsetValueLayout );
+    _offsetLayout->addWidget( _offsetSlider );
+
+
+    _buildPlatformOffsetGroup->setContentsMargins( { } );
+    _buildPlatformOffsetGroup->setLayout( _offsetLayout );
+
+
     _bedHeatingButton->setCheckable( true );
     _bedHeatingButton->setChecked( false );
     _bedHeatingButton->setFont( fontAwesome );
@@ -137,7 +165,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     _powerLevelSlider->setValue( 50 );
     QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
-    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged   );
 
     _powerLevelLayout->addLayout( _projectorFloodlightButtonLayout );
     _powerLevelLayout->addLayout( _powerLevelValueLayout );
@@ -214,6 +242,18 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _pwm               ->setText( bedPwm ? "on" : "off"                                      );
+
+    update( );
+}
+
+void AdvancedTab::offsetSlider_sliderReleased( ) {
+    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", _offsetSlider->value( ) );
+    g_settings.buildPlatformOffset = _offsetSlider->value( );
+}
+
+void AdvancedTab::offsetSlider_valueChanged( int value ) {
+    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value );
+    _offsetValue->setText( QString { "%1 µm" }.arg( value ) );
 
     update( );
 }

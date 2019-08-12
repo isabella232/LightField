@@ -34,6 +34,14 @@ private:
     QLabel*       _pwm                             { new QLabel      };
     QLabel*       _zPosition                       { new QLabel      };
 
+    QLabel*       _offsetLabel                     { new QLabel      };
+    QLabel*       _offsetValue                     { new QLabel      };
+    QHBoxLayout*  _offsetValueLayout               {                 };
+    QSlider*      _offsetSlider                    { new QSlider     };
+    QVBoxLayout*  _offsetLayout                    { new QVBoxLayout };
+
+    QGroupBox*    _buildPlatformOffsetGroup        { new QGroupBox   };
+
     QPushButton*  _bedHeatingButton                { new QPushButton };
     QLabel*       _bedHeatingButtonLabel           { new QLabel      };
     QHBoxLayout*  _bedHeatingButtonLayout          {                 };
@@ -76,12 +84,13 @@ private:
     void          _updateControlGroups( );
 
 signals:
+    ;
 
     void printerAvailabilityChanged( bool const available );
-
     void projectorPowerLevelChanged( int const value );
 
 public slots:
+    ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
@@ -91,14 +100,19 @@ public slots:
     void projectorPowerLevel_changed( int const percentage );
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void printer_online( );
     void printer_offline( );
 
     void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
+
+    void offsetSlider_sliderReleased( );
+    void offsetSlider_valueChanged( int value);
 
     void printBedHeatingButton_clicked( bool checked );
 #if defined ENABLE_TEMPERATURE_SETTING
