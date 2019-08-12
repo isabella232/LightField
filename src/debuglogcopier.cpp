@@ -18,11 +18,13 @@ DebugLogCopier::DebugLogCopier( UsbMountManager* manager, QWidget* parent ): Ini
 
     _message->setAlignment( Qt::AlignCenter );
     _message->setFont( boldFont );
-    _message->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _message->setTextFormat( Qt::RichText );
     _message->setWordWrap( true );
 
     _messageLayout = WrapWidgetsInVBox( { _message } );
+
+    _messageWidget->setLayout( _messageLayout );
+    _messageWidget->hide( );
 
     _currentFileNameLabel->setAlignment( Qt::AlignRight | Qt::AlignTop );
     _currentFileNameLabel->setFont( origFont );
@@ -46,7 +48,6 @@ DebugLogCopier::DebugLogCopier( UsbMountManager* manager, QWidget* parent ): Ini
 
     _notifications->setAlignment( Qt::AlignLeft | Qt::AlignTop );
     _notifications->setFont( origFont );
-    _notifications->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
 
     _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _currentFileNameLabel, _currentFileName, nullptr } ) );
     _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _fileSizeLabel,        _fileSize,        nullptr } ) );
@@ -54,15 +55,15 @@ DebugLogCopier::DebugLogCopier( UsbMountManager* manager, QWidget* parent ): Ini
     _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _notifications,                          nullptr } ) );
     _copyStatusLayout->addStretch( );
 
-    _innerWidget->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
-    _innerWidget->setLayout( _copyStatusLayout );
+    _copyStatusWidget->setLayout( _copyStatusLayout );
 
     _button->setText( "Abort" );
     (void) QObject::connect( _button, &QPushButton::clicked, this, &DebugLogCopier::abortButton_clicked );
 
     auto layout = new QVBoxLayout;
     layout->addStretch( );
-    layout->addWidget( _innerWidget );
+    layout->addWidget( _messageWidget );
+    layout->addWidget( _copyStatusWidget );
     layout->addStretch( );
     layout->addLayout( WrapWidgetsInHBox( { nullptr, _button, nullptr } ) );
     layout->addStretch( );
@@ -144,7 +145,6 @@ void DebugLogCopier::_fileCopier_start( ) {
     }
 
     _fileCopier = new FileCopier;
-    //_fileCopier->moveToThread( nullptr );
     (void) QObject::connect( _fileCopier, &FileCopier::fileStarted,  this, &DebugLogCopier::fileCopier_fileStarted,  Qt::QueuedConnection );
     (void) QObject::connect( _fileCopier, &FileCopier::fileProgress, this, &DebugLogCopier::fileCopier_fileProgress, Qt::QueuedConnection );
     (void) QObject::connect( _fileCopier, &FileCopier::fileFinished, this, &DebugLogCopier::fileCopier_fileFinished, Qt::QueuedConnection );
@@ -215,8 +215,13 @@ void DebugLogCopier::fileCopier_failure( int const index, QString const message 
 
 void DebugLogCopier::fileCopier_finished( int const copiedFiles, int const skippedFiles ) {
     debug( "+ DebugLogCopier::fileCopier_finished: copied %d files, skipped %d files\n", copiedFiles, skippedFiles );
-    _progressBar->hide( );
-    fileCopier_notify( _fileList.count( ), QString::asprintf( "Copy finished!<br /><span style=\"font-weight: bold;\">%d</span> files copied<br /><span style=\"font-weight: bold;\">%d</span> files skipped", copiedFiles, skippedFiles ) );
+    _showMessage( QString::asprintf(
+        "Copy finished!<br />"
+        "<span style=\"font-weight: bold;\">%d</span> files copied<br />"
+        "<span style=\"font-weight: bold;\">%d</span> files skipped",
+        copiedFiles,
+        skippedFiles
+    ) );
 
     _remountRo_start( );
 }
@@ -239,29 +244,36 @@ void DebugLogCopier::_showOkButton( ) {
     debug( "+ DebugLogCopier::_showOkButton\n" );
 
     _button->setText( "OK" );
-    (void) QObject::disconnect( _button );
-    (void) QObject::connect( _button, &QPushButton::clicked, this, &DebugLogCopier::okButton_clicked );
+    QObject::disconnect( _button, &QPushButton::clicked, this, nullptr );
+    (void) QObject::connect( _button, &QPushButton::clicked, this, &DebugLogCopier::okButton_clicked    );
 }
 
 void DebugLogCopier::_showMessage( QString const& message ) {
     debug( "+ DebugLogCopier::_showMessage: '%s'\n", message.toUtf8( ).data( ) );
 
     _message->setText( message );
-    _innerWidget->setLayout( _messageLayout );
+
+    _copyStatusWidget->hide( );
+    _messageWidget->show( );
     _showOkButton( );
 }
 
 void DebugLogCopier::abortButton_clicked( bool ) {
     debug( "+ DebugLogCopier::abortButton_clicked\n" );
 
-    (void) QObject::disconnect( _button );
+    QObject::disconnect( _button, &QPushButton::clicked, this, nullptr );
     _fileCopier->abort( );
+
+    getMainWindow( )->show( );
+    this->hide( );
+
+    emit finished( );
 }
 
 void DebugLogCopier::okButton_clicked( bool ) {
     debug( "+ DebugLogCopier::okButton_clicked\n" );
 
-    (void) QObject::disconnect( _button );
+    QObject::disconnect( _button, &QPushButton::clicked, this, nullptr );
 
     getMainWindow( )->show( );
     this->hide( );

@@ -142,13 +142,11 @@ void FileCopier::_copy( ) {
 
 void FileCopier::copy( FileNamePairList const& fileList ) {
     _fileList = fileList;
-    debug( "+ FileCopier::copy: creating thread\n", this, _thread );
+
     _thread = QThread::create( std::bind( &FileCopier::_copy, this ) );
-    debug( "+ FileCopier::copy: moving this[%p] to new thread[%p]\n", this, _thread );
-    moveToThread( _thread );
-    debug( "+ FileCopier::copy: setting thread[%p]'s parent to this[%p]\n", _thread, this );
     _thread->setParent( this );
-    debug( "+ FileCopier::copy: starting thread[%p]\n", _thread );
+    moveToThread( _thread );
+
     _thread->start( );
 }
 
