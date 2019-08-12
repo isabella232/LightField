@@ -127,5 +127,5 @@ void UsbMountManager::remount( bool const writable ) {
     }
 
     debug( "+ UsbMountManager::remount: asking Mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
-    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'r' ).arg( _mountPoint ).toUtf8( ) );
+    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'o' ).arg( _mountPoint ).toUtf8( ) );
 }
