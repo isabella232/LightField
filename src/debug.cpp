@@ -2,8 +2,6 @@
 
 #include "debug.h"
 
-//#if defined _DEBUG
-
 namespace {
 
     FILE* DebugLog       {        };
@@ -47,5 +45,3 @@ void debug( char const* str ) {
     }
     ::fputs( str, OriginalStderr );
 }
-
-//#endif // defined _DEBUG
