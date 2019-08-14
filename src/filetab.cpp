@@ -255,7 +255,6 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         "  + Y range:               %12.6f .. %12.6f, %12.6f\n"
         "  + Z range:               %12.6f .. %12.6f, %12.6f\n"
         "",
-        _modelSelection.fileName.toUtf8( ).data( ),
         _modelSelection.vertexCount,
         _modelSelection.x.min, _modelSelection.x.max, _modelSelection.x.size,
         _modelSelection.y.min, _modelSelection.y.max, _modelSelection.y.size,
@@ -451,22 +450,28 @@ void FileTab::processRunner_succeeded( ) {
     debug( "+ FileTab::processRunner_succeeded\n" );
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
-        auto match = VolumeLineMatcher.match( line );
-        if ( match.hasMatch( ) ) {
-            _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );
+        if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
+            bool ok = false;
+            _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( &ok );
+            if ( !ok ) {
+                debug( "  + couldn't parse '%s' as a number\n", match.captured( 1 ).toUtf8( ).data( ) );
+                break;
+            }
 
             QString unit;
-            if ( _modelSelection.estimatedVolume < 1000.0 ) {
+            double estimatedVolume = _modelSelection.estimatedVolume;
+
+            debug( "  + Estimated volume of model: %.3f µL\n", estimatedVolume );
+            if ( estimatedVolume < 1000.0 ) {
                 unit = "µL";
             } else {
-                _modelSelection.estimatedVolume /= 1000.0;
+                estimatedVolume /= 1000.0;
                 unit = "mL";
             }
             _dimensionsLabel->setText(
-                _dimensionsText + Space +
-                BlackDiamond + Space +
-                GroupDigits( QString{ "%1" }.arg( _modelSelection.estimatedVolume, 0, 'f', 2 ), ' ' ) + Space +
-                unit
+                _dimensionsText % Space %
+                BlackDiamond % Space %
+                GroupDigits( QString{ "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit
             );
             _selectButton->setEnabled( true );
 
