@@ -99,7 +99,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     }
 
     {
-        auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress..." };
+        auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress…" };
         upgradeInProgressMessage->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
         _upgradeInProgressLayout = new QHBoxLayout;

@@ -499,7 +499,7 @@ void PrepareTab::prepareButton_clicked( bool ) {
 
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
 
-    _prepareMessage->setText( "Moving the build platform to its home location..." );
+    _prepareMessage->setText( "Moving the build platform to its home location…" );
     _prepareProgress->show( );
 
     _prepareButton->setText( "Continue" );
@@ -540,7 +540,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     QObject::disconnect( _prepareButton, nullptr, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( "Raising the build platform..." );
+    _prepareMessage->setText( "Raising the build platform…" );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );

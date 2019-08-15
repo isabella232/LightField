@@ -115,7 +115,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _reprintButton->setFixedSize( MainButtonSize );
     _reprintButton->setFont( font22pt );
     _reprintButton->setVisible( true );
-    _reprintButton->setText( "Reprint..." );
+    _reprintButton->setText( "Reprint…" );
     QObject::connect( _reprintButton, &QPushButton::clicked, this, &StatusTab::reprintButton_clicked );
 
 
@@ -296,7 +296,7 @@ void StatusTab::stopButton_clicked( bool ) {
 
     _pauseButton->setEnabled( false );
     _stopButton->setEnabled( false );
-    _stopButton->setText( "Stopping..." );
+    _stopButton->setText( "Stopping…" );
     _updatePrintTimeInfo->stop( );
 
     if ( _printManager ) {
@@ -398,7 +398,7 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     if ( 0 == layer ) {
         _printerStateDisplay->setText( "Printing" );
         _estimatedTimeLeftDisplay->setFont( _italicFont );
-        _SetTextAndShow( _estimatedTimeLeftDisplay, "Estimating time remaining..." );
+        _SetTextAndShow( _estimatedTimeLeftDisplay, "Estimating time remaining…" );
 
         _printJobStartTime = _currentLayerStartTime;
         _updatePrintTimeInfo->start( );

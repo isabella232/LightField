@@ -265,7 +265,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
-    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume...</i>" } );
+    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume…</i>" } );
 
     _canvas->load_mesh( mesh );
 
