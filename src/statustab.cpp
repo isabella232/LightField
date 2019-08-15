@@ -237,10 +237,6 @@ void StatusTab::setPrinterPrepared( bool const value ) {
     _updateReprintButtonState( );
 }
 
-void StatusTab::clearPrinterPrepared( ) {
-    setPrinterPrepared( false );
-}
-
 void StatusTab::setPrinterAvailable( bool const value ) {
     _isPrinterAvailable = value;
     debug( "+ StatusTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );

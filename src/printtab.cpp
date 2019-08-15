@@ -388,10 +388,6 @@ void PrintTab::setPrinterPrepared( bool const value ) {
     _updateUiState( );
 }
 
-void PrintTab::clearPrinterPrepared( ) {
-    setPrinterPrepared( false );
-}
-
 void PrintTab::setPrinterAvailable( bool const value ) {
     _isPrinterAvailable = value;
     debug( "+ PrintTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
