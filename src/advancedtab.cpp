@@ -269,13 +269,11 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
 
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
 
-    int newValue;
 #if defined ENABLE_TEMPERATURE_SETTING
-    newValue = checked ? _bedTemperatureSlider->value( ) : 0;
+    _shepherd->doSend( QString { "M140 S%1" }.arg( checked ? _bedTemperatureSlider->value( ) : 0 ) );
 #else
-    newValue = checked ? DefaultPrintBedTemperature : 0;
+    _shepherd->doSend( QString { "M140 S%1" }.arg( checked ? DefaultPrintBedTemperature : 0 ) );
 #endif
-    _shepherd->doSend( QString { "M140 S%1" }.arg( newValue ) );
 
     update( );
 }
