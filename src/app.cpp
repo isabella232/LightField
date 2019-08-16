@@ -257,9 +257,6 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
 App::~App( ) {
     QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
-    _window->deleteLater( );
-    _window = nullptr;
-
     delete _debugManager;
     _debugManager = nullptr;
 }
