@@ -8,6 +8,7 @@
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
+#include "timinglogger.h"
 
 namespace {
 
@@ -295,6 +296,8 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &FileTab::processRunner_readyReadStandardOutput );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &FileTab::processRunner_readyReadStandardError  );
 
+    TimingLogger::startTiming( TimingId::VolumeCalculation );
+
     _processRunner->start(
         { "slic3r" },
         {
@@ -447,6 +450,7 @@ void FileTab::selectButton_clicked( bool ) {
 }
 
 void FileTab::processRunner_succeeded( ) {
+    TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
@@ -484,6 +488,7 @@ void FileTab::processRunner_succeeded( ) {
 }
 
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
+    TimingLogger::startTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _slicerBuffer.clear( );
@@ -491,7 +496,6 @@ void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError c
 }
 
 void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
-    debug( "+ FileTab::processRunner_readyReadStandardOutput: %d bytes from slic3r\n", data.length( ) );
     _slicerBuffer += data;
 }
 
