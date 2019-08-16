@@ -156,8 +156,8 @@ void PrintBacktrace( char const* tracerName ) {
     auto size    = backtrace( frames, std::size( frames ) );
     auto strings = backtrace_symbols( frames, size );
 
-    debug( "+ %s: %zu frames:\n", tracerName, size );
-    for ( decltype( size ) i = 0; i < size; i++ ) {
+    debug( "+ %s: %zu frames:\n", tracerName, size - 1 );
+    for ( decltype( size ) i = 1; i < size; i++ ) {
         debug( "  + %s\n", strings[i] );
     }
 
