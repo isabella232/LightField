@@ -17,8 +17,7 @@
 #include <bitset>
 #include <memory>
 
-#define debug(...)  fprintf( stderr, __VA_ARGS__ )
-#define _countof(x) (sizeof(x) / sizeof(x[0]))
+#define debug(...) fprintf( stderr, __VA_ARGS__ )
 
 #ifdef WIN32
 #include "../../src/win32junk.h"

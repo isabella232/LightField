@@ -153,7 +153,7 @@ void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix 
 
 void PrintBacktrace( char const* tracerName ) {
     void* frames[256];
-    auto size    = backtrace( frames, _countof( frames ) );
+    auto size    = backtrace( frames, std::size( frames ) );
     auto strings = backtrace_symbols( frames, size );
 
     debug( "+ %s: %zu frames:\n", tracerName, size );
