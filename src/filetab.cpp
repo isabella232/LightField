@@ -488,7 +488,7 @@ void FileTab::processRunner_succeeded( ) {
 }
 
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
-    TimingLogger::startTiming( TimingId::VolumeCalculation );
+    TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _slicerBuffer.clear( );
