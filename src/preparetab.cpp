@@ -413,8 +413,6 @@ void PrepareTab::slicerProcess_started( ) {
 }
 
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    QObject::disconnect( _slicerProcess, nullptr, this, nullptr );
-
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     _slicerProcess->deleteLater( );
@@ -484,6 +482,7 @@ void PrepareTab::_handlePrepareFailed( ) {
     _prepareMessage->setText( "Preparation failed." );
 
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
+
     _prepareButton->setText( "Retry" );
     _prepareButton->setEnabled( true );
 
@@ -497,7 +496,7 @@ void PrepareTab::_handlePrepareFailed( ) {
 void PrepareTab::prepareButton_clicked( bool ) {
     debug( "+ PrepareTab::prepareButton_clicked\n" );
 
-    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
 
     _prepareMessage->setText( "Moving the build platform to its home location…" );
     _prepareProgress->show( );
@@ -528,7 +527,8 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 
     _prepareMessage->setText( "Adjust the build platform position, then tap <b>Continue</b>." );
 
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr                                   );
+    QObject::connect   ( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
     _prepareButton->setEnabled( true );
 
     update( );
@@ -537,7 +537,7 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 void PrepareTab::adjustBuildPlatform_complete( bool ) {
     debug( "+ PrepareTab::adjustBuildPlatform_complete\n" );
 
-    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
     _prepareButton->setEnabled( false );
 
     _prepareMessage->setText( "Raising the build platform…" );
