@@ -295,13 +295,13 @@ void SystemTab::updateFirmwareButton_clicked( bool ) {
 
 void SystemTab::restartButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
-        system( "sudo systemctl reboot" );
+        QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
     }
 }
 
 void SystemTab::shutDownButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
-        system( "sudo systemctl poweroff" );
+        QProcess::startDetached( "sudo", { "systemctl", "poweroff" } );
     }
 }
 

@@ -617,12 +617,12 @@ void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::Process
 
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
     _flushLoggers( );
-    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting system\n" );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting\n" );
 
     QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
     QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
-    system( "sudo systemctl reboot" );
+    QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
 }
 
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {
