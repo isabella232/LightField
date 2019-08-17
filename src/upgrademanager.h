@@ -82,7 +82,7 @@ protected:
 
 private:
 
-    std::atomic_flag     _isChecking             { ATOMIC_FLAG_INIT };
+    std::atomic_flag     _isBusy                 { ATOMIC_FLAG_INIT };
 
     GpgSignatureChecker* _gpgSignatureChecker    { };
     Hasher*              _hashChecker            { };

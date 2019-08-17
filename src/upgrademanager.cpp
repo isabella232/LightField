@@ -56,6 +56,14 @@ UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
 
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  [ this ] ( QString const& data ) { _stderrJournal += data; } );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, [ this ] ( QString const& data ) { _stdoutJournal += data; } );
+
+    QObject::connect( this, &UpgradeManager::upgradeCheckComplete, [ this ] ( bool ) {
+        _isBusy.clear( );
+    } );
+
+    QObject::connect( this, &UpgradeManager::upgradeFailed, [ this ] ( ) {
+        _isBusy.clear( );
+    } );
 }
 
 UpgradeManager::~UpgradeManager( ) {
@@ -128,7 +136,6 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
 
     if ( _unprocessedUpgradeKits.isEmpty( ) ) {
         debug( "+ UpgradeManager::_checkForUpgrades: no upgrade kits found\n" );
-        _isChecking.clear( );
         emit upgradeCheckComplete( false );
         return;
     }
@@ -147,7 +154,6 @@ top:
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
             debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             debug( "  + starting unpacking %d kits\n", _unprocessedUpgradeKits.count( ) );
@@ -204,7 +210,6 @@ top:
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
             debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             debug( "  + starting checking version.inf signatures for %d kits\n", _unprocessedUpgradeKits.count( ) );
@@ -293,7 +298,6 @@ void UpgradeManager::_checkNextVersionInfSignature( ) {
 
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             _examineUnpackedKits( );
@@ -485,7 +489,6 @@ void UpgradeManager::_checkNextKitsHashes( ) {
         _unprocessedUpgradeKits.clear( );
         _processedUpgradeKits.clear( );
 
-        _isChecking.clear( );
         emit upgradeCheckComplete( _goodUpgradeKits.count( ) > 0 );
         return;
     }
@@ -509,8 +512,8 @@ void UpgradeManager::hasher_hashCheckResult( bool const result ) {
 }
 
 void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
-    if ( _isChecking.test_and_set( ) ) {
-        debug( "+ UpgradeManager::checkForUpgrades: check already in progress\n" );
+    if ( _isBusy.test_and_set( ) ) {
+        debug( "+ UpgradeManager::checkForUpgrades: already busy performing an upgrade check or upgrade install\n" );
         return;
     }
 
@@ -521,6 +524,12 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
+    if ( _isBusy.test_and_set( ) ) {
+        debug( "+ UpgradeManager::installUpgradeKit: already busy performing an upgrade check or upgrade install\n" );
+        emit upgradeFailed( );
+        return;
+    }
+
     debug( "+ UpgradeManager::installUpgradeKit: installing version %s build type %s\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
     _kitToInstall = new UpgradeKitInfo { kit };
 
