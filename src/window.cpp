@@ -268,22 +268,27 @@ void Window::startPrinting( ) {
     update( );
 
     debug(
-        "+ Window::startPrinting\n"
-        "  + Print job: %p\n"
-        "    + modelFileName:       '%s'\n"
-        "    + jobWorkingDirectory: '%s'\n"
-        "    + layerCount:          %d\n"
-        "    + layerThickness:      %d\n"
-        "    + exposureTime:        %f\n"
-        "    + powerLevel:          %d\n"
+        "+ Window::startPrinting: print job %p:\n"
+        "  + modelFileName:           '%s'\n"
+        "  + modelHash:               %s\n"
+        "  + layerCount:              %d\n"
+        "  + layerThickness:          %d\n"
+        "  + exposureTime:            %.2f\n"
+        "  + exposureTimeScaleFactor: %.2f\n"
+        "  + powerLevel:              %d\n"
+        "  + printSpeed:              %.2f\n"
+        "  + estimatedVolume:         %.2f\n"
         "",
         _printJob,
         _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->jobWorkingDirectory.toUtf8( ).data( ),
+        _printJob->modelHash.toUtf8( ).data( ),
         _printJob->layerCount,
         _printJob->layerThickness,
         _printJob->exposureTime,
-        _printJob->powerLevel
+        _printJob->exposureTimeScaleFactor,
+        _printJob->powerLevel,
+        _printJob->printSpeed,
+        _printJob->estimatedVolume
     );
 
     PrintJob* job = _printJob;
