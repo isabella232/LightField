@@ -6,6 +6,7 @@
 #include "hasher.h"
 #include "processrunner.h"
 #include "stdiologger.h"
+#include "timinglogger.h"
 #include "upgradekitunpacker.h"
 #include "version.h"
 
@@ -59,10 +60,12 @@ UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
 
     QObject::connect( this, &UpgradeManager::upgradeCheckComplete, [ this ] ( bool ) {
         _isBusy.clear( );
+        TimingLogger::stopTiming( TimingId::UpgradeCheck );
     } );
 
     QObject::connect( this, &UpgradeManager::upgradeFailed, [ this ] ( ) {
         _isBusy.clear( );
+        TimingLogger::stopTiming( TimingId::UpgradeInstallation );
     } );
 }
 
@@ -517,6 +520,7 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
         return;
     }
 
+    TimingLogger::startTiming( TimingId::UpgradeCheck );
     debug( "+ UpgradeManager::checkForUpgrades: starting check\n" );
     emit upgradeCheckStarting( );
 
@@ -530,6 +534,7 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
         return;
     }
 
+    TimingLogger::startTiming( TimingId::UpgradeInstallation, kit.versionString );
     debug( "+ UpgradeManager::installUpgradeKit: installing version %s build type %s\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
     _kitToInstall = new UpgradeKitInfo { kit };
 
@@ -626,6 +631,8 @@ void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::Process
 }
 
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
+    TimingLogger::stopTiming( TimingId::UpgradeInstallation );
+
     _flushLoggers( );
     debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting\n" );
 

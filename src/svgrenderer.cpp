@@ -3,6 +3,7 @@
 #include "svgrenderer.h"
 
 #include "processrunner.h"
+#include "timinglogger.h"
 
 namespace {
 
@@ -26,6 +27,7 @@ SvgRenderer::~SvgRenderer( ) {
 }
 
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
+    TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
 
@@ -132,7 +134,9 @@ void SvgRenderer::programSucceeded( ) {
     emit layerComplete( _currentLayer );
 
     if ( _currentLayer + 1 == _totalLayers ) {
+        TimingLogger::stopTiming( TimingId::RenderingPngs );
         debug( "+ SvgRenderer::programSucceeded: finished\n" );
+
         emit done( true );
     } else {
         ++_currentLayer;
@@ -142,5 +146,7 @@ void SvgRenderer::programSucceeded( ) {
 
 void SvgRenderer::programFailed( int const exitCode, QProcess::ProcessError const error ) {
     debug( "+ SvgRenderer::programFailed: exit code: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
+    TimingLogger::stopTiming( TimingId::RenderingPngs );
+
     emit done( false );
 }

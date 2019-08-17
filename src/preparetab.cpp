@@ -6,6 +6,7 @@
 #include "printjob.h"
 #include "shepherd.h"
 #include "svgrenderer.h"
+#include "timinglogger.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -347,6 +348,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _sliceStatus->setText( "starting" );
     _imageGeneratorStatus->setText( "waiting" );
 
+    TimingLogger::startTiming( TimingId::SlicingSvg );
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
@@ -413,6 +415,7 @@ void PrepareTab::slicerProcess_started( ) {
 }
 
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
+    TimingLogger::stopTiming( TimingId::SlicingSvg );
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     _slicerProcess->deleteLater( );

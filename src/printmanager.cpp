@@ -7,6 +7,7 @@
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
+#include "timinglogger.h"
 
 //
 // Before printing:
@@ -478,6 +479,7 @@ void PrintManager::stepC1_start( ) {
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
+    TimingLogger::stopTiming( TimingId::Printing );
     debug( "+ PrintManager::stepC1_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
@@ -506,6 +508,7 @@ void PrintManager::print( PrintJob* printJob ) {
 
     _pngDisplayer->clear( );
 
+    TimingLogger::startTiming( TimingId::Printing );
     debug( "+ PrintManager::print: emitting printStarting()\n" );
     _printResult = PrintResult::None;
     emit printStarting( );
