@@ -230,6 +230,7 @@ void App::_setTheme( ) {
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
+    debug( "LightField started at %s\n", QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ) );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
