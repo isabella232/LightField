@@ -24,14 +24,14 @@ case "$1" in
         perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 
         echo "deb file:/var/lib/lightfield/software-updates/lightfield-release_1.0.7.0_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
-    chown lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
-    chmod 644 /etc/apt/sources.list.d/volumetric-lightfield.list
+        chown lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
+        chmod 644 /etc/apt/sources.list.d/volumetric-lightfield.list
 
         systemctl daemon-reload
         systemctl set-default multi-user.target
-        systemctl enable set-projector-power.service
-        systemctl start set-projector-power.service
+        systemctl enable --now set-projector-power.service clean-up-mount-points.service
         systemctl enable getty@tty1.service
+        systemctl daemon-reload
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

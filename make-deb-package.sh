@@ -121,7 +121,7 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     OPTS="-s -O3 -DNDEBUG"
 fi
-g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -l hidapi-libusb
+g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
 
 ##################################################
 
@@ -172,6 +172,7 @@ install ${VERBOSE} -DT -m 600 system-stuff/lumen-bash_profile                 "$
 install ${VERBOSE} -DT -m 600 system-stuff/lumen-real_bash_profile            "${LIGHTFIELD_FILES}/home/lumen/.real_bash_profile"
 install ${VERBOSE} -DT -m 600 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.gpg"
 install ${VERBOSE} -DT -m 600 gpg/trustdb.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/trustdb.gpg"
+install ${VERBOSE} -DT -m 644 system-stuff/clean-up-mount-points.service      "${LIGHTFIELD_FILES}/lib/systemd/system/clean-up-mount-points.service"
 install ${VERBOSE} -DT -m 644 system-stuff/set-projector-power.service        "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
 install ${VERBOSE} -DT -m 644 usb-driver/90-dlpc350.rules                     "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlpc350.rules"
 install ${VERBOSE} -DT -m 755 system-stuff/reset-lumen-arduino-port           "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-arduino-port"

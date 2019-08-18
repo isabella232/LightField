@@ -1,0 +1,15 @@
+# clean-up-mount-points.service
+
+[Unit]
+Description=Clean up USB stick mount points
+RequiresMountsFor=/media
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/bin/bash -c '/bin/rm -drv /media/lumen/[0-9]* || true'
+Restart=no
+
+[Install]
+WantedBy=basic.target

@@ -14,7 +14,7 @@ fi
 
 # Undo systemd configuration changes
 systemctl set-default graphical.target
-systemctl disable set-projector-power.service
+systemctl disable --now set-projector-power.service clean-up-mount-points.service
 systemctl disable getty@tty1.service
 
 # Remove these files
@@ -27,6 +27,7 @@ rm -f                                                         \
     /home/lumen/.real_bash_profile                            \
     /home/lumen/.gnupg/pubring.gpg                            \
     /home/lumen/.gnupg/trustdb.gpg                            \
+    /lib/systemd/system/clean-up-mount-points.service         \
     /lib/systemd/system/set-projector-power.service           \
     /lib/udev/rules.d/90-dlpc350.rules                        \
     /usr/bin/lf                                               \

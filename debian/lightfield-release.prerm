@@ -20,17 +20,10 @@
 #echo "+ lightfield-release.prerm: args are $*" 1>&2
 case "$1" in
     remove)
-    systemctl daemon-reload
-
-    systemctl stop set-projector-power.service
-    systemctl disable set-projector-power.service
-
-    systemctl stop getty@tty1.service
-    systemctl disable getty@tty1.service
-
-    rm -rf /etc/systemd/system/getty@tty1.service.d
-
-    systemctl daemon-reload
+        systemctl daemon-reload
+        systemctl disable --now set-projector-power.service clean-up-mount-points.service getty@tty1.service
+        rm -rf /etc/systemd/system/getty@tty1.service.d
+        systemctl daemon-reload
     ;;
 
     upgrade|deconfigure|failed-upgrade)
