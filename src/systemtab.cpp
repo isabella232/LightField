@@ -2,6 +2,7 @@
 
 #include "systemtab.h"
 
+#include "app.h"
 #include "debuglogcopier.h"
 #include "shepherd.h"
 #include "upgrademanager.h"
@@ -157,10 +158,9 @@ bool SystemTab::_yesNoPrompt( QString const& title, QString const& text ) {
     messageBox.setDefaultButton( QMessageBox::No );
     messageBox.setFont( ModifyFont( messageBox.font( ), 16.0 ) );
 
-    auto mainWindow = getMainWindow( );
-    mainWindow->hide( );
+    App::mainWindow( )->hide( );
     auto result = static_cast<QMessageBox::StandardButton>( messageBox.exec( ) );
-    mainWindow->show( );
+    App::mainWindow( )->show( );
 
     return ( result == QMessageBox::Yes );
 }
@@ -223,7 +223,7 @@ void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) 
 void SystemTab::upgradeSelector_canceled( ) {
     debug( "+ SystemTab::upgradeSelector_canceled\n" );
 
-    getMainWindow( )->show( );
+    App::mainWindow( )->show( );
     _upgradeSelector->hide( );
 
     _upgradeSelector->deleteLater( );
@@ -286,7 +286,7 @@ void SystemTab::updateSoftwareButton_clicked( bool ) {
     QObject::connect( _upgradeSelector, &UpgradeSelector::kitSelected, this, &SystemTab::upgradeSelector_kitSelected );
 
     _upgradeSelector->show( );
-    getMainWindow( )->hide( );
+    App::mainWindow( )->hide( );
 }
 
 void SystemTab::updateFirmwareButton_clicked( bool ) {

@@ -99,6 +99,4 @@ private slots:
 
 };
 
-Window* getMainWindow( );
-
 #endif // __WINDOW_H__

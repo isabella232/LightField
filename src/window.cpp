@@ -32,10 +32,6 @@ namespace {
 
 }
 
-Window* getMainWindow( ) {
-    return static_cast<App*>( QCoreApplication::instance( ) )->mainWindow( );
-}
-
 Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;

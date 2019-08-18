@@ -90,6 +90,8 @@ namespace {
 
 }
 
+Window* App::_window { };
+
 void App::_parseCommandLine( ) {
     CommandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
     CommandLineParser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
