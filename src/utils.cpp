@@ -48,9 +48,35 @@ QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets ) {
     return layout;
 }
 
+QFont ModifyFont( QFont const& font_, QString const& familyName ) {
+    auto font { font_ };
+    font.setFamily( familyName );
+    return font;
+}
+
 QFont ModifyFont( QFont const& font_, double const pointSizeF ) {
     auto font { font_ };
     font.setPointSizeF( pointSizeF );
+    return font;
+}
+
+QFont ModifyFont( QFont const& font_, QFont::Weight const weight ) {
+    auto font { font_ };
+    font.setWeight( weight );
+    return font;
+}
+
+QFont ModifyFont( QFont const& font_, QString const& familyName, double const pointSizeF ) {
+    auto font { font_ };
+    font.setFamily( familyName );
+    font.setPointSizeF( pointSizeF );
+    return font;
+}
+
+QFont ModifyFont( QFont const& font_, QString const& familyName, QFont::Weight const weight ) {
+    auto font { font_ };
+    font.setFamily( familyName );
+    font.setWeight( weight );
     return font;
 }
 
@@ -61,15 +87,11 @@ QFont ModifyFont( QFont const& font_, double const pointSizeF, QFont::Weight con
     return font;
 }
 
-QFont ModifyFont( QFont const& font_, QFont::Weight const weight ) {
-    auto font { font_ };
-    font.setWeight( weight );
-    return font;
-}
-
-QFont ModifyFont( QFont const& font_, QString const& familyName ) {
+QFont ModifyFont( QFont const& font_, QString const& familyName, double const pointSizeF, QFont::Weight const weight ) {
     auto font { font_ };
     font.setFamily( familyName );
+    font.setPointSizeF( pointSizeF );
+    font.setWeight( weight );
     return font;
 }
 

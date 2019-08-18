@@ -238,7 +238,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
-    QGuiApplication::setFont( ModifyFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ), NormalFontSize ) );
+    QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat", NormalFontSize ) );
 
     _parseCommandLine( );
 

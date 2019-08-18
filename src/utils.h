@@ -4,10 +4,13 @@
 QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets );
 QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets );
 
-QFont ModifyFont( QFont const& font, double const pointSizeF );
-QFont ModifyFont( QFont const& font, double const pointSizeF, QFont::Weight const weight );
-QFont ModifyFont( QFont const& font, QFont::Weight const weight );
-QFont ModifyFont( QFont const& font, QString const& familyName );
+QFont ModifyFont( QFont const& font, QString       const& familyName );
+QFont ModifyFont( QFont const& font, double        const  pointSizeF );
+QFont ModifyFont( QFont const& font, QFont::Weight const  weight     );
+QFont ModifyFont( QFont const& font, QString       const& familyName, double        const  pointSizeF );
+QFont ModifyFont( QFont const& font, QString       const& familyName, QFont::Weight const  weight     );
+QFont ModifyFont( QFont const& font, double        const  pointSizeF, QFont::Weight const  weight     );
+QFont ModifyFont( QFont const& font, QString       const& familyName, double        const  pointSizeF, QFont::Weight const  weight );
 
 QPalette ModifyPalette( QPalette const& palette, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color );
 QPalette ModifyPalette( QPalette const& palette, QPalette::ColorRole const role, QColor const& color );
