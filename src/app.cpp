@@ -245,7 +245,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     if ( !_isAlreadyRunning( ) ) {
         _recordProcessId( );
     } else {
-        debug( "+ App::`ctor: there %s an instance of LightField already running. this instance is terminating.\n", ( 0 == errno ) ? "is" : "may be" );
+        debug( "+ App::`ctor: There %s an instance of LightField already running. This instance is terminating.\n", ( 0 == errno ) ? "is" : "may be" );
         ::exit( 1 );
     }
 
@@ -254,12 +254,23 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _setTheme( );
 
     _window = new Window;
+    (void) QObject::connect( _window, &Window::terminationRequested, this, &App::terminate, Qt::QueuedConnection );
     _window->show( );
 }
 
 App::~App( ) {
+    /*empty*/
+}
+
+void App::terminate( ) {
     QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
+
+    _window->terminate( );
+    _window->deleteLater( );
+    _window = nullptr;
 
     delete _debugManager;
     _debugManager = nullptr;
+
+    qApp->exit( );
 }

@@ -48,6 +48,10 @@ private:
     void _recordProcessId( );
     void _setTheme( );
 
+public slots:
+
+    void terminate( );
+
 public /*static*/:
 
     static Window* mainWindow( ) { return _window; }

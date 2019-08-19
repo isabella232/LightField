@@ -32,7 +32,7 @@ namespace {
 
 }
 
-Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( parent ) {
+Window::Window( QWidget* parent ): QMainWindow( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -208,7 +208,13 @@ void Window::_setModelRendered( bool const value ) {
 
 void Window::closeEvent( QCloseEvent* event ) {
     debug( "+ Window::closeEvent\n" );
+    event->ignore( );
 
+    emit terminationRequested( );
+}
+
+void Window::terminate( ) {
+    debug( "+ Window::terminate\n" );
     if ( _shepherd ) {
         _shepherd->doTerminate( );
     }
@@ -244,17 +250,6 @@ void Window::closeEvent( QCloseEvent* event ) {
         _signalHandler->deleteLater( );
         _signalHandler = nullptr;
     }
-
-    deleteLater( );
-
-    event->accept( );
-
-    update( );
-}
-
-void Window::_initialShowEvent( QShowEvent* event ) {
-    debug( "+ Window::_initialShowEvent\n" );
-    event->ignore( );
 
     update( );
 }
