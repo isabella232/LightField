@@ -2,7 +2,6 @@
 
 #include "systemtab.h"
 
-#include "app.h"
 #include "debuglogcopier.h"
 #include "shepherd.h"
 #include "upgrademanager.h"

@@ -2,8 +2,6 @@
 
 #include "timinglogger.h"
 
-#include "utils.h"
-
 namespace {
 
     char const* TimingIdStrings[] {

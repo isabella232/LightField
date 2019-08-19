@@ -2,7 +2,6 @@
 
 #include "debuglogcopier.h"
 
-#include "app.h"
 #include "filecopier.h"
 #include "usbmountmanager.h"
 #include "window.h"
