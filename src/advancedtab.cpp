@@ -181,7 +181,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _projectorFloodlightGroup->setLayout( _powerLevelLayout );
 
 
-    _rightColumnLayout = WrapWidgetsInVBox( { _bedHeatingGroup, _projectorFloodlightGroup, nullptr } );
+    _rightColumnLayout = WrapWidgetsInVBox( { _buildPlatformOffsetGroup, _bedHeatingGroup, _projectorFloodlightGroup, nullptr } );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
