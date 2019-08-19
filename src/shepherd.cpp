@@ -301,11 +301,7 @@ void Shepherd::handleInput( QString const& input ) {
 
         auto pieces = splitLine( line );
         if ( pieces[0] == "ok" ) {
-            if ( pieces.count( ) > 1 ) {
-                debug( "+ Shepherd::handleInput: ok %s\n", pieces[1].toUtf8( ).data( ) );
-            } else {
-                debug( "+ Shepherd::handleInput: ok\n" );
-            }
+            /*empty*/
         } else if ( pieces[0] == "fail" ) {
             debug( "+ Shepherd::handleInput: fail %s\n", pieces[1].toUtf8( ).data( ) );
 #if defined _DEBUG
@@ -330,6 +326,8 @@ void Shepherd::handleInput( QString const& input ) {
             emit printer_online( );
         } else if ( pieces[0] == "printer_offline" ) {
             emit printer_offline( );
+        } else {
+            debug( "+ Shepherd::handleInput: unknown verb from shepherd: '%s'\n", pieces[0].toUtf8( ).data( ) );
         }
     }
 }
