@@ -232,7 +232,9 @@ void App::_setTheme( ) {
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
-    debug( "LightField started at %s\n", QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ) );
+    debug( "LightField version %s starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
+    auto xdgRuntimeDir = getenv( "XDG_RUNTIME_DIR" );
+    debug( "+ XDG_RUNTIME_DIR variable: '%s'\n", xdgRuntimeDir ? xdgRuntimeDir : "(null)" );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
@@ -272,5 +274,8 @@ void App::terminate( ) {
     delete _debugManager;
     _debugManager = nullptr;
 
+    PidFile.remove( );
+
+    debug( "LightField version %s terminating at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
     qApp->exit( );
 }
