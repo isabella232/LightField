@@ -441,6 +441,7 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
         sigval_t val;
         val.sival_int = LIGHTFIELD_VERSION_CODE;
         sigqueue( info.si_pid, SIGUSR2, val );
+        return;
     }
 #if defined _DEBUG
     if ( SIGUSR1 == info.si_signo ) {

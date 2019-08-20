@@ -162,6 +162,14 @@ bool App::_isAlreadyRunning( ) {
     sigemptyset( &signalsToWaitFor );
     sigaddset( &signalsToWaitFor, SIGUSR2 );
 
+    sigset_t oldSignalMask;
+    if ( -1 == sigprocmask( SIG_BLOCK, &signalsToWaitFor, &oldSignalMask ) ) {
+        error_t err = errno;
+        debug( "+ App::_isAlreadyRunning: couldn't change signal mask: %s [%d]\n", strerror( err ), err );
+        errno = err;
+        return true;
+    }
+
     siginfo_t info            { };
     timespec  timeoutDuration { 5L, 0L };
 
