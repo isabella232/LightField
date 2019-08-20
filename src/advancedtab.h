@@ -26,12 +26,12 @@ private:
 
     QLabel*       _currentTemperatureLabel         { new QLabel      };
     QLabel*       _targetTemperatureLabel          { new QLabel      };
-    QLabel*       _pwmLabel                        { new QLabel      };
+    QLabel*       _heatingElementLabel             { new QLabel      };
     QLabel*       _zPositionLabel                  { new QLabel      };
 
     QLabel*       _currentTemperature              { new QLabel      };
     QLabel*       _targetTemperature               { new QLabel      };
-    QLabel*       _pwm                             { new QLabel      };
+    QLabel*       _heatingElement                  { new QLabel      };
     QLabel*       _zPosition                       { new QLabel      };
 
     QLabel*       _offsetLabel                     { new QLabel      };

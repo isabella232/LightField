@@ -21,7 +21,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
     _currentTemperatureLabel->setText( "Current temperature:" );
     _targetTemperatureLabel ->setText( "Target temperature:"  );
-    _pwmLabel               ->setText( "Heating element:"     );
+    _heatingElementLabel    ->setText( "Heating element:"     );
     _zPositionLabel         ->setText( "Z position:"          );
 
 
@@ -33,9 +33,9 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _targetTemperature ->setFont( boldFont );
     _targetTemperature ->setText( EmDash );
 
-    _pwm               ->setAlignment( Qt::AlignRight );
-    _pwm               ->setFont( boldFont );
-    _pwm               ->setText( EmDash );
+    _heatingElement    ->setAlignment( Qt::AlignRight );
+    _heatingElement    ->setFont( boldFont );
+    _heatingElement    ->setText( EmDash );
 
     _zPosition         ->setAlignment( Qt::AlignRight );
     _zPosition         ->setFont( boldFont );
@@ -46,7 +46,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _leftColumnLayout->setContentsMargins( { } );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperature } ) );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperature  } ) );
-    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _pwmLabel,                nullptr, _pwm                } ) );
+    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _heatingElementLabel,     nullptr, _heatingElement     } ) );
     _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _zPositionLabel,          nullptr, _zPosition          } ) );
     _leftColumnLayout->addStretch( );
 
@@ -241,7 +241,7 @@ void AdvancedTab::printer_positionReport( double const px, int const cx ) {
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
     _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
     _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
-    _pwm               ->setText( bedPwm ? "on" : "off"                                      );
+    _heatingElement    ->setText( bedPwm ? "ON" : "off"                                      );
 
     update( );
 }
