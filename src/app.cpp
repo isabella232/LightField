@@ -10,7 +10,7 @@ AppSettings g_settings;
 namespace {
 
     QCommandLineParser CommandLineParser;
-    QFile              PidFile           { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
+    QFile              PidFile           { QString { getenv( "XDG_RUNTIME_DIR" ) ? getenv( "XDG_RUNTIME_DIR" ) : "/tmp" } % "/lf.pid" };
     bool               MoveMainWindow    { };
 
     QList<QCommandLineOption> CommandLineOptions {
@@ -233,8 +233,6 @@ void App::_setTheme( ) {
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
     debug( "LightField version %s starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
-    auto xdgRuntimeDir = getenv( "XDG_RUNTIME_DIR" );
-    debug( "+ XDG_RUNTIME_DIR variable: '%s'\n", xdgRuntimeDir ? xdgRuntimeDir : "(null)" );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
@@ -265,11 +263,12 @@ App::~App( ) {
 }
 
 void App::terminate( ) {
-    QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
-
     _window->terminate( );
     _window->deleteLater( );
     _window = nullptr;
+
+    QProcess::startDetached( SetProjectorPowerCommand,     { "0" } );
+    QProcess::startDetached( ResetLumenArduinoPortCommand, {     } );
 
     delete _debugManager;
     _debugManager = nullptr;
