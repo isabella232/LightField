@@ -8,6 +8,9 @@ namespace {
 
     QRegularExpression const AsciiBulletLineRegex { "^\\s+\\*", QRegularExpression::MultilineOption };
 
+    QString const DebugBuildSuffix   { " (debug version)" };
+    QString const ReleaseBuildSuffix { };
+
 }
 
 UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent ): InitialShowEventMixin<UpgradeSelector, QMainWindow>( parent ), _upgradeManager( upgradeManager ) {
@@ -37,9 +40,9 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     } );
 
     QStringList kitsListStrings;
-    std::transform( _availableKits.begin( ), _availableKits.end( ), std::back_inserter( kitsListStrings ), [ ] ( auto const& kit ) {
-        return kit.versionString % ( ( kit.buildType == BuildType::Debug ) ? " (debug version)" : "" );
-    } );
+    for ( auto const& kit : _availableKits ) {
+        kitsListStrings.append( kit.versionString % ( ( kit.buildType == BuildType::Debug ) ? DebugBuildSuffix : ReleaseBuildSuffix ) );
+    }
 
     auto availableKitsLabel = new QLabel { "Available versions:" };
 
