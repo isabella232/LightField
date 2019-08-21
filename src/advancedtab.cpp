@@ -133,18 +133,28 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedHeatingGroup->setLayout( _bedTemperatureLayout );
 
 
-    _projectorFloodlightButton->setCheckable( true );
-    _projectorFloodlightButton->setChecked( false );
-    _projectorFloodlightButton->setFont( fontAwesome );
-    _projectorFloodlightButton->setFixedSize( 37, 38 );
-    _projectorFloodlightButton->setText( FA_Times );
-    QObject::connect( _projectorFloodlightButton, &QPushButton::clicked, this, &AdvancedTab::projectorFloodlightButton_clicked );
+    _projectBlankImageButton->setCheckable( true );
+    _projectBlankImageButton->setChecked( false );
+    _projectBlankImageButton->setFont( fontAwesome );
+    _projectBlankImageButton->setFixedSize( 37, 38 );
+    _projectBlankImageButton->setText( FA_Times );
+    QObject::connect( _projectBlankImageButton, &QPushButton::clicked, this, &AdvancedTab::projectBlankImageButton_clicked );
 
-    _projectorFloodlightButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _projectorFloodlightButtonLabel->setText( "Projector floodlight" );
+    _projectBlankImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _projectBlankImageButtonLabel->setText( "Project blank image" );
 
-    _projectorFloodlightButtonLayout = WrapWidgetsInHBox( { _projectorFloodlightButton, _projectorFloodlightButtonLabel, nullptr } );
-    _projectorFloodlightButtonLayout->setContentsMargins( { } );
+    _projectFocusImageButton->setCheckable( true );
+    _projectFocusImageButton->setChecked( false );
+    _projectFocusImageButton->setFont( fontAwesome );
+    _projectFocusImageButton->setFixedSize( 37, 38 );
+    _projectFocusImageButton->setText( FA_Times );
+    QObject::connect( _projectFocusImageButton, &QPushButton::clicked, this, &AdvancedTab::projectFocusImageButton_clicked );
+
+    _projectFocusImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _projectFocusImageButtonLabel->setText( "Project focus image" );
+
+    _projectImageButtonsLayout = WrapWidgetsInHBox( { _projectBlankImageButton, _projectBlankImageButtonLabel, nullptr, _projectFocusImageButton, _projectFocusImageButtonLabel, nullptr } );
+    _projectImageButtonsLayout->setContentsMargins( { } );
 
     _powerLevelLabel->setText( "Projector power level:" );
 
@@ -167,7 +177,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
     QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged   );
 
-    _powerLevelLayout->addLayout( _projectorFloodlightButtonLayout );
+    _powerLevelLayout->addLayout( _projectImageButtonsLayout );
     _powerLevelLayout->addLayout( _powerLevelValueLayout );
     _powerLevelLayout->addWidget( _powerLevelSlider );
 
@@ -177,11 +187,11 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelValueLayout->setEnabled( false );
 
 
-    _projectorFloodlightGroup->setContentsMargins( { } );
-    _projectorFloodlightGroup->setLayout( _powerLevelLayout );
+    _projectImageButtonsGroup->setContentsMargins( { } );
+    _projectImageButtonsGroup->setLayout( _powerLevelLayout );
 
 
-    _rightColumnLayout = WrapWidgetsInVBox( { _buildPlatformOffsetGroup, _bedHeatingGroup, _projectorFloodlightGroup, nullptr } );
+    _rightColumnLayout = WrapWidgetsInVBox( { _buildPlatformOffsetGroup, _bedHeatingGroup, _projectImageButtonsGroup, nullptr } );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
@@ -292,32 +302,50 @@ void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
 }
 #endif
 
-void AdvancedTab::projectorFloodlightButton_clicked( bool checked ) {
-    debug( "+ AdvancedTab::projectorFloodlightButton_clicked: checked? %s\n", ToString( checked ) );
+void AdvancedTab::_projectImage( char const* fileName ) {
+    _powerLevelLabel      ->setEnabled( _isProjectorOn );
+    _powerLevelSlider     ->setEnabled( _isProjectorOn );
+    _powerLevelValue      ->setEnabled( _isProjectorOn );
+    _powerLevelValueLayout->setEnabled( _isProjectorOn );
 
-    _projectorFloodlightButton->setText( checked ? FA_Check : FA_Times );
-    _powerLevelLabel->setEnabled( checked );
-    _powerLevelSlider->setEnabled( checked );
-    _powerLevelValue->setEnabled( checked );
-    _powerLevelValueLayout->setEnabled( checked );
-    _isFloodlightOn = checked;
-
-    if ( checked ) {
-        _pngDisplayer->loadImageFile( ":images/white-field.png" );
+    if ( _isProjectorOn ) {
+        _pngDisplayer->loadImageFile( fileName );
     } else {
         _pngDisplayer->clear( );
     }
 
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( checked ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _isProjectorOn ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
 
-    setPrinterAvailable( !checked );
+    setPrinterAvailable( !_isProjectorOn );
     emit printerAvailabilityChanged( _isPrinterAvailable );
 
     update( );
 }
 
+void AdvancedTab::projectBlankImageButton_clicked( bool checked ) {
+    debug( "+ AdvancedTab::projectBlankImageButton_clicked: checked? %s\n", ToString( checked ) );
+    _isProjectorOn = checked;
+    _projectBlankImageButton->setText( _isProjectorOn ? FA_Check : FA_Times );
+    if ( checked ) {
+        _projectFocusImageButton->setChecked( false );
+        _projectFocusImageButton->setText( FA_Times );
+    }
+    _projectImage( ":images/white-field.png" );
+}
+
+void AdvancedTab::projectFocusImageButton_clicked( bool checked ) {
+    debug( "+ AdvancedTab::projectFocusImageButton_clicked: checked? %s\n", ToString( checked ) );
+    _isProjectorOn = checked;
+    _projectFocusImageButton->setText( _isProjectorOn ? FA_Check : FA_Times );
+    if ( checked ) {
+        _projectBlankImageButton->setChecked( false );
+        _projectBlankImageButton->setText( FA_Times );
+    }
+    _projectImage( ":images/focus-image.png" );
+}
+
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _projectorFloodlightButton->isChecked( ) ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _isProjectorOn ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
 
     emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
@@ -342,8 +370,8 @@ void AdvancedTab::shepherd_sendComplete( bool const success ) {
 }
 
 void AdvancedTab::_updateControlGroups( ) {
-    _bedHeatingGroup         ->setEnabled(                      _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr )                                   );
-    _projectorFloodlightGroup->setEnabled( _isFloodlightOn || ( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) ) );
+    _bedHeatingGroup         ->setEnabled(                     _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr )                                   );
+    _projectImageButtonsGroup->setEnabled( _isProjectorOn || ( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) ) );
 
     update( );
 }
