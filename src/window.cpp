@@ -42,6 +42,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     move( g_settings.mainWindowPosition );
 
     _pngDisplayer = new PngDisplayer;
+    QObject::connect( _pngDisplayer, &PngDisplayer::terminationRequested, static_cast<App*>( qApp ), &App::terminate, Qt::QueuedConnection );
     _pngDisplayer->show( );
 
     _signalHandler = new SignalHandler;
