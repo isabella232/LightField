@@ -70,11 +70,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     };
 
     for ( auto tabA : tabs ) {
-        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob       );
-        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager   );
-        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd       );
+        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
+        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
+        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd     );
 
+        QObject::connect( tabA, &TabBase::iconChanged,        [ this ] ( TabIndex const sender, QIcon const& icon ) { _tabWidget->setTabIcon( +sender, icon ); } );
         QObject::connect( tabA, &TabBase::uiStateChanged,     this, &Window::tab_uiStateChanged );
+
         for ( auto tabB : tabs ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
         }

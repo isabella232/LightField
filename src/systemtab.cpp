@@ -214,9 +214,18 @@ void SystemTab::upgradeManager_upgradeCheckStarting( ) {
 
 void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
     debug( "+ SystemTab::upgradeManager_upgradeCheckComplete: upgrades available? %s\n", YesNoString( upgradesFound ) );
+    bool newVersionAvailable = false;
 
     _isSoftwareUpgradeAvailable = upgradesFound;
+    if ( _isSoftwareUpgradeAvailable ) {
+        for ( auto const& kit : _upgradeManager->availableUpgrades( ) ) {
+            newVersionAvailable |= ( kit.version > LIGHTFIELD_VERSION_CODE );
+        }
+    }
+
     _updateButtons( );
+
+    emit iconChanged( TabIndex::System, newVersionAvailable ? QIcon { ":images/new-version-available.png" } : QIcon { } );
 }
 
 void SystemTab::upgradeSelector_canceled( ) {

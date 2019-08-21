@@ -69,6 +69,7 @@ private:
 signals:
 
     void uiStateChanged( TabIndex const sender, UiState const state );
+    void iconChanged( TabIndex const sender, QIcon const& icon );
 
 public slots:
 
