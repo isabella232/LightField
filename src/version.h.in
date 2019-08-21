@@ -27,8 +27,10 @@ unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersion
 
 #if defined _DEBUG
 BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Debug;
-#else
+#elif defined NDEBUG
 BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Release;
+#else
+#   error Unknown build type: Neither _DEBUG nor NDEBUG are #define:d.
 #endif
 
 #endif // __VERSION_H__
