@@ -115,7 +115,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _printButton->setFixedSize( MainButtonSize );
     _printButton->setFont( ModifyFont( _printButton->font( ), LargeFontSize ) );
     _printButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _printButton->setText( "Print…" );
+    _printButton->setText( "Continue…" );
     QObject::connect( _printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
     _raiseOrLowerButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
