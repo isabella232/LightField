@@ -53,7 +53,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     kitsListView->setSelectionMode( QListView::SingleSelection );
     kitsListView->setViewMode( QListView::ListMode );
     kitsListView->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    kitsListView->setFixedSize( MainWindowSize.width( ) / 3 - 14, MainWindowSize.height( ) / 3 );
+    kitsListView->setFixedSize( MainWindowSize.width( ) * 2 / 3 - 14, MainWindowSize.height( ) / 3 );
     kitsListView->setModel( new QStringListModel { kitsListStrings } );
     QObject::connect( kitsListView, &GestureListView::clicked, this, &UpgradeSelector::kitsListView_clicked );
 
