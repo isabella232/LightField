@@ -507,7 +507,7 @@ void PrintManager::print( PrintJob* printJob ) {
 
     _pngDisplayer->clear( );
 
-    TimingLogger::startTiming( TimingId::Printing );
+    TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     debug( "+ PrintManager::print: emitting printStarting()\n" );
     _printResult = PrintResult::None;
     emit printStarting( );

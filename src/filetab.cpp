@@ -296,7 +296,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &FileTab::processRunner_readyReadStandardOutput );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &FileTab::processRunner_readyReadStandardError  );
 
-    TimingLogger::startTiming( TimingId::VolumeCalculation );
+    TimingLogger::startTiming( TimingId::VolumeCalculation, GetFileBaseName( _modelSelection.fileName ) );
 
     _processRunner->start(
         { "slic3r" },

@@ -43,10 +43,8 @@ private:
 
     QLabel*          _copyrightsLabel            { new QLabel      };
 
-    QPushButton*     _copyLogsButton             { new QPushButton };
-
     QPushButton*     _updateSoftwareButton       { new QPushButton };
-    QPushButton*     _updateFirmwareButton       { new QPushButton };
+    QPushButton*     _copyLogsButton             { new QPushButton };
 
     QPushButton*     _restartButton              { new QPushButton };
     QPushButton*     _shutDownButton             { new QPushButton };
@@ -90,10 +88,8 @@ private slots:
 
     void shepherd_firmwareVersionReport( QString const& version );
 
-    void copyLogsButton_clicked( bool );
-
     void updateSoftwareButton_clicked( bool );
-    void updateFirmwareButton_clicked( bool );
+    void copyLogsButton_clicked( bool );
 
     void restartButton_clicked( bool );
     void shutDownButton_clicked( bool );

@@ -348,7 +348,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _sliceStatus->setText( "starting" );
     _imageGeneratorStatus->setText( "waiting" );
 
-    TimingLogger::startTiming( TimingId::SlicingSvg );
+    TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );

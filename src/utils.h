@@ -38,8 +38,20 @@ inline QSize minSize( QSize const& a, QSize const& b ) {
     return QSize { std::min( a.width( ), b.width( ) ), std::min( a.height( ), b.height( ) ) };
 }
 
-inline QSize maxSize( QSize const& a, QSize const& b ) {
-    return QSize { std::max( a.width( ), b.width( ) ), std::max( a.height( ), b.height( ) ) };
+template<typename... Rest>
+inline QSize maxSize( QSize const& first, QSize const& second, Rest const&... rest ) {
+    return maxSize( QSize {
+        std::max( first.width( ),  second.width( ) ),
+        std::max( first.height( ), second.height( ) )
+    }, rest... );
+}
+
+template<>
+inline QSize maxSize( QSize const& first, QSize const& second ) {
+    return QSize {
+        std::max( first.width( ),  second.width( )  ),
+        std::max( first.height( ), second.height( ) )
+    };
 }
 
 inline int PercentagePowerLevelToRawLevel( int percentage ) {

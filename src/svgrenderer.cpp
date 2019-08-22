@@ -27,7 +27,7 @@ SvgRenderer::~SvgRenderer( ) {
 }
 
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
-    TimingLogger::startTiming( TimingId::RenderingPngs );
+    TimingLogger::startTiming( TimingId::RenderingPngs, GetFileBaseName( svgFileName ) );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
 
