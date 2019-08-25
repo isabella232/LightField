@@ -48,31 +48,6 @@ QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets ) {
     return layout;
 }
 
-QFont ModifyFont( QFont const& font_, double const pointSizeF ) {
-    auto font { font_ };
-    font.setPointSizeF( pointSizeF );
-    return font;
-}
-
-QFont ModifyFont( QFont const& font_, double const pointSizeF, QFont::Weight const weight ) {
-    auto font { font_ };
-    font.setPointSizeF( pointSizeF );
-    font.setWeight( weight );
-    return font;
-}
-
-QFont ModifyFont( QFont const& font_, QFont::Weight const weight ) {
-    auto font { font_ };
-    font.setWeight( weight );
-    return font;
-}
-
-QFont ModifyFont( QFont const& font_, QString const& familyName ) {
-    auto font { font_ };
-    font.setFamily( familyName );
-    return font;
-}
-
 QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color ) {
     auto palette { palette_ };
     palette.setColor( group, role, color );
@@ -153,11 +128,11 @@ void ScaleSize( qint64 const inputSize, double& scaledSize, char const*& suffix 
 
 void PrintBacktrace( char const* tracerName ) {
     void* frames[256];
-    auto size    = backtrace( frames, _countof( frames ) );
+    auto size    = backtrace( frames, std::size( frames ) );
     auto strings = backtrace_symbols( frames, size );
 
-    debug( "+ %s: %zu frames:\n", tracerName, size );
-    for ( decltype( size ) i = 0; i < size; i++ ) {
+    debug( "+ %s: %zu frames:\n", tracerName, size - 1 );
+    for ( decltype( size ) i = 1; i < size; i++ ) {
         debug( "  + %s\n", strings[i] );
     }
 

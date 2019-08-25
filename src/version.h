@@ -18,17 +18,19 @@ inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major,
     build = static_cast<int>(   versionCode          & 0xFFu );
 }
 
-char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "1.0.6.4";
+char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "1.0.7.0";
 unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = 1;
 unsigned  const  LIGHTFIELD_VERSION_MINOR                          = 0;
-unsigned  const  LIGHTFIELD_VERSION_TEENY                          = 6;
-unsigned  const  LIGHTFIELD_VERSION_BUILD                          = 4;
+unsigned  const  LIGHTFIELD_VERSION_TEENY                          = 7;
+unsigned  const  LIGHTFIELD_VERSION_BUILD                          = 0;
 unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
 
 #if defined _DEBUG
 BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Debug;
-#else
+#elif defined NDEBUG
 BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Release;
+#else
+#   error Unknown build type: Neither _DEBUG nor NDEBUG are #define:d.
 #endif
 
 #endif // __VERSION_H__

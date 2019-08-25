@@ -56,6 +56,13 @@ PngDisplayer::~PngDisplayer( ) {
     /*empty*/
 }
 
+void PngDisplayer::closeEvent( QCloseEvent* event ) {
+    debug( "+ PngDisplayer::closeEvent\n" );
+    event->ignore( );
+
+    emit terminationRequested( );
+}
+
 void PngDisplayer::clear( ) {
     _label->clear( );
 }

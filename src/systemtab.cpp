@@ -56,30 +56,20 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     _copyrightsLabel->setText( ReadWholeFile( ":text/copyright-message.txt" ) );
 
 
-    _copyLogsButton->setEnabled( false );
-    _copyLogsButton->setFont( font16pt );
-    _copyLogsButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _copyLogsButton->setText( "Copy logs to USB" );
-    QObject::connect( _copyLogsButton, &QPushButton::clicked, this, &SystemTab::copyLogsButton_clicked );
-
-    auto copyLogsButtonLayout = WrapWidgetsInHBox( { nullptr, _copyLogsButton, nullptr } );
-    copyLogsButtonLayout->setContentsMargins( { } );
-
-
     _updateSoftwareButton->setEnabled( false );
     _updateSoftwareButton->setFont( font16pt );
     _updateSoftwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _updateSoftwareButton->setText( "Update software" );
     QObject::connect( _updateSoftwareButton, &QPushButton::clicked, this, &SystemTab::updateSoftwareButton_clicked );
 
-    _updateFirmwareButton->setEnabled( false );
-    _updateFirmwareButton->setFont( font16pt );
-    _updateFirmwareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _updateFirmwareButton->setText( "Update firmware" );
-    QObject::connect( _updateFirmwareButton, &QPushButton::clicked, this, &SystemTab::updateFirmwareButton_clicked );
+    _copyLogsButton->setEnabled( false );
+    _copyLogsButton->setFont( font16pt );
+    _copyLogsButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _copyLogsButton->setText( "Copy logs to USB" );
+    QObject::connect( _copyLogsButton, &QPushButton::clicked, this, &SystemTab::copyLogsButton_clicked );
 
-    auto updateButtonsLayout = WrapWidgetsInHBox( { nullptr, _updateSoftwareButton, nullptr, _updateFirmwareButton, nullptr } );
-    updateButtonsLayout->setContentsMargins( { } );
+    auto buttonRow1Layout = WrapWidgetsInHBox( { nullptr, _updateSoftwareButton, nullptr, _copyLogsButton, nullptr } );
+    buttonRow1Layout->setContentsMargins( { } );
 
 
     _restartButton->setFont( font16pt );
@@ -92,8 +82,8 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     _shutDownButton->setText( "Shut down" );
     QObject::connect( _shutDownButton, &QPushButton::clicked, this, &SystemTab::shutDownButton_clicked );
 
-    auto mainButtonsLayout = WrapWidgetsInHBox( { nullptr, _restartButton, nullptr, _shutDownButton, nullptr } );
-    mainButtonsLayout->setContentsMargins( { } );
+    auto buttonRow2Layout = WrapWidgetsInHBox( { nullptr, _restartButton, nullptr, _shutDownButton, nullptr } );
+    buttonRow2Layout->setContentsMargins( { } );
 
     //
     // Top level
@@ -103,13 +93,11 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     _layout->setContentsMargins( { } );
     _layout->addLayout( versionInfoLayout );
     _layout->addWidget( _copyrightsLabel );
-    _layout->addStretch( 1 );
-    _layout->addLayout( copyLogsButtonLayout );
-    _layout->addStretch( 2 );
-    _layout->addLayout( updateButtonsLayout );
-    _layout->addStretch( 2 );
-    _layout->addLayout( mainButtonsLayout );
-    _layout->addStretch( 1 );
+    _layout->addStretch( );
+    _layout->addLayout( buttonRow1Layout );
+    _layout->addStretch( );
+    _layout->addLayout( buttonRow2Layout );
+    _layout->addStretch( );
     setLayout( _layout );
 }
 
@@ -126,10 +114,9 @@ void SystemTab::_connectShepherd( ) {
 }
 
 void SystemTab::_initialShowEvent( QShowEvent* event ) {
-    QSize newSize = maxSize( maxSize( maxSize( maxSize( _updateSoftwareButton->size( ), _updateFirmwareButton->size( ) ), _restartButton->size( ) ), _shutDownButton->size( ) ), _copyLogsButton->size( ) ) + ButtonPadding;
-    _copyLogsButton      ->setFixedSize( newSize );
+    QSize newSize = maxSize( _updateSoftwareButton->size( ), _copyLogsButton->size( ), _restartButton->size( ), _shutDownButton->size( ) ) + ButtonPadding;
     _updateSoftwareButton->setFixedSize( newSize );
-    _updateFirmwareButton->setFixedSize( newSize );
+    _copyLogsButton      ->setFixedSize( newSize );
     _restartButton       ->setFixedSize( newSize );
     _shutDownButton      ->setFixedSize( newSize );
 
@@ -139,11 +126,10 @@ void SystemTab::_initialShowEvent( QShowEvent* event ) {
 }
 
 void SystemTab::_updateButtons( ) {
-    _copyLogsButton      ->setEnabled( !_mountPoint.isEmpty( )                                                );
-    _updateSoftwareButton->setEnabled( _isSoftwareUpgradeAvailable && _isPrinterAvailable                     );
-    _updateFirmwareButton->setEnabled( _isFirmwareUpgradeAvailable && _isPrinterAvailable && _isPrinterOnline );
-    _restartButton       ->setEnabled(                                _isPrinterAvailable                     );
-    _shutDownButton      ->setEnabled(                                _isPrinterAvailable                     );
+    _updateSoftwareButton->setEnabled( _isSoftwareUpgradeAvailable && _isPrinterAvailable );
+    _copyLogsButton      ->setEnabled( !_mountPoint.isEmpty( )                            );
+    _restartButton       ->setEnabled(                                _isPrinterAvailable );
+    _shutDownButton      ->setEnabled(                                _isPrinterAvailable );
 
     update( );
 }
@@ -157,10 +143,9 @@ bool SystemTab::_yesNoPrompt( QString const& title, QString const& text ) {
     messageBox.setDefaultButton( QMessageBox::No );
     messageBox.setFont( ModifyFont( messageBox.font( ), 16.0 ) );
 
-    auto mainWindow = getMainWindow( );
-    mainWindow->hide( );
+    App::mainWindow( )->hide( );
     auto result = static_cast<QMessageBox::StandardButton>( messageBox.exec( ) );
-    mainWindow->show( );
+    App::mainWindow( )->show( );
 
     return ( result == QMessageBox::Yes );
 }
@@ -215,15 +200,24 @@ void SystemTab::upgradeManager_upgradeCheckStarting( ) {
 
 void SystemTab::upgradeManager_upgradeCheckComplete( bool const upgradesFound ) {
     debug( "+ SystemTab::upgradeManager_upgradeCheckComplete: upgrades available? %s\n", YesNoString( upgradesFound ) );
+    bool newVersionAvailable = false;
 
     _isSoftwareUpgradeAvailable = upgradesFound;
+    if ( _isSoftwareUpgradeAvailable ) {
+        for ( auto const& kit : _upgradeManager->availableUpgrades( ) ) {
+            newVersionAvailable |= ( kit.version > LIGHTFIELD_VERSION_CODE );
+        }
+    }
+
     _updateButtons( );
+
+    emit iconChanged( TabIndex::System, newVersionAvailable ? QIcon { ":images/new-version-available.png" } : QIcon { } );
 }
 
 void SystemTab::upgradeSelector_canceled( ) {
     debug( "+ SystemTab::upgradeSelector_canceled\n" );
 
-    getMainWindow( )->show( );
+    App::mainWindow( )->show( );
     _upgradeSelector->hide( );
 
     _upgradeSelector->deleteLater( );
@@ -270,14 +264,6 @@ void SystemTab::printer_offline( ) {
     _updateButtons( );
 }
 
-void SystemTab::copyLogsButton_clicked( bool ) {
-    debug( "+ SystemTab::copyLogsButton_clicked: mount point is '%s'\n", _mountPoint.toUtf8( ).data( ) );
-
-    auto debugLogCopier { new DebugLogCopier { _usbMountManager, this } };
-    QObject::connect( debugLogCopier, &DebugLogCopier::finished, debugLogCopier, &DebugLogCopier::deleteLater );
-    debugLogCopier->copyTo( _mountPoint );
-}
-
 void SystemTab::updateSoftwareButton_clicked( bool ) {
     debug( "+ SystemTab::updateSoftwareButton_clicked\n" );
 
@@ -286,22 +272,26 @@ void SystemTab::updateSoftwareButton_clicked( bool ) {
     QObject::connect( _upgradeSelector, &UpgradeSelector::kitSelected, this, &SystemTab::upgradeSelector_kitSelected );
 
     _upgradeSelector->show( );
-    getMainWindow( )->hide( );
+    App::mainWindow( )->hide( );
 }
 
-void SystemTab::updateFirmwareButton_clicked( bool ) {
-    debug( "+ SystemTab::updateFirmwareButton_clicked\n" );
+void SystemTab::copyLogsButton_clicked( bool ) {
+    debug( "+ SystemTab::copyLogsButton_clicked: mount point is '%s'\n", _mountPoint.toUtf8( ).data( ) );
+
+    auto debugLogCopier { new DebugLogCopier { _usbMountManager, this } };
+    QObject::connect( debugLogCopier, &DebugLogCopier::finished, debugLogCopier, &DebugLogCopier::deleteLater );
+    debugLogCopier->copyTo( _mountPoint );
 }
 
 void SystemTab::restartButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
-        system( "sudo systemctl reboot" );
+        QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
     }
 }
 
 void SystemTab::shutDownButton_clicked( bool ) {
     if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
-        system( "sudo systemctl poweroff" );
+        QProcess::startDetached( "sudo", { "systemctl", "poweroff" } );
     }
 }
 

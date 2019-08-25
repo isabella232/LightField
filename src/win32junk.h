@@ -4,6 +4,12 @@
 #include <io.h>
 
 //================================================
+// Compatibility macros
+//================================================
+
+#define __attribute__(x)
+
+//================================================
 // Type aliases
 //================================================
 
@@ -33,6 +39,10 @@ constexpr auto const SA_SIGINFO     = 0x00000004;
 constexpr auto const SA_RESTART     = 0x10000000;
 
 constexpr auto const MSG_DONTWAIT   = 0x40;
+
+constexpr auto const SIG_BLOCK   = 0;
+constexpr auto const SIG_UNBLOCK = 1;
+constexpr auto const SIG_SETMASK = 2;
 
 //================================================
 // Forward type declarations
@@ -107,6 +117,7 @@ extern int     rmdir( char const* pathName );
 extern int     sigaction( int signum, struct sigaction const* act, struct sigaction* oldact );
 extern int     sigaddset( sigset_t* set, int signum );
 extern int     sigemptyset( sigset_t* set );
+extern int     sigprocmask( int how, sigset_t const* set, sigset_t* oldset );
 extern int     sigqueue( pid_t pid, int sig, sigval_t const value );
 extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec const* timeout );
 extern int     socketpair( int domain, int type, int protocol, int sv[2] );

@@ -6,6 +6,13 @@
 #include "printmanager.h"
 #include "shepherd.h"
 
+namespace {
+
+    QString const RaiseBuildPlatformText { "Raise build platform" };
+    QString const LowerBuildPlatformText { "Lower build platform" };
+
+}
+
 PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
@@ -115,11 +122,11 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _printButton->setFixedSize( MainButtonSize );
     _printButton->setFont( ModifyFont( _printButton->font( ), LargeFontSize ) );
     _printButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _printButton->setText( "Print…" );
+    _printButton->setText( "Continue…" );
     QObject::connect( _printButton, &QPushButton::clicked, this, &PrintTab::printButton_clicked );
 
     _raiseOrLowerButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _raiseOrLowerButton->setText( "Raise Build Platform" );
+    _raiseOrLowerButton->setText( RaiseBuildPlatformText );
     QObject::connect( _raiseOrLowerButton, &QPushButton::clicked, this, &PrintTab::raiseOrLowerButton_clicked );
 
     _homeButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -189,8 +196,8 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     auto size = maxSize( _raiseOrLowerButton->size( ), _homeButton->size( ) ) + ButtonPadding;
 
     auto fm = _raiseOrLowerButton->fontMetrics( );
-    auto raiseSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, "Raise Build Platform" );
-    auto lowerSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, "Lower Build Platform" );
+    auto raiseSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, RaiseBuildPlatformText );
+    auto lowerSize = fm.size( Qt::TextSingleLine | Qt::TextShowMnemonic, LowerBuildPlatformText );
     if ( lowerSize.width( ) > raiseSize.width( ) ) {
         size.setWidth( size.width( ) + lowerSize.width( ) - raiseSize.width( ) );
     }
@@ -287,11 +294,14 @@ void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
-        _raiseOrLowerButton->setText( "Lower Build Platform" );
+        _raiseOrLowerButton->setText( LowerBuildPlatformText );
         _raiseOrLowerButton->setEnabled( true );
     } else {
         _buildPlatformState = BuildPlatformState::Lowered;
     }
+
+    setPrinterAvailable( true );
+    emit printerAvailabilityChanged( true );
 
     update( );
 }
@@ -302,7 +312,7 @@ void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
-        _raiseOrLowerButton->setText( "Raise Build Platform" );
+        _raiseOrLowerButton->setText( RaiseBuildPlatformText );
         _raiseOrLowerButton->setEnabled( true );
     } else {
         _buildPlatformState = BuildPlatformState::Raised;
@@ -386,10 +396,6 @@ void PrintTab::setPrinterPrepared( bool const value ) {
     debug( "+ PrintTab::setPrinterPrepared: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _updateUiState( );
-}
-
-void PrintTab::clearPrinterPrepared( ) {
-    setPrinterPrepared( false );
 }
 
 void PrintTab::setPrinterAvailable( bool const value ) {

@@ -36,7 +36,7 @@ void CommandReader::_readCommands( ) {
     qint64 bytesRead;
     do {
         char buf[1024];
-        bytesRead = standardInput->readLine( buf, _countof( buf ) );
+        bytesRead = standardInput->readLine( buf, std::size( buf ) );
         if ( bytesRead >= 1 ) {
             if ( auto line = QString::fromUtf8( buf, bytesRead ).trimmed( ); !line.isEmpty( ) ) {
                 emit commandReceived( line.split( Colon, QString::SkipEmptyParts ) );

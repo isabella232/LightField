@@ -1,3 +1,18 @@
+lightfield (1.0.7.0) stable; urgency=medium
+
+  * New: "Build platform offset" slider on Advanced tab. Defaults to 300 µm, range 0-1000 µm in steps of 25 µm.
+  * New: "Project focus image" button on Advanced tab.
+  * New: System tab will show a star icon if a USB stick containing a newer version of the LightField software has been inserted.
+  * Changed: Scrollbar thumbs ought to be easier to hit now.
+  * Changed: The "Projector floodlight" button on the Advanced tab is now called "Project blank image".
+  * Changed: The "Print…" button on the Print tab now reads "Continue…".
+  * Changed: The list of software updates has been made wider.
+  * Changed: "Raise build platform" no longer locks out other functionality until "Lower build platform" is tapped.
+  * Fixed: "Copy files to USB" should work now.
+  * Fixed: The amount indicated by the "Dispense print solution" step should always be correct now.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 24 Aug 2019 18:32:40 -0700
+
 lightfield (1.0.6.4) stable; urgency=medium
 
   * Bug fix: 'Copy files to USB' should work now.

@@ -19,6 +19,8 @@ public:
     Theme  theme                    {        };
     bool   frameless                { false  };
 
+    int    buildPlatformOffset      {    300 }; // µm
+
 #if defined _DEBUG
     bool   pretendPrinterIsPrepared { false  };
     bool   ignoreShepherdFailures   { false  };
@@ -37,17 +39,26 @@ public:
     App( int& argc, char *argv[] );
     virtual ~App( ) override;
 
-    Window* mainWindow( ) { return _window; }
-
 private:
 
     DebugManager* _debugManager;
-    Window*       _window;
 
     void _parseCommandLine( );
     bool _isAlreadyRunning( );
     void _recordProcessId( );
     void _setTheme( );
+
+public slots:
+
+    void terminate( );
+
+public /*static*/:
+
+    static Window* mainWindow( ) { return _window; }
+
+private /*static*/:
+
+    static Window* _window;
 
 };
 

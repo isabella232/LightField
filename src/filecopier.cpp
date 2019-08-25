@@ -29,7 +29,7 @@ void FileCopier::_copy( ) {
     for ( int index = 0; index < limit; ++index ) {
         if ( _abortRequested ) {
             debug( "+ FileCopier::_copy: abort requested [1]\n" );
-            emit notify( index, "Aborting..." );
+            emit notify( index, "Aborting…" );
             break;
         }
 
@@ -87,7 +87,7 @@ void FileCopier::_copy( ) {
                 debug( "+ FileCopier::_copy: abort requested [2]\n" );
                 dstFile.remove( );
                 ++skippedFiles;
-                emit notify( index, "Aborting..." );
+                emit notify( index, "Aborting…" );
                 break;
             }
 

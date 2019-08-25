@@ -6,6 +6,7 @@
 #include "hasher.h"
 #include "processrunner.h"
 #include "stdiologger.h"
+#include "timinglogger.h"
 #include "upgradekitunpacker.h"
 #include "version.h"
 
@@ -56,6 +57,16 @@ UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
 
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  [ this ] ( QString const& data ) { _stderrJournal += data; } );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, [ this ] ( QString const& data ) { _stdoutJournal += data; } );
+
+    QObject::connect( this, &UpgradeManager::upgradeCheckComplete, [ this ] ( bool ) {
+        _isBusy.clear( );
+        TimingLogger::stopTiming( TimingId::UpgradeCheck );
+    } );
+
+    QObject::connect( this, &UpgradeManager::upgradeFailed, [ this ] ( ) {
+        _isBusy.clear( );
+        TimingLogger::stopTiming( TimingId::UpgradeInstallation );
+    } );
 }
 
 UpgradeManager::~UpgradeManager( ) {
@@ -87,9 +98,10 @@ void UpgradeManager::_clearJournals( ) {
 }
 
 void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
-    _goodUpgradeKits.clear( );
-
     debug( "+ UpgradeManager::_checkForUpgrades: looking for unpacked upgrade kits in '%s'\n", UpdatesRootPath.toUtf8( ).data( ) );
+    _unprocessedUpgradeKits.clear( );
+    _processedUpgradeKits  .clear( );
+    _goodUpgradeKits       .clear( );
 
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
         QString kitPath { kitDirInfo.absoluteFilePath( ) };
@@ -127,7 +139,6 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
 
     if ( _unprocessedUpgradeKits.isEmpty( ) ) {
         debug( "+ UpgradeManager::_checkForUpgrades: no upgrade kits found\n" );
-        _isChecking.clear( );
         emit upgradeCheckComplete( false );
         return;
     }
@@ -146,7 +157,6 @@ top:
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
             debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             debug( "  + starting unpacking %d kits\n", _unprocessedUpgradeKits.count( ) );
@@ -203,7 +213,6 @@ top:
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
             debug( "  + unprocessed upgrade kits list is empty; emitting upgradeCheckComplete(false).\n" );
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             debug( "  + starting checking version.inf signatures for %d kits\n", _unprocessedUpgradeKits.count( ) );
@@ -292,7 +301,6 @@ void UpgradeManager::_checkNextVersionInfSignature( ) {
 
         _unprocessedUpgradeKits = std::move( _processedUpgradeKits );
         if ( _unprocessedUpgradeKits.isEmpty( ) ) {
-            _isChecking.clear( );
             emit upgradeCheckComplete( false );
         } else {
             _examineUnpackedKits( );
@@ -484,7 +492,6 @@ void UpgradeManager::_checkNextKitsHashes( ) {
         _unprocessedUpgradeKits.clear( );
         _processedUpgradeKits.clear( );
 
-        _isChecking.clear( );
         emit upgradeCheckComplete( _goodUpgradeKits.count( ) > 0 );
         return;
     }
@@ -508,11 +515,12 @@ void UpgradeManager::hasher_hashCheckResult( bool const result ) {
 }
 
 void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
-    if ( _isChecking.test_and_set( ) ) {
-        debug( "+ UpgradeManager::checkForUpgrades: check already in progress\n" );
+    if ( _isBusy.test_and_set( ) ) {
+        debug( "+ UpgradeManager::checkForUpgrades: already busy performing an upgrade check or upgrade install\n" );
         return;
     }
 
+    TimingLogger::startTiming( TimingId::UpgradeCheck );
     debug( "+ UpgradeManager::checkForUpgrades: starting check\n" );
     emit upgradeCheckStarting( );
 
@@ -520,6 +528,13 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
+    if ( _isBusy.test_and_set( ) ) {
+        debug( "+ UpgradeManager::installUpgradeKit: already busy performing an upgrade check or upgrade install\n" );
+        emit upgradeFailed( );
+        return;
+    }
+
+    TimingLogger::startTiming( TimingId::UpgradeInstallation, kit.versionString );
     debug( "+ UpgradeManager::installUpgradeKit: installing version %s build type %s\n", kit.versionString.toUtf8( ).data( ), ToString( kit.buildType ) );
     _kitToInstall = new UpgradeKitInfo { kit };
 
@@ -616,13 +631,15 @@ void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::Process
 }
 
 void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
+    TimingLogger::stopTiming( TimingId::UpgradeInstallation );
+
     _flushLoggers( );
-    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting system\n" );
+    debug( "+ UpgradeManager::aptGetDistUpgrade_succeeded: rebooting\n" );
 
     QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
     QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
-    system( "sudo systemctl reboot" );
+    QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
 }
 
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {

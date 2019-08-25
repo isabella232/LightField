@@ -10,7 +10,7 @@ AppSettings g_settings;
 namespace {
 
     QCommandLineParser CommandLineParser;
-    QFile              PidFile           { QString { "/run/user/%1/lf.pid" }.arg( getuid( ) ) };
+    QFile              PidFile           { QString { getenv( "XDG_RUNTIME_DIR" ) ? getenv( "XDG_RUNTIME_DIR" ) : "/tmp" } % "/lf.pid" };
     bool               MoveMainWindow    { };
 
     QList<QCommandLineOption> CommandLineOptions {
@@ -90,6 +90,8 @@ namespace {
 
 }
 
+Window* App::_window { };
+
 void App::_parseCommandLine( ) {
     CommandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
     CommandLineParser.setSingleDashWordOptionMode( QCommandLineParser::ParseAsCompactedShortOptions );
@@ -159,6 +161,14 @@ bool App::_isAlreadyRunning( ) {
     sigset_t signalsToWaitFor;
     sigemptyset( &signalsToWaitFor );
     sigaddset( &signalsToWaitFor, SIGUSR2 );
+
+    sigset_t oldSignalMask;
+    if ( -1 == sigprocmask( SIG_BLOCK, &signalsToWaitFor, &oldSignalMask ) ) {
+        error_t err = errno;
+        debug( "+ App::_isAlreadyRunning: couldn't change signal mask: %s [%d]\n", strerror( err ), err );
+        errno = err;
+        return true;
+    }
 
     siginfo_t info            { };
     timespec  timeoutDuration { 5L, 0L };
@@ -230,19 +240,20 @@ void App::_setTheme( ) {
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
+    debug( "LightField version %s starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
-    QGuiApplication::setFont( ModifyFont( ModifyFont( QGuiApplication::font( ), "Montserrat" ), NormalFontSize ) );
+    QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat", NormalFontSize ) );
 
     _parseCommandLine( );
 
     if ( !_isAlreadyRunning( ) ) {
         _recordProcessId( );
     } else {
-        debug( "+ App::`ctor: there %s an instance of LightField already running. this instance is terminating.\n", ( 0 == errno ) ? "is" : "may be" );
+        debug( "+ App::`ctor: There %s an instance of LightField already running. This instance is terminating.\n", ( 0 == errno ) ? "is" : "may be" );
         ::exit( 1 );
     }
 
@@ -251,15 +262,27 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _setTheme( );
 
     _window = new Window;
+    (void) QObject::connect( _window, &Window::terminationRequested, this, &App::terminate, Qt::QueuedConnection );
     _window->show( );
 }
 
 App::~App( ) {
-    QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
+    /*empty*/
+}
 
+void App::terminate( ) {
+    _window->terminate( );
     _window->deleteLater( );
     _window = nullptr;
 
+    QProcess::startDetached( SetProjectorPowerCommand,     { "0" } );
+    QProcess::startDetached( ResetLumenArduinoPortCommand, {     } );
+
     delete _debugManager;
     _debugManager = nullptr;
+
+    PidFile.remove( );
+
+    debug( "LightField version %s terminating at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
+    qApp->exit( );
 }

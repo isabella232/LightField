@@ -32,11 +32,7 @@ namespace {
 
 }
 
-Window* getMainWindow( ) {
-    return static_cast<App*>( QCoreApplication::instance( ) )->mainWindow( );
-}
-
-Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( parent ) {
+Window::Window( QWidget* parent ): QMainWindow( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -46,6 +42,7 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     move( g_settings.mainWindowPosition );
 
     _pngDisplayer = new PngDisplayer;
+    QObject::connect( _pngDisplayer, &PngDisplayer::terminationRequested, static_cast<App*>( qApp ), &App::terminate, Qt::QueuedConnection );
     _pngDisplayer->show( );
 
     _signalHandler = new SignalHandler;
@@ -73,11 +70,13 @@ Window::Window( QWidget* parent ): InitialShowEventMixin<Window, QMainWindow>( p
     };
 
     for ( auto tabA : tabs ) {
-        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob       );
-        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager   );
-        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd       );
+        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
+        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
+        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd     );
 
+        QObject::connect( tabA, &TabBase::iconChanged,        [ this ] ( TabIndex const sender, QIcon const& icon ) { _tabWidget->setTabIcon( +sender, icon ); } );
         QObject::connect( tabA, &TabBase::uiStateChanged,     this, &Window::tab_uiStateChanged );
+
         for ( auto tabB : tabs ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
         }
@@ -212,7 +211,13 @@ void Window::_setModelRendered( bool const value ) {
 
 void Window::closeEvent( QCloseEvent* event ) {
     debug( "+ Window::closeEvent\n" );
+    event->ignore( );
 
+    emit terminationRequested( );
+}
+
+void Window::terminate( ) {
+    debug( "+ Window::terminate\n" );
     if ( _shepherd ) {
         _shepherd->doTerminate( );
     }
@@ -249,17 +254,6 @@ void Window::closeEvent( QCloseEvent* event ) {
         _signalHandler = nullptr;
     }
 
-    deleteLater( );
-
-    event->accept( );
-
-    update( );
-}
-
-void Window::_initialShowEvent( QShowEvent* event ) {
-    debug( "+ Window::_initialShowEvent\n" );
-    event->ignore( );
-
     update( );
 }
 
@@ -268,22 +262,27 @@ void Window::startPrinting( ) {
     update( );
 
     debug(
-        "+ Window::startPrinting\n"
-        "  + Print job: %p\n"
-        "    + modelFileName:       '%s'\n"
-        "    + jobWorkingDirectory: '%s'\n"
-        "    + layerCount:          %d\n"
-        "    + layerThickness:      %d\n"
-        "    + exposureTime:        %f\n"
-        "    + powerLevel:          %d\n"
+        "+ Window::startPrinting: print job %p:\n"
+        "  + modelFileName:           '%s'\n"
+        "  + modelHash:               %s\n"
+        "  + layerCount:              %d\n"
+        "  + layerThickness:          %d\n"
+        "  + exposureTime:            %.2f\n"
+        "  + exposureTimeScaleFactor: %.2f\n"
+        "  + powerLevel:              %d\n"
+        "  + printSpeed:              %.2f\n"
+        "  + estimatedVolume:         %.2f\n"
         "",
         _printJob,
         _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->jobWorkingDirectory.toUtf8( ).data( ),
+        _printJob->modelHash.toUtf8( ).data( ),
         _printJob->layerCount,
         _printJob->layerThickness,
         _printJob->exposureTime,
-        _printJob->powerLevel
+        _printJob->exposureTimeScaleFactor,
+        _printJob->powerLevel,
+        _printJob->printSpeed,
+        _printJob->estimatedVolume
     );
 
     PrintJob* job = _printJob;
@@ -445,6 +444,7 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
         sigval_t val;
         val.sival_int = LIGHTFIELD_VERSION_CODE;
         sigqueue( info.si_pid, SIGUSR2, val );
+        return;
     }
 #if defined _DEBUG
     if ( SIGUSR1 == info.si_signo ) {

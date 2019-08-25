@@ -8,6 +8,9 @@ namespace {
 
     QRegularExpression const AsciiBulletLineRegex { "^\\s+\\*", QRegularExpression::MultilineOption };
 
+    QString const DebugBuildSuffix   { " (debug version)" };
+    QString const ReleaseBuildSuffix { };
+
 }
 
 UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* parent ): InitialShowEventMixin<UpgradeSelector, QMainWindow>( parent ), _upgradeManager( upgradeManager ) {
@@ -37,9 +40,9 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     } );
 
     QStringList kitsListStrings;
-    std::transform( _availableKits.begin( ), _availableKits.end( ), std::back_inserter( kitsListStrings ), [ ] ( auto const& kit ) {
-        return kit.versionString % ( ( kit.buildType == BuildType::Debug ) ? " (debug version)" : "" );
-    } );
+    for ( auto const& kit : _availableKits ) {
+        kitsListStrings.append( kit.versionString % ( ( kit.buildType == BuildType::Debug ) ? DebugBuildSuffix : ReleaseBuildSuffix ) );
+    }
 
     auto availableKitsLabel = new QLabel { "Available versions:" };
 
@@ -50,7 +53,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     kitsListView->setSelectionMode( QListView::SingleSelection );
     kitsListView->setViewMode( QListView::ListMode );
     kitsListView->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    kitsListView->setFixedSize( MainWindowSize.width( ) / 3 - 14, MainWindowSize.height( ) / 3 );
+    kitsListView->setFixedSize( MainWindowSize.width( ) * 2 / 3 - 14, MainWindowSize.height( ) / 3 );
     kitsListView->setModel( new QStringListModel { kitsListStrings } );
     QObject::connect( kitsListView, &GestureListView::clicked, this, &UpgradeSelector::kitsListView_clicked );
 
@@ -99,7 +102,7 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     }
 
     {
-        auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress..." };
+        auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress…" };
         upgradeInProgressMessage->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
         _upgradeInProgressLayout = new QHBoxLayout;

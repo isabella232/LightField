@@ -1,5 +1,9 @@
+.gdbinit
 .vs
+.vscode
 build
+gpg
+mountmon/.gdbinit
 mountmon/.qmake.stash
 mountmon/build
 mountmon/Makefile

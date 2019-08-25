@@ -6,6 +6,7 @@
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
+#include "timinglogger.h"
 
 //
 // Before printing:
@@ -196,8 +197,7 @@ void PrintManager::stepA3_completed( bool const success ) {
 void PrintManager::stepA4_start( ) {
     _step = PrintStep::A4;
 
-    // jmil adding hard-coded offset of ~300 micron from manually set position
-    auto firstLayerHeight = ( std::max( 100, _printJob->layerThickness ) + 300 ) / 1000.0;
+    auto firstLayerHeight = ( std::max( 100, _printJob->layerThickness ) + g_settings.buildPlatformOffset ) / 1000.0;
 
     debug( "+ PrintManager::stepA4_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
@@ -478,6 +478,7 @@ void PrintManager::stepC1_start( ) {
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
+    TimingLogger::stopTiming( TimingId::Printing );
     debug( "+ PrintManager::stepC1_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
@@ -506,6 +507,7 @@ void PrintManager::print( PrintJob* printJob ) {
 
     _pngDisplayer->clear( );
 
+    TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     debug( "+ PrintManager::print: emitting printStarting()\n" );
     _printResult = PrintResult::None;
     emit printStarting( );

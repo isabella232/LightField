@@ -51,6 +51,4 @@
 #   include "win32junk.h"
 #endif // defined WIN32
 
-#define _countof(x) (sizeof(x) / sizeof(x[0]))
-
 #endif // __PCH_H__

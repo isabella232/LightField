@@ -2,7 +2,6 @@
 #define __WINDOW_H__
 
 #include "coordinate.h"
-#include "initialshoweventmixin.h"
 #include "tabbase.h"
 
 class ModelSelectionInfo;
@@ -21,7 +20,7 @@ class StatusTab;
 class AdvancedTab;
 class SystemTab;
 
-class Window: public InitialShowEventMixin<Window, QMainWindow> {
+class Window: public QMainWindow {
 
     Q_OBJECT
 
@@ -30,10 +29,11 @@ public:
     Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
 
+    void terminate( );
+
 protected:
 
-    virtual void closeEvent( QCloseEvent* event )       override;
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void closeEvent( QCloseEvent* event ) override;
 
 private:
 
@@ -70,6 +70,8 @@ signals:
     void modelRendered( bool const value );
     void printerPrepared( bool const value );
 
+    void terminationRequested( );
+
 public slots:
 
 protected slots:
@@ -98,7 +100,5 @@ private slots:
     void signalHandler_signalReceived( siginfo_t const& info );
 
 };
-
-Window* getMainWindow( );
 
 #endif // __WINDOW_H__

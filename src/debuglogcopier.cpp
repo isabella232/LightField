@@ -102,7 +102,7 @@ void DebugLogCopier::copyTo( QString const& mountPointPath ) {
     debug( "+ DebugLogCopier::copyTo: target path '%s'\n", _targetPath.toUtf8( ).data( ) );
 
     this->show( );
-    getMainWindow( )->hide( );
+    App::mainWindow( )->hide( );
 
     _remountRw_start( );
 }
@@ -264,7 +264,7 @@ void DebugLogCopier::abortButton_clicked( bool ) {
     QObject::disconnect( _button, &QPushButton::clicked, this, nullptr );
     _fileCopier->abort( );
 
-    getMainWindow( )->show( );
+    App::mainWindow( )->show( );
     this->hide( );
 
     emit finished( );
@@ -275,7 +275,7 @@ void DebugLogCopier::okButton_clicked( bool ) {
 
     QObject::disconnect( _button, &QPushButton::clicked, this, nullptr );
 
-    getMainWindow( )->show( );
+    App::mainWindow( )->show( );
     this->hide( );
 
     emit finished( );

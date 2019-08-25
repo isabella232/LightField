@@ -98,7 +98,6 @@ public slots:
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
-    void clearPrinterPrepared( );
     void setPrinterAvailable( bool const value );
 
 protected slots:

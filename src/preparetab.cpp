@@ -6,6 +6,7 @@
 #include "printjob.h"
 #include "shepherd.h"
 #include "svgrenderer.h"
+#include "timinglogger.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -347,6 +348,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _sliceStatus->setText( "starting" );
     _imageGeneratorStatus->setText( "waiting" );
 
+    TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
@@ -413,8 +415,7 @@ void PrepareTab::slicerProcess_started( ) {
 }
 
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
-    QObject::disconnect( _slicerProcess, nullptr, this, nullptr );
-
+    TimingLogger::stopTiming( TimingId::SlicingSvg );
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
 
     _slicerProcess->deleteLater( );
@@ -484,6 +485,7 @@ void PrepareTab::_handlePrepareFailed( ) {
     _prepareMessage->setText( "Preparation failed." );
 
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
+
     _prepareButton->setText( "Retry" );
     _prepareButton->setEnabled( true );
 
@@ -497,9 +499,9 @@ void PrepareTab::_handlePrepareFailed( ) {
 void PrepareTab::prepareButton_clicked( bool ) {
     debug( "+ PrepareTab::prepareButton_clicked\n" );
 
-    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
 
-    _prepareMessage->setText( "Moving the build platform to its home location..." );
+    _prepareMessage->setText( "Moving the build platform to its home location…" );
     _prepareProgress->show( );
 
     _prepareButton->setText( "Continue" );
@@ -528,7 +530,8 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 
     _prepareMessage->setText( "Adjust the build platform position, then tap <b>Continue</b>." );
 
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr                                   );
+    QObject::connect   ( _prepareButton, &QPushButton::clicked, this, &PrepareTab::adjustBuildPlatform_complete );
     _prepareButton->setEnabled( true );
 
     update( );
@@ -537,10 +540,10 @@ void PrepareTab::shepherd_homeComplete( bool const success ) {
 void PrepareTab::adjustBuildPlatform_complete( bool ) {
     debug( "+ PrepareTab::adjustBuildPlatform_complete\n" );
 
-    QObject::disconnect( _prepareButton, nullptr, this, nullptr );
+    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( "Raising the build platform..." );
+    _prepareMessage->setText( "Raising the build platform…" );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );

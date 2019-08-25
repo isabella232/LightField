@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.6.4
+VERSION=1.0.7.0
 
 #########################################################
 ##                                                     ##
@@ -111,6 +111,7 @@ install ${VERBOSE} -DT -m 644 -o lumen -g lumen system-stuff/lumen-bash_profile 
 install ${VERBOSE} -DT -m 644 -o lumen -g lumen system-stuff/lumen-real_bash_profile            /home/lumen/.real_bash_profile
 install ${VERBOSE} -DT -m 600 -o lumen -g lumen gpg/pubring.gpg                                 /home/lumen/.gnupg/pubring.gpg
 install ${VERBOSE} -DT -m 600 -o lumen -g lumen gpg/trustdb.gpg                                 /home/lumen/.gnupg/trustdb.gpg
+install ${VERBOSE} -DT -m 644                   system-stuff/clean-up-mount-points.service      /lib/systemd/system/clean-up-mount-points.service
 install ${VERBOSE} -DT -m 644                   system-stuff/set-projector-power.service        /lib/systemd/system/set-projector-power.service
 install ${VERBOSE} -DT -m 644                   usb-driver/90-dlpc350.rules                     /lib/udev/rules.d/90-dlpc350.rules
 install ${VERBOSE} -DT -m 755                   build/lf                                        /usr/bin/lf
@@ -139,14 +140,9 @@ echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
 systemctl daemon-reload
-
 systemctl set-default multi-user.target
-
-systemctl enable set-projector-power.service
-systemctl start set-projector-power.service
-
+systemctl enable --now set-projector-power.service clean-up-mount-points.service
 systemctl enable getty@tty1.service
-
 systemctl daemon-reload
 
 blue-bar ''

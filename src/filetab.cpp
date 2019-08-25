@@ -8,6 +8,7 @@
 #include "printjob.h"
 #include "processrunner.h"
 #include "shepherd.h"
+#include "timinglogger.h"
 
 namespace {
 
@@ -255,7 +256,6 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         "  + Y range:               %12.6f .. %12.6f, %12.6f\n"
         "  + Z range:               %12.6f .. %12.6f, %12.6f\n"
         "",
-        _modelSelection.fileName.toUtf8( ).data( ),
         _modelSelection.vertexCount,
         _modelSelection.x.min, _modelSelection.x.max, _modelSelection.x.size,
         _modelSelection.y.min, _modelSelection.y.max, _modelSelection.y.size,
@@ -266,7 +266,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
-    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume...</i>" } );
+    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume…</i>" } );
 
     _canvas->load_mesh( mesh );
 
@@ -295,6 +295,8 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     QObject::connect( _processRunner, &ProcessRunner::failed,                  this, &FileTab::processRunner_failed                  );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this, &FileTab::processRunner_readyReadStandardOutput );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &FileTab::processRunner_readyReadStandardError  );
+
+    TimingLogger::startTiming( TimingId::VolumeCalculation, GetFileBaseName( _modelSelection.fileName ) );
 
     _processRunner->start(
         { "slic3r" },
@@ -448,25 +450,32 @@ void FileTab::selectButton_clicked( bool ) {
 }
 
 void FileTab::processRunner_succeeded( ) {
+    TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
-        auto match = VolumeLineMatcher.match( line );
-        if ( match.hasMatch( ) ) {
-            _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( );
+        if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
+            bool ok = false;
+            _modelSelection.estimatedVolume = match.captured( 1 ).toDouble( &ok );
+            if ( !ok ) {
+                debug( "  + couldn't parse '%s' as a number\n", match.captured( 1 ).toUtf8( ).data( ) );
+                break;
+            }
 
             QString unit;
-            if ( _modelSelection.estimatedVolume < 1000.0 ) {
+            double estimatedVolume = _modelSelection.estimatedVolume;
+
+            debug( "  + Estimated volume of model: %.3f µL\n", estimatedVolume );
+            if ( estimatedVolume < 1000.0 ) {
                 unit = "µL";
             } else {
-                _modelSelection.estimatedVolume /= 1000.0;
+                estimatedVolume /= 1000.0;
                 unit = "mL";
             }
             _dimensionsLabel->setText(
-                _dimensionsText + Space +
-                BlackDiamond + Space +
-                GroupDigits( QString{ "%1" }.arg( _modelSelection.estimatedVolume, 0, 'f', 2 ), ' ' ) + Space +
-                unit
+                _dimensionsText % Space %
+                BlackDiamond % Space %
+                GroupDigits( QString{ "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit
             );
             _selectButton->setEnabled( true );
 
@@ -479,6 +488,7 @@ void FileTab::processRunner_succeeded( ) {
 }
 
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
+    TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
 
     _slicerBuffer.clear( );
@@ -486,7 +496,6 @@ void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError c
 }
 
 void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
-    debug( "+ FileTab::processRunner_readyReadStandardOutput: %d bytes from slic3r\n", data.length( ) );
     _slicerBuffer += data;
 }
 

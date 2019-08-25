@@ -38,6 +38,7 @@ SOURCES +=                         \
     ../src/svgrenderer.cpp         \
     ../src/systemtab.cpp           \
     ../src/tabbase.cpp             \
+    ../src/timinglogger.cpp        \
     ../src/upgradekitunpacker.cpp  \
     ../src/upgrademanager.cpp      \
     ../src/upgradeselector.cpp     \
@@ -78,6 +79,7 @@ HEADERS  +=                        \
     ../src/svgrenderer.h           \
     ../src/systemtab.h             \
     ../src/tabbase.h               \
+    ../src/timinglogger.h          \
     ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h        \
     ../src/upgradeselector.h       \

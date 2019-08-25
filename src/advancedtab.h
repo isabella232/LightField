@@ -26,13 +26,21 @@ private:
 
     QLabel*       _currentTemperatureLabel         { new QLabel      };
     QLabel*       _targetTemperatureLabel          { new QLabel      };
-    QLabel*       _pwmLabel                        { new QLabel      };
+    QLabel*       _heatingElementLabel             { new QLabel      };
     QLabel*       _zPositionLabel                  { new QLabel      };
 
     QLabel*       _currentTemperature              { new QLabel      };
     QLabel*       _targetTemperature               { new QLabel      };
-    QLabel*       _pwm                             { new QLabel      };
+    QLabel*       _heatingElement                  { new QLabel      };
     QLabel*       _zPosition                       { new QLabel      };
+
+    QLabel*       _offsetLabel                     { new QLabel      };
+    QLabel*       _offsetValue                     { new QLabel      };
+    QHBoxLayout*  _offsetValueLayout               {                 };
+    QSlider*      _offsetSlider                    { new QSlider     };
+    QVBoxLayout*  _offsetLayout                    { new QVBoxLayout };
+
+    QGroupBox*    _buildPlatformOffsetGroup        { new QGroupBox   };
 
     QPushButton*  _bedHeatingButton                { new QPushButton };
     QLabel*       _bedHeatingButtonLabel           { new QLabel      };
@@ -48,9 +56,13 @@ private:
 
     QGroupBox*    _bedHeatingGroup                 { new QGroupBox   };
 
-    QPushButton*  _projectorFloodlightButton       { new QPushButton };
-    QLabel*       _projectorFloodlightButtonLabel  { new QLabel      };
-    QHBoxLayout*  _projectorFloodlightButtonLayout {                 };
+    QPushButton*  _projectBlankImageButton         { new QPushButton };
+    QLabel*       _projectBlankImageButtonLabel    { new QLabel      };
+
+    QPushButton*  _projectFocusImageButton         { new QPushButton };
+    QLabel*       _projectFocusImageButtonLabel    { new QLabel      };
+
+    QHBoxLayout*  _projectImageButtonsLayout       {                 };
 
     QLabel*       _powerLevelLabel                 { new QLabel      };
     QLabel*       _powerLevelValue                 { new QLabel      };
@@ -58,7 +70,7 @@ private:
     QSlider*      _powerLevelSlider                { new QSlider     };
     QVBoxLayout*  _powerLevelLayout                { new QVBoxLayout };
 
-    QGroupBox*    _projectorFloodlightGroup        { new QGroupBox   };
+    QGroupBox*    _projectImageButtonsGroup        { new QGroupBox   };
 
     QWidget*      _leftColumn                      { new QWidget     };
     QGroupBox*    _rightColumn                     { new QGroupBox   };
@@ -71,17 +83,19 @@ private:
 
     bool          _isPrinterOnline                 { false };
     bool          _isPrinterAvailable              { true  };
-    bool          _isFloodlightOn                  { false };
+    bool          _isProjectorOn                   { false };
 
     void          _updateControlGroups( );
+    void          _projectImage( char const* fileName );
 
 signals:
+    ;
 
     void printerAvailabilityChanged( bool const available );
-
     void projectorPowerLevelChanged( int const value );
 
 public slots:
+    ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
@@ -91,8 +105,10 @@ public slots:
     void projectorPowerLevel_changed( int const percentage );
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void printer_online( );
     void printer_offline( );
@@ -100,13 +116,17 @@ private slots:
     void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
+    void offsetSlider_sliderReleased( );
+    void offsetSlider_valueChanged( int value);
+
     void printBedHeatingButton_clicked( bool checked );
 #if defined ENABLE_TEMPERATURE_SETTING
     void printBedTemperatureSlider_sliderReleased( );
     void printBedTemperatureSlider_valueChanged( int value );
 #endif
 
-    void projectorFloodlightButton_clicked( bool checked );
+    void projectBlankImageButton_clicked( bool checked );
+    void projectFocusImageButton_clicked( bool checked );
 
     void powerLevelSlider_sliderReleased( );
     void powerLevelSlider_valueChanged( int percentage );

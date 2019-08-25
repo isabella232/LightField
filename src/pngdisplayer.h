@@ -13,12 +13,16 @@ public:
 
 protected:
 
+    virtual void closeEvent( QCloseEvent* event ) override;
+
 private:
 
     QLabel* _label { new QLabel };
     QPixmap _png;
 
 signals:
+
+    void terminationRequested( );
 
 public slots:
 
