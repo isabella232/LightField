@@ -66,13 +66,13 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _offsetValueLayout->setContentsMargins( { } );
 
     _offsetSlider->setMinimum( 0 );
-    _offsetSlider->setMaximum( 1000 );
+    _offsetSlider->setMaximum( 40 );
     _offsetSlider->setOrientation( Qt::Horizontal );
-    _offsetSlider->setPageStep( 25 );
-    _offsetSlider->setSingleStep( 100 );
-    _offsetSlider->setTickInterval( 25 );
+    _offsetSlider->setPageStep( 4 );
+    _offsetSlider->setSingleStep( 1 );
+    _offsetSlider->setTickInterval( 4 );
     _offsetSlider->setTickPosition( QSlider::TicksBothSides );
-    _offsetSlider->setValue( g_settings.buildPlatformOffset );
+    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
     QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
     QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
 
@@ -257,13 +257,14 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
 }
 
 void AdvancedTab::offsetSlider_sliderReleased( ) {
-    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", _offsetSlider->value( ) );
-    g_settings.buildPlatformOffset = _offsetSlider->value( );
+    auto offset = _offsetSlider->value( ) * 25;
+    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", offset );
+    g_settings.buildPlatformOffset = offset;
 }
 
 void AdvancedTab::offsetSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value );
-    _offsetValue->setText( QString { "%1 µm" }.arg( value ) );
+    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value * 25 );
+    _offsetValue->setText( QString { "%1 µm" }.arg( value * 25 ) );
 
     update( );
 }
