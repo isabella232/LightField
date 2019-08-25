@@ -11,7 +11,7 @@ lightfield (1.0.7.0) stable; urgency=medium
   * Fixed: "Copy files to USB" should work now.
   * Fixed: The amount indicated by the "Dispense print solution" step should always be correct now.
 
- -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 22 Aug 2019 10:25:42 -0700
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 24 Aug 2019 18:32:40 -0700
 
 lightfield (1.0.6.3) stable; urgency=medium
 
