@@ -82,6 +82,7 @@ private slots:
 
     void tab_uiStateChanged( TabIndex const sender, UiState const state );
     void tabs_currentChanged( int index );
+    void helpButton_clicked( bool );
 
     void shepherd_started( );
     void shepherd_startFailed( );
