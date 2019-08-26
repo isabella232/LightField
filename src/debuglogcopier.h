@@ -74,7 +74,6 @@ private slots:
     void fileCopier_fileFinished( int const index, qint64 const bytesCopied );
 
     void fileCopier_notify( int const index, QString const message );
-    void fileCopier_failure( int const index, QString const message );
     void fileCopier_finished( int const copiedFiles, int const skippedFiles );
 
     void remountRo_finished( bool const succeeded, bool const /*writable*/ );

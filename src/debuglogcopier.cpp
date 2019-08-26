@@ -149,7 +149,6 @@ void DebugLogCopier::_fileCopier_start( ) {
     (void) QObject::connect( _fileCopier, &FileCopier::fileProgress, this, &DebugLogCopier::fileCopier_fileProgress, Qt::QueuedConnection );
     (void) QObject::connect( _fileCopier, &FileCopier::fileFinished, this, &DebugLogCopier::fileCopier_fileFinished, Qt::QueuedConnection );
     (void) QObject::connect( _fileCopier, &FileCopier::notify,       this, &DebugLogCopier::fileCopier_notify,       Qt::QueuedConnection );
-    (void) QObject::connect( _fileCopier, &FileCopier::failure,      this, &DebugLogCopier::fileCopier_failure,      Qt::QueuedConnection );
     (void) QObject::connect( _fileCopier, &FileCopier::finished,     this, &DebugLogCopier::fileCopier_finished,     Qt::QueuedConnection );
     _fileCopier->copy( _fileList );
 }
@@ -204,13 +203,6 @@ void DebugLogCopier::fileCopier_notify( int const index, QString const message )
     }
     text += message;
     _notifications->setText( text );
-}
-
-void DebugLogCopier::fileCopier_failure( int const index, QString const message ) {
-    debug( "+ DebugLogCopier::fileCopier_failure: while copying file #%d/%d: '%s'\n", index + 1, _fileList.count( ), message.toUtf8( ).data( ) );
-
-    auto const& dstFileName = _fileList[index].second;
-    _showMessage( QString { "While copying file " } % dstFileName.mid( dstFileName.lastIndexOf( Slash ) ) % ":<br/>" % message );
 }
 
 void DebugLogCopier::fileCopier_finished( int const copiedFiles, int const skippedFiles ) {
