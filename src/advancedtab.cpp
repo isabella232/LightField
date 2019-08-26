@@ -169,9 +169,9 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelSlider->setMinimum( 20 );
     _powerLevelSlider->setMaximum( 100 );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 1 );
+    _powerLevelSlider->setPageStep( 5 );
     _powerLevelSlider->setSingleStep( 1 );
-    _powerLevelSlider->setTickInterval( 1 );
+    _powerLevelSlider->setTickInterval( 5 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     _powerLevelSlider->setValue( 50 );
     QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );

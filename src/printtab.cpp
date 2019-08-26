@@ -80,9 +80,9 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelSlider->setMinimum( 20 );
     _powerLevelSlider->setMaximum( 100 );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 1 );
+    _powerLevelSlider->setPageStep( 5 );
     _powerLevelSlider->setSingleStep( 1 );
-    _powerLevelSlider->setTickInterval( 1 );
+    _powerLevelSlider->setTickInterval( 5 );
     _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
     QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
     QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &PrintTab::powerLevelSlider_sliderReleased );
