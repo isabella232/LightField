@@ -175,12 +175,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _tabWidget->setFont( fontLargeSize );
     QObject::connect( _tabWidget, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
-    auto helpButton { new QPushButton { "?" } };
-    helpButton->setContentsMargins( { } );
-    helpButton->setFont( fontLargeSize );
-    helpButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( helpButton, &QPushButton::clicked, this, &Window::helpButton_clicked );
-    _tabWidget->setCornerWidget( helpButton, Qt::TopRightCorner );
+    _helpButton->setContentsMargins( { } );
+    _helpButton->setEnabled( false );
+    _helpButton->setFont( fontLargeSize );
+    _helpButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _helpButton->setText( "?" );
+    QObject::connect( _helpButton, &QPushButton::clicked, this, &Window::helpButton_clicked );
+    _tabWidget->setCornerWidget( _helpButton, Qt::TopRightCorner );
 
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );

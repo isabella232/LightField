@@ -47,13 +47,14 @@ private:
     UpgradeManager*     _upgradeManager    { };
     UsbMountManager*    _usbMountManager   { };
 
-    QTabWidget*         _tabWidget         { new QTabWidget };
+    QTabWidget*         _tabWidget         { new QTabWidget  };
     FileTab*            _fileTab;
     PrepareTab*         _prepareTab;
     PrintTab*           _printTab;
     StatusTab*          _statusTab;
     AdvancedTab*        _advancedTab;
     SystemTab*          _systemTab;
+    QPushButton*        _helpButton        { new QPushButton };
 
     bool                _isPrinterPrepared { };
     bool                _isModelRendered   { };
