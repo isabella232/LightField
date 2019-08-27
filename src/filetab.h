@@ -65,7 +65,6 @@ private:
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              {                         };
-    QFileSystemModel*   _currentFsModel          {                         };
     QPushButton*        _toggleLocationButton    { new QPushButton         };
     GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };

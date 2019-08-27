@@ -24,8 +24,6 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
         StlModelLibraryPath.toUtf8( ).data( )
     );
 
-    _currentFsModel = _libraryFsModel;
-
     _libraryFsModel->setFilter( QDir::Files );
     _libraryFsModel->setNameFilterDisables( false );
     _libraryFsModel->setNameFilters( { { "*.stl" } } );
@@ -147,7 +145,6 @@ void FileTab::_loadModel( QString const& fileName ) {
 
 void FileTab::_showLibrary( ) {
     _modelsLocation = ModelsLocation::Library;
-    _currentFsModel = _libraryFsModel;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
     _availableFilesLabel->setText( "Models in library:" );
@@ -160,7 +157,6 @@ void FileTab::_showLibrary( ) {
 
 void FileTab::_showUsbStick( ) {
     _modelsLocation = ModelsLocation::Usb;
-    _currentFsModel = _usbFsModel;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
     _availableFilesLabel->setText( "Models on USB stick:" );
