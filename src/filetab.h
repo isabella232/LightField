@@ -95,7 +95,7 @@ private:
 
 signals:
 
-    void modelSelected( ModelSelectionInfo* modelSelection );
+    void modelSelected( ModelSelectionInfo const* modelSelection );
 
 public slots:
 

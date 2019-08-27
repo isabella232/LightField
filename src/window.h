@@ -93,7 +93,7 @@ private slots:
     void printManager_printComplete( bool const success );
     void printManager_printAborted( );
 
-    void fileTab_modelSelected( ModelSelectionInfo* modelSelection );
+    void fileTab_modelSelected( ModelSelectionInfo const* modelSelection );
 
     void prepareTab_slicingNeeded( bool const needed );
     void prepareTab_preparePrinterStarted( );

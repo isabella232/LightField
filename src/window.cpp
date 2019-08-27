@@ -391,7 +391,7 @@ void Window::printManager_printAborted( ) {
     update( );
 }
 
-void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
+void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
     if ( _modelSelection ) {
         delete _modelSelection;
     }
