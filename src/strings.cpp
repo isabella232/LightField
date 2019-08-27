@@ -1,6 +1,5 @@
 #include "pch.h"
 
-#include "filetab.h"
 #include "printmanager.h"
 #include "printtab.h"
 #include "shepherd.h"
@@ -81,11 +80,6 @@ namespace {
         "Raising",
         "Raised",
         "Lowering",
-    };
-
-    char const* ModelsLocationStrings[] {
-        "Library",
-        "Usb",
     };
 
     char const* BuildTypeStrings[] {
@@ -252,18 +246,6 @@ char const* ToString( BuildPlatformState const value ) {
     if ( ( value >= BuildPlatformState::Lowered ) && ( value <= BuildPlatformState::Lowering ) ) {
 #endif
         return BuildPlatformStateStrings[static_cast<int>( value )];
-#if defined _DEBUG
-    } else {
-        return nullptr;
-    }
-#endif
-}
-
-char const* ToString( ModelsLocation const value ) {
-#if defined _DEBUG
-    if ( ( value >= ModelsLocation::Library ) && ( value <= ModelsLocation::Usb ) ) {
-#endif
-        return ModelsLocationStrings[static_cast<int>( value )];
 #if defined _DEBUG
     } else {
         return nullptr;

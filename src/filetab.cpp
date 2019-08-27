@@ -15,6 +15,23 @@ namespace {
 
     QRegularExpression VolumeLineMatcher { QString { "^\\s*volume\\s*[:=]\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
+    char const* ModelsLocationStrings[] {
+        "Library",
+        "Usb",
+    };
+
+    char const* ToString( ModelsLocation const value ) {
+#if defined _DEBUG
+        if ( ( value >= ModelsLocation::Library ) && ( value <= ModelsLocation::Usb ) ) {
+#endif
+            return ModelsLocationStrings[static_cast<int>( value )];
+#if defined _DEBUG
+        } else {
+            return nullptr;
+        }
+#endif
+    }
+
 }
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {

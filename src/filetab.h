@@ -15,10 +15,6 @@ enum class ModelsLocation {
     Usb
 };
 
-inline int operator+( ModelsLocation const value ) { return static_cast<int>( value ); }
-
-char const* ToString( ModelsLocation const value );
-
 class ModelSelectionInfo {
 
 public:
