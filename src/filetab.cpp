@@ -3,6 +3,7 @@
 #include "filetab.h"
 
 #include "canvas.h"
+#include "filecopier.h"
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
@@ -145,11 +146,18 @@ void FileTab::_loadModel( QString const& fileName ) {
 
 void FileTab::_showLibrary( ) {
     _modelsLocation = ModelsLocation::Library;
+    _modelSelection = { };
+    _selectedRow    = -1;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
     _availableFilesLabel->setText( "Models in library:" );
+    _availableFilesListView->selectionModel( )->clear( );
+    _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
+    _canvas->clear( );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Select" );
     _toggleLocationButton->setText( "Show USB stick" );
 
     update( );
@@ -157,11 +165,18 @@ void FileTab::_showLibrary( ) {
 
 void FileTab::_showUsbStick( ) {
     _modelsLocation = ModelsLocation::Usb;
+    _modelSelection = { };
+    _selectedRow    = -1;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
     _availableFilesLabel->setText( "Models on USB stick:" );
+    _availableFilesListView->selectionModel( )->clear( );
+    _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
+    _canvas->clear( );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Copy to library" );
     _toggleLocationButton->setText( "Show library" );
 
     update( );
@@ -173,6 +188,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     switch ( _uiState ) {
         case UiState::SelectStarted:
             _modelSelection = { };
+            _selectedRow    = -1;
             break;
 
         case UiState::SelectCompleted:
@@ -264,6 +280,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
     _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume…</i>" } );
 
+    _canvas->draw_shaded( );
     _canvas->load_mesh( mesh );
 
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
@@ -438,9 +455,39 @@ void FileTab::toggleLocationButton_clicked( bool ) {
 }
 
 void FileTab::selectButton_clicked( bool ) {
-    debug( "+ FileTab::selectButton_clicked\n" );
-    emit modelSelected( &_modelSelection );
-    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+    debug( "+ FileTab::selectButton_clicked: current models location: %s\n", ToString( _modelsLocation ) );
+    if ( _modelsLocation == ModelsLocation::Library ) {
+        emit modelSelected( &_modelSelection );
+        emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+    } else {
+        auto fileCopier   { new FileCopier };
+        auto fileNamePair { FileNamePair {
+            _modelSelection.fileName,
+            StlModelLibraryPath % Slash % GetFileBaseName( _modelSelection.fileName ) }
+        };
+
+        QObject::connect( fileCopier, &FileCopier::notify, this, [ this ] ( int const index, QString const message ) {
+            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::notify: index %d: message '%s'\n", index, message.toUtf8( ).data( ) );
+        }, Qt::QueuedConnection );
+
+        QObject::connect( fileCopier, &FileCopier::finished, this, [ this, fileNamePair ] ( int const copiedFiles, int const skippedFiles ) {
+            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+            if ( copiedFiles == 1 ) {
+                _showLibrary( );
+
+                auto index = _libraryFsModel->index( fileNamePair.second );
+                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                availableFilesListView_clicked( index );
+            } else {
+                // TODO inform user of failure somehow
+            }
+        }, Qt::QueuedConnection );
+
+        QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
+
+        debug( "+ FileTab::selectButton_clicked: copying %s to %s\n", fileNamePair.first.toUtf8( ).data( ), fileNamePair.second.toUtf8( ).data( ) );
+        fileCopier->copy( { fileNamePair } );
+    }
 
     update( );
 }
