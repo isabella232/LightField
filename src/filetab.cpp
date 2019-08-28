@@ -35,23 +35,18 @@ namespace {
 }
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
-    debug(
-        "+ FileTab::`ctor:\n"
-        "  + Model library directory: '%s'\n"
-        "",
-        StlModelLibraryPath.toUtf8( ).data( )
-    );
-
     _libraryFsModel->setFilter( QDir::Files );
     _libraryFsModel->setNameFilterDisables( false );
     _libraryFsModel->setNameFilters( { { "*.stl" } } );
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
+
     _toggleLocationButton->setEnabled( false );
     _toggleLocationButton->setFont( ModifyFont( _toggleLocationButton->font( ), 16.0 ) );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
+
 
     _availableFilesLabel->setText( "Models in library:" );
 
@@ -64,20 +59,20 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _availableFilesListView->grabGesture( Qt::SwipeGesture );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &FileTab::availableFilesListView_clicked );
 
-    _availableFilesLayout->setContentsMargins( { } );
-    _availableFilesLayout->addWidget( _toggleLocationButton,   0, 0 );
-    _availableFilesLayout->addWidget( _availableFilesLabel,    1, 0 );
-    _availableFilesLayout->addWidget( _availableFilesListView, 2, 0 );
-
-    _availableFilesContainer->setFixedWidth( MainButtonSize.width( ) );
-    _availableFilesContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _availableFilesContainer->setLayout( _availableFilesLayout );
-
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
     _selectButton->setFont( ModifyFont( _selectButton->font( ), LargeFontSize ) );
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
+
+    _leftColumnLayout = WrapWidgetsInVBox( { _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton } );
+    _leftColumnLayout->setContentsMargins( { } );
+
+    _leftColumn->setContentsMargins( { } );
+    _leftColumn->setFixedWidth( MainButtonSize.width( ) );
+    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _leftColumn->setLayout( _leftColumnLayout );
+
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
@@ -87,27 +82,29 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( format, this );
-    _canvas->setMinimumWidth( MaximalRightHandPaneSize.width( ) );
-    _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _canvas->setFixedSize( 735, 527 );
+    _canvas->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+    _dimensionsLabel->setTextFormat( Qt::RichText );
 
     _errorLabel->setAlignment( Qt::AlignRight );
     _errorLabel->setPalette( ModifyPalette( _errorLabel->palette( ), QPalette::WindowText, Qt::red ) );
 
-    _dimensionsLabel->setTextFormat( Qt::RichText );
+    _labelsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _errorLabel } );
+    _labelsLayout->setContentsMargins( { } );
 
-    _dimensionsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _errorLabel } );
-    _dimensionsLayout->setContentsMargins( { } );
+    _rightColumnLayout->setContentsMargins( { } );
+    _rightColumnLayout->addWidget( _canvas );
+    _rightColumnLayout->addLayout( _labelsLayout );
 
-    _canvasLayout->setContentsMargins( { } );
-    _canvasLayout->addWidget( _canvas );
-    _canvasLayout->addLayout( _dimensionsLayout );
+    _rightColumn->setContentsMargins( { } );
+    _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
+    _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _rightColumn->setLayout( _rightColumnLayout );
 
+
+    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
     _layout->setContentsMargins( { } );
-    _layout->addWidget( _availableFilesContainer, 0, 0, 1, 1 );
-    _layout->addWidget( _selectButton,            1, 0, 1, 1 );
-    _layout->addLayout( _canvasLayout,            0, 1, 2, 1 );
-    _layout->setRowStretch( 0, 4 );
-    _layout->setRowStretch( 1, 1 );
 
     setLayout( _layout );
 }
@@ -143,7 +140,8 @@ void FileTab::_destroyUsbFsModel( ) {
 
 void FileTab::_loadModel( QString const& fileName ) {
     debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
-    _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
+    _dimensionsLabel->setText( "Loading " % GetFileBaseName( fileName ) );
+    _errorLabel->clear( );
     update( );
 
     if ( _loader ) {
@@ -295,7 +293,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
-    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume…</i>" } );
+    _dimensionsLabel->setText( _dimensionsText % Space % BlackDiamond % " <i>calculating volume…</i>" );
 
     _canvas->draw_shaded( );
     _canvas->load_mesh( mesh );
@@ -370,7 +368,6 @@ void FileTab::loader_finished( ) {
     debug( "+ FileTab::loader_finished\n" );
 
     _availableFilesListView->setEnabled( true );
-    _canvas->clear_status( );
     update( );
 
     _loader->deleteLater( );
@@ -401,7 +398,7 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
         return;
     }
 
-    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ) };
+    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) % Slash % index.data( ).toString( ) };
     _selectedRow    = indexRow;
 
     _selectButton->setEnabled( false );

@@ -59,21 +59,25 @@ protected:
 
 private:
 
-    QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
-    QFileSystemModel*   _usbFsModel              {                         };
     QPushButton*        _toggleLocationButton    { new QPushButton         };
     GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };
-    QGridLayout*        _availableFilesLayout    { new QGridLayout         };
-    QWidget*            _availableFilesContainer { new QWidget             };
+    QPushButton*        _selectButton            { new QPushButton         };
+    QVBoxLayout*        _leftColumnLayout        {                         };
+    QWidget*            _leftColumn              { new QWidget             };
+
+    Canvas*             _canvas                  {                         };
     QLabel*             _dimensionsLabel         { new QLabel              };
     QLabel*             _errorLabel              { new QLabel              };
-    QHBoxLayout*        _dimensionsLayout        {                         };
-    QPushButton*        _selectButton            { new QPushButton         };
-    Canvas*             _canvas                  {                         };
-    QVBoxLayout*        _canvasLayout            { new QVBoxLayout         };
+    QHBoxLayout*        _labelsLayout            {                         };
+    QVBoxLayout*        _rightColumnLayout       { new QVBoxLayout         };
+    QWidget*            _rightColumn             { new QWidget             };
+
+    QHBoxLayout*        _layout                  {                         };
+
+    QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
+    QFileSystemModel*   _usbFsModel              {                         };
     Loader*             _loader                  {                         };
-    QGridLayout*        _layout                  { new QGridLayout         };
 
     QString             _dimensionsText;
     int                 _selectedRow             { -1                      };
