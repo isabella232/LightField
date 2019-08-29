@@ -21,9 +21,7 @@ DebugLogCopier::DebugLogCopier( UsbMountManager* manager, QWidget* parent ): Ini
     _message->setTextFormat( Qt::RichText );
     _message->setWordWrap( true );
 
-    _messageLayout = WrapWidgetsInVBox( { _message } );
-
-    _messageWidget->setLayout( _messageLayout );
+    _messageWidget->setLayout( WrapWidgetsInVBox( _message ) );
     _messageWidget->hide( );
 
     _currentFileNameLabel->setAlignment( Qt::AlignRight | Qt::AlignTop );
@@ -49,30 +47,29 @@ DebugLogCopier::DebugLogCopier( UsbMountManager* manager, QWidget* parent ): Ini
     _notifications->setAlignment( Qt::AlignLeft | Qt::AlignTop );
     _notifications->setFont( origFont );
 
-    _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _currentFileNameLabel, _currentFileName, nullptr } ) );
-    _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _fileSizeLabel,        _fileSize,        nullptr } ) );
-    _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _progressBar,                            nullptr } ) );
-    _copyStatusLayout->addLayout( WrapWidgetsInHBox( { nullptr, _notifications,                          nullptr } ) );
-    _copyStatusLayout->addStretch( );
-
-    _copyStatusWidget->setLayout( _copyStatusLayout );
+    _copyStatusWidget->setLayout( WrapWidgetsInVBox(
+        WrapWidgetsInHBox( nullptr, _currentFileNameLabel, _currentFileName, nullptr ),
+        WrapWidgetsInHBox( nullptr, _fileSizeLabel,        _fileSize,        nullptr ),
+        WrapWidgetsInHBox( nullptr, _progressBar,                            nullptr ),
+        WrapWidgetsInHBox( nullptr, _notifications,                          nullptr ),
+        nullptr
+    ) );
 
     _button->setText( "Abort" );
     (void) QObject::connect( _button, &QPushButton::clicked, this, &DebugLogCopier::abortButton_clicked );
 
-    auto layout = new QVBoxLayout;
-    layout->addStretch( );
-    layout->addWidget( _messageWidget );
-    layout->addWidget( _copyStatusWidget );
-    layout->addStretch( );
-    layout->addLayout( WrapWidgetsInHBox( { nullptr, _button, nullptr } ) );
-    layout->addStretch( );
-
     auto copyFilesGroupBox = new QGroupBox;
     copyFilesGroupBox->setFixedSize( MainWindowSize );
-    copyFilesGroupBox->setLayout( layout );
     copyFilesGroupBox->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     copyFilesGroupBox->setTitle( "Copying files" );
+    copyFilesGroupBox->setLayout( WrapWidgetsInVBox(
+        nullptr,
+        _messageWidget,
+        _copyStatusWidget,
+        nullptr,
+        WrapWidgetsInHBox( nullptr, _button, nullptr ),
+        nullptr
+    ) );
 
     setCentralWidget( copyFilesGroupBox );
 }

@@ -27,8 +27,6 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _exposureTimeValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
     _exposureTimeValue->setFont( boldFont );
 
-    _exposureTimeValueLayout = WrapWidgetsInHBox( { _exposureTimeLabel, nullptr, _exposureTimeValue } );
-
 
     _exposureTimeSlider->setMinimum( 1 );
     _exposureTimeSlider->setMaximum( 120 );
@@ -40,18 +38,11 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     QObject::connect( _exposureTimeSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeSlider_valueChanged );
 
 
-    _exposureTimeLayout->addLayout( _exposureTimeValueLayout );
-    _exposureTimeLayout->addWidget( _exposureTimeSlider );
-
-
     _exposureTimeScaleFactorLabel->setAlignment( Qt::AlignTop | Qt::AlignLeft );
     _exposureTimeScaleFactorLabel->setText( "First layers time scale factor:" );
 
     _exposureTimeScaleFactorValue->setAlignment( Qt::AlignTop | Qt::AlignRight );
     _exposureTimeScaleFactorValue->setFont( boldFont );
-
-    _exposureTimeScaleFactorValueLayout = WrapWidgetsInHBox( { _exposureTimeScaleFactorLabel, nullptr, _exposureTimeScaleFactorValue } );
-
 
     _exposureTimeScaleFactorSlider->setMinimum( 1 );
     _exposureTimeScaleFactorSlider->setMaximum( 5 );
@@ -63,13 +54,15 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     QObject::connect( _exposureTimeScaleFactorSlider, &QSlider::valueChanged, this, &PrintTab::exposureTimeScaleFactorSlider_valueChanged );
 
 
-    _exposureTimeScaleFactorLayout->addLayout( _exposureTimeScaleFactorValueLayout );
-    _exposureTimeScaleFactorLayout->addWidget( _exposureTimeScaleFactorSlider );
-
-
-    _exposureLayout->addLayout( _exposureTimeLayout,            8 );
+    _exposureLayout->addLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _exposureTimeLabel, nullptr, _exposureTimeValue ),
+        _exposureTimeSlider
+    ), 8 );
     _exposureLayout->addStretch( 1 );
-    _exposureLayout->addLayout( _exposureTimeScaleFactorLayout, 4 );
+    _exposureLayout->addLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _exposureTimeScaleFactorLabel, nullptr, _exposureTimeScaleFactorValue ),
+        _exposureTimeScaleFactorSlider
+    ), 4 );
 
 
     _powerLevelLabel->setText( "Projector power level:" );
@@ -105,17 +98,17 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 #endif // defined ENABLE_SPEED_SETTING
 
 
-    _optionsLayout->addLayout( _exposureLayout );
-    _optionsLayout->addLayout( WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } ) );
-    _optionsLayout->addWidget( _powerLevelSlider );
-#if defined ENABLE_SPEED_SETTING
-    _optionsLayout->addLayout( WrapWidgetsInHBox( { _printSpeedLabel, nullptr, _printSpeedValue } ) );
-    _optionsLayout->addWidget( _printSpeedSlider );
-#endif // defined ENABLE_SPEED_SETTING
-    _optionsLayout->addStretch( );
-
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _optionsGroup->setLayout( _optionsLayout );
+    _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
+        _exposureLayout,
+        WrapWidgetsInHBoxDM( _powerLevelLabel, nullptr, _powerLevelValue ),
+        _powerLevelSlider,
+#if defined ENABLE_SPEED_SETTING
+        WrapWidgetsInHBoxDM( _printSpeedLabel, nullptr, _printSpeedValue ),
+        _printSpeedSlider,
+#endif // defined ENABLE_SPEED_SETTING
+        nullptr
+    ) );
     _optionsGroup->setTitle( "Print settings" );
 
     _printButton->setEnabled( false );
@@ -135,7 +128,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
-    _adjustmentsGroup->setLayout( WrapWidgetsInHBox( { nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr } ) );
+    _adjustmentsGroup->setLayout( WrapWidgetsInHBox( nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr ) );
     _adjustmentsGroup->setTitle( "Adjustments" );
 
     _layout->setContentsMargins( { } );

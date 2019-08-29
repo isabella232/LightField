@@ -38,7 +38,6 @@ private:
     QLabel*       _layerThicknessLabel         { new QLabel       };
     QRadioButton* _layerThickness50Button      { new QRadioButton };
     QRadioButton* _layerThickness100Button     { new QRadioButton };
-    QVBoxLayout*  _layerThicknessButtonsLayout { new QVBoxLayout  };
 
     QLabel*       _sliceStatusLabel            { new QLabel       };
     QLabel*       _sliceStatus                 { new QLabel       };
@@ -49,9 +48,7 @@ private:
     QLabel*       _prepareMessage              { new QLabel       };
     QProgressBar* _prepareProgress             { new QProgressBar };
     QPushButton*  _prepareButton               { new QPushButton  };
-    QVBoxLayout*  _prepareLayout               { new QVBoxLayout  };
 
-    QVBoxLayout*  _optionsLayout               { new QVBoxLayout  };
     QWidget*      _optionsContainer            { new QWidget      };
     QPushButton*  _sliceButton                 { new QPushButton  };
 

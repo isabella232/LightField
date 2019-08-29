@@ -63,17 +63,12 @@ private:
     GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };
     QPushButton*        _selectButton            { new QPushButton         };
-    QVBoxLayout*        _leftColumnLayout        {                         };
     QWidget*            _leftColumn              { new QWidget             };
 
     Canvas*             _canvas                  {                         };
     QLabel*             _dimensionsLabel         { new QLabel              };
     QLabel*             _errorLabel              { new QLabel              };
-    QHBoxLayout*        _labelsLayout            {                         };
-    QVBoxLayout*        _rightColumnLayout       { new QVBoxLayout         };
     QWidget*            _rightColumn             { new QWidget             };
-
-    QHBoxLayout*        _layout                  {                         };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              {                         };

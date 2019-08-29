@@ -42,18 +42,16 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _zPosition         ->setText( EmDash );
 
 
-    _leftColumnLayout = new QVBoxLayout { this };
-    _leftColumnLayout->setContentsMargins( { } );
-    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _currentTemperatureLabel, nullptr, _currentTemperature } ) );
-    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _targetTemperatureLabel,  nullptr, _targetTemperature  } ) );
-    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _heatingElementLabel,     nullptr, _heatingElement     } ) );
-    _leftColumnLayout->addLayout( WrapWidgetsInHBox( { _zPositionLabel,          nullptr, _zPosition          } ) );
-    _leftColumnLayout->addStretch( );
-
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
     _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( _leftColumnLayout );
+    _leftColumn->setLayout( WrapWidgetsInVBox(
+        WrapWidgetsInHBox( _currentTemperatureLabel, nullptr, _currentTemperature ),
+        WrapWidgetsInHBox( _targetTemperatureLabel,  nullptr, _targetTemperature  ),
+        WrapWidgetsInHBox( _heatingElementLabel,     nullptr, _heatingElement     ),
+        WrapWidgetsInHBox( _zPositionLabel,          nullptr, _zPosition          ),
+        nullptr
+    ) );
 
 
     _offsetLabel->setText( "Build platform offset:" );
@@ -61,9 +59,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _offsetValue->setAlignment( Qt::AlignRight );
     _offsetValue->setFont( boldFont );
     _offsetValue->setText( QString { "%1 µm" }.arg( g_settings.buildPlatformOffset ) );
-
-    _offsetValueLayout = WrapWidgetsInHBox( { _offsetLabel, nullptr, _offsetValue } );
-    _offsetValueLayout->setContentsMargins( { } );
 
     _offsetSlider->setMinimum( 0 );
     _offsetSlider->setMaximum( 40 );
@@ -76,12 +71,12 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
     QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
 
-    _offsetLayout->addLayout( _offsetValueLayout );
-    _offsetLayout->addWidget( _offsetSlider );
-
 
     _buildPlatformOffsetGroup->setContentsMargins( { } );
-    _buildPlatformOffsetGroup->setLayout( _offsetLayout );
+    _buildPlatformOffsetGroup->setLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _offsetLabel, nullptr, _offsetValue ),
+        _offsetSlider
+    ) );
 
 
     _bedHeatingButton->setCheckable( true );
@@ -94,9 +89,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedHeatingButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
     _bedHeatingButtonLabel->setText( "Print bed heating" );
 
-    _bedHeatingButtonLayout = WrapWidgetsInHBox( { _bedHeatingButton, _bedHeatingButtonLabel, nullptr } );
-    _bedHeatingButtonLayout->setContentsMargins( { } );
-
 #if defined ENABLE_TEMPERATURE_SETTING
     _bedTemperatureLabel->setEnabled( false );
     _bedTemperatureLabel->setText( "Print bed temperature:" );
@@ -106,8 +98,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _bedTemperatureValue->setFont( boldFont );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
 
-    _bedTemperatureValueLayout = WrapWidgetsInHBox( { _bedTemperatureLabel, nullptr, _bedTemperatureValue } );
-    _bedTemperatureValueLayout->setContentsMargins( { } );
+    _bedTemperatureValueLayout = WrapWidgetsInHBox( _bedTemperatureLabel, nullptr, _bedTemperatureValue );
     _bedTemperatureValueLayout->setEnabled( false );
 
     _bedTemperatureSlider->setEnabled( false );
@@ -123,14 +114,16 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged,   this, &AdvancedTab::printBedTemperatureSlider_valueChanged   );
 #endif
 
-    _bedTemperatureLayout->addLayout( _bedHeatingButtonLayout );
+    auto bedTemperatureLayout = WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _bedHeatingButton, _bedHeatingButtonLabel, nullptr )
+    );
 #if defined ENABLE_TEMPERATURE_SETTING
-    _bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
-    _bedTemperatureLayout->addWidget( _bedTemperatureSlider );
+    bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
+    bedTemperatureLayout->addWidget( _bedTemperatureSlider );
 #endif
 
     _bedHeatingGroup->setContentsMargins( { } );
-    _bedHeatingGroup->setLayout( _bedTemperatureLayout );
+    _bedHeatingGroup->setLayout( bedTemperatureLayout );
 
 
     _projectBlankImageButton->setCheckable( true );
@@ -153,17 +146,13 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _projectFocusImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
     _projectFocusImageButtonLabel->setText( "Project focus image" );
 
-    _projectImageButtonsLayout = WrapWidgetsInHBox( { _projectBlankImageButton, _projectBlankImageButtonLabel, nullptr, _projectFocusImageButton, _projectFocusImageButtonLabel, nullptr } );
-    _projectImageButtonsLayout->setContentsMargins( { } );
-
     _powerLevelLabel->setText( "Projector power level:" );
 
     _powerLevelValue->setAlignment( Qt::AlignRight );
     _powerLevelValue->setFont( boldFont );
     _powerLevelValue->setText( "50%" );
 
-    _powerLevelValueLayout = WrapWidgetsInHBox( { _powerLevelLabel, nullptr, _powerLevelValue } );
-    _powerLevelValueLayout->setContentsMargins( { } );
+    _powerLevelValueLayout = WrapWidgetsInHBox( _powerLevelLabel, nullptr, _powerLevelValue );
 
     _powerLevelSlider->setEnabled( false );
     _powerLevelSlider->setMinimum( 20 );
@@ -177,10 +166,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
     QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged   );
 
-    _powerLevelLayout->addLayout( _projectImageButtonsLayout );
-    _powerLevelLayout->addLayout( _powerLevelValueLayout );
-    _powerLevelLayout->addWidget( _powerLevelSlider );
-
     _powerLevelLabel->setEnabled( false );
     _powerLevelSlider->setEnabled( false );
     _powerLevelValue->setEnabled( false );
@@ -188,21 +173,25 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
 
     _projectImageButtonsGroup->setContentsMargins( { } );
-    _projectImageButtonsGroup->setLayout( _powerLevelLayout );
+    _projectImageButtonsGroup->setLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _projectBlankImageButton, _projectBlankImageButtonLabel, nullptr, _projectFocusImageButton, _projectFocusImageButtonLabel, nullptr ),
+        _powerLevelValueLayout,
+        _powerLevelSlider
+    ) );
 
-
-    _rightColumnLayout = WrapWidgetsInVBox( { _buildPlatformOffsetGroup, _bedHeatingGroup, _projectImageButtonsGroup, nullptr } );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _rightColumn->setLayout( _rightColumnLayout );
+    _rightColumn->setLayout( WrapWidgetsInVBoxDM(
+        _buildPlatformOffsetGroup,
+        _bedHeatingGroup,
+        _projectImageButtonsGroup,
+        nullptr
+    ) );
 
 
-    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
-    _layout->setContentsMargins( { } );
-
-    setLayout( _layout );
+    setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 }
 
 AdvancedTab::~AdvancedTab( ) {

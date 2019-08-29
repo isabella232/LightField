@@ -34,8 +34,6 @@ private:
     QLabel*             _temperatureDisplay         { new QLabel      };
     QLabel*             _projectorLampStateDisplay  { new QLabel      };
 
-    QVBoxLayout*        _progressControlsLayout     { new QVBoxLayout };
-
     QPixmap*            _warningHotImage            { };
     QLabel*             _warningHotLabel            { new QLabel      };
 
@@ -46,7 +44,6 @@ private:
     QPushButton*        _stopButton                 { new QPushButton };
     QPushButton*        _reprintButton              { new QPushButton };
 
-    QVBoxLayout*        _leftColumnLayout           { new QVBoxLayout };
     QWidget*            _leftColumn                 { new QWidget     };
 
 
@@ -59,10 +56,7 @@ private:
     QPushButton*        _startThePrintButton        { new QPushButton };
     QGroupBox*          _dispensePrintSolutionGroup { new QGroupBox   };
 
-    QVBoxLayout*        _rightColumnLayout          { };
     QWidget*            _rightColumn                { new QWidget     };
-
-    QHBoxLayout*        _layout                     { new QHBoxLayout };
 
     QTimer*             _updatePrintTimeInfo        { };
     QTimer*             _printerOnlineTimer         { };

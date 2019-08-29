@@ -65,13 +65,10 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
 
-    _leftColumnLayout = WrapWidgetsInVBox( { _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton } );
-    _leftColumnLayout->setContentsMargins( { } );
-
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
     _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( _leftColumnLayout );
+    _leftColumn->setLayout( WrapWidgetsInVBox( _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton ) );
 
 
     QSurfaceFormat format;
@@ -90,23 +87,17 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _errorLabel->setAlignment( Qt::AlignRight );
     _errorLabel->setPalette( ModifyPalette( _errorLabel->palette( ), QPalette::WindowText, Qt::red ) );
 
-    _labelsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _errorLabel } );
-    _labelsLayout->setContentsMargins( { } );
-
-    _rightColumnLayout->setContentsMargins( { } );
-    _rightColumnLayout->addWidget( _canvas );
-    _rightColumnLayout->addLayout( _labelsLayout );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _rightColumn->setLayout( _rightColumnLayout );
+    _rightColumn->setLayout( WrapWidgetsInVBox(
+        _canvas,
+        WrapWidgetsInHBox( _dimensionsLabel, nullptr, _errorLabel )
+    ) );
 
 
-    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
-    _layout->setContentsMargins( { } );
-
-    setLayout( _layout );
+    setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 }
 
 FileTab::~FileTab( ) {
