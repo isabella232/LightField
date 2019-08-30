@@ -3,6 +3,7 @@
 #include "filetab.h"
 
 #include "canvas.h"
+#include "filecopier.h"
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
@@ -14,17 +15,28 @@ namespace {
 
     QRegularExpression VolumeLineMatcher { QString { "^\\s*volume\\s*[:=]\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
+    char const* ModelsLocationStrings[] {
+        "Library",
+        "Usb",
+    };
+
+    char const* ToString( ModelsLocation const value ) {
+#if defined _DEBUG
+        if ( ( value >= ModelsLocation::Library ) && ( value <= ModelsLocation::Usb ) ) {
+#endif
+            return ModelsLocationStrings[static_cast<int>( value )];
+#if defined _DEBUG
+        } else {
+            return nullptr;
+        }
+#endif
+    }
+
 }
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
-    debug(
-        "+ FileTab::`ctor:\n"
-        "  + Model library directory: '%s'\n"
-        "",
-        StlModelLibraryPath.toUtf8( ).data( )
-    );
-
-    _currentFsModel = _libraryFsModel;
+    QFont font16pt { ModifyFont( font( ), 16.0          ) };
+    QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
 
     _libraryFsModel->setFilter( QDir::Files );
     _libraryFsModel->setNameFilterDisables( false );
@@ -33,9 +45,10 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
     _toggleLocationButton->setEnabled( false );
-    _toggleLocationButton->setFont( ModifyFont( _toggleLocationButton->font( ), 16.0 ) );
+    _toggleLocationButton->setFont( font16pt );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
+
 
     _availableFilesLabel->setText( "Models in library:" );
 
@@ -48,20 +61,17 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _availableFilesListView->grabGesture( Qt::SwipeGesture );
     QObject::connect( _availableFilesListView, &QListView::clicked, this, &FileTab::availableFilesListView_clicked );
 
-    _availableFilesLayout->setContentsMargins( { } );
-    _availableFilesLayout->addWidget( _toggleLocationButton,   0, 0 );
-    _availableFilesLayout->addWidget( _availableFilesLabel,    1, 0 );
-    _availableFilesLayout->addWidget( _availableFilesListView, 2, 0 );
-
-    _availableFilesContainer->setFixedWidth( MainButtonSize.width( ) );
-    _availableFilesContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _availableFilesContainer->setLayout( _availableFilesLayout );
-
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
-    _selectButton->setFont( ModifyFont( _selectButton->font( ), LargeFontSize ) );
+    _selectButton->setFont( font22pt );
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
+
+    _leftColumn->setContentsMargins( { } );
+    _leftColumn->setFixedWidth( MainButtonSize.width( ) );
+    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+    _leftColumn->setLayout( WrapWidgetsInVBox( _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton ) );
+
 
     QSurfaceFormat format;
     format.setDepthBufferSize( 24 );
@@ -71,29 +81,44 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( format, this );
-    _canvas->setMinimumWidth( MaximalRightHandPaneSize.width( ) );
-    _canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _canvas->setFixedSize( 735, 490 );
+    _canvas->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
-    _errorLabel->setAlignment( Qt::AlignRight );
-    _errorLabel->setPalette( ModifyPalette( _errorLabel->palette( ), QPalette::WindowText, Qt::red ) );
-
+    _dimensionsLabel->setAlignment( Qt::AlignLeft | Qt::AlignBottom );
     _dimensionsLabel->setTextFormat( Qt::RichText );
 
-    _dimensionsLayout = WrapWidgetsInHBox( { _dimensionsLabel, nullptr, _errorLabel } );
-    _dimensionsLayout->setContentsMargins( { } );
+    _errorLabel->setAlignment( Qt::AlignRight | Qt::AlignBottom );
+    _errorLabel->setTextFormat( Qt::RichText );
 
-    _canvasLayout->setContentsMargins( { } );
-    _canvasLayout->addWidget( _canvas );
-    _canvasLayout->addLayout( _dimensionsLayout );
 
-    _layout->setContentsMargins( { } );
-    _layout->addWidget( _availableFilesContainer, 0, 0, 1, 1 );
-    _layout->addWidget( _selectButton,            1, 0, 1, 1 );
-    _layout->addLayout( _canvasLayout,            0, 1, 2, 1 );
-    _layout->setRowStretch( 0, 4 );
-    _layout->setRowStretch( 1, 1 );
+    _viewSolid->setChecked( true );
+    _viewSolid->setEnabled( false );
+    _viewSolid->setFont( font16pt );
+    _viewSolid->setText( "Solid" );
+    QObject::connect( _viewSolid, &QRadioButton::toggled, this, &FileTab::viewSolid_toggled );
 
-    setLayout( _layout );
+    _viewWireframe->setChecked( false );
+    _viewWireframe->setEnabled( false );
+    _viewWireframe->setFont( font16pt );
+    _viewWireframe->setText( "Wireframe" );
+    QObject::connect( _viewWireframe, &QRadioButton::toggled, this, &FileTab::viewWireframe_toggled );
+
+    auto viewButtonsLayout = WrapWidgetsInHBox( nullptr, _viewSolid, _viewWireframe );
+    viewButtonsLayout->setAlignment( Qt::AlignVCenter );
+
+
+
+    _rightColumn->setContentsMargins( { } );
+    _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
+    _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _rightColumn->setLayout( WrapWidgetsInVBox(
+        viewButtonsLayout,
+        _canvas,
+        WrapWidgetsInHBox( _dimensionsLabel, nullptr, _errorLabel )
+    ) );
+
+
+    setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 }
 
 FileTab::~FileTab( ) {
@@ -127,7 +152,8 @@ void FileTab::_destroyUsbFsModel( ) {
 
 void FileTab::_loadModel( QString const& fileName ) {
     debug( "+ FileTab::_loadModel: fileName: '%s'\n", fileName.toUtf8( ).data( ) );
-    _canvas->set_status( QString( "Loading " ) + GetFileBaseName( fileName ) );
+    _dimensionsLabel->setText( "Loading " % GetFileBaseName( fileName ) );
+    _errorLabel->clear( );
     update( );
 
     if ( _loader ) {
@@ -147,26 +173,44 @@ void FileTab::_loadModel( QString const& fileName ) {
 
 void FileTab::_showLibrary( ) {
     _modelsLocation = ModelsLocation::Library;
-    _currentFsModel = _libraryFsModel;
+    _modelSelection = { };
+    _selectedRow    = -1;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
+
+    _toggleLocationButton->setText( "Show USB stick" );
     _availableFilesLabel->setText( "Models in library:" );
+    _availableFilesListView->selectionModel( )->clear( );
+    _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
-    _toggleLocationButton->setText( "Show USB stick" );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Select" );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _canvas->clear( );
 
     update( );
 }
 
 void FileTab::_showUsbStick( ) {
     _modelsLocation = ModelsLocation::Usb;
-    _currentFsModel = _usbFsModel;
+    _modelSelection = { };
+    _selectedRow    = -1;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
+
+    _toggleLocationButton->setText( "Show library" );
     _availableFilesLabel->setText( "Models on USB stick:" );
+    _availableFilesListView->selectionModel( )->clear( );
+    _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
-    _toggleLocationButton->setText( "Show library" );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Copy to library" );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _canvas->clear( );
 
     update( );
 }
@@ -177,6 +221,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     switch ( _uiState ) {
         case UiState::SelectStarted:
             _modelSelection = { };
+            _selectedRow    = -1;
             break;
 
         case UiState::SelectCompleted:
@@ -266,13 +311,18 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
-    _dimensionsLabel->setText( _dimensionsText + Space + BlackDiamond + QString { " <i>calculating volume…</i>" } );
+    _dimensionsLabel->setText( _dimensionsText % ", <i>calculating volume…</i>" );
 
+    if ( _viewSolid->isChecked( ) ) {
+        _canvas->draw_shaded( );
+    } else {
+        _canvas->draw_wireframe( );
+    }
     _canvas->load_mesh( mesh );
 
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _dimensionsLabel->setText( _dimensionsText );
-        _errorLabel->setText( "Model exceeds build volume!" );
+        _errorLabel->setText( "<span style=\"color: red;\">Model exceeds build volume!</span>" );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
@@ -310,7 +360,7 @@ void FileTab::loader_errorBadStl( ) {
     debug( "+ FileTab::loader_errorBadStl\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Unable to read model" );
+    _errorLabel->setText( "<span style=\"color: red;\">Unable to read model</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
@@ -320,7 +370,7 @@ void FileTab::loader_errorEmptyMesh( ) {
     debug( "+ FileTab::loader_errorEmptyMesh\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Model is empty" );
+    _errorLabel->setText( "<span style=\"color: red;\">Model is empty</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
@@ -330,17 +380,19 @@ void FileTab::loader_errorMissingFile( ) {
     debug( "+ FileTab::loader_errorMissingFile\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Model file went missing" );
+    _errorLabel->setText( "<span style=\"color: red;\">Model file went missing</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::loader_finished( ) {
-    debug( "+ FileTab::loader_finished\n" );
+    debug( "+ FileTab::loader_finished: %s\n", ToString( _canvas->size( ) ).toUtf8( ).data( ) );
 
     _availableFilesListView->setEnabled( true );
-    _canvas->clear_status( );
+    _viewSolid->setEnabled( true );
+    _viewWireframe->setEnabled( true );
+
     update( );
 
     _loader->deleteLater( );
@@ -371,11 +423,13 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
         return;
     }
 
-    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) + Slash + index.data( ).toString( ) };
+    _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) % Slash % index.data( ).toString( ) };
     _selectedRow    = indexRow;
 
-    _selectButton->setEnabled( false );
     _availableFilesListView->setEnabled( false );
+    _selectButton->setEnabled( false );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
     update( );
 
     if ( _processRunner ) {
@@ -442,11 +496,55 @@ void FileTab::toggleLocationButton_clicked( bool ) {
 }
 
 void FileTab::selectButton_clicked( bool ) {
-    debug( "+ FileTab::selectButton_clicked\n" );
-    emit modelSelected( &_modelSelection );
-    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+    debug( "+ FileTab::selectButton_clicked: current models location: %s\n", ToString( _modelsLocation ) );
+    if ( _modelsLocation == ModelsLocation::Library ) {
+        emit modelSelected( &_modelSelection );
+        emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+    } else {
+        auto fileCopier   { new FileCopier };
+        auto fileNamePair { FileNamePair {
+            _modelSelection.fileName,
+            StlModelLibraryPath % Slash % GetFileBaseName( _modelSelection.fileName ) }
+        };
+
+        QObject::connect( fileCopier, &FileCopier::notify, this, [ this ] ( int const index, QString const message ) {
+            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::notify: index %d: message '%s'\n", index, message.toUtf8( ).data( ) );
+        }, Qt::QueuedConnection );
+
+        QObject::connect( fileCopier, &FileCopier::finished, this, [ this, fileNamePair ] ( int const copiedFiles, int const skippedFiles ) {
+            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+            if ( copiedFiles == 1 ) {
+                _showLibrary( );
+
+                auto index = _libraryFsModel->index( fileNamePair.second );
+                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                availableFilesListView_clicked( index );
+            } else {
+                // TODO inform user of failure somehow
+            }
+        }, Qt::QueuedConnection );
+
+        QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
+
+        debug( "+ FileTab::selectButton_clicked: copying %s to %s\n", fileNamePair.first.toUtf8( ).data( ), fileNamePair.second.toUtf8( ).data( ) );
+        fileCopier->copy( { fileNamePair } );
+    }
 
     update( );
+}
+
+void FileTab::viewSolid_toggled( bool checked ) {
+    debug( "+ FileTab::viewSolid_toggled: %s\n", ToString( checked ) );
+    if ( checked ) {
+        _canvas->draw_shaded( );
+    }
+}
+
+void FileTab::viewWireframe_toggled( bool checked ) {
+    debug( "+ FileTab::viewWireframe_toggled: %s\n", ToString( checked ) );
+    if ( checked ) {
+        _canvas->draw_wireframe( );
+    }
 }
 
 void FileTab::processRunner_succeeded( ) {
@@ -472,11 +570,7 @@ void FileTab::processRunner_succeeded( ) {
                 estimatedVolume /= 1000.0;
                 unit = "mL";
             }
-            _dimensionsLabel->setText(
-                _dimensionsText % Space %
-                BlackDiamond % Space %
-                GroupDigits( QString{ "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit
-            );
+            _dimensionsLabel->setText( _dimensionsText % Comma % Space % GroupDigits( QString { "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit );
             _selectButton->setEnabled( true );
 
             update( );

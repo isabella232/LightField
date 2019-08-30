@@ -15,10 +15,6 @@ enum class ModelsLocation {
     Usb
 };
 
-inline int operator+( ModelsLocation const value ) { return static_cast<int>( value ); }
-
-char const* ToString( ModelsLocation const value );
-
 class ModelSelectionInfo {
 
 public:
@@ -63,22 +59,22 @@ protected:
 
 private:
 
-    QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
-    QFileSystemModel*   _usbFsModel              {                         };
-    QFileSystemModel*   _currentFsModel          {                         };
     QPushButton*        _toggleLocationButton    { new QPushButton         };
     GestureListView*    _availableFilesListView  { new GestureListView     };
     QLabel*             _availableFilesLabel     { new QLabel              };
-    QGridLayout*        _availableFilesLayout    { new QGridLayout         };
-    QWidget*            _availableFilesContainer { new QWidget             };
+    QPushButton*        _selectButton            { new QPushButton         };
+    QWidget*            _leftColumn              { new QWidget             };
+
+    Canvas*             _canvas                  {                         };
     QLabel*             _dimensionsLabel         { new QLabel              };
     QLabel*             _errorLabel              { new QLabel              };
-    QHBoxLayout*        _dimensionsLayout        {                         };
-    QPushButton*        _selectButton            { new QPushButton         };
-    Canvas*             _canvas                  {                         };
-    QVBoxLayout*        _canvasLayout            { new QVBoxLayout         };
+    QRadioButton*       _viewSolid               { new QRadioButton        };
+    QRadioButton*       _viewWireframe           { new QRadioButton        };
+    QWidget*            _rightColumn             { new QWidget             };
+
+    QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
+    QFileSystemModel*   _usbFsModel              {                         };
     Loader*             _loader                  {                         };
-    QGridLayout*        _layout                  { new QGridLayout         };
 
     QString             _dimensionsText;
     int                 _selectedRow             { -1                      };
@@ -100,7 +96,7 @@ private:
 
 signals:
 
-    void modelSelected( ModelSelectionInfo* modelSelection );
+    void modelSelected( ModelSelectionInfo const* modelSelection );
 
 public slots:
 
@@ -127,6 +123,9 @@ private slots:
     void toggleLocationButton_clicked( bool );
 
     void selectButton_clicked( bool );
+
+    void viewSolid_toggled( bool checked );
+    void viewWireframe_toggled( bool checked );
 
     void processRunner_succeeded( );
     void processRunner_failed( int const exitCode, QProcess::ProcessError const error );

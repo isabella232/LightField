@@ -29,11 +29,11 @@ QString            extern const  UpdatesRootPath;
 QChar              extern const  LineFeed;
 QChar              extern const  CarriageReturn;
 QChar              extern const  Space;
+QChar              extern const  Comma;
 QChar              extern const  Slash;
 QChar              extern const  DigitZero;
 QChar              extern const  EmDash;
 QChar              extern const  Bullet;
-QChar              extern const  BlackDiamond;
 
 QChar              extern const  FA_Check;
 QChar              extern const  FA_Times;

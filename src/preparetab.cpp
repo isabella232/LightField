@@ -29,10 +29,6 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
-    _layerThicknessButtonsLayout->setContentsMargins( { } );
-    _layerThicknessButtonsLayout->addWidget( _layerThickness100Button );
-    _layerThicknessButtonsLayout->addWidget( _layerThickness50Button  );
-
     _sliceStatusLabel->setText( "Slicer:" );
 
     _sliceStatus->setText( "idle" );
@@ -54,29 +50,37 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _prepareProgress->setTextVisible( false );
     _prepareProgress->hide( );
 
-    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareMessage  } ) );
-    _prepareLayout->addStretch( ); _prepareLayout->addLayout( WrapWidgetsInHBox( { _prepareProgress } ) );
-    _prepareLayout->addStretch( );
-
     _prepareGroup->setTitle( "Printer preparation" );
-    _prepareGroup->setLayout( _prepareLayout );
+    _prepareGroup->setLayout( WrapWidgetsInVBox(
+        nullptr,
+        WrapWidgetsInHBox( _prepareMessage ),
+        nullptr,
+        WrapWidgetsInHBox( _prepareProgress ),
+        nullptr
+    ) );
 
     _prepareButton->setEnabled( false );
     _prepareButton->setFixedSize( MainButtonSize );
     _prepareButton->setFont( font22pt );
+    _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare" );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
 
-    _optionsLayout->setContentsMargins( { } );
-    _optionsLayout->addWidget( _layerThicknessLabel );
-    _optionsLayout->addLayout( _layerThicknessButtonsLayout );
-    _optionsLayout->addLayout( WrapWidgetsInHBox( { _sliceStatusLabel,          nullptr, _sliceStatus          } ) );
-    _optionsLayout->addLayout( WrapWidgetsInHBox( { _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus } ) );
-    _optionsLayout->addLayout( WrapWidgetsInVBox( { _prepareGroup, _prepareButton } ) );
-
     _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _optionsContainer->setLayout( _optionsLayout );
+    _optionsContainer->setLayout( WrapWidgetsInVBox(
+        _layerThicknessLabel,
+        WrapWidgetsInVBox(
+            _layerThickness100Button,
+            _layerThickness50Button
+        ),
+        WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
+        WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
+        WrapWidgetsInVBox(
+            _prepareGroup,
+            _prepareButton
+        )
+    ) );
 
     _sliceButton->setEnabled( false );
     _sliceButton->setFixedSize( MainButtonSize );
@@ -107,15 +111,16 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _navigateCurrentLabel->setAlignment( Qt::AlignCenter );
     _navigateCurrentLabel->setText( "0/0" );
 
-    _navigationLayout = WrapWidgetsInHBox( { nullptr, _navigateFirst, _navigatePrevious, _navigateCurrentLabel, _navigateNext, _navigateLast, nullptr } );
+    _navigationLayout = WrapWidgetsInHBox( nullptr, _navigateFirst, _navigatePrevious, _navigateCurrentLabel, _navigateNext, _navigateLast, nullptr );
     _navigationLayout->setAlignment( Qt::AlignCenter );
 
     _setNavigationButtonsEnabled( false );
 
+    _currentLayerLayout = WrapWidgetsInVBox(
+        _currentLayerImage,
+        _navigationLayout
+    );
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
-    _currentLayerLayout->setContentsMargins( { } );
-    _currentLayerLayout->addWidget( _currentLayerImage );
-    _currentLayerLayout->addLayout( _navigationLayout );
 
     _currentLayerGroup->setTitle( "Current layer" );
     _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );

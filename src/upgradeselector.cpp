@@ -74,7 +74,10 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
     QObject::connect( _cancelButton,  &QPushButton::clicked, [ this ] ( bool ) { emit canceled( ); } );
 
     {
-        auto kitsListLayout = WrapWidgetsInVBox( { availableKitsLabel, kitsListView } );
+        auto kitsListLayout = WrapWidgetsInVBox(
+            availableKitsLabel,
+            kitsListView
+        );
         kitsListLayout->setAlignment( Qt::AlignHCenter );
 
         auto scrollArea = new QScrollArea;
@@ -84,20 +87,14 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
         scrollArea->setWidget( _description );
         scrollArea->setWidgetResizable( true );
 
-        auto verticalLayout = new QVBoxLayout;
-        verticalLayout->addStretch( );
-        verticalLayout->addLayout( kitsListLayout );
-        verticalLayout->addWidget( scrollArea );
-        verticalLayout->addLayout( WrapWidgetsInHBox( { nullptr, _upgradeButton, nullptr, _cancelButton, nullptr } ) );
-        verticalLayout->addStretch( );
-
-        auto horizontalLayout = new QHBoxLayout;
-        horizontalLayout->addStretch( );
-        horizontalLayout->addLayout( verticalLayout );
-        horizontalLayout->addStretch( );
-
         auto centralWidget = new QWidget;
-        centralWidget->setLayout( horizontalLayout );
+        centralWidget->setLayout( WrapWidgetsInHBox( nullptr, WrapWidgetsInVBox(
+            nullptr,
+            kitsListLayout,
+            scrollArea,
+            WrapWidgetsInHBox( nullptr, _upgradeButton, nullptr, _cancelButton, nullptr ),
+            nullptr
+        ), nullptr ) );
         setCentralWidget( centralWidget );
     }
 
@@ -105,10 +102,11 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
         auto upgradeInProgressMessage = new QLabel { "Please wait, software update in progress…" };
         upgradeInProgressMessage->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
-        _upgradeInProgressLayout = new QHBoxLayout;
-        _upgradeInProgressLayout->addStretch( );
-        _upgradeInProgressLayout->addLayout( WrapWidgetsInVBox( { nullptr, upgradeInProgressMessage, nullptr } ) );
-        _upgradeInProgressLayout->addStretch( );
+        _upgradeInProgressLayout = WrapWidgetsInHBox( nullptr, WrapWidgetsInVBox(
+            nullptr,
+            upgradeInProgressMessage,
+            nullptr
+        ), nullptr );
     }
 
     {
@@ -132,10 +130,15 @@ UpgradeSelector::UpgradeSelector( UpgradeManager* upgradeManager, QWidget* paren
         auto okButton = new QPushButton { "OK" };
         QObject::connect( okButton, &QPushButton::clicked, [ this ] ( bool ) { emit canceled( ); } );
 
-        _upgradeFailedLayout = new QHBoxLayout;
-        _upgradeFailedLayout->addStretch( );
-        _upgradeFailedLayout->addLayout( WrapWidgetsInVBox( { nullptr, upgradeFailedMessage, nullptr, scrollArea, nullptr, okButton, nullptr } ) );
-        _upgradeFailedLayout->addStretch( );
+        _upgradeFailedLayout = WrapWidgetsInHBox( nullptr, WrapWidgetsInVBox(
+            nullptr,
+            upgradeFailedMessage,
+            nullptr,
+            scrollArea,
+            nullptr,
+            okButton,
+            nullptr
+        ), nullptr );
     }
 }
 

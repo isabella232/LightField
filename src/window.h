@@ -47,13 +47,14 @@ private:
     UpgradeManager*     _upgradeManager    { };
     UsbMountManager*    _usbMountManager   { };
 
-    QTabWidget*         _tabWidget         { new QTabWidget };
+    QTabWidget*         _tabWidget         { new QTabWidget  };
     FileTab*            _fileTab;
     PrepareTab*         _prepareTab;
     PrintTab*           _printTab;
     StatusTab*          _statusTab;
     AdvancedTab*        _advancedTab;
     SystemTab*          _systemTab;
+    QPushButton*        _helpButton        { new QPushButton };
 
     bool                _isPrinterPrepared { };
     bool                _isModelRendered   { };
@@ -82,6 +83,7 @@ private slots:
 
     void tab_uiStateChanged( TabIndex const sender, UiState const state );
     void tabs_currentChanged( int index );
+    void helpButton_clicked( bool );
 
     void shepherd_started( );
     void shepherd_startFailed( );
@@ -91,7 +93,7 @@ private slots:
     void printManager_printComplete( bool const success );
     void printManager_printAborted( );
 
-    void fileTab_modelSelected( ModelSelectionInfo* modelSelection );
+    void fileTab_modelSelected( ModelSelectionInfo const* modelSelection );
 
     void prepareTab_slicingNeeded( bool const needed );
     void prepareTab_preparePrinterStarted( );

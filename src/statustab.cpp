@@ -59,25 +59,13 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _percentageCompleteDisplay->setVisible( false );
 
     _printerStateDisplay->setFont( _boldFont );
-    _printerStateDisplay->setText( "Printer is offline" );
+    _printerStateDisplay->setText( "Printer is OFFLINE" );
 
     _temperatureDisplay->setFont( _boldFont );
     _temperatureDisplay->setVisible( false );
 
     _projectorLampStateDisplay->setFont( _boldFont );
     _projectorLampStateDisplay->setText( "Projector is off" );
-
-
-    _progressControlsLayout->setContentsMargins( { } );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _currentLayerDisplay,       nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _elapsedTimeDisplay,        nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _estimatedTimeLeftDisplay,  nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _percentageCompleteDisplay, nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _printerStateDisplay,       nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _temperatureDisplay,        nullptr } ) );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { _projectorLampStateDisplay, nullptr } ) );
-    _progressControlsLayout->addStretch( );
-    _progressControlsLayout->addLayout( WrapWidgetsInHBox( { nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr } ) );
 
 
     _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
@@ -119,16 +107,25 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     QObject::connect( _reprintButton, &QPushButton::clicked, this, &StatusTab::reprintButton_clicked );
 
 
-    _leftColumnLayout->setContentsMargins( { } );
-    _leftColumnLayout->addLayout( _progressControlsLayout );
-    _leftColumnLayout->addWidget( _pauseButton            );
-    _leftColumnLayout->addWidget( _stopButton             );
-    _leftColumnLayout->addWidget( _reprintButton          );
-
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
     _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( _leftColumnLayout );
+    _leftColumn->setLayout( WrapWidgetsInVBox(
+        WrapWidgetsInVBox(
+            WrapWidgetsInHBox( _currentLayerDisplay,       nullptr ),
+            WrapWidgetsInHBox( _elapsedTimeDisplay,        nullptr ),
+            WrapWidgetsInHBox( _estimatedTimeLeftDisplay,  nullptr ),
+            WrapWidgetsInHBox( _percentageCompleteDisplay, nullptr ),
+            WrapWidgetsInHBox( _printerStateDisplay,       nullptr ),
+            WrapWidgetsInHBox( _temperatureDisplay,        nullptr ),
+            WrapWidgetsInHBox( _projectorLampStateDisplay, nullptr ),
+            nullptr,
+            WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr )
+        ),
+        _pauseButton,
+        _stopButton,
+        _reprintButton
+    ) );
 
 
     _currentLayerImage->setAlignment( Qt::AlignCenter );
@@ -142,9 +139,12 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _fileNameLabel->setTextFormat( Qt::RichText );
     _fileNameLabel->setWordWrap( true );
 
-    _currentLayerLayout = WrapWidgetsInVBox( { _currentLayerImage, nullptr, _fileNameLabel } );
+    _currentLayerLayout = WrapWidgetsInVBox(
+        _currentLayerImage,
+        nullptr,
+        _fileNameLabel
+    );
     _currentLayerLayout->setAlignment( Qt::AlignHCenter | Qt::AlignTop );
-    _currentLayerLayout->setContentsMargins( { } );
 
     _currentLayerGroup->setContentsMargins( { } );
     _currentLayerGroup->setMinimumSize( MaximalRightHandPaneSize );
@@ -168,28 +168,26 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
     _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
-    {
-        auto dispensePrintSolutionLayout = WrapWidgetsInVBox( { nullptr, _dispensePrintSolutionLabel, nullptr } );
-        dispensePrintSolutionLayout->addLayout( WrapWidgetsInHBox( { nullptr, _startThePrintButton, nullptr } ) );
-        dispensePrintSolutionLayout->addStretch( );
+    _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
+        nullptr,
+        _dispensePrintSolutionLabel,
+        nullptr,
+        WrapWidgetsInHBox( nullptr, _startThePrintButton, nullptr ),
+        nullptr
+    ) );
 
-        _dispensePrintSolutionGroup->setLayout( dispensePrintSolutionLayout );
-    }
-
-
-    _rightColumnLayout = WrapWidgetsInVBox( { _currentLayerGroup, _dispensePrintSolutionGroup, nullptr } );
-    _rightColumnLayout->setContentsMargins( { } );
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _rightColumn->setLayout( _rightColumnLayout );
+    _rightColumn->setLayout( WrapWidgetsInVBox(
+        _currentLayerGroup,
+        _dispensePrintSolutionGroup,
+        nullptr
+    ) );
 
 
-    _layout = WrapWidgetsInHBox( { _leftColumn, _rightColumn } );
-    _layout->setContentsMargins( { } );
-
-    setLayout( _layout );
+    setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 
 
     _updatePrintTimeInfo = new QTimer( this );
@@ -262,7 +260,7 @@ void StatusTab::printer_offline( ) {
     _isPrinterOnline = false;
     debug( "+ StatusTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    _printerStateDisplay->setText( "Printer is offline" );
+    _printerStateDisplay->setText( "Printer is OFFLINE" );
     update( );
 }
 

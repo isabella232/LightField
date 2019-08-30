@@ -29,7 +29,7 @@ private:
     QString          _targetPath;
 
     QLabel*          _message              { new QLabel       };
-    QVBoxLayout*     _messageLayout        {                  };
+    QWidget*         _messageWidget        { new QWidget      };
 
     QLabel*          _currentFileNameLabel { new QLabel       };
     QLabel*          _currentFileName      { new QLabel       };
@@ -37,9 +37,6 @@ private:
     QLabel*          _fileSize             { new QLabel       };
     QProgressBar*    _progressBar          { new QProgressBar };
     QLabel*          _notifications        { new QLabel       };
-    QVBoxLayout*     _copyStatusLayout     { new QVBoxLayout  };
-
-    QWidget*         _messageWidget        { new QWidget      };
     QWidget*         _copyStatusWidget     { new QWidget      };
 
     QPushButton*     _button               { new QPushButton  };
@@ -74,7 +71,6 @@ private slots:
     void fileCopier_fileFinished( int const index, qint64 const bytesCopied );
 
     void fileCopier_notify( int const index, QString const message );
-    void fileCopier_failure( int const index, QString const message );
     void fileCopier_finished( int const copiedFiles, int const skippedFiles );
 
     void remountRo_finished( bool const succeeded, bool const /*writable*/ );

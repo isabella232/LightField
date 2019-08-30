@@ -26,10 +26,6 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );
 
-    //
-    // Main content
-    //
-
     _logoLabel->setAlignment( Qt::AlignCenter );
     _logoLabel->setContentsMargins( { } );
     _logoLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
@@ -46,9 +42,6 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
         .arg( "(unknown)" )
         .arg( QCoreApplication::organizationName( )   )
     );
-
-    auto versionInfoLayout = WrapWidgetsInHBox( { nullptr, _logoLabel, nullptr, _versionLabel, nullptr } );
-    versionInfoLayout->setContentsMargins( { } );
 
 
     _copyrightsLabel->setAlignment( Qt::AlignCenter );
@@ -68,9 +61,6 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     _copyLogsButton->setText( "Copy logs to USB" );
     QObject::connect( _copyLogsButton, &QPushButton::clicked, this, &SystemTab::copyLogsButton_clicked );
 
-    auto buttonRow1Layout = WrapWidgetsInHBox( { nullptr, _updateSoftwareButton, nullptr, _copyLogsButton, nullptr } );
-    buttonRow1Layout->setContentsMargins( { } );
-
 
     _restartButton->setFont( font16pt );
     _restartButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -82,22 +72,17 @@ SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEv
     _shutDownButton->setText( "Shut down" );
     QObject::connect( _shutDownButton, &QPushButton::clicked, this, &SystemTab::shutDownButton_clicked );
 
-    auto buttonRow2Layout = WrapWidgetsInHBox( { nullptr, _restartButton, nullptr, _shutDownButton, nullptr } );
-    buttonRow2Layout->setContentsMargins( { } );
-
-    //
-    // Top level
-    //
-
+    _layout = WrapWidgetsInVBox(
+        WrapWidgetsInHBox( nullptr, _logoLabel,            nullptr, _versionLabel,   nullptr ),
+        _copyrightsLabel,
+        nullptr,
+        WrapWidgetsInHBox( nullptr, _updateSoftwareButton, nullptr, _copyLogsButton, nullptr ),
+        nullptr,
+        WrapWidgetsInHBox( nullptr, _restartButton,        nullptr, _shutDownButton, nullptr ),
+        nullptr
+    );
     _layout->setAlignment( Qt::AlignCenter );
-    _layout->setContentsMargins( { } );
-    _layout->addLayout( versionInfoLayout );
-    _layout->addWidget( _copyrightsLabel );
-    _layout->addStretch( );
-    _layout->addLayout( buttonRow1Layout );
-    _layout->addStretch( );
-    _layout->addLayout( buttonRow2Layout );
-    _layout->addStretch( );
+
     setLayout( _layout );
 }
 

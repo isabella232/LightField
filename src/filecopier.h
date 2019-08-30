@@ -48,7 +48,6 @@ signals:
     void fileFinished( int const index, qint64 const bytesCopied );
 
     void notify( int const index, QString const message );
-    void failure( int const index, QString const message );
     void finished( int const copiedFiles, int const skippedFiles );
 
 public slots:

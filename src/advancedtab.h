@@ -36,15 +36,12 @@ private:
 
     QLabel*       _offsetLabel                     { new QLabel      };
     QLabel*       _offsetValue                     { new QLabel      };
-    QHBoxLayout*  _offsetValueLayout               {                 };
     QSlider*      _offsetSlider                    { new QSlider     };
-    QVBoxLayout*  _offsetLayout                    { new QVBoxLayout };
 
     QGroupBox*    _buildPlatformOffsetGroup        { new QGroupBox   };
 
     QPushButton*  _bedHeatingButton                { new QPushButton };
     QLabel*       _bedHeatingButtonLabel           { new QLabel      };
-    QHBoxLayout*  _bedHeatingButtonLayout          {                 };
 
 #if defined ENABLE_TEMPERATURE_SETTING
     QLabel*       _bedTemperatureLabel             { new QLabel      };
@@ -52,7 +49,6 @@ private:
     QHBoxLayout*  _bedTemperatureValueLayout       {                 };
     QSlider*      _bedTemperatureSlider            { new QSlider     };
 #endif
-    QVBoxLayout*  _bedTemperatureLayout            { new QVBoxLayout };
 
     QGroupBox*    _bedHeatingGroup                 { new QGroupBox   };
 
@@ -62,22 +58,15 @@ private:
     QPushButton*  _projectFocusImageButton         { new QPushButton };
     QLabel*       _projectFocusImageButtonLabel    { new QLabel      };
 
-    QHBoxLayout*  _projectImageButtonsLayout       {                 };
-
     QLabel*       _powerLevelLabel                 { new QLabel      };
     QLabel*       _powerLevelValue                 { new QLabel      };
     QHBoxLayout*  _powerLevelValueLayout           {                 };
     QSlider*      _powerLevelSlider                { new QSlider     };
-    QVBoxLayout*  _powerLevelLayout                { new QVBoxLayout };
 
     QGroupBox*    _projectImageButtonsGroup        { new QGroupBox   };
 
     QWidget*      _leftColumn                      { new QWidget     };
     QGroupBox*    _rightColumn                     { new QGroupBox   };
-
-    QVBoxLayout*  _leftColumnLayout                { };
-    QVBoxLayout*  _rightColumnLayout               { };
-    QHBoxLayout*  _layout                          { };
 
     PngDisplayer* _pngDisplayer                    { };
 

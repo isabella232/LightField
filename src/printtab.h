@@ -43,23 +43,17 @@ private:
     bool               _isModelRendered                    { false };
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
+
     QLabel*            _exposureTimeLabel                  { new QLabel      };
     QLabel*            _exposureTimeValue                  { new QLabel      };
-    QHBoxLayout*       _exposureTimeValueLayout            {                 };
 
     QSlider*           _exposureTimeSlider                 { new QSlider     };
-
-    QVBoxLayout*       _exposureTimeLayout                 { new QVBoxLayout };
 
 
     QLabel*            _exposureTimeScaleFactorLabel       { new QLabel      };
     QLabel*            _exposureTimeScaleFactorValue       { new QLabel      };
-    QHBoxLayout*       _exposureTimeScaleFactorValueLayout {                 };
 
     QSlider*           _exposureTimeScaleFactorSlider      { new QSlider     };
-
-    QVBoxLayout*       _exposureTimeScaleFactorLayout      { new QVBoxLayout };
-
 
     QHBoxLayout*       _exposureLayout                     { new QHBoxLayout };
 
@@ -74,7 +68,6 @@ private:
     QSlider*           _printSpeedSlider                   { new QSlider     };
 #endif // defined ENABLE_SPEED_SETTING
 
-    QVBoxLayout*       _optionsLayout                      { new QVBoxLayout };
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
     QPushButton*       _printButton                        { new QPushButton };

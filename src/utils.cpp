@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include <sys/statvfs.h>
-
 #include <execinfo.h>
 
 #include <ctime>
@@ -20,32 +19,6 @@ namespace {
         "YiB"
     };
 
-}
-
-QHBoxLayout* WrapWidgetsInHBox( std::initializer_list<QWidget*> widgets ) {
-    auto layout = new QHBoxLayout;
-
-    for ( auto widget : widgets ) {
-        if ( widget ) {
-            layout->addWidget( widget );
-        } else {
-            layout->addStretch( );
-        }
-    }
-    return layout;
-}
-
-QVBoxLayout* WrapWidgetsInVBox( std::initializer_list<QWidget*> widgets ) {
-    auto layout = new QVBoxLayout;
-
-    for ( auto widget : widgets ) {
-        if ( widget ) {
-            layout->addWidget( widget );
-        } else {
-            layout->addStretch( );
-        }
-    }
-    return layout;
 }
 
 QPalette ModifyPalette( QPalette const& palette_, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color ) {
@@ -74,14 +47,6 @@ QString GetUserName( ) {
 
     delete[] buf;
     return userName;
-}
-
-qreal Distance( QPointF const& a, QPointF const& b ) {
-    return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
-}
-
-int Distance( QPoint const& a, QPoint const& b ) {
-    return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
 }
 
 double GetBootTimeClock( ) {

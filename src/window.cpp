@@ -169,10 +169,20 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     // Tab widget
     //
 
-    _tabWidget->setFont( ModifyFont( _tabWidget->font( ), LargeFontSize ) );
+    auto fontNormalSize { ModifyFont( font( ), NormalFontSize ) };
+    auto fontLargeSize  { ModifyFont( font( ), LargeFontSize  ) };
+
+    _tabWidget->setFont( fontLargeSize );
     QObject::connect( _tabWidget, &QTabWidget::currentChanged, this, &Window::tabs_currentChanged );
 
-    auto fontNormalSize = ModifyFont( _fileTab->font( ), NormalFontSize );
+    _helpButton->setContentsMargins( { } );
+    _helpButton->setEnabled( false );
+    _helpButton->setFont( fontLargeSize );
+    _helpButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _helpButton->setText( "?" );
+    QObject::connect( _helpButton, &QPushButton::clicked, this, &Window::helpButton_clicked );
+    //_tabWidget->setCornerWidget( _helpButton, Qt::TopRightCorner );
+
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
         tab->setFont( fontNormalSize );
@@ -345,7 +355,13 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 
 void Window::tabs_currentChanged( int index ) {
     debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
+
     update( );
+}
+
+void Window::helpButton_clicked( bool ) {
+    debug( "+ Window::helpButton_clicked\n" );
+    // TODO
 }
 
 void Window::shepherd_started( ) {
@@ -375,7 +391,7 @@ void Window::printManager_printAborted( ) {
     update( );
 }
 
-void Window::fileTab_modelSelected( ModelSelectionInfo* modelSelection ) {
+void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
     if ( _modelSelection ) {
         delete _modelSelection;
     }
