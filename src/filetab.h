@@ -68,6 +68,8 @@ private:
     Canvas*             _canvas                  {                         };
     QLabel*             _dimensionsLabel         { new QLabel              };
     QLabel*             _errorLabel              { new QLabel              };
+    QRadioButton*       _viewSolid               { new QRadioButton        };
+    QRadioButton*       _viewWireframe           { new QRadioButton        };
     QWidget*            _rightColumn             { new QWidget             };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
@@ -121,6 +123,9 @@ private slots:
     void toggleLocationButton_clicked( bool );
 
     void selectButton_clicked( bool );
+
+    void viewSolid_toggled( bool checked );
+    void viewWireframe_toggled( bool checked );
 
     void processRunner_succeeded( );
     void processRunner_failed( int const exitCode, QProcess::ProcessError const error );

@@ -35,15 +35,17 @@ namespace {
 }
 
 FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
+    QFont font16pt { ModifyFont( font( ), 16.0          ) };
+    QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
+
     _libraryFsModel->setFilter( QDir::Files );
     _libraryFsModel->setNameFilterDisables( false );
     _libraryFsModel->setNameFilters( { { "*.stl" } } );
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
-
     _toggleLocationButton->setEnabled( false );
-    _toggleLocationButton->setFont( ModifyFont( _toggleLocationButton->font( ), 16.0 ) );
+    _toggleLocationButton->setFont( font16pt );
     _toggleLocationButton->setText( "Show USB stick" );
     QObject::connect( _toggleLocationButton, &QPushButton::clicked, this, &FileTab::toggleLocationButton_clicked );
 
@@ -61,7 +63,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
 
     _selectButton->setEnabled( false );
     _selectButton->setFixedSize( MainButtonSize );
-    _selectButton->setFont( ModifyFont( _selectButton->font( ), LargeFontSize ) );
+    _selectButton->setFont( font22pt );
     _selectButton->setText( "Select" );
     QObject::connect( _selectButton, &QPushButton::clicked, this, &FileTab::selectButton_clicked );
 
@@ -79,19 +81,38 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( format, this );
-    _canvas->setFixedSize( 735, 527 );
+    _canvas->setFixedSize( 735, 490 );
     _canvas->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
+    _dimensionsLabel->setAlignment( Qt::AlignLeft | Qt::AlignBottom );
     _dimensionsLabel->setTextFormat( Qt::RichText );
 
-    _errorLabel->setAlignment( Qt::AlignRight );
-    _errorLabel->setPalette( ModifyPalette( _errorLabel->palette( ), QPalette::WindowText, Qt::red ) );
+    _errorLabel->setAlignment( Qt::AlignRight | Qt::AlignBottom );
+    _errorLabel->setTextFormat( Qt::RichText );
+
+
+    _viewSolid->setChecked( true );
+    _viewSolid->setEnabled( false );
+    _viewSolid->setFont( font16pt );
+    _viewSolid->setText( "Solid" );
+    QObject::connect( _viewSolid, &QRadioButton::toggled, this, &FileTab::viewSolid_toggled );
+
+    _viewWireframe->setChecked( false );
+    _viewWireframe->setEnabled( false );
+    _viewWireframe->setFont( font16pt );
+    _viewWireframe->setText( "Wireframe" );
+    QObject::connect( _viewWireframe, &QRadioButton::toggled, this, &FileTab::viewWireframe_toggled );
+
+    auto viewButtonsLayout = WrapWidgetsInHBox( nullptr, _viewSolid, _viewWireframe );
+    viewButtonsLayout->setAlignment( Qt::AlignVCenter );
+
 
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
+        viewButtonsLayout,
         _canvas,
         WrapWidgetsInHBox( _dimensionsLabel, nullptr, _errorLabel )
     ) );
@@ -156,15 +177,18 @@ void FileTab::_showLibrary( ) {
     _selectedRow    = -1;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
+
+    _toggleLocationButton->setText( "Show USB stick" );
     _availableFilesLabel->setText( "Models in library:" );
     _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
-    _canvas->clear( );
     _selectButton->setEnabled( false );
     _selectButton->setText( "Select" );
-    _toggleLocationButton->setText( "Show USB stick" );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _canvas->clear( );
 
     update( );
 }
@@ -175,15 +199,18 @@ void FileTab::_showUsbStick( ) {
     _selectedRow    = -1;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
+
+    _toggleLocationButton->setText( "Show library" );
     _availableFilesLabel->setText( "Models on USB stick:" );
     _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
-    _canvas->clear( );
     _selectButton->setEnabled( false );
     _selectButton->setText( "Copy to library" );
-    _toggleLocationButton->setText( "Show library" );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _canvas->clear( );
 
     update( );
 }
@@ -284,14 +311,18 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
-    _dimensionsLabel->setText( _dimensionsText % Space % BlackDiamond % " <i>calculating volume…</i>" );
+    _dimensionsLabel->setText( _dimensionsText % ", <i>calculating volume…</i>" );
 
-    _canvas->draw_shaded( );
+    if ( _viewSolid->isChecked( ) ) {
+        _canvas->draw_shaded( );
+    } else {
+        _canvas->draw_wireframe( );
+    }
     _canvas->load_mesh( mesh );
 
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _dimensionsLabel->setText( _dimensionsText );
-        _errorLabel->setText( "Model exceeds build volume!" );
+        _errorLabel->setText( "<span style=\"color: red;\">Model exceeds build volume!</span>" );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
@@ -329,7 +360,7 @@ void FileTab::loader_errorBadStl( ) {
     debug( "+ FileTab::loader_errorBadStl\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Unable to read model" );
+    _errorLabel->setText( "<span style=\"color: red;\">Unable to read model</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
@@ -339,7 +370,7 @@ void FileTab::loader_errorEmptyMesh( ) {
     debug( "+ FileTab::loader_errorEmptyMesh\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Model is empty" );
+    _errorLabel->setText( "<span style=\"color: red;\">Model is empty</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
@@ -349,16 +380,19 @@ void FileTab::loader_errorMissingFile( ) {
     debug( "+ FileTab::loader_errorMissingFile\n" );
 
     _dimensionsLabel->clear( );
-    _errorLabel->setText( "Model file went missing" );
+    _errorLabel->setText( "<span style=\"color: red;\">Model file went missing</span>" );
     update( );
 
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 }
 
 void FileTab::loader_finished( ) {
-    debug( "+ FileTab::loader_finished\n" );
+    debug( "+ FileTab::loader_finished: %s\n", ToString( _canvas->size( ) ).toUtf8( ).data( ) );
 
     _availableFilesListView->setEnabled( true );
+    _viewSolid->setEnabled( true );
+    _viewWireframe->setEnabled( true );
+
     update( );
 
     _loader->deleteLater( );
@@ -392,8 +426,10 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
     _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) % Slash % index.data( ).toString( ) };
     _selectedRow    = indexRow;
 
-    _selectButton->setEnabled( false );
     _availableFilesListView->setEnabled( false );
+    _selectButton->setEnabled( false );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
     update( );
 
     if ( _processRunner ) {
@@ -497,6 +533,20 @@ void FileTab::selectButton_clicked( bool ) {
     update( );
 }
 
+void FileTab::viewSolid_toggled( bool checked ) {
+    debug( "+ FileTab::viewSolid_toggled: %s\n", ToString( checked ) );
+    if ( checked ) {
+        _canvas->draw_shaded( );
+    }
+}
+
+void FileTab::viewWireframe_toggled( bool checked ) {
+    debug( "+ FileTab::viewWireframe_toggled: %s\n", ToString( checked ) );
+    if ( checked ) {
+        _canvas->draw_wireframe( );
+    }
+}
+
 void FileTab::processRunner_succeeded( ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
@@ -520,11 +570,7 @@ void FileTab::processRunner_succeeded( ) {
                 estimatedVolume /= 1000.0;
                 unit = "mL";
             }
-            _dimensionsLabel->setText(
-                _dimensionsText % Space %
-                BlackDiamond % Space %
-                GroupDigits( QString{ "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit
-            );
+            _dimensionsLabel->setText( _dimensionsText % Comma % Space % GroupDigits( QString { "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit );
             _selectButton->setEnabled( true );
 
             update( );

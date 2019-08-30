@@ -3,7 +3,7 @@
 
 QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"   };
 QRegularExpression        const  NewLineRegex                  { "\\r?\\n" };
-                                                             
+
 QSize                     const  SmallMainWindowSize           {  800, 480 };
 QSize                     const  SmallMainButtonSize           {  218,  74 };
 QSize                     const  SmallMaximalRightHandPaneSize {  564, 424 };
@@ -14,7 +14,7 @@ QSize                            MaximalRightHandPaneSize      {  722, 530 };
 
 QSize                     const  ButtonPadding                 {   20,   4 };
 QSize                     const  ProjectorWindowSize           { 1280, 800 };
-                                                             
+
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  GpgKeyRingPath                { "/home/lumen/Volumetric/LightField/gpg/pubring.gpg"      };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
@@ -25,16 +25,16 @@ QString                   const  ShepherdPath                  { "/usr/share/lig
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
-                                                             
+
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };
 QChar                     const  Space                         { L'\u0020' };
+QChar                     const  Comma                         { L'\u002C' };
 QChar                     const  Slash                         { L'\u002F' };
 QChar                     const  DigitZero                     { L'\u0030' };
 QChar                     const  EmDash                        { L'\u2014' };
 QChar                     const  Bullet                        { L'\u2022' };
-QChar                     const  BlackDiamond                  { L'\u25C6' };
-                                                             
+
 QChar                     const  FA_Check                      { L'\uF00C' };
 QChar                     const  FA_Times                      { L'\uF00D' };
 QChar                     const  FA_FastBackward               { L'\uF049' };
