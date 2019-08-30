@@ -1,9 +1,10 @@
 lightfield (1.0.8.0) stable; urgency=medium
 
-  * Changed: File tab: When viewing models on the USB stick, the "Select" button now reads "Copy to library". Tapping it copies the selected model into the printer's model libary.
+  * New: "Wireframe" view mode.
+  * Changed: File tab: When viewing models on the USB stick, the "Select" button now reads "Copy to library". Tapping it copies the selected model into the printer's model libary, then switches back to the model library view with the newly-copied model already selected.
   * Bug fix: The current selection is now cleared when switching between model library view and USB stick view. This should resolve intermittent difficulties with selecting models.
 
- -- LightField packager <lightfield-packager@volumetricbio.com>  Tue, 27 Aug 2019 11:50:27 -0700
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 29 Aug 2019 17:24:27 -0700
 
 lightfield (1.0.7.0) stable; urgency=medium
 
