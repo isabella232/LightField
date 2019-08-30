@@ -181,7 +181,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _helpButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _helpButton->setText( "?" );
     QObject::connect( _helpButton, &QPushButton::clicked, this, &Window::helpButton_clicked );
-    _tabWidget->setCornerWidget( _helpButton, Qt::TopRightCorner );
+    //_tabWidget->setCornerWidget( _helpButton, Qt::TopRightCorner );
 
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
