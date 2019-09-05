@@ -197,48 +197,48 @@ void FileTab::_loadModel( QString const& fileName ) {
     _loader->start( );
 }
 
-void FileTab::_showLibrary( ) {
-    _modelsLocation = ModelsLocation::Library;
+void FileTab::_clearSelection( ) {
     _modelSelection = { };
     _selectedRow    = -1;
+
+    _availableFilesListView->selectionModel( )->clear( );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Select" );
+    _dimensionsLabel->clear( );
+    _errorLabel->clear( );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _deleteButton->setEnabled( false );
+
+    QTimer::singleShot( 1, [this] ( ) { _canvas->clear( ); } );
+}
+
+void FileTab::_showLibrary( ) {
+    _clearSelection( );
+    _modelsLocation = ModelsLocation::Library;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
 
     _toggleLocationButton->setText( "Show USB stick" );
     _availableFilesLabel->setText( "Models in library:" );
-    _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
-    _selectButton->setEnabled( false );
-    _selectButton->setText( "Select" );
-    _viewSolid->setEnabled( false );
-    _viewWireframe->setEnabled( false );
-    _canvas->clear( );
-    _deleteButton->setEnabled( false );
 
     update( );
 }
 
 void FileTab::_showUsbStick( ) {
+    _clearSelection( );
     _modelsLocation = ModelsLocation::Usb;
-    _modelSelection = { };
-    _selectedRow    = -1;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
 
     _toggleLocationButton->setText( "Show library" );
     _availableFilesLabel->setText( "Models on USB stick:" );
-    _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
-    _selectButton->setEnabled( false );
-    _selectButton->setText( "Copy to library" );
-    _viewSolid->setEnabled( false );
-    _viewWireframe->setEnabled( false );
-    _canvas->clear( );
-    _deleteButton->setEnabled( false );
 
     update( );
 }
@@ -583,6 +583,9 @@ void FileTab::deleteButton_clicked( bool ) {
         if ( -1 == unlink( _modelSelection.fileName.toUtf8( ).data( ) ) ) {
             error_t err = errno;
             debug( "+ FileTab::deleteButton_clicked: failed to delete file: %s [%d]\n", strerror( err ), err );
+        } else {
+            _clearSelection( );
+            update( );
         }
     }
     App::mainWindow( )->show( );

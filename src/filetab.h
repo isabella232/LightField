@@ -95,6 +95,7 @@ private:
 
     void _loadModel( QString const& filename );
 
+    void _clearSelection( );
     void _showLibrary( );
     void _showUsbStick( );
 
