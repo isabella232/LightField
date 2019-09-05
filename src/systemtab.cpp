@@ -253,14 +253,20 @@ void SystemTab::copyLogsButton_clicked( bool ) {
 }
 
 void SystemTab::restartButton_clicked( bool ) {
+    App::mainWindow( )->hide( );
     if ( YesNoPrompt( this, "Confirm", "Are you sure you want to restart?" ) ) {
         RebootPrinter( );
+    } else {
+        App::mainWindow( )->show( );
     }
 }
 
 void SystemTab::shutDownButton_clicked( bool ) {
+    App::mainWindow( )->hide( );
     if ( YesNoPrompt( this, "Confirm", "Are you sure you want to shut down?" ) ) {
         ShutDownPrinter( );
+    } else {
+        App::mainWindow( )->show( );
     }
 }
 

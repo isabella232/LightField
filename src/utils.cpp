@@ -116,11 +116,7 @@ bool YesNoPrompt( QWidget* parent, QString const& title, QString const& text ) {
     messageBox.setDefaultButton( QMessageBox::No );
     messageBox.setFont( ModifyFont( messageBox.font( ), 16.0 ) );
 
-    App::mainWindow( )->hide( );
-    auto result = ( QMessageBox::Yes == static_cast<QMessageBox::StandardButton>( messageBox.exec( ) ) );
-    App::mainWindow( )->show( );
-
-    return result;
+    return ( QMessageBox::Yes == static_cast<QMessageBox::StandardButton>( messageBox.exec( ) ) );
 }
 
 void RebootPrinter( ) {
