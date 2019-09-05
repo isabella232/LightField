@@ -11,6 +11,7 @@
 #include "processrunner.h"
 #include "shepherd.h"
 #include "timinglogger.h"
+#include "usbmountmanager.h"
 #include "window.h"
 
 namespace {
@@ -149,6 +150,11 @@ void FileTab::_initialShowEvent( QShowEvent* event ) {
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
     event->accept( );
+}
+
+void FileTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &FileTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &FileTab::usbMountManager_filesystemUnmounted );
 }
 
 void FileTab::_createUsbFsModel( ) {

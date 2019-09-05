@@ -6,6 +6,7 @@
 #include "shepherd.h"
 #include "upgrademanager.h"
 #include "upgradeselector.h"
+#include "usbmountmanager.h"
 #include "window.h"
 
 namespace {
@@ -19,9 +20,7 @@ namespace {
 
 }
 
-SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
-    _usbMountManager = manager;
-
+SystemTab::SystemTab( QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );
@@ -108,6 +107,11 @@ void SystemTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 
     update( );
+}
+
+void SystemTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &SystemTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &SystemTab::usbMountManager_filesystemUnmounted );
 }
 
 void SystemTab::_updateButtons( ) {

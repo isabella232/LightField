@@ -15,7 +15,7 @@ class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
 public:
 
-    SystemTab( UsbMountManager* manager, QWidget* parent = nullptr );
+    SystemTab( QWidget* parent = nullptr );
     virtual ~SystemTab( ) override;
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::System; }
@@ -24,6 +24,8 @@ protected:
 
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
+
+    virtual void _connectUsbMountManager( )             override;
 
 private:
 
@@ -34,7 +36,6 @@ private:
 
     UpgradeManager*  _upgradeManager             {                 };
     UpgradeSelector* _upgradeSelector            {                 };
-    UsbMountManager* _usbMountManager            {                 };
 
     QString          _mountPoint                 {                 };
 
@@ -66,14 +67,14 @@ public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
-    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
-
 protected slots:
     ;
 
 private slots:
     ;
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void upgradeManager_upgradeCheckStarting( );
     void upgradeManager_upgradeCheckComplete( bool const upgradesFound );

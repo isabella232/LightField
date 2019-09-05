@@ -57,6 +57,8 @@ protected:
 
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
+    virtual void _connectUsbMountManager( ) override;
+
 private:
 
     QPushButton*        _toggleLocationButton    { new QPushButton         };
@@ -104,12 +106,12 @@ public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
-    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
-
 protected slots:
 
 private slots:
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void loader_gotMesh( Mesh* m );
     void loader_errorBadStl( );
