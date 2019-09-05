@@ -72,6 +72,8 @@ private:
     QRadioButton*       _viewWireframe           { new QRadioButton        };
     QWidget*            _rightColumn             { new QWidget             };
 
+    QPushButton*        _deleteButton            {                         };
+
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              {                         };
     Loader*             _loader                  {                         };
@@ -126,6 +128,8 @@ private slots:
 
     void viewSolid_toggled( bool checked );
     void viewWireframe_toggled( bool checked );
+
+    void deleteButton_clicked( bool );
 
     void processRunner_succeeded( );
     void processRunner_failed( int const exitCode, QProcess::ProcessError const error );

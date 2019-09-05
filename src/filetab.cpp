@@ -70,7 +70,12 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
     _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( WrapWidgetsInVBox( _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton ) );
+    _leftColumn->setLayout( WrapWidgetsInVBox(
+        _toggleLocationButton,
+        _availableFilesLabel,
+        _availableFilesListView,
+        _selectButton
+    ) );
 
 
     QSurfaceFormat format;
@@ -119,6 +124,12 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
 
 
     setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
+
+
+    _deleteButton = new QPushButton( "Delete", this );
+    _deleteButton->setFont( font16pt );
+    _deleteButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _deleteButton, &QPushButton::clicked, this, &FileTab::deleteButton_clicked );
 }
 
 FileTab::~FileTab( ) {
@@ -126,6 +137,13 @@ FileTab::~FileTab( ) {
 }
 
 void FileTab::_initialShowEvent( QShowEvent* event ) {
+    auto metrics    { QFontMetrics { _deleteButton->font( )            } };
+    auto canvasRect { QRect        { _canvas->pos( ), _canvas->size( ) } };
+
+    _deleteButton->resize( QSize { metrics.horizontalAdvance( _deleteButton->text( ) ), metrics.height( ) } + ButtonPadding );
+    _deleteButton->move( _rightColumn->pos( ) + canvasRect.bottomRight( ) - QPoint { _deleteButton->width( ) - 1, _deleteButton->height( ) - 1 } );
+    _deleteButton->setEnabled( false );
+
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
     event->accept( );
@@ -189,6 +207,7 @@ void FileTab::_showLibrary( ) {
     _viewSolid->setEnabled( false );
     _viewWireframe->setEnabled( false );
     _canvas->clear( );
+    _deleteButton->setEnabled( false );
 
     update( );
 }
@@ -211,6 +230,7 @@ void FileTab::_showUsbStick( ) {
     _viewSolid->setEnabled( false );
     _viewWireframe->setEnabled( false );
     _canvas->clear( );
+    _deleteButton->setEnabled( false );
 
     update( );
 }
@@ -220,8 +240,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     _uiState = state;
     switch ( _uiState ) {
         case UiState::SelectStarted:
-            _modelSelection = { };
-            _selectedRow    = -1;
+            _selectedRow = -1;
             break;
 
         case UiState::SelectCompleted:
@@ -266,7 +285,7 @@ void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
         _showLibrary( );
     }
 
-    if ( _modelSelection.fileName.startsWith( _usbPath ) ) {
+    if ( ( _selectedRow != -1 ) && _modelSelection.fileName.startsWith( _usbPath ) ) {
         _canvas->clear( );
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
@@ -323,6 +342,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _dimensionsLabel->setText( _dimensionsText );
         _errorLabel->setText( "<span style=\"color: red;\">Model exceeds build volume!</span>" );
+        _deleteButton->setEnabled( true );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
@@ -392,7 +412,6 @@ void FileTab::loader_finished( ) {
     _availableFilesListView->setEnabled( true );
     _viewSolid->setEnabled( true );
     _viewWireframe->setEnabled( true );
-
     update( );
 
     _loader->deleteLater( );
@@ -430,6 +449,7 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
     _selectButton->setEnabled( false );
     _viewSolid->setEnabled( false );
     _viewWireframe->setEnabled( false );
+    _deleteButton->setEnabled( false );
     update( );
 
     if ( _processRunner ) {
@@ -547,9 +567,17 @@ void FileTab::viewWireframe_toggled( bool checked ) {
     }
 }
 
+void FileTab::deleteButton_clicked( bool ) {
+    debug( "+ FileTab::deleteButton_clicked: file name is '%s'\n", _modelSelection.fileName.toUtf8( ).data( ) );
+    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to delete the file '" % GetFileBaseName( _modelSelection.fileName ) % "'?" ) ) {
+        unlink( _modelSelection.fileName.toUtf8( ).data( ) );
+    }
+}
+
 void FileTab::processRunner_succeeded( ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
+    _deleteButton->setEnabled( true );
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
         if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
@@ -584,6 +612,7 @@ void FileTab::processRunner_succeeded( ) {
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    _deleteButton->setEnabled( true );
 
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
