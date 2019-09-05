@@ -2,6 +2,7 @@
 
 #include "filetab.h"
 
+#include "app.h"
 #include "canvas.h"
 #include "filecopier.h"
 #include "loader.h"
@@ -10,6 +11,7 @@
 #include "processrunner.h"
 #include "shepherd.h"
 #include "timinglogger.h"
+#include "window.h"
 
 namespace {
 
@@ -126,7 +128,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 
 
-    _deleteButton = new QPushButton( "Delete", this );
+    _deleteButton = new QPushButton( "Delete file", this );
     _deleteButton->setFont( font16pt );
     _deleteButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     QObject::connect( _deleteButton, &QPushButton::clicked, this, &FileTab::deleteButton_clicked );
@@ -569,9 +571,15 @@ void FileTab::viewWireframe_toggled( bool checked ) {
 
 void FileTab::deleteButton_clicked( bool ) {
     debug( "+ FileTab::deleteButton_clicked: file name is '%s'\n", _modelSelection.fileName.toUtf8( ).data( ) );
-    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to delete the file '" % GetFileBaseName( _modelSelection.fileName ) % "'?" ) ) {
-        unlink( _modelSelection.fileName.toUtf8( ).data( ) );
+
+    App::mainWindow( )->hide( );
+    if ( YesNoPrompt( this, "Confirm", QString::asprintf( "Are you sure you want to delete<br /><span style=\"font-weight: bold;\">%s</span><br />from the <span style=\"font-weight: bold;\">%s</span>?", GetFileBaseName( _modelSelection.fileName ).toUtf8( ).data( ), ( _modelsLocation == ModelsLocation::Library ) ? "model library" : "USB stick" ) ) ) {
+        if ( -1 == unlink( _modelSelection.fileName.toUtf8( ).data( ) ) ) {
+            error_t err = errno;
+            debug( "+ FileTab::deleteButton_clicked: failed to delete file: %s [%d]\n", strerror( err ), err );
+        }
     }
+    App::mainWindow( )->show( );
 }
 
 void FileTab::processRunner_succeeded( ) {
