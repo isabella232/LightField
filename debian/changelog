@@ -1,8 +1,8 @@
 lightfield (1.0.9.0) stable; urgency=medium
 
-  * New: "Delete" button.
+  * New: "Delete file" button.
 
- -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 04 Sep 2019 13:18:19 -0700
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 05 Sep 2019 12:40:41 -0700
 
 lightfield (1.0.8.0) stable; urgency=medium
 

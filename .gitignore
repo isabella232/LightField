@@ -9,6 +9,7 @@ deps-junk-2.txt
 deps-junk-3.txt
 do-it.sh
 gpg
+model-library
 mountmon/.gdbinit
 mountmon/.qmake.stash
 mountmon/Makefile
