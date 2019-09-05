@@ -7,10 +7,11 @@
 
 AppSettings g_settings;
 
+QFile PidFile { QString { getenv( "XDG_RUNTIME_DIR" ) ? getenv( "XDG_RUNTIME_DIR" ) : "/tmp" } % "/lf.pid" };
+
 namespace {
 
     QCommandLineParser CommandLineParser;
-    QFile              PidFile           { QString { getenv( "XDG_RUNTIME_DIR" ) ? getenv( "XDG_RUNTIME_DIR" ) : "/tmp" } % "/lf.pid" };
     bool               MoveMainWindow    { };
 
     QList<QCommandLineOption> CommandLineOptions {
