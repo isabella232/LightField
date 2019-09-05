@@ -9,6 +9,9 @@ void     PrintBacktrace( char const* tracerName );
 QPalette ModifyPalette( QPalette const& palette, QPalette::ColorGroup const group, QPalette::ColorRole const role, QColor const& color );
 QPalette ModifyPalette( QPalette const& palette, QPalette::ColorRole const role, QColor const& color );
 QString  ReadWholeFile( QString const& fileName );
+bool     YesNoPrompt( QWidget* parent, QString const& title, QString const& text );
+void     RebootPrinter( );
+void     ShutDownPrinter( );
 
 inline constexpr qreal Distance( QPointF const& a, QPointF const& b ) {
     return sqrt( pow( a.x( ) - b.x( ), 2.0 ) + pow( a.y( ) - b.y( ), 2.0 ) );
