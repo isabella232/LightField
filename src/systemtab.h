@@ -52,7 +52,6 @@ private:
     QVBoxLayout*     _layout                     { new QVBoxLayout };
 
     void _updateButtons( );
-    bool _yesNoPrompt( QString const& title, QString const& text );
 
 signals:
     ;

@@ -119,22 +119,6 @@ void SystemTab::_updateButtons( ) {
     update( );
 }
 
-bool SystemTab::_yesNoPrompt( QString const& title, QString const& text ) {
-    QMessageBox messageBox { this };
-    messageBox.setIcon( QMessageBox::Question );
-    messageBox.setText( title );
-    messageBox.setInformativeText( text );
-    messageBox.setStandardButtons( QMessageBox::Yes | QMessageBox::No );
-    messageBox.setDefaultButton( QMessageBox::No );
-    messageBox.setFont( ModifyFont( messageBox.font( ), 16.0 ) );
-
-    App::mainWindow( )->hide( );
-    auto result = static_cast<QMessageBox::StandardButton>( messageBox.exec( ) );
-    App::mainWindow( )->show( );
-
-    return ( result == QMessageBox::Yes );
-}
-
 void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     debug( "+ SystemTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
@@ -269,14 +253,14 @@ void SystemTab::copyLogsButton_clicked( bool ) {
 }
 
 void SystemTab::restartButton_clicked( bool ) {
-    if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
-        QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
+    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to restart?" ) ) {
+        RebootPrinter( );
     }
 }
 
 void SystemTab::shutDownButton_clicked( bool ) {
-    if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
-        QProcess::startDetached( "sudo", { "systemctl", "poweroff" } );
+    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to shut down?" ) ) {
+        ShutDownPrinter( );
     }
 }
 
