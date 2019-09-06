@@ -5,6 +5,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "usbmountmanager.h"
 
 TabBase::TabBase( QWidget* parent ): QWidget( parent ) {
     /*empty*/
@@ -38,6 +39,14 @@ void TabBase::_connectShepherd( ) {
     /*empty*/
 }
 
+void TabBase::_disconnectUsbMountManager( ) {
+    QObject::disconnect( _usbMountManager, nullptr, this, nullptr );
+}
+
+void TabBase::_connectUsbMountManager( ) {
+    /*empty*/
+}
+
 void TabBase::setPrintJob( PrintJob* printJob ) {
     _disconnectPrintJob( );
     _printJob = printJob;
@@ -54,4 +63,10 @@ void TabBase::setShepherd( Shepherd* shepherd ) {
     _disconnectShepherd( );
     _shepherd = shepherd;
     _connectShepherd( );
+}
+
+void TabBase::setUsbMountManager( UsbMountManager* usbMountManager ) {
+    _disconnectUsbMountManager( );
+    _usbMountManager = usbMountManager;
+    _connectUsbMountManager( );
 }

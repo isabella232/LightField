@@ -6,6 +6,7 @@
 #include "shepherd.h"
 #include "upgrademanager.h"
 #include "upgradeselector.h"
+#include "usbmountmanager.h"
 #include "window.h"
 
 namespace {
@@ -19,9 +20,7 @@ namespace {
 
 }
 
-SystemTab::SystemTab( UsbMountManager* manager, QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
-    _usbMountManager = manager;
-
+SystemTab::SystemTab( QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );
@@ -110,6 +109,11 @@ void SystemTab::_initialShowEvent( QShowEvent* event ) {
     update( );
 }
 
+void SystemTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &SystemTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &SystemTab::usbMountManager_filesystemUnmounted );
+}
+
 void SystemTab::_updateButtons( ) {
     _updateSoftwareButton->setEnabled( _isSoftwareUpgradeAvailable && _isPrinterAvailable );
     _copyLogsButton      ->setEnabled( !_mountPoint.isEmpty( )                            );
@@ -117,22 +121,6 @@ void SystemTab::_updateButtons( ) {
     _shutDownButton      ->setEnabled(                                _isPrinterAvailable );
 
     update( );
-}
-
-bool SystemTab::_yesNoPrompt( QString const& title, QString const& text ) {
-    QMessageBox messageBox { this };
-    messageBox.setIcon( QMessageBox::Question );
-    messageBox.setText( title );
-    messageBox.setInformativeText( text );
-    messageBox.setStandardButtons( QMessageBox::Yes | QMessageBox::No );
-    messageBox.setDefaultButton( QMessageBox::No );
-    messageBox.setFont( ModifyFont( messageBox.font( ), 16.0 ) );
-
-    App::mainWindow( )->hide( );
-    auto result = static_cast<QMessageBox::StandardButton>( messageBox.exec( ) );
-    App::mainWindow( )->show( );
-
-    return ( result == QMessageBox::Yes );
 }
 
 void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -269,14 +257,20 @@ void SystemTab::copyLogsButton_clicked( bool ) {
 }
 
 void SystemTab::restartButton_clicked( bool ) {
-    if ( _yesNoPrompt( "Confirm", "Are you sure you want to restart?" ) ) {
-        QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
+    App::mainWindow( )->hide( );
+    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to restart?" ) ) {
+        RebootPrinter( );
+    } else {
+        App::mainWindow( )->show( );
     }
 }
 
 void SystemTab::shutDownButton_clicked( bool ) {
-    if ( _yesNoPrompt( "Confirm", "Are you sure you want to shut down?" ) ) {
-        QProcess::startDetached( "sudo", { "systemctl", "poweroff" } );
+    App::mainWindow( )->hide( );
+    if ( YesNoPrompt( this, "Confirm", "Are you sure you want to shut down?" ) ) {
+        ShutDownPrinter( );
+    } else {
+        App::mainWindow( )->show( );
     }
 }
 

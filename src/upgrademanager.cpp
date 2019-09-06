@@ -639,7 +639,7 @@ void UpgradeManager::aptGetDistUpgrade_succeeded( ) {
     QObject::disconnect( _processRunner, &ProcessRunner::succeeded, this, nullptr );
     QObject::disconnect( _processRunner, &ProcessRunner::failed,    this, nullptr );
 
-    QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
+    RebootPrinter( );
 }
 
 void UpgradeManager::aptGetDistUpgrade_failed( int const exitCode, QProcess::ProcessError const error ) {

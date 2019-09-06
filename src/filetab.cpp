@@ -2,6 +2,7 @@
 
 #include "filetab.h"
 
+#include "app.h"
 #include "canvas.h"
 #include "filecopier.h"
 #include "loader.h"
@@ -10,10 +11,14 @@
 #include "processrunner.h"
 #include "shepherd.h"
 #include "timinglogger.h"
+#include "usbmountmanager.h"
+#include "window.h"
 
 namespace {
 
     QRegularExpression VolumeLineMatcher { QString { "^\\s*volume\\s*[:=]\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
+
+    QString ModelFileNameToDelete;
 
     char const* ModelsLocationStrings[] {
         "Library",
@@ -70,7 +75,12 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     _leftColumn->setContentsMargins( { } );
     _leftColumn->setFixedWidth( MainButtonSize.width( ) );
     _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( WrapWidgetsInVBox( _toggleLocationButton, _availableFilesLabel, _availableFilesListView, _selectButton ) );
+    _leftColumn->setLayout( WrapWidgetsInVBox(
+        _toggleLocationButton,
+        _availableFilesLabel,
+        _availableFilesListView,
+        _selectButton
+    ) );
 
 
     QSurfaceFormat format;
@@ -119,6 +129,12 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
 
 
     setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
+
+
+    _deleteButton = new QPushButton( "Delete file", this );
+    _deleteButton->setFont( font16pt );
+    _deleteButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+    QObject::connect( _deleteButton, &QPushButton::clicked, this, &FileTab::deleteButton_clicked );
 }
 
 FileTab::~FileTab( ) {
@@ -126,9 +142,21 @@ FileTab::~FileTab( ) {
 }
 
 void FileTab::_initialShowEvent( QShowEvent* event ) {
+    auto metrics    { QFontMetrics { _deleteButton->font( )            } };
+    auto canvasRect { QRect        { _canvas->pos( ), _canvas->size( ) } };
+
+    _deleteButton->resize( QSize { metrics.horizontalAdvance( _deleteButton->text( ) ), metrics.height( ) } + ButtonPadding );
+    _deleteButton->move( _rightColumn->pos( ) + canvasRect.bottomRight( ) - QPoint { _deleteButton->width( ) - 1, _deleteButton->height( ) - 1 } );
+    _deleteButton->setEnabled( false );
+
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
     event->accept( );
+}
+
+void FileTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &FileTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &FileTab::usbMountManager_filesystemUnmounted );
 }
 
 void FileTab::_createUsbFsModel( ) {
@@ -171,46 +199,63 @@ void FileTab::_loadModel( QString const& fileName ) {
     _loader->start( );
 }
 
-void FileTab::_showLibrary( ) {
-    _modelsLocation = ModelsLocation::Library;
+void FileTab::_deleteModel( ) {
+    if ( !ModelFileNameToDelete.isEmpty( ) ) {
+        debug( "+ FileTab::_deleteModel: attempting to delete file '%s'\n", ModelFileNameToDelete.toUtf8( ).data( ) );
+        if ( -1 == unlink( ModelFileNameToDelete.toUtf8( ).data( ) ) ) {
+            error_t err = errno;
+            debug( "  + failed to delete file: %s [%d]\n", strerror( err ), err );
+            return;
+        }
+        ModelFileNameToDelete.clear( );
+    }
+
+    _clearSelection( );
+    update( );
+}
+
+void FileTab::_clearSelection( ) {
     _modelSelection = { };
     _selectedRow    = -1;
+
+    _availableFilesListView->selectionModel( )->clear( );
+    _selectButton->setEnabled( false );
+    _selectButton->setText( "Select" );
+    _dimensionsLabel->clear( );
+    _errorLabel->clear( );
+    _viewSolid->setEnabled( false );
+    _viewWireframe->setEnabled( false );
+    _deleteButton->setEnabled( false );
+
+    QTimer::singleShot( 1, [this] ( ) { _canvas->clear( ); } );
+}
+
+void FileTab::_showLibrary( ) {
+    _clearSelection( );
+    _modelsLocation = ModelsLocation::Library;
 
     _libraryFsModel->sort( 0, Qt::AscendingOrder );
 
     _toggleLocationButton->setText( "Show USB stick" );
     _availableFilesLabel->setText( "Models in library:" );
-    _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
-    _selectButton->setEnabled( false );
-    _selectButton->setText( "Select" );
-    _viewSolid->setEnabled( false );
-    _viewWireframe->setEnabled( false );
-    _canvas->clear( );
 
     update( );
 }
 
 void FileTab::_showUsbStick( ) {
+    _clearSelection( );
     _modelsLocation = ModelsLocation::Usb;
-    _modelSelection = { };
-    _selectedRow    = -1;
 
     _usbFsModel->sort( 0, Qt::AscendingOrder );
 
     _toggleLocationButton->setText( "Show library" );
     _availableFilesLabel->setText( "Models on USB stick:" );
-    _availableFilesListView->selectionModel( )->clear( );
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
-    _selectButton->setEnabled( false );
-    _selectButton->setText( "Copy to library" );
-    _viewSolid->setEnabled( false );
-    _viewWireframe->setEnabled( false );
-    _canvas->clear( );
 
     update( );
 }
@@ -220,8 +265,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     _uiState = state;
     switch ( _uiState ) {
         case UiState::SelectStarted:
-            _modelSelection = { };
-            _selectedRow    = -1;
+            _selectedRow = -1;
             break;
 
         case UiState::SelectCompleted:
@@ -254,6 +298,19 @@ void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
     update( );
 }
 
+void FileTab::usbMountManager_filesystemRemounted( bool const succeeded, bool const writable ) {
+    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s\n", YesNoString( succeeded ), YesNoString( writable ) );
+    QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
+
+    if ( succeeded && writable ) {
+        debug( "+ FileTab::usbMountManager_filesystemRemounted: deleting model\n" );
+        _deleteModel( );
+        _usbMountManager->remount( false );
+    }
+
+    App::mainWindow( )->show( );
+}
+
 void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
     debug( "+ FileTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
 
@@ -266,7 +323,7 @@ void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
         _showLibrary( );
     }
 
-    if ( _modelSelection.fileName.startsWith( _usbPath ) ) {
+    if ( ( _selectedRow != -1 ) && _modelSelection.fileName.startsWith( _usbPath ) ) {
         _canvas->clear( );
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
@@ -323,6 +380,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     if ( ( _modelSelection.x.size > PrinterMaximumX ) || ( _modelSelection.y.size > PrinterMaximumY ) || ( _modelSelection.z.size > PrinterMaximumZ ) ) {
         _dimensionsLabel->setText( _dimensionsText );
         _errorLabel->setText( "<span style=\"color: red;\">Model exceeds build volume!</span>" );
+        _deleteButton->setEnabled( true );
 
         emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
 
@@ -392,7 +450,6 @@ void FileTab::loader_finished( ) {
     _availableFilesListView->setEnabled( true );
     _viewSolid->setEnabled( true );
     _viewWireframe->setEnabled( true );
-
     update( );
 
     _loader->deleteLater( );
@@ -430,6 +487,7 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
     _selectButton->setEnabled( false );
     _viewSolid->setEnabled( false );
     _viewWireframe->setEnabled( false );
+    _deleteButton->setEnabled( false );
     update( );
 
     if ( _processRunner ) {
@@ -547,9 +605,30 @@ void FileTab::viewWireframe_toggled( bool checked ) {
     }
 }
 
+void FileTab::deleteButton_clicked( bool ) {
+    debug( "+ FileTab::deleteButton_clicked: file name is '%s'\n", _modelSelection.fileName.toUtf8( ).data( ) );
+
+    App::mainWindow( )->hide( );
+    if ( YesNoPrompt( this, "Confirm", QString::asprintf( "Are you sure you want to delete<br /><span style=\"font-weight: bold;\">%s</span><br />from the <span style=\"font-weight: bold;\">%s</span>?", GetFileBaseName( _modelSelection.fileName ).toUtf8( ).data( ), ( _modelsLocation == ModelsLocation::Library ) ? "model library" : "USB stick" ) ) ) {
+        ModelFileNameToDelete = _modelSelection.fileName;
+        if ( ( _modelsLocation == ModelsLocation::Usb ) && !_usbMountManager->isWritable( ) ) {
+            debug( "+ FileTab::deleteButton_clicked: attempting to remount USB stick RW in order to delete model\n" );
+            QObject::connect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
+            _usbMountManager->remount( true );
+        } else {
+            debug( "+ FileTab::deleteButton_clicked: deleting model directly\n" );
+            _deleteModel( );
+            App::mainWindow( )->show( );
+        }
+    } else {
+        App::mainWindow( )->show( );
+    }
+}
+
 void FileTab::processRunner_succeeded( ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
+    _deleteButton->setEnabled( true );
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
         if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
@@ -584,6 +663,7 @@ void FileTab::processRunner_succeeded( ) {
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
+    _deleteButton->setEnabled( true );
 
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );

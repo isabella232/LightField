@@ -57,6 +57,8 @@ protected:
 
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
+    virtual void _connectUsbMountManager( ) override;
+
 private:
 
     QPushButton*        _toggleLocationButton    { new QPushButton         };
@@ -71,6 +73,8 @@ private:
     QRadioButton*       _viewSolid               { new QRadioButton        };
     QRadioButton*       _viewWireframe           { new QRadioButton        };
     QWidget*            _rightColumn             { new QWidget             };
+
+    QPushButton*        _deleteButton            {                         };
 
     QFileSystemModel*   _libraryFsModel          { new QFileSystemModel    };
     QFileSystemModel*   _usbFsModel              {                         };
@@ -91,6 +95,8 @@ private:
 
     void _loadModel( QString const& filename );
 
+    void _deleteModel( );
+    void _clearSelection( );
     void _showLibrary( );
     void _showUsbStick( );
 
@@ -102,12 +108,13 @@ public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
-    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
-
 protected slots:
 
 private slots:
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemRemounted( bool const succeeded, bool const writable );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void loader_gotMesh( Mesh* m );
     void loader_errorBadStl( );
@@ -126,6 +133,8 @@ private slots:
 
     void viewSolid_toggled( bool checked );
     void viewWireframe_toggled( bool checked );
+
+    void deleteButton_clicked( bool );
 
     void processRunner_succeeded( );
     void processRunner_failed( int const exitCode, QProcess::ProcessError const error );

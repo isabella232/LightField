@@ -15,6 +15,8 @@ public:
 
     void remount( bool const writable );
 
+    bool isWritable( ) { return _isWritable; }
+
 protected:
 
 private:

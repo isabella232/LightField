@@ -6,15 +6,17 @@
 class PrintJob;
 class PrintManager;
 class Shepherd;
+class UsbMountManager;
 
 class TabBase: public QWidget {
 
     Q_OBJECT;
-    Q_PROPERTY( PrintJob*     printJob     READ printJob     WRITE setPrintJob     );
-    Q_PROPERTY( PrintManager* printManager READ printManager WRITE setPrintManager );
-    Q_PROPERTY( Shepherd*     shepherd     READ shepherd     WRITE setShepherd     );
-    Q_PROPERTY( TabIndex      tabIndex     READ tabIndex                           );
-    Q_PROPERTY( UiState       uiState      READ uiState                            );
+    Q_PROPERTY( PrintJob*        printJob        READ printJob        WRITE setPrintJob        );
+    Q_PROPERTY( PrintManager*    printManager    READ printManager    WRITE setPrintManager    );
+    Q_PROPERTY( Shepherd*        shepherd        READ shepherd        WRITE setShepherd        );
+    Q_PROPERTY( UsbMountManager* usbMountManager READ usbMountManager WRITE setUsbMountManager );
+    Q_PROPERTY( TabIndex         tabIndex        READ tabIndex                                 );
+    Q_PROPERTY( UiState          uiState         READ uiState                                  );
 
 public:
 
@@ -41,19 +43,21 @@ public:
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
 
-    PrintJob*        printJob( )     const { return _printJob;     }
-    PrintManager*    printManager( ) const { return _printManager; }
-    Shepherd*        shepherd( )     const { return _shepherd;     }
-    UiState          uiState( )      const { return _uiState;      }
+    PrintJob*        printJob( )        const { return _printJob;        }
+    PrintManager*    printManager( )    const { return _printManager;    }
+    Shepherd*        shepherd( )        const { return _shepherd;        }
+    UiState          uiState( )         const { return _uiState;         }
+    UsbMountManager* usbMountManager( ) const { return _usbMountManager; }
 
-    virtual TabIndex tabIndex( )     const = 0;
+    virtual TabIndex tabIndex( )        const = 0;
 
 protected:
 
-    PrintJob*     _printJob     { };
-    PrintManager* _printManager { };
-    Shepherd*     _shepherd     { };
-    UiState       _uiState      { };
+    PrintJob*        _printJob        { };
+    PrintManager*    _printManager    { };
+    Shepherd*        _shepherd        { };
+    UiState          _uiState         { };
+    UsbMountManager* _usbMountManager { };
 
     virtual void _disconnectPrintJob( );
     virtual void _connectPrintJob( );
@@ -64,23 +68,31 @@ protected:
     virtual void _disconnectShepherd( );
     virtual void _connectShepherd( );
 
+    virtual void _disconnectUsbMountManager( );
+    virtual void _connectUsbMountManager( );
+
 private:
 
 signals:
+    ;
 
     void uiStateChanged( TabIndex const sender, UiState const state );
     void iconChanged( TabIndex const sender, QIcon const& icon );
 
 public slots:
+    ;
 
     virtual void setPrintJob( PrintJob* printJob );
     virtual void setPrintManager( PrintManager* printManager );
     virtual void setShepherd( Shepherd* shepherd );
+    virtual void setUsbMountManager( UsbMountManager* mountManager );
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) = 0;
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
 };
 

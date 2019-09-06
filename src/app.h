@@ -63,5 +63,6 @@ private /*static*/:
 };
 
 extern AppSettings g_settings;
+extern QFile PidFile;
 
 #endif // __APP_H__

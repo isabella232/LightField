@@ -66,7 +66,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _printTab    = new PrintTab,
         _statusTab   = new StatusTab,
         _advancedTab = new AdvancedTab,
-        _systemTab   = new SystemTab   ( _usbMountManager ),
+        _systemTab   = new SystemTab,
     };
 
     for ( auto tabA : tabs ) {
@@ -85,21 +85,20 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
 
-    _advancedTab->setPngDisplayer( _pngDisplayer );
-
-    _systemTab->setUpgradeManager( _upgradeManager );
+    _fileTab    ->setUsbMountManager( _usbMountManager );
+    _advancedTab->setPngDisplayer   ( _pngDisplayer    );
+    _systemTab  ->setUpgradeManager ( _upgradeManager  );
+    _systemTab  ->setUsbMountManager( _usbMountManager );
 
     _shepherd->start( );
 
     //
-    // "Select" tab
+    // "File" tab
     //
 
     _fileTab->setContentsMargins( { } );
     _fileTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _fileTab,         &FileTab::modelSelected,               this,     &Window::fileTab_modelSelected                );
-    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   _fileTab, &FileTab::usbMountManager_filesystemMounted   );
-    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, _fileTab, &FileTab::usbMountManager_filesystemUnmounted );
+    QObject::connect( _fileTab, &FileTab::modelSelected, this, &Window::fileTab_modelSelected );
 
     //
     // "Prepare" tab
@@ -158,12 +157,10 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _systemTab->setContentsMargins( { } );
     _systemTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,    _systemTab,      &SystemTab::usbMountManager_filesystemMounted   );
-    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted,  _systemTab,      &SystemTab::usbMountManager_filesystemUnmounted );
-    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _prepareTab,     &PrepareTab::setPrinterAvailable                );
-    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _printTab,       &PrintTab::setPrinterAvailable                  );
-    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _statusTab,      &StatusTab::setPrinterAvailable                 );
-    QObject::connect( _systemTab,       &SystemTab::printerAvailabilityChanged, _advancedTab,    &AdvancedTab::setPrinterAvailable               );
+    QObject::connect( _systemTab, &SystemTab::printerAvailabilityChanged, _prepareTab,  &PrepareTab::setPrinterAvailable  );
+    QObject::connect( _systemTab, &SystemTab::printerAvailabilityChanged, _printTab,    &PrintTab::setPrinterAvailable    );
+    QObject::connect( _systemTab, &SystemTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable   );
+    QObject::connect( _systemTab, &SystemTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable );
 
     //
     // Tab widget
@@ -237,8 +234,11 @@ void Window::terminate( ) {
     }
 
     if ( _usbMountManager ) {
+        _fileTab  ->setUsbMountManager( nullptr );
+        _systemTab->setUsbMountManager( nullptr );
+
         QObject::disconnect( _usbMountManager );
-        delete _usbMountManager;
+        _usbMountManager->deleteLater( );
         _usbMountManager = nullptr;
     }
 
