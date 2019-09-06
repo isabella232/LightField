@@ -299,11 +299,11 @@ void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
 }
 
 void FileTab::usbMountManager_filesystemRemounted( bool const succeeded, bool const writable ) {
-    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s", YesNoString( succeeded ), YesNoString( writable ) );
+    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s\n", YesNoString( succeeded ), YesNoString( writable ) );
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
 
     if ( succeeded && writable ) {
-        debug( "+ FileTab::usbMountManager_filesystemRemounted: deleting model '%s'\n", ModelFileNameToDelete.toUtf8( ).data( ) );
+        debug( "+ FileTab::usbMountManager_filesystemRemounted: deleting model\n" );
         _deleteModel( );
         _usbMountManager->remount( false );
     }
