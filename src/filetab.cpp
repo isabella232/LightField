@@ -18,6 +18,8 @@ namespace {
 
     QRegularExpression VolumeLineMatcher { QString { "^\\s*volume\\s*[:=]\\s*(\\d+(?:\\.(?:\\d+))?)" }, QRegularExpression::CaseInsensitiveOption };
 
+    QString ModelFileNameToDelete;
+
     char const* ModelsLocationStrings[] {
         "Library",
         "Usb",
@@ -197,6 +199,21 @@ void FileTab::_loadModel( QString const& fileName ) {
     _loader->start( );
 }
 
+void FileTab::_deleteModel( ) {
+    if ( !ModelFileNameToDelete.isEmpty( ) ) {
+        debug( "+ FileTab::_deleteModel: attempting to delete file '%s'\n", ModelFileNameToDelete.toUtf8( ).data( ) );
+        if ( -1 == unlink( ModelFileNameToDelete.toUtf8( ).data( ) ) ) {
+            error_t err = errno;
+            debug( "  + failed to delete file: %s [%d]\n", strerror( err ), err );
+            return;
+        }
+        ModelFileNameToDelete.clear( );
+    }
+
+    _clearSelection( );
+    update( );
+}
+
 void FileTab::_clearSelection( ) {
     _modelSelection = { };
     _selectedRow    = -1;
@@ -279,6 +296,19 @@ void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
     _toggleLocationButton->setEnabled( true );
 
     update( );
+}
+
+void FileTab::usbMountManager_filesystemRemounted( bool const succeeded, bool const writable ) {
+    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s", YesNoString( succeeded ), YesNoString( writable ) );
+    QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
+
+    if ( succeeded && writable ) {
+        debug( "+ FileTab::usbMountManager_filesystemRemounted: deleting model '%s'\n", ModelFileNameToDelete.toUtf8( ).data( ) );
+        _deleteModel( );
+        _usbMountManager->remount( false );
+    }
+
+    App::mainWindow( )->show( );
 }
 
 void FileTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
@@ -580,15 +610,19 @@ void FileTab::deleteButton_clicked( bool ) {
 
     App::mainWindow( )->hide( );
     if ( YesNoPrompt( this, "Confirm", QString::asprintf( "Are you sure you want to delete<br /><span style=\"font-weight: bold;\">%s</span><br />from the <span style=\"font-weight: bold;\">%s</span>?", GetFileBaseName( _modelSelection.fileName ).toUtf8( ).data( ), ( _modelsLocation == ModelsLocation::Library ) ? "model library" : "USB stick" ) ) ) {
-        if ( -1 == unlink( _modelSelection.fileName.toUtf8( ).data( ) ) ) {
-            error_t err = errno;
-            debug( "+ FileTab::deleteButton_clicked: failed to delete file: %s [%d]\n", strerror( err ), err );
+        ModelFileNameToDelete = _modelSelection.fileName;
+        if ( ( _modelsLocation == ModelsLocation::Usb ) && !_usbMountManager->isWritable( ) ) {
+            debug( "+ FileTab::deleteButton_clicked: attempting to remount USB stick RW in order to delete model\n" );
+            QObject::connect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
+            _usbMountManager->remount( true );
         } else {
-            _clearSelection( );
-            update( );
+            debug( "+ FileTab::deleteButton_clicked: deleting model directly\n" );
+            _deleteModel( );
+            App::mainWindow( )->show( );
         }
+    } else {
+        App::mainWindow( )->show( );
     }
-    App::mainWindow( )->show( );
 }
 
 void FileTab::processRunner_succeeded( ) {

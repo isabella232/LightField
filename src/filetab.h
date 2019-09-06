@@ -95,6 +95,7 @@ private:
 
     void _loadModel( QString const& filename );
 
+    void _deleteModel( );
     void _clearSelection( );
     void _showLibrary( );
     void _showUsbStick( );
@@ -112,6 +113,7 @@ protected slots:
 private slots:
 
     void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemRemounted( bool const succeeded, bool const writable );
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void loader_gotMesh( Mesh* m );
