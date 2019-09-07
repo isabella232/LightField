@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <GL/gl.h>
+
 #include "canvas.h"
 #include "backdrop.h"
 #include "glmesh.h"
