@@ -12,7 +12,7 @@ Canvas::Canvas(const QSurfaceFormat& format, QWidget *parent)
       scale(1), zoom(1), tilt(90), yaw(0),
       perspective(0.25), anim(this, "perspective"), status(" ")
 {
-    setFormat(format);
+    //setFormat(format);
 
     anim.setDuration(100);
 }
