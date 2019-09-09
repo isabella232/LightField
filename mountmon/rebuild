@@ -70,7 +70,7 @@ HERE
         then
             unset CLEAN
             QMAKE=yes
-            rm -dr ${BUILDDIR} && mkdir -p ${BUILDDIR}
+            rm -dr ${BUILDDIR} ${MAKEDIR}/.qmake.stash ${MAKEDIR}/Makefile && mkdir -p ${BUILDDIR}
         fi
     else
         mkdir -p ${BUILDDIR}
