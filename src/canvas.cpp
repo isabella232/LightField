@@ -7,13 +7,11 @@
 #include "glmesh.h"
 #include "mesh.h"
 
-Canvas::Canvas(const QSurfaceFormat& format, QWidget *parent)
+Canvas::Canvas(QWidget *parent)
     : QOpenGLWidget(parent), mesh(nullptr),
       scale(1), zoom(1), tilt(90), yaw(0),
       perspective(0.25), anim(this, "perspective"), status(" ")
 {
-    //setFormat(format);
-
     anim.setDuration(100);
 }
 

@@ -90,7 +90,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     format.setProfile( QSurfaceFormat::CoreProfile );
     QSurfaceFormat::setDefaultFormat( format );
 
-    _canvas = new Canvas( format, this );
+    _canvas = new Canvas( this );
     _canvas->setFixedSize( 735, 490 );
     _canvas->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
