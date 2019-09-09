@@ -88,6 +88,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     format.setStencilBufferSize( 8 );
     format.setVersion( 2, 1 );
     format.setProfile( QSurfaceFormat::CoreProfile );
+    format.setRenderableType( QSurfaceFormat::OpenGLES );
     QSurfaceFormat::setDefaultFormat( format );
 
     _canvas = new Canvas( this );
