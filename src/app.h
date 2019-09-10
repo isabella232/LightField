@@ -47,7 +47,6 @@ private:
     bool _isAlreadyRunning( );
     void _recordProcessId( );
     void _setTheme( );
-    void _initializeOpenGL( );
 
 public slots:
 
