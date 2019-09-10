@@ -138,7 +138,7 @@ void FileTab::_initialShowEvent( QShowEvent* event ) {
     auto metrics    { QFontMetrics { _deleteButton->font( )            } };
     auto canvasRect { QRect        { _canvas->pos( ), _canvas->size( ) } };
 
-    _deleteButton->resize( QSize { metrics.horizontalAdvance( _deleteButton->text( ) ), metrics.height( ) } + ButtonPadding );
+    _deleteButton->resize( QSize { metrics.horizontalAdvance( _deleteButton->text( ) ), metrics.height( ) * 2 } + ButtonPadding );
     _deleteButton->move( _rightColumn->pos( ) + canvasRect.bottomRight( ) - QPoint { _deleteButton->width( ) - 1, _deleteButton->height( ) - 1 } );
     _deleteButton->setEnabled( false );
 
@@ -213,7 +213,6 @@ void FileTab::_clearSelection( ) {
 
     _availableFilesListView->selectionModel( )->clear( );
     _selectButton->setEnabled( false );
-    _selectButton->setText( "Select" );
     _dimensionsLabel->clear( );
     _errorLabel->clear( );
     _viewSolid->setEnabled( false );
@@ -234,6 +233,7 @@ void FileTab::_showLibrary( ) {
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _libraryFsModel );
     _availableFilesListView->setRootIndex( _libraryFsModel->index( StlModelLibraryPath ) );
+    _selectButton->setText( "Select" );
 
     update( );
 }
@@ -249,6 +249,7 @@ void FileTab::_showUsbStick( ) {
     _availableFilesListView->setEnabled( true );
     _availableFilesListView->setModel( _usbFsModel );
     _availableFilesListView->setRootIndex( _usbFsModel->index( _usbPath ) );
+    _selectButton->setText( "Copy to library" );
 
     update( );
 }
