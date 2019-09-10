@@ -240,13 +240,16 @@ void App::_setTheme( ) {
 }
 
 void App::_initializeOpenGL( ) {
-    QSurfaceFormat format { QSurfaceFormat::DebugContext };
+    QSurfaceFormat format;
 
     format.setRenderableType( QSurfaceFormat::OpenGLES );
     format.setProfile( QSurfaceFormat::CoreProfile );
     format.setVersion( 2, 1 );
     format.setDepthBufferSize( 24 );
     format.setStencilBufferSize( 8 );
+#if defined _DEBUG
+    format.setOption( QSurfaceFormat::DebugContext, true );
+#endif // defined _DEBUG
 
     QSurfaceFormat::setDefaultFormat( format );
 }
