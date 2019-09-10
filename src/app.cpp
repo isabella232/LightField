@@ -239,6 +239,18 @@ void App::_setTheme( ) {
     setPalette( darkPalette );
 }
 
+void App::_initializeOpenGL( ) {
+    QSurfaceFormat format { QSurfaceFormat::DebugContext };
+
+    format.setRenderableType( QSurfaceFormat::OpenGLES );
+    format.setProfile( QSurfaceFormat::CoreProfile );
+    format.setVersion( 2, 1 );
+    format.setDepthBufferSize( 24 );
+    format.setStencilBufferSize( 8 );
+
+    QSurfaceFormat::setDefaultFormat( format );
+}
+
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
     debug( "LightField version %s starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
@@ -261,6 +273,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
 
     _setTheme( );
+    _initializeOpenGL( );
 
     _window = new Window;
     (void) QObject::connect( _window, &Window::terminationRequested, this, &App::terminate, Qt::QueuedConnection );
