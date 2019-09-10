@@ -12,7 +12,7 @@ rebuild () {
     local QMAKE=
 
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
-	cat <<HERE
+        cat <<HERE
 Usage: rebuild [-cnqrx] [--clean|--nuke-first|--qmake-anyway|--release]
 Runs "qmake" to regenerate the Makefile, if necessary, then "make" to
 rebuild LightField.
@@ -25,7 +25,7 @@ rebuild LightField.
   -r,     --release        Perform a release build instead of a debug
                              build.
 HERE
-	return
+        return
     fi
 
     local ARGS=$(getopt -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@")
@@ -33,59 +33,64 @@ HERE
 
     while [ -n "${1}" ]
     do
-	case "${1}" in
-	    '-c'        | '--clean'        ) CLEAN=yes     ;;
-	    '-n' | '-x' | '--nuke-first'   )  NUKE=yes     ;;
-	    '-q'        | '--qmake-anyway' ) QMAKE=yes     ;;
-	    '-r'        | '--release'      ) BUILD=release ;;
-	    '--' )
-		shift
-		break
-		;;
-	    * )
-		return
-		;;
-	esac
-	shift
+        case "${1}" in
+            '-c'        | '--clean'        ) CLEAN=yes     ;;
+            '-n' | '-x' | '--nuke-first'   )  NUKE=yes     ;;
+            '-q'        | '--qmake-anyway' ) QMAKE=yes     ;;
+            '-r'        | '--release'      ) BUILD=release ;;
+            '--' )
+                shift
+                break
+                ;;
+            * )
+                return
+                ;;
+        esac
+        shift
     done
 
     if [ -d "${BUILDDIR}" ]
     then
-	if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
-	then
-	    echo ${BUILD} > ${BUILDDIR}/.lastbuildmode
-	    NUKE=yes
-	fi
+        if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
+        then
+            echo ${BUILD} > ${BUILDDIR}/.lastbuildmode
+            NUKE=yes
+        fi
 
-	local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-	if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
-	then
-	    echo Switching from ${LASTBUILDMODE} to ${BUILD}.
-	    NUKE=yes
-	fi
+        local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
+        if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
+        then
+            echo Switching from ${LASTBUILDMODE} to ${BUILD}.
+            NUKE=yes
+        fi
 
-	if [ -n "${NUKE}" ]
-	then
-	    unset CLEAN
-	    QMAKE=yes
-	    rm -dr ${BUILDDIR} && mkdir -p ${BUILDDIR}
-	fi
+        if [ -n "${NUKE}" ]
+        then
+            unset CLEAN
+            QMAKE=yes
+            rm -dr ${BUILDDIR} && mkdir -p ${BUILDDIR}
+        fi
     else
-	mkdir -p ${BUILDDIR}
+        mkdir -p ${BUILDDIR}
     fi
 
     cd ${BUILDDIR}
 
     if [ -n "${CLEAN}" ]
     then
-	QMAKE=yes
-	make distclean
+        QMAKE=yes
+        make distclean
     fi
 
     if [ -n "${QMAKE}"   -o  ! -f Makefile  -o  ../qt/lf.pro -nt Makefile ]
     then
-	qmake CONFIG+=${BUILD} ../qt/lf.pro || return
-	echo "${BUILD}" > ${BUILDDIR}/.lastbuildmode
+        if [ "`uname -m`" = "armv7l" ]
+        then
+            qmake -spec /usr/lib/arm-linux-gnueabihf/qt5/mkspecs/devices/linux-rasp-pi3-g++ CONFIG+=${BUILD} ../qt/lf.pro || return
+        else
+            qmake CONFIG+=${BUILD} ../qt/lf.pro || return
+        fi
+        echo "${BUILD}" > ${BUILDDIR}/.lastbuildmode
     fi
 
     make -j${QT_BUILD_JOBS-12}

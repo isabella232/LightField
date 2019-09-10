@@ -1,15 +1,26 @@
-QT += core gui widgets xml
+QT                        += core gui widgets xml opengl
+CONFIG                    += c++1z precompile_header
+TARGET                     = lf
+TEMPLATE                   = app
+PRECOMPILED_HEADER         = ../src/pch.h
 
-TARGET   = lf
-TEMPLATE = app
+QMAKE_CXXFLAGS_RELEASE    -= -O2
+QMAKE_CXXFLAGS_RELEASE    += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result -Wno-class-memaccess
+QMAKE_CXXFLAGS_DEBUG      += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result -Wno-class-memaccess
 
-QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
-QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+contains(QMAKE_HOST.arch, armv7l):{
+    QMAKE_CXXFLAGS        -= -mtune=cortex-a53
+    QMAKE_CXXFLAGS        += -mtune=cortex-a72
 
-LIBS += -lGL
+    #MAKE_LIBS_EGL         = -lbrcmEGL -lbrcmGLESv2 -lGL
+    #MAKE_LIBS_OPENGL_ES2  = -lbrcmGLESv2 -lbrcmEGL -lGL
+    #MAKE_LIBS_OPENVG      = -lbcrmEGL -lbrcmOpenVG -lbrcmGLESv2 -lGL
+    QMAKE_LIBS_OPENGL_ES2 += -lGL
+}
 
-SOURCES +=                         \
+RESOURCES                 += ../gl/gl.qrc ../images/images.qrc ../text/text.qrc
+
+SOURCES                   +=       \
     ../src/advancedtab.cpp         \
     ../src/app.cpp                 \
     ../src/backdrop.cpp            \
@@ -48,7 +59,7 @@ SOURCES +=                         \
     ../src/utils.cpp               \
     ../src/window.cpp
 
-HEADERS  +=                        \
+HEADERS                   +=       \
     ../src/advancedtab.h           \
     ../src/app.h                   \
     ../src/backdrop.h              \
@@ -90,24 +101,3 @@ HEADERS  +=                        \
     ../src/version.h               \
     ../src/vertex.h                \
     ../src/window.h
-
-CONFIG += c++1z precompile_header
-PRECOMPILED_HEADER = ../src/pch.h
-
-RESOURCES += \
-    ../gl/gl.qrc         \
-    ../images/images.qrc \
-    ../text/text.qrc
-
-linux {
-    target.path = /usr/bin
-    INSTALLS += target
-}
-
-static {
-    CONFIG += static
-}
-
-debug {
-    QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
-}
