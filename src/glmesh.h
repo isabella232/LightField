@@ -1,9 +1,6 @@
 #ifndef GLMESH_H
 #define GLMESH_H
 
-#include <QOpenGLBuffer>
-#include <QOpenGLFunctions>
-
 // forward declaration
 class Mesh;
 

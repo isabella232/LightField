@@ -1,9 +1,6 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <QSurfaceFormat>
-#include <QOpenGLShaderProgram>
-
 class GLMesh;
 class Mesh;
 class Backdrop;
