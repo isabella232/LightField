@@ -39,7 +39,7 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtWidgets>
-#include <QtXml/QtXml>
+#include <QtXml>
 
 #include "constants.h"
 #include "debug.h"

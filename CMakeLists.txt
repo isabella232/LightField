@@ -128,7 +128,7 @@ set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 include_directories(${OPENGL_INCLUDE_DIR} )
 
 add_executable(lf WIN32 ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
-target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 if(WIN32)
   set(Lf_LINK_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/${Icon_Resource})
   set_target_properties(lf PROPERTIES LINK_FLAGS ${Lf_LINK_FLAGS})
