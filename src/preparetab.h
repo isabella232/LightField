@@ -22,6 +22,7 @@ public:
 
 protected:
 
+    virtual void _connectPrintManager( )                override;
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
@@ -48,6 +49,12 @@ private:
     QLabel*       _prepareMessage              { new QLabel       };
     QProgressBar* _prepareProgress             { new QProgressBar };
     QPushButton*  _prepareButton               { new QPushButton  };
+
+    QPixmap*      _warningHotImage             {                  };
+    QLabel*       _warningHotLabel             { new QLabel       };
+
+    QPixmap*      _warningUvImage              {                  };
+    QLabel*       _warningUvLabel              { new QLabel       };
 
     QWidget*      _optionsContainer            { new QWidget      };
     QPushButton*  _sliceButton                 { new QPushButton  };
@@ -95,6 +102,8 @@ private slots:
 
     void printer_online( );
     void printer_offline( );
+    void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
+    void printManager_lampStatusChange( bool const on );
 
     void layerThickness50Button_clicked( bool );
     void layerThickness100Button_clicked( bool );
