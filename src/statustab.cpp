@@ -424,7 +424,6 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 }
 
 void StatusTab::printManager_lampStatusChange( bool const on ) {
-    debug( "+ StatusTab::printManager_lampStatusChange: lamp %s\n", on ? "ON" : "off" );
     _projectorLampStateDisplay->setText( on ? "Projector is ON" : "Projector is off" );
     if ( on ) {
         _warningUvLabel->setPixmap( *_warningUvImage );

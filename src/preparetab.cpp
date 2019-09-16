@@ -4,6 +4,7 @@
 
 #include "hasher.h"
 #include "printjob.h"
+#include "printmanager.h"
 #include "shepherd.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
@@ -59,6 +60,18 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         nullptr
     ) );
 
+    _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
+    _warningHotLabel->setAlignment( Qt::AlignCenter );
+    _warningHotLabel->setContentsMargins( { } );
+    _warningHotLabel->setFixedSize( 43, 43 );
+    _warningHotLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+    _warningUvImage = new QPixmap { QString { ":images/warning-uv.png"  } };
+    _warningUvLabel->setAlignment( Qt::AlignCenter );
+    _warningUvLabel->setContentsMargins( { } );
+    _warningUvLabel->setFixedSize( 43, 43 );
+    _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
     _prepareButton->setEnabled( false );
     _prepareButton->setFixedSize( MainButtonSize );
     _prepareButton->setFont( font22pt );
@@ -78,6 +91,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         WrapWidgetsInVBox(
             _prepareGroup,
+            WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr ),
             _prepareButton
         )
     ) );
@@ -140,10 +154,17 @@ PrepareTab::~PrepareTab( ) {
     /*empty*/
 }
 
+void PrepareTab::_connectPrintManager( ) {
+    if ( _printManager ) {
+        QObject::connect( _printManager, &PrintManager::lampStatusChange, this, &PrepareTab::printManager_lampStatusChange );
+    }
+}
+
 void PrepareTab::_connectShepherd( ) {
     if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,  this, &PrepareTab::printer_online  );
-        QObject::connect( _shepherd, &Shepherd::printer_offline, this, &PrepareTab::printer_offline );
+        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &PrepareTab::printer_online            );
+        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &PrepareTab::printer_offline           );
+        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &PrepareTab::printer_temperatureReport );
     }
 }
 
@@ -643,6 +664,26 @@ void PrepareTab::printer_offline( ) {
     debug( "+ PrepareTab::printer_offline: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updatePrepareButtonState( );
+}
+
+void PrepareTab::printer_temperatureReport( double const bedCurrentTemperature, double const, int const ) {
+    if ( bedCurrentTemperature >= 30.0 ) {
+        _warningHotLabel->setPixmap( *_warningHotImage );
+    } else {
+        _warningHotLabel->clear( );
+    }
+
+    update( );
+}
+
+void PrepareTab::printManager_lampStatusChange( bool const on ) {
+    if ( on ) {
+        _warningUvLabel->setPixmap( *_warningUvImage );
+    } else {
+        _warningUvLabel->clear( );
+    }
+
+    update( );
 }
 
 void PrepareTab::setPrinterAvailable( bool const value ) {

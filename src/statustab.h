@@ -111,7 +111,7 @@ private slots:
     void printManager_lampStatusChange( bool const on );
     void printManager_requestDispensePrintSolution( );
 
-    void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const /*bedPwm*/ );
+    void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
     void initializationCommands_sendComplete( bool const success );
 
