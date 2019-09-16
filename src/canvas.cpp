@@ -1,11 +1,44 @@
 #include "pch.h"
 
-#include <GL/gl.h>
-
-#include "canvas.h"
+#include "glerr.h"
 #include "backdrop.h"
 #include "glmesh.h"
 #include "mesh.h"
+
+#include "canvas.h"
+
+namespace {
+
+    char const* GlErrorNames[] {
+        "GL_INVALID_ENUM",
+        "GL_INVALID_VALUE",
+        "GL_INVALID_OPERATION",
+        "GL_STACK_OVERFLOW",
+        "GL_STACK_UNDERFLOW",
+        "GL_OUT_OF_MEMORY",
+    };
+
+}
+
+void GetGlErrors( char const* func, int line ) {
+    GLenum error;
+    char const* errorText;
+
+    while ( GL_NO_ERROR != ( error = glGetError( ) ) ) {
+        if ( ( error >= GL_INVALID_ENUM ) && ( error <= GL_OUT_OF_MEMORY ) ) {
+            errorText = GlErrorNames[error - GL_INVALID_ENUM];
+        } else {
+            errorText = "<unknown>";
+        }
+        debug( "!!! %s:%d: GL error %s [0x%04X]\n", func, line, errorText, error );
+    }
+}
+
+void ClearGlErrors( ) {
+    while ( GL_NO_ERROR != glGetError( ) ) {
+        /*empty*/
+    }
+}
 
 Canvas::Canvas(QWidget *parent)
     : QOpenGLWidget(parent), mesh(nullptr),
@@ -55,14 +88,13 @@ void Canvas::draw_wireframe()
 
 void Canvas::load_mesh(Mesh* m)
 {
+    QVector3D lower(m->xmin(), m->ymin(), m->zmin());
+    QVector3D upper(m->xmax(), m->ymax(), m->zmax());
+
     if (mesh) {
         delete mesh;
     }
     mesh = new GLMesh(m);
-
-    QVector3D lower(m->xmin(), m->ymin(), m->zmin());
-    QVector3D upper(m->xmax(), m->ymax(), m->zmax());
-
     delete m;
 
     center = (lower + upper) / 2;
@@ -107,39 +139,68 @@ void Canvas::set_drawMode(int mode)
 
 void Canvas::clear_status()
 {
-    status = "";
+    status.clear();
     update();
 }
 
-void Canvas::initializeGL()
-{
-    initializeOpenGLFunctions();
+void Canvas::initializeGL( ) {
+    initializeOpenGLFunctions( ); GET_GL_ERRORS;
 
-    mesh_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl/mesh.vert");
-    mesh_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl/mesh.frag");
-    mesh_shader.link();
-    mesh_wireframe_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl/mesh.vert");
-    mesh_wireframe_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl/mesh_wireframe.frag");
-    mesh_wireframe_shader.link();
+    bool b;
+    b = mesh_shader.addShaderFromSourceFile( QOpenGLShader::Vertex, ":/gl/mesh.vert" ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\n" );
+    }
+    b = mesh_shader.addShaderFromSourceFile( QOpenGLShader::Fragment, ":/gl/mesh.frag" ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.frag failed\n" );
+    }
+    b = mesh_shader.link( ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: mesh_shader.link failed\n" );
+    }
 
-    backdrop = new Backdrop();
+    b = mesh_wireframe_shader.addShaderFromSourceFile( QOpenGLShader::Vertex, ":/gl/mesh.vert" ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\n" );
+    }
+    b = mesh_wireframe_shader.addShaderFromSourceFile( QOpenGLShader::Fragment, ":/gl/mesh_wireframe.frag" ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh_wireframe.frag failed\n" );
+    }
+    b = mesh_wireframe_shader.link( ); GET_GL_ERRORS;
+    if ( !b ) {
+        debug( "!!! Canvas::initializeGL: mesh_wireframe_shader.link failed\n" );
+    }
+
+    backdrop = new Backdrop;
 }
 
+void Canvas::paintGL( ) {
+    QPainter painter;
+    painter.begin( this );
+    painter.beginNativePainting( );
 
-void Canvas::paintGL()
-{
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+    ClearGlErrors( );
+    glClearColor( 0.0, 0.0, 0.0, 0.0 ); GET_GL_ERRORS;
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); GET_GL_ERRORS;
+    glEnable( GL_DEPTH_TEST ); GET_GL_ERRORS;
 
-    backdrop->draw();
-    if (mesh)  draw_mesh();
+    backdrop->draw( );
+    if ( mesh ) {
+        draw_mesh( );
+    }
 
-    if (status.isNull())  return;
+    glDisable( GL_DEPTH_TEST ); GET_GL_ERRORS;
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.drawText(10, height() - 10, status);
+    painter.endNativePainting( );
+
+    if ( !status.isEmpty( ) ) {
+        painter.setRenderHint( QPainter::Antialiasing );
+        painter.drawText( 10, height( ) - 10, status );
+    }
+
+    painter.end( );
 }
 
 void Canvas::draw_mesh()
@@ -149,40 +210,51 @@ void Canvas::draw_mesh()
     if(drawMode == 1)
     {
         selected_mesh_shader = &mesh_wireframe_shader;
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GET_GL_ERRORS;
     }
     else
     {
         selected_mesh_shader = &mesh_shader;
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); GET_GL_ERRORS;
     }
 
-    selected_mesh_shader->bind();
+    selected_mesh_shader->bind(); GET_GL_ERRORS;
 
     // Load the transform and view matrices into the shader
-    glUniformMatrix4fv(
-                selected_mesh_shader->uniformLocation("transform_matrix"),
-                1, GL_FALSE, transform_matrix().data());
-    glUniformMatrix4fv(
-                selected_mesh_shader->uniformLocation("view_matrix"),
-                1, GL_FALSE, view_matrix().data());
+    int tm = selected_mesh_shader->uniformLocation("transform_matrix");
+    if ( -1 == tm ) {
+        debug( "!!! Canvas::draw_mesh: transform_matrix is invalid\n" );
+    }
+    glUniformMatrix4fv(tm, 1, GL_FALSE, transform_matrix().data()); GET_GL_ERRORS;
+    int vm = selected_mesh_shader->uniformLocation("view_matrix");
+    if ( -1 == vm ) {
+        debug( "!!! Canvas::draw_mesh: view_matrix is invalid\n" );
+    }
+    glUniformMatrix4fv(vm, 1, GL_FALSE, view_matrix().data()); GET_GL_ERRORS;
 
     // Compensate for z-flattening when zooming
-    glUniform1f(selected_mesh_shader->uniformLocation("zoom"), 1/zoom);
+    GLint z = selected_mesh_shader->uniformLocation("zoom");
+    if ( -1 == z ) {
+        debug( "!!! Canvas::draw_mesh: zoom is invalid\n" );
+    }
+    glUniform1f(z, 1/zoom); GET_GL_ERRORS;
 
     // Find and enable the attribute location for vertex position
-    const GLuint vp = selected_mesh_shader->attributeLocation("vertex_position");
-    glEnableVertexAttribArray(vp);
+    const GLuint vp = selected_mesh_shader->attributeLocation("vertex_position"); GET_GL_ERRORS;
+    if ( static_cast<GLuint>( -1 ) == vp ) {
+        debug( "!!! Canvas::draw_mesh: vertex_position is invalid\n" );
+    }
+    glEnableVertexAttribArray(vp); GET_GL_ERRORS;
 
     // Then draw the mesh with that vertex position
     mesh->draw(vp);
 
     // Reset draw mode for the background and anything else that needs to be drawn
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); GET_GL_ERRORS;
 
     // Clean up state machine
-    glDisableVertexAttribArray(vp);
-    selected_mesh_shader->release();
+    glDisableVertexAttribArray(vp); GET_GL_ERRORS;
+    selected_mesh_shader->release(); GET_GL_ERRORS;
 }
 
 QMatrix4x4 Canvas::transform_matrix() const
@@ -283,5 +355,5 @@ void Canvas::wheelEvent(QWheelEvent *event)
 
 void Canvas::resizeGL(int width, int height)
 {
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height); GET_GL_ERRORS;
 }

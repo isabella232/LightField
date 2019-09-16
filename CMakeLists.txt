@@ -80,6 +80,7 @@ src/debuglogcopier.h
 src/filecopier.h
 src/filetab.h
 src/gesturelistview.h
+src/glerr.h
 src/glmesh.h
 src/gpgsignaturechecker.h
 src/hasher.h

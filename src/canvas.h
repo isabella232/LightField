@@ -1,11 +1,20 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
+#include <qopenglfunctions_2_0.h>
+#include <qopenglfunctions_es2.h>
+
 class GLMesh;
 class Mesh;
 class Backdrop;
 
-class Canvas : public QOpenGLWidget, protected QOpenGLFunctions
+class Canvas:
+    public QOpenGLWidget,
+#if defined QT_OPENGL_ES_2
+    protected QOpenGLFunctions_ES2
+#else // !defined QT_OPENGL_ES_2
+    protected QOpenGLFunctions_2_0
+#endif // defined QT_OPENGL_ES_2
 {
     Q_OBJECT
 

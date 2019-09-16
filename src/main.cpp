@@ -3,9 +3,9 @@
 void _initializeOpenGL( ) {
     QSurfaceFormat format;
 
-    format.setRenderableType( QSurfaceFormat::OpenGL/*ES*/ );
-    format.setProfile( QSurfaceFormat::CompatibilityProfile/*CoreProfile*/ );
-    format.setVersion( 2, 1 );
+    //format.setRenderableType( QSurfaceFormat::OpenGL/*ES*/ );
+    //format.setProfile( QSurfaceFormat::CompatibilityProfile/*CoreProfile*/ );
+    //format.setVersion( 2, 1 );
     format.setDepthBufferSize( 24 );
     format.setStencilBufferSize( 8 );
 #if defined _DEBUG

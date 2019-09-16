@@ -82,18 +82,18 @@ HERE
         make distclean
     fi
 
-    if [ -n "${QMAKE}"   -o  ! -f Makefile  -o  ../qt/lf.pro -nt Makefile ]
+    if [ -n "${QMAKE}"  -o  ! -f Makefile  -o  ../qt/lf.pro -nt Makefile ]
     then
-        if [ "`uname -m`" = "armv7l" ]
-        then
-            qmake -spec /usr/lib/arm-linux-gnueabihf/qt5/mkspecs/devices/linux-rasp-pi3-g++ CONFIG+=${BUILD} ../qt/lf.pro || return
-        else
+        #if [ "`uname -m`" = "armv7l" ]
+        #then
+        #    qmake -spec /usr/lib/arm-linux-gnueabihf/qt5/mkspecs/devices/linux-rasp-pi3-g++ CONFIG+=${BUILD} ../qt/lf.pro || return
+        #else
             qmake CONFIG+=${BUILD} ../qt/lf.pro || return
-        fi
+        #fi
         echo "${BUILD}" > ${BUILDDIR}/.lastbuildmode
     fi
 
-    make -j${QT_BUILD_JOBS-12}
+    make -j${QT_BUILD_JOBS-6}
 }
 
 rebuild $*
