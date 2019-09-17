@@ -149,28 +149,28 @@ void Canvas::initializeGL( ) {
     bool b;
     b = mesh_shader.addShaderFromSourceFile( QOpenGLShader::Vertex, ":/gl/mesh.vert" ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\n" );
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\nLog:\n%s\n", mesh_shader.log( ).toUtf8( ).data( ) );
     }
     b = mesh_shader.addShaderFromSourceFile( QOpenGLShader::Fragment, ":/gl/mesh.frag" ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.frag failed\n" );
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.frag failed\nLog:\n%s\n", mesh_shader.log( ).toUtf8( ).data( ) );
     }
     b = mesh_shader.link( ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: mesh_shader.link failed\n" );
+        debug( "!!! Canvas::initializeGL: mesh_shader.link failed\nLog:\n%s\n", mesh_shader.log( ).toUtf8( ).data( ) );
     }
 
     b = mesh_wireframe_shader.addShaderFromSourceFile( QOpenGLShader::Vertex, ":/gl/mesh.vert" ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\n" );
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh.vert failed\nLog:\n%s\n", mesh_wireframe_shader.log( ).toUtf8( ).data( ) );
     }
     b = mesh_wireframe_shader.addShaderFromSourceFile( QOpenGLShader::Fragment, ":/gl/mesh_wireframe.frag" ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh_wireframe.frag failed\n" );
+        debug( "!!! Canvas::initializeGL: shader.addShaderFromSourceFile for mesh_wireframe.frag failed\nLog:\n%s\n", mesh_wireframe_shader.log( ).toUtf8( ).data( ) );
     }
     b = mesh_wireframe_shader.link( ); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Canvas::initializeGL: mesh_wireframe_shader.link failed\n" );
+        debug( "!!! Canvas::initializeGL: mesh_wireframe_shader.link failed\nLog:\n%s\n", mesh_wireframe_shader.log( ).toUtf8( ).data( ) );
     }
 
     backdrop = new Backdrop;

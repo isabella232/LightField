@@ -11,15 +11,15 @@ Backdrop::Backdrop()
     bool b;
     b = shader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/gl/quad.vert"); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Backdrop::`ctor: shader.addShaderFromSourceFile for quad.vert failed\n" );
+        debug( "!!! Backdrop::`ctor: shader.addShaderFromSourceFile for quad.vert failed\nLog:\n%s\n", shader.log( ).toUtf8( ).data( ) );
     }
     shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/gl/quad.frag"); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Backdrop::`ctor: shader.addShaderFromSourceFile for quad.frag failed\n" );
+        debug( "!!! Backdrop::`ctor: shader.addShaderFromSourceFile for quad.frag failed\nLog:\n%s\n", shader.log( ).toUtf8( ).data( ) );
     }
     b = shader.link(); GET_GL_ERRORS;
     if ( !b ) {
-        debug( "!!! Backdrop::`ctor: shader.link failed\n" );
+        debug( "!!! Backdrop::`ctor: shader.link failed\nLog:\n%s\n", shader.log( ).toUtf8( ).data( ) );
     }
 
     float vbuf[] = {
