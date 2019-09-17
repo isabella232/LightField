@@ -1,4 +1,5 @@
-#version 120
+#version 300 es
+
 attribute vec3 vertex_position;
 
 uniform mat4 transform_matrix;
