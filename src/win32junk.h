@@ -106,6 +106,7 @@ struct statvfs {
 
 extern int     chown( char const* pathname, uid_t owner, gid_t group );
 extern int     clock_gettime( int clk_id, timespec* tp );
+extern int     get_nprocs( void );
 extern int     getpid( );
 extern group*  getgrnam( const char* name );
 extern int     getgrnam_r( char const* name, group* grp, char* buf, size_t buflen, group** result );

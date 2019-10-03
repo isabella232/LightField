@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/sysinfo.h>
+
 #include "svgrenderer.h"
 
 #include "processrunner.h"
@@ -14,12 +16,11 @@ namespace {
         return skeletonDoc;
     }
 
+    int const NumberOfCpus = get_nprocs( );
+
 }
 
 SvgRenderer::SvgRenderer( ) {
-    _processRunner = new ProcessRunner;
-    QObject::connect( _processRunner, &ProcessRunner::succeeded, this, &SvgRenderer::programSucceeded );
-    QObject::connect( _processRunner, &ProcessRunner::failed,    this, &SvgRenderer::programFailed    );
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -106,47 +107,138 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             return;
         }
     }
+
     _totalLayers = _currentLayer;
+    _runningLayers .fill( -1,      NumberOfCpus );
+    _processRunners.fill( nullptr, NumberOfCpus );
     emit layerCount( _totalLayers );
 
-    _currentLayer = 0;
     _renderLayer( );
 }
 
 void SvgRenderer::_renderLayer( ) {
-    debug( "+ SvgRenderer::_renderLayer: _currentLayer: %d; PNG size: %d×%d\n", _currentLayer, _pxWidth, _pxHeight );
-    _processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
-    _processRunner->start(
-        { "gm" },
-        {
-            "convert",
-            "-antialias",
-            "-density",    "400",
-            "-background", "#000000",
-            "-size",       QString( "%1x%2" ).arg( _pxWidth ).arg( _pxHeight ),
-            QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( _currentLayer, 6, 10, DigitZero ),
-            QString( "%1/%2.png" ).arg( _outputDirectory ).arg( _currentLayer, 6, 10, DigitZero )
+    debug( "+ SvgRenderer::_renderLayer:\n" );
+
+    for ( int slot = 0; ( slot < NumberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
+        debug(
+            "  + slot:              %d\n"
+            "  + _currentLayer:     %d\n"
+            "  + _completedLayers:  %d\n"
+            "  + _totalLayers:      %d\n"
+            "  + _processesRunning: %d\n"
+            "",
+            slot,
+            _currentLayer,
+            _completedLayers,
+            _totalLayers,
+            _processesRunning
+        );
+        if ( _processRunners[slot] ) {
+            debug( "  + slot is busy, skipping\n" );
+            continue;
         }
-    );
-}
 
-void SvgRenderer::programSucceeded( ) {
-    emit layerComplete( _currentLayer );
+        auto processRunner = new ProcessRunner;
+        processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
 
-    if ( _currentLayer + 1 == _totalLayers ) {
-        TimingLogger::stopTiming( TimingId::RenderingPngs );
-        debug( "+ SvgRenderer::programSucceeded: finished\n" );
+        QObject::connect( processRunner, &ProcessRunner::succeeded, [ this, slot ] ( ) {
+            ++_completedLayers;
+            --_processesRunning;
+            debug(
+                "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded:\n"
+                "  + slot:              %d\n"
+                "  + layer:             %d\n"
+                "  + _completedLayers:  %d\n"
+                "  + _totalLayers:      %d\n"
+                "  + _processesRunning: %d\n"
+                "",
+                slot,
+                _runningLayers[slot],
+                _completedLayers,
+                _totalLayers,
+                _processesRunning
+            );
 
-        emit done( true );
-    } else {
-        ++_currentLayer;
-        _renderLayer( );
+            emit layerComplete( _runningLayers[slot] );
+
+            _cleanUpOneProcessRunner( slot );
+
+            if ( _completedLayers == _totalLayers ) {
+                TimingLogger::stopTiming( TimingId::RenderingPngs );
+                debug( "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded: finished\n" );
+                emit done( true );
+            } else {
+                _renderLayer( );
+            }
+        } );
+
+        QObject::connect( processRunner, &ProcessRunner::failed, [ this, slot ] ( int const exitCode, QProcess::ProcessError const error ) {
+            debug(
+                "+ SvgRenderer::_renderLayer: ProcessRunner::failed:\n"
+                "  + slot:     %d\n"
+                "  + layer:     %d\n"
+                "  + exit code: %d\n"
+                "  + error:     %s [%d]\n"
+                "",
+                slot,
+                _runningLayers[slot],
+                exitCode,
+                ToString( error ), static_cast<int>( error )
+            );
+
+            _processesRunning = 0;
+            _cleanUpProcessRunners( );
+
+            TimingLogger::stopTiming( TimingId::RenderingPngs );
+
+            emit done( false );
+        } );
+
+        debug( "  + new instance in slot %d for layer %d: %p\n", slot, processRunner, _currentLayer );
+        _processRunners[slot] = processRunner;
+        _runningLayers[slot]  = _currentLayer;
+
+        auto layer = _currentLayer++;
+        ++_processesRunning;
+
+        processRunner->start(
+            { "gm" },
+            {
+                "convert",
+                "-antialias",
+                "-density",    "400",
+                "-background", "#000000",
+                "-size",       QString( "%1x%2" ).arg( _pxWidth ).arg( _pxHeight ),
+                QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero ),
+                QString( "%1/%2.png" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero )
+            }
+        );
     }
 }
 
-void SvgRenderer::programFailed( int const exitCode, QProcess::ProcessError const error ) {
-    debug( "+ SvgRenderer::programFailed: exit code: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
-    TimingLogger::stopTiming( TimingId::RenderingPngs );
+void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
+    auto processRunner = _processRunners[slot];
+    if ( !processRunner ) {
+        debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: no instance, returning\n", slot );
+        return;
+    }
 
-    emit done( false );
+    debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: layer %d, instance %p\n", slot, _runningLayers[slot], _processRunners[slot] );
+    _processRunners[slot] = nullptr;
+    _runningLayers[slot]  = -1;
+
+    QObject::disconnect( processRunner );
+    if ( processRunner->state( ) != QProcess::NotRunning ) {
+        debug( "  + Process is in state %s, terminating\n", ToString( processRunner->state( ) ) );
+        processRunner->terminate( );
+    }
+    processRunner->deleteLater( );
+}
+
+void SvgRenderer::_cleanUpProcessRunners( ) {
+    debug( "+ SvgRenderer::_cleanUpProcessRunners\n" );
+
+    for ( int slot = 0; slot < NumberOfCpus; ++slot ) {
+        _cleanUpOneProcessRunner( slot );
+    }
 }

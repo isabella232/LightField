@@ -18,32 +18,41 @@ protected:
 
 private:
 
-    QString        _outputDirectory;
-    QDomDocument   _doc;
-    ProcessRunner* _processRunner   { };
+    QString                 _outputDirectory;
+    QDomDocument            _doc;
 
-    int            _currentLayer    { };
-    int            _totalLayers     { };
-    int            _digits          { };
-    int            _pxWidth         { };
-    int            _pxHeight        { };
+    QVector<ProcessRunner*> _processRunners;
+    QVector<int>            _runningLayers;
+    int                     _processesRunning { };
+
+    int                     _currentLayer     { };
+    int                     _completedLayers  { };
+    int                     _totalLayers      { };
+    int                     _digits           { };
+    int                     _pxWidth          { };
+    int                     _pxHeight         { };
+
+    bool                    _isRunning        { };
 
     void _renderLayer( );
+    void _cleanUpOneProcessRunner( int const slot );
+    void _cleanUpProcessRunners( );
 
 signals:
+    ;
 
     void layerCount( int const totalLayers );
     void layerComplete( int const layer );
     void done( bool const success );
 
 public slots:
+    ;
 
 protected slots:
+    ;
 
 private slots:
-
-    void programSucceeded( );
-    void programFailed( int const exitCode, QProcess::ProcessError const error );
+    ;
 
 };
 
