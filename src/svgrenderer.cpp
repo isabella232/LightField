@@ -113,26 +113,32 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 }
 
 void SvgRenderer::_renderLayer( ) {
-    debug( "+ SvgRenderer::_renderLayer: _currentLayer %d, _totalLayers %d\n", _currentLayer, _totalLayers );
+    debug(
+        "+ SvgRenderer::_renderLayer:\n"
+        " + _currentLayer:      %d\n"
+        " + _totalLayers:       %d\n"
+        "",
+        _currentLayer,
+        _totalLayers
+    );
 
     for ( int slot = 0; ( slot < NumberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
+        debug( "+ SvgRenderer::_renderLayer:\n" );
+        if ( _processRunners[slot] ) {
+            debug( "  + slot:              %d [busy]\n", slot );
+            continue;
+        }
         debug(
             "  + slot:              %d\n"
             "  + _currentLayer:     %d\n"
             "  + _completedLayers:  %d\n"
             "  + _totalLayers:      %d\n"
-            "  + _processesRunning: %d\n"
             "",
             slot,
             _currentLayer,
             _completedLayers,
-            _totalLayers,
-            _processesRunning
+            _totalLayers
         );
-        if ( _processRunners[slot] ) {
-            debug( "  + slot is busy, skipping\n" );
-            continue;
-        }
 
         auto processRunner = new ProcessRunner;
         processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
@@ -146,13 +152,11 @@ void SvgRenderer::_renderLayer( ) {
                 "  + layer:             %d\n"
                 "  + _completedLayers:  %d\n"
                 "  + _totalLayers:      %d\n"
-                "  + _processesRunning: %d\n"
                 "",
                 slot,
                 _runningLayers[slot],
                 _completedLayers,
-                _totalLayers,
-                _processesRunning
+                _totalLayers
             );
 
             emit layerComplete( _runningLayers[slot] );
