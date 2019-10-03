@@ -1,4 +1,4 @@
-#version 300 es
+#version 120
 
 varying vec3 frag_color;
 

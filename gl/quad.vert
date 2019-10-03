@@ -1,4 +1,4 @@
-#version 300 es
+#version 120
 
 attribute vec2 vertex_position;
 attribute vec3 vertex_color;
