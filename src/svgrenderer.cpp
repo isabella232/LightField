@@ -190,7 +190,7 @@ void SvgRenderer::_renderLayer( ) {
             emit done( false );
         } );
 
-        debug( "  + new instance in slot %d for layer %d: %p\n", slot, processRunner, _currentLayer );
+        debug( "  + new instance in slot %d for layer %d: %p\n", slot, _currentLayer, processRunner );
         _processRunners[slot] = processRunner;
         _runningLayers[slot]  = _currentLayer;
 
