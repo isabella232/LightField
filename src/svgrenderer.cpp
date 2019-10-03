@@ -115,29 +115,26 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 void SvgRenderer::_renderLayer( ) {
     debug(
         "+ SvgRenderer::_renderLayer:\n"
-        " + _currentLayer:      %d\n"
-        " + _totalLayers:       %d\n"
+        "  + _currentLayer:    %d\n"
+        "  + _totalLayers:     %d\n"
         "",
         _currentLayer,
         _totalLayers
     );
 
     for ( int slot = 0; ( slot < NumberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
-        debug( "+ SvgRenderer::_renderLayer:\n" );
         if ( _processRunners[slot] ) {
             debug( "  + slot:              %d [busy]\n", slot );
             continue;
         }
         debug(
-            "  + slot:              %d\n"
-            "  + _currentLayer:     %d\n"
-            "  + _completedLayers:  %d\n"
-            "  + _totalLayers:      %d\n"
+            "  + slot:             %d [free]\n"
+            "  + _totalLayers:     %d\n"
+            "  + _completedLayers: %d\n"
             "",
             slot,
-            _currentLayer,
-            _completedLayers,
-            _totalLayers
+            _totalLayers,
+            _completedLayers
         );
 
         auto processRunner = new ProcessRunner;
@@ -148,10 +145,10 @@ void SvgRenderer::_renderLayer( ) {
             --_processesRunning;
             debug(
                 "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded:\n"
-                "  + slot:              %d\n"
-                "  + layer:             %d\n"
-                "  + _completedLayers:  %d\n"
-                "  + _totalLayers:      %d\n"
+                "  + slot:             %d\n"
+                "  + layer:            %d\n"
+                "  + _completedLayers: %d\n"
+                "  + _totalLayers:     %d\n"
                 "",
                 slot,
                 _runningLayers[slot],
