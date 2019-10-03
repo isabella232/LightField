@@ -115,8 +115,9 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 void SvgRenderer::_renderLayer( ) {
     debug(
         "+ SvgRenderer::_renderLayer:\n"
-        "  + _currentLayer:    %d\n"
-        "  + _totalLayers:     %d\n"
+        "  + _currentLayer:     %d\n"
+        "  + _totalLayers:      %d\n"
+        "  + _runningProcesses: %d\n"
         "",
         _currentLayer,
         _totalLayers
@@ -128,9 +129,9 @@ void SvgRenderer::_renderLayer( ) {
             continue;
         }
         debug(
-            "  + slot:             %d [free]\n"
-            "  + _totalLayers:     %d\n"
-            "  + _completedLayers: %d\n"
+            "  + slot:              %d [free]\n"
+            "  + _totalLayers:      %d\n"
+            "  + _completedLayers:  %d\n"
             "",
             slot,
             _totalLayers,
@@ -145,10 +146,10 @@ void SvgRenderer::_renderLayer( ) {
             --_processesRunning;
             debug(
                 "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded:\n"
-                "  + slot:             %d\n"
-                "  + layer:            %d\n"
-                "  + _completedLayers: %d\n"
-                "  + _totalLayers:     %d\n"
+                "  + slot:              %d\n"
+                "  + layer:             %d\n"
+                "  + _completedLayers:  %d\n"
+                "  + _totalLayers:      %d\n"
                 "",
                 slot,
                 _runningLayers[slot],
@@ -172,10 +173,10 @@ void SvgRenderer::_renderLayer( ) {
         QObject::connect( processRunner, &ProcessRunner::failed, [ this, slot ] ( int const exitCode, QProcess::ProcessError const error ) {
             debug(
                 "+ SvgRenderer::_renderLayer: ProcessRunner::failed:\n"
-                "  + slot:      %d\n"
-                "  + layer:     %d\n"
-                "  + exit code: %d\n"
-                "  + error:     %s [%d]\n"
+                "  + slot:              %d\n"
+                "  + layer:             %d\n"
+                "  + exit code:         %d\n"
+                "  + error:             %s [%d]\n"
                 "",
                 slot,
                 _runningLayers[slot],
