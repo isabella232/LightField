@@ -65,28 +65,24 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     int limit = childNodes.length( );
     debug( "  + childNodes.length(): %d\n", childNodes.length( ) );
 
-    _currentLayer = 0;
+    int layer = 0;
     for ( int childIndex = 0; childIndex < limit; ++childIndex ) {
         QDomNode node = childNodes.item( childIndex );
         if ( !node.isElement( ) ) {
-            debug( "  + skipping non-element node\n" );
             continue;
         }
 
         QDomElement* element = reinterpret_cast<QDomElement*>( &node );
         QString nodeName = element->nodeName( );
         if ( nodeName != "g" ) {
-            debug( "  + skipping element because it's not <g>\n" );
             continue;
         }
         if ( !element->hasAttributes( ) ) {
-            debug( "  + skipping element because it has no attributes\n" );
             continue;
         }
 
         QString idValue = element->attribute( "id" );
         if ( !idValue.startsWith( "layer" ) ) {
-            debug( "  + skipping element because its id attribute does not start with 'layer'\n" );
             continue;
         }
 
@@ -96,7 +92,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         docElt.setAttribute( "width",  QString( "%1" ).arg( mmWidth,  0, 'f', 2 ) );
         docElt.setAttribute( "height", QString( "%1" ).arg( mmHeight, 0, 'f', 2 ) );
 
-        QFile data( QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( _currentLayer++, 6, 10, DigitZero ) );
+        QFile data( QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( layer++, 6, 10, DigitZero ) );
         if ( data.open( QFile::WriteOnly | QFile::Truncate ) ) {
             QTextStream textStream( &data );
             layerDoc.save( textStream, 0 );
@@ -108,7 +104,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
     }
 
-    _totalLayers = _currentLayer;
+    _totalLayers = layer;
     _runningLayers .fill( -1,      NumberOfCpus );
     _processRunners.fill( nullptr, NumberOfCpus );
     emit layerCount( _totalLayers );
@@ -117,7 +113,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 }
 
 void SvgRenderer::_renderLayer( ) {
-    debug( "+ SvgRenderer::_renderLayer:\n" );
+    debug( "+ SvgRenderer::_renderLayer: _currentLayer %d, _totalLayers %d\n", _currentLayer, _totalLayers );
 
     for ( int slot = 0; ( slot < NumberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
         debug(
@@ -175,7 +171,7 @@ void SvgRenderer::_renderLayer( ) {
         QObject::connect( processRunner, &ProcessRunner::failed, [ this, slot ] ( int const exitCode, QProcess::ProcessError const error ) {
             debug(
                 "+ SvgRenderer::_renderLayer: ProcessRunner::failed:\n"
-                "  + slot:     %d\n"
+                "  + slot:      %d\n"
                 "  + layer:     %d\n"
                 "  + exit code: %d\n"
                 "  + error:     %s [%d]\n"
