@@ -403,7 +403,8 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     _processRunner->start(
         { "slic3r" },
         {
-            "--info", _modelSelection.fileName,
+            "--threads", "4",
+            "--info",    _modelSelection.fileName,
         }
     );
 }
