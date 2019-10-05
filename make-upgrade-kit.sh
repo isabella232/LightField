@@ -2,6 +2,7 @@
 
 VERSION=1.1.0.0
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+PLATFORM=armhf
 
 #########################################################
 ##                                                     ##
@@ -32,7 +33,7 @@ and:   BUILDTYPE  is one of
                   both     create both kits
 
 If the build is successful, the requested upgrade kit(s) will be found in
-  ${KIT_DIR}/lightfield-BUILDTYPE_${VERSION}_amd64.kit
+  ${KIT_DIR}/lightfield-BUILDTYPE_${VERSION}_${PLATFORM}.kit
 EOF
 }
 
@@ -97,27 +98,22 @@ blue-bar • Creating LightField "${VERSION}" "${BUILDTYPE}"-build update kit
 mkdir ${VERBOSE} -p "${REPO_DIR}"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
-install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_SRC}/fonts-montserrat_7.200_all.deb"
+install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/fonts-montserrat_7.200_all.deb"
+install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/libqt-lightfield_5.13.1~lf1_${PLATFORM}.deb"
 install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
 
 if [ "${BUILDTYPE}" = "release" ]
 then
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-release_${VERSION}_amd64.deb"
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-release_${VERSION}_${PLATFORM}.deb"
 elif [ "${BUILDTYPE}" = "debug" ]
 then
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug_${VERSION}_amd64.deb"
-    if [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb" ]
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug_${VERSION}_${PLATFORM}.deb"
+    if [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_${PLATFORM}.deb" ]
     then
-        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
-    elif [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb" ]
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_${PLATFORM}.deb"
+    elif [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_${PLATFORM}.ddeb" ]
     then
-        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
-    else
-	red-bar "!!! Unable to find either"
-	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
-	red-bar "!!! or"
-	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
-	red-bar "!!! Build failed!"
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_${PLATFORM}.ddeb"
     fi
 fi
 
@@ -127,26 +123,26 @@ dpkg-scanpackages . | tee Packages | xz -ceT0 > Packages.xz
 
 apt-ftparchive --config-file ${LIGHTFIELD_SRC}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "lightfield-repo-maint@volumetricbio.com"        \
-    --output InRelease                                            \
-    --clearsign                                                   \
+gpg                                                        \
+    ${VERBOSE}                                             \
+    --batch                                                \
+    --armor                                                \
+    --local-user "lightfield-repo-maint@volumetricbio.com" \
+    --output InRelease                                     \
+    --clearsign                                            \
     Release
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "lightfield-repo-maint@volumetricbio.com"        \
-    --output Release.gpg                                          \
-    --detach-sign                                                 \
+gpg                                                        \
+    ${VERBOSE}                                             \
+    --batch                                                \
+    --armor                                                \
+    --local-user "lightfield-repo-maint@volumetricbio.com" \
+    --output Release.gpg                                   \
+    --detach-sign                                          \
     Release
 
-rm ${VERBOSE} -f                                                  \
-    version.inf                                                   \
+rm ${VERBOSE} -f                                           \
+    version.inf                                            \
     version.inf.sig
 
 sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
@@ -167,47 +163,47 @@ sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
 ) > version.inf
 rm .hashes
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "lightfield-packager@volumetricbio.com"          \
-    --output version.inf.sig                                      \
-    --detach-sign                                                 \
+gpg                                                                     \
+    ${VERBOSE}                                                          \
+    --batch                                                             \
+    --armor                                                             \
+    --local-user "lightfield-packager@volumetricbio.com"                \
+    --output version.inf.sig                                            \
+    --detach-sign                                                       \
     version.inf
 
-rm                                                                \
-    ${VERBOSE}                                                    \
-    -f                                                            \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"     \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig" \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"
+rm                                                                      \
+    ${VERBOSE}                                                          \
+    -f                                                                  \
+    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit"     \
+    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit.sig" \
+    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit.zip"
 
-tar                                                               \
-    ${VERBOSE} ${VERBOSE}                                         \
-    -c                                                            \
-    -f "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"  \
-    --owner=root                                                  \
-    --group=root                                                  \
-    --sort=name                                                   \
+tar                                                                     \
+    ${VERBOSE} ${VERBOSE}                                               \
+    -c                                                                  \
+    -f "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit"  \
+    --owner=root                                                        \
+    --group=root                                                        \
+    --sort=name                                                         \
     *
 
 cd ${KIT_DIR}
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "lightfield-packager@volumetricbio.com"          \
-    --output "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"   \
-    --detach-sign                                                 \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"
+gpg                                                                     \
+    ${VERBOSE}                                                          \
+    --batch                                                             \
+    --armor                                                             \
+    --local-user "lightfield-packager@volumetricbio.com"                \
+    --output "lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit.sig"   \
+    --detach-sign                                                       \
+    "lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit"
 
-zip                                                               \
-    -0joq                                                         \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"            \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"                \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"
+zip                                                                     \
+    -0joq                                                               \
+    "lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit.zip"            \
+    "lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit"                \
+    "lightfield-${BUILDTYPE}_${VERSION}_${PLATFORM}.kit.sig"
 
 blue-bar • Cleaning up
 
