@@ -8,5 +8,5 @@ sudo mv sudoers.d/010_pi-nopasswd sudoers.d/010_lumen-nopasswd
 cd /home
 sudo mv pi lumen
 
-sudo apt install deborphan
-sudo apt purge --autoremove --purge $(deborphan --guess-all)
+sudo apt install deborphan libtool libtool-bin libusb-1.0-0-dev
+sudo apt purge --autoremove --purge libusb-1.0-doc $(deborphan --guess-all)
