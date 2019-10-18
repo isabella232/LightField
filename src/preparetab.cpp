@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/sysinfo.h>
+
 #include "preparetab.h"
 
 #include "hasher.h"
@@ -362,7 +364,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
         { "slic3r" },
         {
             _printJob->modelFileName,
-            "--threads",            "4",
+            "--threads",            QString { "%1" }.arg( get_nprocs( ) ),
             "--export-svg",
             "--first-layer-height", QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),
             "--layer-height",       QString( "%1" ).arg( _printJob->layerThickness / 1000.0 ),

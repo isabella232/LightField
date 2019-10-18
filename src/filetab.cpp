@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/sysinfo.h>
+
 #include "filetab.h"
 
 #include "app.h"
@@ -403,7 +405,7 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     _processRunner->start(
         { "slic3r" },
         {
-            "--threads", "4",
+            "--threads", QString { "%1" }.arg( get_nprocs( ) ),
             "--info",    _modelSelection.fileName,
         }
     );
