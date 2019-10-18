@@ -16,8 +16,6 @@ namespace {
         return skeletonDoc;
     }
 
-    int const NumberOfCpus = get_nprocs( );
-
 }
 
 SvgRenderer::SvgRenderer( ) {
@@ -105,8 +103,8 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     }
 
     _totalLayers = layer;
-    _runningLayers .fill( -1,      NumberOfCpus );
-    _processRunners.fill( nullptr, NumberOfCpus );
+    _runningLayers .fill( -1,      get_nprocs( ) );
+    _processRunners.fill( nullptr, get_nprocs( ) );
     emit layerCount( _totalLayers );
 
     _renderLayer( );
@@ -123,7 +121,7 @@ void SvgRenderer::_renderLayer( ) {
         _totalLayers
     );
 
-    for ( int slot = 0; ( slot < NumberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
+    for ( int slot = 0; ( slot < get_nprocs( ) ) && ( _currentLayer < _totalLayers ); ++slot ) {
         if ( _processRunners[slot] ) {
             debug( "  + slot:              %d [busy]\n", slot );
             continue;
@@ -236,7 +234,7 @@ void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
 void SvgRenderer::_cleanUpProcessRunners( ) {
     debug( "+ SvgRenderer::_cleanUpProcessRunners\n" );
 
-    for ( int slot = 0; slot < NumberOfCpus; ++slot ) {
+    for ( int slot = 0; slot < get_nprocs( ); ++slot ) {
         _cleanUpOneProcessRunner( slot );
     }
 }
