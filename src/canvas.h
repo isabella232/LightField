@@ -13,7 +13,7 @@ class Canvas : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    Canvas(const QSurfaceFormat& format, QWidget* parent=0);
+    Canvas(QWidget* parent=0);
     virtual ~Canvas() override;
 
     void view_orthographic();
