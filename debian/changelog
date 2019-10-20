@@ -1,3 +1,9 @@
+lightfield (1.0.9.3) stable; urgency=medium
+
+  * New: The image renderer is now multi-threaded, and will be up to twice as fast.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sun, 20 Oct 2019 15:03:54 -0700
+
 lightfield (1.0.9.2) stable; urgency=medium
 
   * New: Warning icons are now displayed on the Prepare tab as well as the Status tab.
