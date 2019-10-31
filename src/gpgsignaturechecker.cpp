@@ -68,12 +68,9 @@ void GpgSignatureChecker::gpg_succeeded( ) {
     debug( "+ GpgSignatureChecker::gpg_succeeded: examining GPG output for file '%s'\n", _dataFileName.toUtf8( ).data( ) );
 
     auto lines = _stdout.replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
-    {
-        debug( "  + Output from GPG:\n" );
-        int const limit = lines.count( );
-        for ( int index = 0; index < limit; ++index ) {
-            debug( "    + line %d: %s\n", index + 1, lines[index].toUtf8( ).data( ) );
-        }
+    debug( "  + Output from GPG:\n" );
+    for ( int limit = lines.count( ), index = 0; index < limit; ++index ) {
+        debug( "    + line %d: %s\n", index + 1, lines[index].toUtf8( ).data( ) );
     }
 
     auto keyIdIndex       = -1;
