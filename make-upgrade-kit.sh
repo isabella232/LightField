@@ -47,6 +47,17 @@ LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
 
 KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 
+USE_KEY_SET=current
+if [ "${USE_KEY_SET}" = "current" ]; then
+    REPO_KEY_ID=18DDFE4E607507208C9F6E6582768C36BD8725D2
+    PKG_KEY_ID=0EF6486549978C0C76B49E99C9FC781B66B69981
+elif [ "${USE_KEY_SET}" = "future" ]; then
+    REPO_KEY_ID=E91BD3361F39D49C78B1E3A2B55C0E8D4B632A66
+    PKG_KEY_ID=78DAD29978EB392992D7FE0423025033D9E840F7
+else
+    red-bar "The key set '${USE_KEY_SET}' is unrecognized."
+fi
+
 VERBOSE=-v
 BUILDTYPE=
 
@@ -131,7 +142,7 @@ gpg                                                               \
     ${VERBOSE}                                                    \
     --batch                                                       \
     --armor                                                       \
-    --local-user "lightfield-repo-maint@volumetricbio.com"        \
+    --local-user "${REPO_KEY_ID}"                                 \
     --output InRelease                                            \
     --clearsign                                                   \
     Release
@@ -140,7 +151,7 @@ gpg                                                               \
     ${VERBOSE}                                                    \
     --batch                                                       \
     --armor                                                       \
-    --local-user "lightfield-repo-maint@volumetricbio.com"        \
+    --local-user "${REPO_KEY_ID}"                                 \
     --output Release.gpg                                          \
     --detach-sign                                                 \
     Release
@@ -171,7 +182,7 @@ gpg                                                               \
     ${VERBOSE}                                                    \
     --batch                                                       \
     --armor                                                       \
-    --local-user "lightfield-packager@volumetricbio.com"          \
+    --local-user "${PKG_KEY_ID}"                                  \
     --output version.inf.sig                                      \
     --detach-sign                                                 \
     version.inf
@@ -198,7 +209,7 @@ gpg                                                               \
     ${VERBOSE}                                                    \
     --batch                                                       \
     --armor                                                       \
-    --local-user "lightfield-packager@volumetricbio.com"          \
+    --local-user "${PKG_KEY_ID}"                                  \
     --output "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"   \
     --detach-sign                                                 \
     "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"
