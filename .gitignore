@@ -8,7 +8,10 @@ deps-junk-1.txt
 deps-junk-2.txt
 deps-junk-3.txt
 do-it.sh
-gpg
+gpg/gpg-agent.conf
+gpg/openpgp-revocs.d
+gpg/private-keys-v1.d
+gpg/random_seed
 model-library
 mountmon/.gdbinit
 mountmon/.qmake.stash
