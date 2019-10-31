@@ -171,6 +171,7 @@ install ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf "$
 install ${VERBOSE} -DT -m 600 system-stuff/lumen-bash_profile                 "${LIGHTFIELD_FILES}/home/lumen/.bash_profile"
 install ${VERBOSE} -DT -m 600 system-stuff/lumen-real_bash_profile            "${LIGHTFIELD_FILES}/home/lumen/.real_bash_profile"
 install ${VERBOSE} -DT -m 600 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.gpg"
+install ${VERBOSE} -DT -m 600 gpg/pubring.kbx                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.kbx"
 install ${VERBOSE} -DT -m 600 gpg/trustdb.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/trustdb.gpg"
 install ${VERBOSE} -DT -m 644 system-stuff/clean-up-mount-points.service      "${LIGHTFIELD_FILES}/lib/systemd/system/clean-up-mount-points.service"
 install ${VERBOSE} -DT -m 644 system-stuff/set-projector-power.service        "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
