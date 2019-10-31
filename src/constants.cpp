@@ -16,7 +16,6 @@ QSize                     const  ButtonPadding                 {   20,   4 };
 QSize                     const  ProjectorWindowSize           { 1280, 800 };
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
-QString                   const  GpgKeyRingPath                { "/home/lumen/Volumetric/LightField/gpg/pubring.gpg"      };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
 QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
