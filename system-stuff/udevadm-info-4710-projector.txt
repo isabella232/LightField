@@ -1,0 +1,188 @@
+### USING COMMAND:
+dmesg
+
+FIND ALL THE MANUFACTURERS, like so for RAMBo:
+[  919.727395] ftdi_sio 1-1.3.3:1.0: FTDI USB Serial Device converter detected
+[  919.727494] usb 1-1.3.3: Detected FT232BM
+[  919.727963] usb 1-1.3.3: FTDI USB Serial Device converter now attached to ttyUSB0
+[  922.944299] usb 1-1.3.2: new full-speed USB device number 10 using xhci_hcd
+[  923.046905] usb 1-1.3.2: New USB device found, idVendor=27b1, idProduct=0001, bcdDevice= 0.01
+[  923.046914] usb 1-1.3.2: New USB device strings: Mfr=1, Product=2, SerialNumber=220
+[  923.046919] usb 1-1.3.2: Product: RAMBo
+[  923.046923] usb 1-1.3.2: Manufacturer: UltiMachine (ultimachine.com)
+[  923.046927] usb 1-1.3.2: SerialNumber: XXXXXXXXXXXXXXXXXXX
+[  923.250085] cdc_acm 1-1.3.2:1.0: ttyACM0: USB ACM device
+
+
+### USING COMMAND:
+lsusb
+
+find the projector name, for the 4710 it is:
+"Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC"
+
+
+
+### USING COMMAND:
+udevadm info -a -p $(udevadm info -q path -n "/dev/ttyACM0")
+
+
+Udevadm info starts with the device specified by the devpath and then
+walks up the chain of parent devices. It prints for every device
+found, all possible attributes in the udev rules key format.
+A rule to match, can be composed by the attributes of the device
+and the attributes from one single parent device.
+
+  looking at device '/devices/pci0000:00/0000:00:15.0/usb1/1-1/1-1.4/1-1.4:1.0/tty/ttyACM0':
+    KERNEL=="ttyACM0"
+    SUBSYSTEM=="tty"
+    DRIVER==""
+
+  looking at parent device '/devices/pci0000:00/0000:00:15.0/usb1/1-1/1-1.4/1-1.4:1.0':
+    KERNELS=="1-1.4:1.0"
+    SUBSYSTEMS=="usb"
+    DRIVERS=="cdc_acm"
+    ATTRS{authorized}=="1"
+    ATTRS{bAlternateSetting}==" 0"
+    ATTRS{bInterfaceClass}=="02"
+    ATTRS{bInterfaceNumber}=="00"
+    ATTRS{bInterfaceProtocol}=="01"
+    ATTRS{bInterfaceSubClass}=="02"
+    ATTRS{bNumEndpoints}=="01"
+    ATTRS{bmCapabilities}=="6"
+    ATTRS{supports_autosuspend}=="1"
+
+  looking at parent device '/devices/pci0000:00/0000:00:15.0/usb1/1-1/1-1.4':
+    KERNELS=="1-1.4"
+    SUBSYSTEMS=="usb"
+    DRIVERS=="usb"
+    ATTRS{authorized}=="1"
+    ATTRS{avoid_reset_quirk}=="0"
+    ATTRS{bConfigurationValue}=="1"
+    ATTRS{bDeviceClass}=="02"
+    ATTRS{bDeviceProtocol}=="00"
+    ATTRS{bDeviceSubClass}=="00"
+    ATTRS{bMaxPacketSize0}=="8"
+    ATTRS{bMaxPower}=="100mA"
+    ATTRS{bNumConfigurations}=="1"
+    ATTRS{bNumInterfaces}==" 2"
+    ATTRS{bcdDevice}=="0001"
+    ATTRS{bmAttributes}=="c0"
+    ATTRS{busnum}=="1"
+    ATTRS{configuration}==""
+    ATTRS{devnum}=="9"
+    ATTRS{devpath}=="1.4"
+    ATTRS{idProduct}=="0001"
+    ATTRS{idVendor}=="27b1"
+    ATTRS{ltm_capable}=="no"
+    ATTRS{manufacturer}=="UltiMachine (ultimachine.com)"
+    ATTRS{maxchild}=="0"
+    ATTRS{product}=="RAMBo"
+    ATTRS{quirks}=="0x0"
+    ATTRS{removable}=="unknown"
+    ATTRS{rx_lanes}=="1"
+    ATTRS{serial}=="85537303630351713131"
+    ATTRS{speed}=="12"
+    ATTRS{tx_lanes}=="1"
+    ATTRS{urbnum}=="1017"
+    ATTRS{version}==" 1.10"
+
+  looking at parent device '/devices/pci0000:00/0000:00:15.0/usb1/1-1':
+    KERNELS=="1-1"
+    SUBSYSTEMS=="usb"
+    DRIVERS=="usb"
+    ATTRS{authorized}=="1"
+    ATTRS{avoid_reset_quirk}=="0"
+    ATTRS{bConfigurationValue}=="1"
+    ATTRS{bDeviceClass}=="09"
+    ATTRS{bDeviceProtocol}=="01"
+    ATTRS{bDeviceSubClass}=="00"
+    ATTRS{bMaxPacketSize0}=="64"
+    ATTRS{bMaxPower}=="0mA"
+    ATTRS{bNumConfigurations}=="1"
+    ATTRS{bNumInterfaces}==" 1"
+    ATTRS{bcdDevice}=="9011"
+    ATTRS{bmAttributes}=="e0"
+    ATTRS{busnum}=="1"
+    ATTRS{configuration}==""
+    ATTRS{devnum}=="2"
+    ATTRS{devpath}=="1"
+    ATTRS{idProduct}=="2813"
+    ATTRS{idVendor}=="2109"
+    ATTRS{ltm_capable}=="no"
+    ATTRS{manufacturer}=="VIA Labs, Inc."
+    ATTRS{maxchild}=="4"
+    ATTRS{product}=="USB2.0 Hub"
+    ATTRS{quirks}=="0x0"
+    ATTRS{removable}=="removable"
+    ATTRS{rx_lanes}=="1"
+    ATTRS{speed}=="480"
+    ATTRS{tx_lanes}=="1"
+    ATTRS{urbnum}=="49"
+    ATTRS{version}==" 2.10"
+
+  looking at parent device '/devices/pci0000:00/0000:00:15.0/usb1':
+    KERNELS=="usb1"
+    SUBSYSTEMS=="usb"
+    DRIVERS=="usb"
+    ATTRS{authorized}=="1"
+    ATTRS{authorized_default}=="1"
+    ATTRS{avoid_reset_quirk}=="0"
+    ATTRS{bConfigurationValue}=="1"
+    ATTRS{bDeviceClass}=="09"
+    ATTRS{bDeviceProtocol}=="01"
+    ATTRS{bDeviceSubClass}=="00"
+    ATTRS{bMaxPacketSize0}=="64"
+    ATTRS{bMaxPower}=="0mA"
+    ATTRS{bNumConfigurations}=="1"
+    ATTRS{bNumInterfaces}==" 1"
+    ATTRS{bcdDevice}=="0418"
+    ATTRS{bmAttributes}=="e0"
+    ATTRS{busnum}=="1"
+    ATTRS{configuration}==""
+    ATTRS{devnum}=="1"
+    ATTRS{devpath}=="0"
+    ATTRS{idProduct}=="0002"
+    ATTRS{idVendor}=="1d6b"
+    ATTRS{interface_authorized_default}=="1"
+    ATTRS{ltm_capable}=="no"
+    ATTRS{manufacturer}=="Linux 4.18.0-13-generic xhci-hcd"
+    ATTRS{maxchild}=="8"
+    ATTRS{product}=="xHCI Host Controller"
+    ATTRS{quirks}=="0x0"
+    ATTRS{removable}=="unknown"
+    ATTRS{rx_lanes}=="1"
+    ATTRS{serial}=="0000:00:15.0"
+    ATTRS{speed}=="480"
+    ATTRS{tx_lanes}=="1"
+    ATTRS{urbnum}=="53"
+    ATTRS{version}==" 2.00"
+
+  looking at parent device '/devices/pci0000:00/0000:00:15.0':
+    KERNELS=="0000:00:15.0"
+    SUBSYSTEMS=="pci"
+    DRIVERS=="xhci_hcd"
+    ATTRS{ari_enabled}=="0"
+    ATTRS{broken_parity_status}=="0"
+    ATTRS{class}=="0x0c0330"
+    ATTRS{consistent_dma_mask_bits}=="64"
+    ATTRS{d3cold_allowed}=="1"
+    ATTRS{dbc}=="disabled"
+    ATTRS{device}=="0x5aa8"
+    ATTRS{dma_mask_bits}=="64"
+    ATTRS{driver_override}=="(null)"
+    ATTRS{enable}=="1"
+    ATTRS{irq}=="121"
+    ATTRS{local_cpulist}=="0-1"
+    ATTRS{local_cpus}=="3"
+    ATTRS{msi_bus}=="1"
+    ATTRS{numa_node}=="-1"
+    ATTRS{revision}=="0x0b"
+    ATTRS{subsystem_device}=="0xb342"
+    ATTRS{subsystem_vendor}=="0x19da"
+    ATTRS{vendor}=="0x8086"
+
+  looking at parent device '/devices/pci0000:00':
+    KERNELS=="pci0000:00"
+    SUBSYSTEMS==""
+    DRIVERS==""
+
