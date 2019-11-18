@@ -6,32 +6,27 @@
 
 namespace {
 
-    QStringList GpgExpectedTokens {
-        "NEWSIG",
-        "KEY_CONSIDERED",
-        "SIG_ID",
-        "KEY_CONSIDERED",
-        "GOODSIG",
-        "VALIDSIG",
-        "VERIFICATION_COMPLIANCE_MODE",
-    };
+    QRegularExpression const SingleWhitespaceCharacterRegex { "\\s"                                                         };
 
-    QVector<int> GpgExpectedFieldCount {
-         3,
-         4,
-         5,
-         4,
-        -1,
-        12,
-         3,
-    };
-
-    QString            const ExpectedKeyId                  { "0EF6486549978C0C76B49E99C9FC781B66B69981"                    };
-    QString            const ExpectedFingerprint            { "C9FC781B66B69981"                                            };
     QString            const ExpectedSignerAddress          { "lightfield-packager@volumetricbio.com"                       };
     QString            const ExpectedSignerName             { "LightField packager <lightfield-packager@volumetricbio.com>" };
 
-    QRegularExpression const SingleWhitespaceCharacterRegex { "\\s"                                                         };
+    //
+    // NOTE:
+    //
+    // These two arrays, ExpectedKeyIds and ExpectedFingerprints, must
+    // contain information about the same keys, in the same order!
+    //
+
+    QStringList const ExpectedKeyIds {
+        { "0EF6486549978C0C76B49E99C9FC781B66B69981" }, // ID: >>0EF6486549978C0C76B49E99C9FC781B66B69981<<; Fingerprint: C9FC781B66B69981;     Keygrip: BD5A428AF2092982D2D5F1989387806AD1EA50E9; Expires: 2020-01-01
+        { "78DAD29978EB392992D7FE0423025033D9E840F7" }, // ID: >>78DAD29978EB392992D7FE0423025033D9E840F7<<; Fingerprint: 23025033D9E840F7;     Keygrip: 7346B3D2FA18F00CDCE091E133EED39544541E65; Expires: 2022-01-01
+    };
+
+    QStringList const ExpectedFingerprints {
+        { "C9FC781B66B69981"                         }, // ID:   0EF6486549978C0C76B49E99C9FC781B66B69981;   Fingerprint: >>C9FC781B66B69981<<; Keygrip: BD5A428AF2092982D2D5F1989387806AD1EA50E9; Expires: 2020-01-01
+        { "23025033D9E840F7"                         }, // ID:   78DAD29978EB392992D7FE0423025033D9E840F7;   Fingerprint: >>23025033D9E840F7<<; Keygrip: 7346B3D2FA18F00CDCE091E133EED39544541E65; Expires: 2022-01-01
+    };
 
 }
 
@@ -59,10 +54,10 @@ void GpgSignatureChecker::startCheckDetachedSignature( QString const& dataFileNa
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  this, &GpgSignatureChecker::gpg_readyReadStandardError  );
 
     _processRunner->start(
-        { "gpgv" },
+        { "gpg" },
         {
             "--status-fd", "1",
-            "--keyring",   GpgKeyRingPath,
+            "--verify",
             _signatureFileName,
             _dataFileName
         }
@@ -73,79 +68,96 @@ void GpgSignatureChecker::gpg_succeeded( ) {
     debug( "+ GpgSignatureChecker::gpg_succeeded: examining GPG output for file '%s'\n", _dataFileName.toUtf8( ).data( ) );
 
     auto lines = _stdout.replace( EndsWithWhitespaceRegex, "" ).split( NewLineRegex );
-    if ( lines.count( ) > GpgExpectedTokens.count( ) ) {
-        debug(
-            "  + too many lines: expected %d, got %d\n"
-            "  >> %s\n"
-            "",
-            GpgExpectedTokens.count( ), lines.count( ),
-            lines.join( "\n" ).toUtf8( ).data( )
-        );
-        emit signatureCheckComplete( false );
-        return;
+    debug( "  + Output from GPG:\n" );
+    for ( int limit = lines.count( ), index = 0; index < limit; ++index ) {
+        debug( "    + line %d: %s\n", index + 1, lines[index].toUtf8( ).data( ) );
     }
+
+    auto keyIdIndex       = -1;
+    auto fingerprintIndex = -1;
 
     auto lineIndex = 0;
     for ( auto line : lines ) {
         auto fields = line.split( SingleWhitespaceCharacterRegex );
         auto& token = fields[1];
-
-        if ( ( GpgExpectedFieldCount[lineIndex] != -1 ) && ( GpgExpectedFieldCount[lineIndex] != fields.count( ) ) ) {
-            debug( "  + wrong number of fields: expected %d, got %d\n", GpgExpectedFieldCount[lineIndex], fields.count( ) );
-            emit signatureCheckComplete( false );
-            return;
-        }
-        if ( token != GpgExpectedTokens[lineIndex] ) {
-            debug( "  + wrong token: expected '%s', got '%s'\n", GpgExpectedTokens[lineIndex].toUtf8( ).data( ), token.toUtf8( ).data( ) );
-            emit signatureCheckComplete( false );
-            return;
-        }
         ++lineIndex;
 
+        debug( "  + line %d: token '%s'\n", lineIndex, token.toUtf8( ).data( ) );
+
         if ( token == "NEWSIG" ) {
-            if ( fields[2] != ExpectedSignerAddress ) {
-                debug( "  + 'NEWSIG': invalid signer address: expected '%s', got '%s'\n", ExpectedSignerAddress.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
-                emit signatureCheckComplete( false );
-                return;
-            }
-        } else if ( token == "KEY_CONSIDERED" ) {
-            if ( fields[2] != ExpectedKeyId ) {
-                debug( "  + 'KEY_CONSIDERED': invalid key ID: expected '%s', got '%s'\n", ExpectedKeyId.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
+            if ( ( fields.count( ) > 2 ) && ( fields[2] != ExpectedSignerAddress ) ) {
+                debug( "  + 'NEWSIG': invalid signer address: '%s'\n", fields[2].toUtf8( ).data( ) );
                 emit signatureCheckComplete( false );
                 return;
             }
         } else if ( token == "SIG_ID" ) {
-            debug( "  + 'SIG_ID': signature ID '%s', date '%s', timestamp '%s'\n", fields[2].toUtf8( ).data( ), fields[3].toUtf8( ).data( ), fields[4].toUtf8( ).data( ) );
+            if ( fields.count( ) >= 5 ) {
+                debug( "  + 'SIG_ID': signature ID '%s', date '%s', timestamp '%s'\n", fields[2].toUtf8( ).data( ), fields[3].toUtf8( ).data( ), fields[4].toUtf8( ).data( ) );
+            }
         } else if ( token == "GOODSIG" ) {
-            if ( fields[2] != ExpectedFingerprint ) {
-                debug( "  + 'GOODSIG': invalid key fingerprint: expected '%s', got '%s'\n", ExpectedFingerprint.toUtf8( ).data( ), fields[2].toUtf8( ).data( ) );
+            if ( fields.count( ) < 3 ) {
+                debug( "  + 'GOODSIG': invalid input\n" );
                 emit signatureCheckComplete( false );
                 return;
+            }
+
+            if ( auto index = ExpectedFingerprints.indexOf( fields[2] ); -1 == index ) {
+                debug( "  + 'GOODSIG': invalid key fingerprint: '%s'\n", fields[2].toUtf8( ).data( ) );
+                emit signatureCheckComplete( false );
+                return;
+            } else {
+                if ( -1 == fingerprintIndex ) {
+                    debug( "  + 'GOODSIG': setting fingerprint index to %d\n", index );
+                    fingerprintIndex = index;
+                } else if ( fingerprintIndex != index ) {
+                    debug( "  + 'GOODSIG': existing fingerprint index %d doesn't match new fingerprint index %d\n", fingerprintIndex, index );
+                    emit signatureCheckComplete( false );
+                    return;
+                }
             }
 
             fields.removeFirst( );
             fields.removeFirst( );
             fields.removeFirst( );
             auto signerName = fields.join( Space );
-
             if ( signerName != ExpectedSignerName ) {
-                debug( "  + 'GOODSIG': invalid signer name: expected '%s', got '%s'\n", ExpectedSignerName.toUtf8( ).data( ), signerName.toUtf8( ).data( ) );
+                debug( "  + 'GOODSIG': invalid signer name: got '%s'\n", signerName.toUtf8( ).data( ) );
                 emit signatureCheckComplete( false );
                 return;
             }
         } else if ( token == "VALIDSIG" ) {
-            if ( ( fields[2] != ExpectedKeyId ) || ( fields[11] != ExpectedKeyId ) ) {
-                debug( "  + 'VALIDSIG': invalid key ID: expected '%s', got '%s' and '%s'\n", ExpectedKeyId.toUtf8( ).data( ), fields[2].toUtf8( ).data( ), fields[11].toUtf8( ).data( ) );
+            if ( fields.count( ) < 12 ) {
+                debug( "  + 'VALIDSIG': invalid input\n" );
                 emit signatureCheckComplete( false );
                 return;
             }
-        } else if ( token == "VERIFICATION_COMPLIANCE_MODE" ) {
-            if ( fields[2] != "23" ) {
-                debug( "  + 'VERIFICATION_COMPLIANCE_MODE': invalid value: expected '23', got '%s'\n", fields[2].toUtf8( ).data( ) );
+
+            if ( auto index = ExpectedKeyIds.indexOf( fields[2] ); -1 == index ) {
+                debug( "  + 'VALIDSIG': unknown key ID: '%s'\n", fields[2].toUtf8( ).data( ) );
+                emit signatureCheckComplete( false );
+                return;
+            } else {
+                if ( -1 == keyIdIndex ) {
+                    debug( "  + 'VALIDSIG': setting key index to %d\n", index );
+                    keyIdIndex = index;
+                } else if ( keyIdIndex != index ) {
+                    debug( "  + 'VALIDSIG': existing key index %d doesn't match new key index %d\n", keyIdIndex, index );
+                    emit signatureCheckComplete( false );
+                    return;
+                }
+            }
+            if ( fields[2] != fields[11] ) {
+                debug( "  + 'VALIDSIG': first and second key IDs don't match: '%s' vs '%'\n", fields[2].toUtf8( ).data( ), fields[11].toUtf8( ).data( ) );
                 emit signatureCheckComplete( false );
                 return;
             }
         }
+    }
+    debug( "  + key index: %d; fingerprint index: %d\n", keyIdIndex, fingerprintIndex );
+    if ( ( -1 == keyIdIndex ) || ( -1 == fingerprintIndex ) || ( keyIdIndex != fingerprintIndex ) ) {
+        debug( "    + key index or fingerprint index is bad\n" );
+        emit signatureCheckComplete( false );
+        return;
     }
 
     debug( "  + signature is good\n" );

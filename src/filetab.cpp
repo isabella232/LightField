@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/sysinfo.h>
+
 #include "filetab.h"
 
 #include "app.h"
@@ -83,14 +85,7 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     ) );
 
 
-    QSurfaceFormat format;
-    format.setDepthBufferSize( 24 );
-    format.setStencilBufferSize( 8 );
-    format.setVersion( 2, 1 );
-    format.setProfile( QSurfaceFormat::CoreProfile );
-    QSurfaceFormat::setDefaultFormat( format );
-
-    _canvas = new Canvas( format, this );
+    _canvas = new Canvas( this );
     _canvas->setFixedSize( 735, 490 );
     _canvas->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
@@ -410,7 +405,8 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
     _processRunner->start(
         { "slic3r" },
         {
-            "--info", _modelSelection.fileName,
+            "--threads", QString { "%1" }.arg( get_nprocs( ) ),
+            "--info",    _modelSelection.fileName,
         }
     );
 }

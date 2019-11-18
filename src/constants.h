@@ -16,7 +16,6 @@ QSize              extern const  ButtonPadding;
 QSize              extern const  ProjectorWindowSize;
                                                              
 QString            extern const  AptSourcesFilePath;
-QString            extern const  GpgKeyRingPath;
 QString            extern const  JobWorkingDirectoryPath;
 QString            extern const  MountmonCommand;
 QString            extern const  ResetLumenArduinoPortCommand;
