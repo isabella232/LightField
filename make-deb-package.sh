@@ -24,7 +24,7 @@ function error-trap () {
 
 function usage () {
     cat <<EOF
-Usage: $(basename $0) [-q] BUILDTYPE
+Usage: $(basename "$0") [-q] BUILDTYPE
 Where: -q         build quietly
        -X         don't force rebuild
        BUILDTYPE  is one of

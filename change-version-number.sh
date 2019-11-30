@@ -19,7 +19,11 @@ then
     exit 1
 fi
 
-VER=( $(IFS="."; echo $1) )
+VER=()
+while read -r vv; do
+    VER+=("${vv}")
+done < <(echo "$1" | tr . \\n)
+
 if [ "${#VER[@]}" -lt 3 ]
 then
     red-bar 'Too few components to version number -- must be at least three.'
@@ -47,8 +51,8 @@ sed                                                                             
     -e  s/@@LIGHTFIELD_VERSION_MINOR@@/${VER[1]}/g                                                              \
     -e  s/@@LIGHTFIELD_VERSION_TEENY@@/${VER[2]}/g                                                              \
     -e  s/@@LIGHTFIELD_VERSION_BUILD@@/${VER[3]}/g                                                              \
-    < "version.h.in"                                                                                            \
-    > "version.h"
+    < version.h.in                                                                                              \
+    > version.h
 
 cd "${LIGHTFIELD_ROOT}"
 
