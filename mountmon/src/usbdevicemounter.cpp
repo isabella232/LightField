@@ -130,6 +130,8 @@ UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
 
     ::mkdir( "/media/lumen", 0755 );
     ::chown( "/media/lumen", LightFieldUserId, LightFieldGroupId );
+
+    monitor->probeForExistingDevices( );
 }
 
 UsbDeviceMounter::~UsbDeviceMounter( ) {

@@ -3,19 +3,19 @@
 
 namespace UDisks2 {
 
-    inline QString Service( )                          { return "org.freedesktop.UDisks2";             }
-    inline QString Path( )                             { return "/org/freedesktop/UDisks2";            }
-    inline QString Path( QString const& subPath )      { return Path( ) % '/' % subPath;               }
+    inline constexpr char const* Service( )                       { return "org.freedesktop.UDisks2";                 }
+    inline constexpr char const* Path( )                          { return "/org/freedesktop/UDisks2";                }
+    inline           QString     Path( char const* subPath )      { return QString { Path( ) } % '/' % subPath;       }
 
 }
 
 namespace Interface {
 
-    inline QString UDisks2( )                          { return "org.freedesktop.UDisks2";             }
-    inline QString UDisks2( QString const& interface ) { return UDisks2( ) % '.' % interface;          }
-    inline QString ObjectManager( )                    { return "org.freedesktop.DBus.ObjectManager";  }
-    inline QString Introspectable( )                   { return "org.freedesktop.DBus.Introspectable"; }
-    inline QString Properties( )                       { return "org.freedesktop.DBus.Properties";     }
+    inline constexpr char const* UDisks2( )                       { return "org.freedesktop.UDisks2";                 }
+    inline           QString     UDisks2( char const* interface ) { return QString { UDisks2( ) }  % '.' % interface; }
+    inline constexpr char const* ObjectManager( )                 { return "org.freedesktop.DBus.ObjectManager";      }
+    inline constexpr char const* Introspectable( )                { return "org.freedesktop.DBus.Introspectable";     }
+    inline constexpr char const* Properties( )                    { return "org.freedesktop.DBus.Properties";         }
 
 }
 
@@ -31,7 +31,7 @@ class UDrive: public QObject {
 
 public:
 
-    UDrive( QDBusObjectPath const& path, QVariantMap& values, QObject* parent = nullptr );
+    UDrive( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent = nullptr );
     virtual ~UDrive( ) override;
 
     bool                 CanPowerOff;
@@ -91,7 +91,7 @@ class UBlockDevice: public QObject {
 
 public:
 
-    UBlockDevice( QDBusObjectPath const& path, QVariantMap& values, QObject* parent = nullptr );
+    UBlockDevice( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent = nullptr );
     virtual ~UBlockDevice( ) override;
 
     QDBusArgument       Configuration;
@@ -146,7 +146,7 @@ class UPartitionTable: public QObject {
 
 public:
 
-    UPartitionTable( QDBusObjectPath const& path, QVariantMap& values, QObject* parent = nullptr );
+    UPartitionTable( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent = nullptr );
     virtual ~UPartitionTable( ) override;
 
     QDBusArgument   Partitions;
@@ -178,7 +178,7 @@ class UPartition: public QObject {
 
 public:
 
-    UPartition( QDBusObjectPath const& path, QVariantMap& values, QObject* parent = nullptr );
+    UPartition( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent = nullptr );
     virtual ~UPartition( ) override;
 
     qulonglong      Flags;
@@ -218,7 +218,7 @@ class UFilesystem: public QObject {
 
 public:
 
-    UFilesystem( QDBusObjectPath const& path, QVariantMap& values, QObject* parent = nullptr );
+    UFilesystem( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent = nullptr );
     virtual ~UFilesystem( ) override;
 
     QDBusArgument   MountPoints;

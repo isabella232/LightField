@@ -2,7 +2,6 @@
 #define __UDISKSMONITOR_H__
 
 using InterfaceList = QMap<QString, QVariantMap>;
-Q_DECLARE_METATYPE( InterfaceList )
 
 #include "udisks.h"
 
@@ -15,6 +14,8 @@ public:
     UDisksMonitor( QObject* parent = nullptr );
     virtual ~UDisksMonitor( ) override;
 
+    void probeForExistingDevices( );
+
 protected:
 
 private:
@@ -24,6 +25,8 @@ private:
     QMap<QDBusObjectPath, UPartitionTable*> _partitionTables;
     QMap<QDBusObjectPath, UPartition*>      _partitions;
     QMap<QDBusObjectPath, UFilesystem*>     _filesystems;
+
+    void _createObject( QDBusObjectPath const& path, QString const& interface, QVariantMap const& values );
 
 signals:
     ;

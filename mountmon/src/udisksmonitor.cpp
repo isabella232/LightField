@@ -2,69 +2,13 @@
 
 #include "udisksmonitor.h"
 
+using GetManagedObjectsResult = QMap<QDBusObjectPath, InterfaceList>;
+
+Q_DECLARE_METATYPE( GetManagedObjectsResult );
+Q_DECLARE_METATYPE( InterfaceList )
+
 namespace {
 
-    //QVariant dbusProperty( QDBusObjectPath const& path, QString const& interface, QString const& property ) {
-    //    auto getProperty = QDBusMessage::createMethodCall( UDisks2::Service( ), path.path( ), Interface::Properties( ), "Get" );
-    //    getProperty.setArguments( QVariantList { } << interface << property );
-    //
-    //    QDBusReply<QVariant> reply = QDBusConnection::systemBus( ).call( getProperty, QDBus::Block, 500 );
-    //    if ( !reply.isValid( ) ) {
-    //        debug( "+ dbusProperty: failed to access property %s on interface %s at path %s: %s\n", property.toUtf8( ).data( ), interface.toUtf8( ).data( ), path.path( ).toUtf8( ).data( ), reply.error( ).message( ).toUtf8( ).data( ) );
-    //        return { };
-    //    }
-    //    return reply.value( );
-    //}
-    //
-    //QString introspect( const QString& path, int replyTimeout ) {
-    //    QDBusMessage introspect = QDBusMessage::createMethodCall( UDisks2::Service( ), path, Interface::Introspectable( ), "Introspect" );
-    //
-    //    QDBusReply<QString> reply = QDBusConnection::systemBus( ).call( QDBusMessage::createMethodCall( UDisks2::Service( ), path, Interface::Introspectable( ), "Introspect" ), QDBus::Block, replyTimeout );
-    //    if ( !reply.isValid( ) ) {
-    //        debug( "+ introspect: failed on path %s: %s\n", path.toUtf8( ).data( ), reply.error( ).message( ).toUtf8( ).data( ) );
-    //        return { };
-    //    }
-    //    return reply.value( );
-    //}
-    //
-    //bool hasInterface( const QDBusObjectPath& path, const QString& interface, int replyTimeout ) {
-    //    QXmlStreamReader xml( introspect( path.path( ), replyTimeout ) );
-    //    while ( !xml.atEnd( ) ) {
-    //        xml.readNext( );
-    //        if ( xml.isStartElement( ) && xml.name( ) == "interface" && xml.attributes( ).value( "name" ) == interface ) {
-    //            return true;
-    //        }
-    //    }
-    //
-    //    return false;
-    //}
-    //
-    //void dumpVariant( QVariant const& value, QString const& name ) {
-    //    QString valueString;
-    //    QString typeName { value.typeName( ) };
-    //    if ( typeName == "QDBusObjectPath" ) {
-    //        valueString = value.value<QDBusObjectPath>( ).path( );
-    //    } else if ( typeName == "QDBusArgument" ) {
-    //        debug( "    + %s %s =>\n", value.typeName( ), name.toUtf8( ).data( ) );
-    //        QDBusArgument arg = value.value<QDBusArgument>( );
-    //        while ( !arg.atEnd( ) ) {
-    //            auto type = arg.currentType( );
-    //            if ( QDBusArgument::UnknownType == type ) {
-    //                debug( "      + unknown type\n" );
-    //                continue;
-    //            }
-    //
-    //            QDBusVariant dv;
-    //            arg >> dv;
-    //            debug( "      + [%s] %s => '%s'\n", QDBusArgumentElementTypeStrings[type], dv.variant( ).typeName( ), dv.variant( ).toString( ).toUtf8( ).data( ) );
-    //        }
-    //        return;
-    //    } else {
-    //        valueString = value.toString( );
-    //    }
-    //    debug( "    + %s %s => '%s'\n", value.typeName( ), name.toUtf8( ).data( ), valueString.toUtf8( ).data( ) );
-    //}
-    
     bool isDrive( QString const& interface ) {
         return interface == Interface::UDisks2( "Drive" );
     }
@@ -88,14 +32,15 @@ namespace {
 }
 
 UDisksMonitor::UDisksMonitor( QObject* parent ): QObject ( parent ) {
+    qDBusRegisterMetaType<GetManagedObjectsResult>( );
     qDBusRegisterMetaType<InterfaceList>( );
 
     auto systemBus = QDBusConnection::systemBus( );
-    debug( "+ UDisksMonitor::`ctor: systemBus.isConnected %s\n", systemBus.isConnected( ) ? "true" : "false" );
+    debug( "+ UDisksMonitor::`ctor: systemBus.isConnected? %s\n", systemBus.isConnected( ) ? "true" : "false" );
 
     bool result;
 
-    debug( "  + attempting to connect to signals on interface %s on service %s at path %s\n", Interface::ObjectManager( ).toUtf8( ).data( ), UDisks2::Service( ).toUtf8( ).data( ), UDisks2::Path( ).toUtf8( ).data( ) );
+    debug( "  + attempting to connect to signals on service %s at path %s via interface %s\n", UDisks2::Service( ), UDisks2::Path( ), Interface::ObjectManager( ) );
     result = systemBus.connect(
         UDisks2::Service( ),
         UDisks2::Path( ),
@@ -104,7 +49,7 @@ UDisksMonitor::UDisksMonitor( QObject* parent ): QObject ( parent ) {
         this,
         SLOT( _interfacesAdded( QDBusObjectPath const&, InterfaceList const& ) )
     );
-    debug( "  + connect to InterfacesAdded:   success? %s\n", result ? "true" : "false" );
+    debug( "  + connect to InterfacesAdded:   %s\n", result ? "succeeded" : "failed" );
 
     result = systemBus.connect(
         UDisks2::Service( ),
@@ -114,71 +59,115 @@ UDisksMonitor::UDisksMonitor( QObject* parent ): QObject ( parent ) {
         this,
         SLOT( _interfacesRemoved( QDBusObjectPath const&, QStringList const& ) )
     );
-    debug( "  + connect to InterfacesRemoved: success? %s\n", result ? "true" : "false" );
+    debug( "  + connect to InterfacesRemoved: %s\n", result ? "succeeded" : "failed" );
 }
 
 UDisksMonitor::~UDisksMonitor( ) {
     /*empty*/
 }
 
+void UDisksMonitor::_createObject( QDBusObjectPath const& path, QString const& interfaceName, QVariantMap const& values ) {
+    debug( "+ UDisksMonitor::_createObject: path %s interface %s\n", path.path( ).toUtf8( ).data( ), interfaceName.toUtf8( ).data( ) );
+    if ( isDrive( interfaceName ) ) {
+        debug( "  + gained drive %s\n", path.path( ).toUtf8( ).data( ) );
+        auto drive = new UDrive( path, values, this );
+        _drives.insert( path, drive );
+        emit driveAdded( path, drive );
+    } else if ( isBlockDevice( interfaceName ) ) {
+        debug( "  + gained block device %s\n", path.path( ).toUtf8( ).data( ) );
+        auto blockDevice = new UBlockDevice( path, values, this );
+        _blockDevices.insert( path, blockDevice );
+        emit blockDeviceAdded( path, blockDevice );
+    } else if ( isPartitionTable( interfaceName ) ) {
+        debug( "  + gained partition table %s\n", path.path( ).toUtf8( ).data( ) );
+        auto partitionTable = new UPartitionTable( path, values, this );
+        _partitionTables.insert( path, partitionTable );
+        emit partitionTableAdded( path, partitionTable );
+    } else if ( isPartition( interfaceName ) ) {
+        debug( "  + gained partition %s\n", path.path( ).toUtf8( ).data( ) );
+        auto partition = new UPartition( path, values, this );
+        _partitions.insert( path, partition );
+        emit partitionAdded( path, partition );
+    } else if ( isFilesystem( interfaceName ) ) {
+        debug( "  + gained filesystem %s\n", path.path( ).toUtf8( ).data( ) );
+        auto filesystem = new UFilesystem( path, values, this );
+        _filesystems.insert( path, filesystem );
+        emit filesystemAdded( path, filesystem );
+    }
+}
+
+void UDisksMonitor::probeForExistingDevices( ) {
+    debug( "+ UDisksMonitor::probeForExistingDevices: attempting to find existing objects by calling GetManagedObjects\n" );
+    QDBusReply<GetManagedObjectsResult> reply {
+        QDBusConnection::systemBus( ).call(
+            QDBusMessage::createMethodCall(
+                UDisks2::Service( ),
+                UDisks2::Path( ),
+                Interface::ObjectManager( ),
+                "GetManagedObjects"
+            )
+        )
+    };
+    if ( !reply.isValid( ) ) {
+        auto const& err = reply.error( );
+        if ( err.isValid( ) ) {
+            debug(
+                "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call failed:\n"
+                "  + error type:    %s\n"
+                "  + error name:    %s\n"
+                "  + error message: %s\n"
+                "",
+                QDBusError::errorString( err.type( ) ).toUtf8( ).data( ),
+                err.name( ).toUtf8( ).data( ),
+                err.message( ).toUtf8( ).data( )
+            );
+        } else {
+            debug( "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call failed and detailed error information is not available\n" );
+        }
+        return;
+    }
+
+    debug( "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call results:\n" );
+    auto objectPaths { reply.value( ) };
+
+    // first, find Drive objects
+    debug( "+ UDisksMonitor::probeForExistingDevices: Drive objects:\n" );
+    for ( auto objectPathsIter = objectPaths.begin( ); objectPathsIter != objectPaths.end( ); ++objectPathsIter ) {
+        auto const& objectPath    { objectPathsIter.key( )   };
+        auto const& interfaceList { objectPathsIter.value( ) };
+        for ( auto interfaceListIter = interfaceList.begin( ); interfaceListIter != interfaceList.end( ); ++interfaceListIter ) {
+            auto const& interface  { interfaceListIter.key( )   };
+            auto const& properties { interfaceListIter.value( ) };
+
+            if ( isDrive( interface ) ) {
+                debug( "+ UDisksMonitor::probeForExistingDevices: Object path: %s\n", objectPath.path( ).toUtf8( ).data( ) );
+                _createObject( objectPath, interface, properties );
+            }
+        }
+    }
+
+    // then, find everything else
+    debug( "+ UDisksMonitor::probeForExistingDevices: Other objects:\n" );
+    for ( auto objectPathsIter = objectPaths.begin( ); objectPathsIter != objectPaths.end( ); ++objectPathsIter ) {
+        auto const& objectPath    { objectPathsIter.key( )   };
+        auto const& interfaceList { objectPathsIter.value( ) };
+        for ( auto interfaceListIter = interfaceList.begin( ); interfaceListIter != interfaceList.end( ); ++interfaceListIter ) {
+            auto const& interface { interfaceListIter.key( ) };
+            auto const& properties { interfaceListIter.value( ) };
+
+            if ( !isDrive( interface ) ) {
+                debug( "+ UDisksMonitor::probeForExistingDevices: Object path: %s\n", objectPath.path( ).toUtf8( ).data( ) );
+                _createObject( objectPath, interface, properties );
+            }
+        }
+    }
+}
+
 void UDisksMonitor::_interfacesAdded( QDBusObjectPath const& path, InterfaceList const& interfaces ) {
     debug( "+ UDisksMonitor::_interfacesAdded: %d interface%s at path %s\n", interfaces.count( ), ( interfaces.count( ) == 1 ? "" : "s" ), path.path( ).toUtf8( ).data( ) );
 
-    UDrive*          drive          { };
-    UBlockDevice*    blockDevice    { };
-    UPartitionTable* partitionTable { };
-    UPartition*      partition      { };
-    UFilesystem*     filesystem     { };
-
     for ( auto interfaceName : interfaces.keys( ) ) {
-        debug( "  + interface: %s\n", interfaceName.toUtf8( ).data( ) );
-        auto values = interfaces[interfaceName];
-
-        if ( isDrive( interfaceName ) ) {
-            debug( "    + gained drive %s\n", path.path( ).toUtf8( ).data( ) );
-            drive = new UDrive( path, values, this );
-            _drives.insert( path, drive );
-        }
-
-        if ( isBlockDevice( interfaceName ) ) {
-            debug( "    + gained block device %s\n", path.path( ).toUtf8( ).data( ) );
-            blockDevice = new UBlockDevice( path, values, this );
-            _blockDevices.insert( path, blockDevice );
-        }
-
-        if ( isPartitionTable( interfaceName ) ) {
-            debug( "    + gained partition table %s\n", path.path( ).toUtf8( ).data( ) );
-            partitionTable = new UPartitionTable( path, values, this );
-            _partitionTables.insert( path, partitionTable );
-        }
-
-        if ( isPartition( interfaceName ) ) {
-            debug( "    + gained partition %s\n", path.path( ).toUtf8( ).data( ) );
-            partition = new UPartition( path, values, this );
-            _partitions.insert( path, partition );
-        }
-
-        if ( isFilesystem( interfaceName ) ) {
-            debug( "    + gained filesystem %s\n", path.path( ).toUtf8( ).data( ) );
-            filesystem = new UFilesystem( path, values, this );
-            _filesystems.insert( path, filesystem );
-        }
-    }
-
-    if ( drive ) {
-        emit driveAdded( path, drive );
-    }
-    if ( blockDevice ) {
-        emit blockDeviceAdded( path, blockDevice );
-    }
-    if ( partition ) {
-        emit partitionAdded( path, partition );
-    }
-    if ( partitionTable ) {
-        emit partitionTableAdded( path, partitionTable );
-    }
-    if ( filesystem ) {
-        emit filesystemAdded( path, filesystem );
+        _createObject( path, interfaceName, interfaces[interfaceName] );
     }
 }
 

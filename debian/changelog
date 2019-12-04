@@ -1,6 +1,6 @@
 lightfield (1.0.10.0) stable; urgency=medium
 
-  * No changes yet.
+  * Fixed: LightField will now notice a USB stick that was connected before it starts.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 18 Nov 2019 13:09:51 -0800
 

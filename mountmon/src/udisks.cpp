@@ -6,7 +6,7 @@
 // Class UDrive
 //
 
-UDrive::UDrive( QDBusObjectPath const& path, QVariantMap& values, QObject* parent ): QObject ( parent ) {
+UDrive::UDrive( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent ): QObject ( parent ) {
     Path                  = path;
     CanPowerOff           = values["CanPowerOff"          ].value<bool         >( );
     Configuration         = values["Configuration"        ].value<QDBusArgument>( );
@@ -47,7 +47,7 @@ UDrive::~UDrive( ) {
 // Class UBlockDevice
 //
 
-UBlockDevice::UBlockDevice( QDBusObjectPath const& path, QVariantMap& values, QObject* parent ): QObject( parent ) {
+UBlockDevice::UBlockDevice( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent ): QObject( parent ) {
     Path                  = path;
     Configuration         = values["Configuration"        ].value<QDBusArgument  >( );
     CryptoBackingDevice   = values["CryptoBackingDevice"  ].value<QDBusObjectPath>( );
@@ -84,7 +84,7 @@ UBlockDevice::~UBlockDevice( ) {
 // Class UPartitionTable
 //
 
-UPartitionTable::UPartitionTable( QDBusObjectPath const& path, QVariantMap& values, QObject* parent ): QObject( parent ) {
+UPartitionTable::UPartitionTable( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent ): QObject( parent ) {
     Path       = path;
     Partitions = values["Partitions"].value<QDBusArgument>( );
     Type       = values["Type"      ].value<QString      >( );
@@ -98,7 +98,7 @@ UPartitionTable::~UPartitionTable( ) {
 // Class UPartition
 //
 
-UPartition::UPartition( QDBusObjectPath const& path, QVariantMap& values, QObject* parent ): QObject( parent ) {
+UPartition::UPartition( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent ): QObject( parent ) {
     Path        = path;
     Flags       = values["Flags"      ].value<qulonglong     >( );
     IsContained = values["IsContained"].value<bool           >( );
@@ -120,7 +120,7 @@ UPartition::~UPartition( ) {
 // Class UFilesystem
 //
 
-UFilesystem::UFilesystem( QDBusObjectPath const& path, QVariantMap& values, QObject* parent ): QObject( parent ) {
+UFilesystem::UFilesystem( QDBusObjectPath const& path, QVariantMap const& values, QObject* parent ): QObject( parent ) {
     Path        = path;
     MountPoints = values["MountPoints"].value<QDBusArgument>( );
     Size        = values["Size"       ].value<qulonglong   >( );
