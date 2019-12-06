@@ -41,22 +41,22 @@ QChar              extern const  FA_Backward;
 QChar              extern const  FA_Forward;
 QChar              extern const  FA_FastForward;
 
-int                       const  DebugLogPathCount        =   6;
+int                       const  DebugLogPathCount          =   6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
-double                    const  PrinterMaximumX          =  64.00; // mm
-double                    const  PrinterMaximumY          =  40.00; // mm
-double                    const  PrinterMaximumZ          =  50.00; // mm
-double                    const  PrinterRaiseToMaximumZ   =  60.00; // mm
-double                    const  PrinterHighSpeedLowerToZ =  10.00; // mm
+double                    const  PrinterMaximumX            =  64.00; // mm
+double                    const  PrinterMaximumY            =  40.00; // mm
+double                    const  PrinterMaximumZ            =  50.00; // mm
+double                    const  PrinterRaiseToMaximumZ     =  60.00; // mm
+double                    const  PrinterHighSpeedThresholdZ =  10.00; // mm
 
-double                    const  PrinterDefaultHighSpeed  = 200.00; // mm/min
-double                    const  PrinterDefaultLowSpeed   =  50.00; // mm/min
+double                    const  PrinterDefaultHighSpeed    = 200.00; // mm/min
+double                    const  PrinterDefaultLowSpeed     =  50.00; // mm/min
 
-double                    const  AspectRatio5to3          =   5.0 /  3.0;
-double                    const  AspectRatio16to10        =  16.0 / 10.0;
+double                    const  AspectRatio5to3            =   5.0 /  3.0;
+double                    const  AspectRatio16to10          =  16.0 / 10.0;
 
-double                    const  LargeFontSize            =  22.0; // pt
-double                    const  NormalFontSize           =  12.0; // pt
+double                    const  LargeFontSize              =  22.0; // pt
+double                    const  NormalFontSize             =  12.0; // pt
 
 #endif // __CONSTANTS_H__
