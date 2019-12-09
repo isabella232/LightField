@@ -121,6 +121,10 @@ void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
             }
 
             emit filesystemRemounted( succeeded, _isWritable );
+        } else if ( tokens[0] == "ready" ) {
+            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'ready' notification\n" );
+
+            emit ready( );
         } else {
             debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: unknown verb '%s'\n", tokens[0].toUtf8( ).data( ) );
         }

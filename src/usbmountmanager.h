@@ -32,6 +32,7 @@ private:
 signals:
     ;
 
+    void ready( );
     void filesystemMounted( QString const& mountPoint );
     void filesystemRemounted( bool const succeeded, bool const writable );
     void filesystemUnmounted( QString const& mountPoint );
