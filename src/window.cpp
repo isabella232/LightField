@@ -58,7 +58,11 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _upgradeManager  = new UpgradeManager;
     _usbMountManager = new UsbMountManager;
+
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
+    QObject::connect( _usbMountManager, &UsbMountManager::ready,             _upgradeManager, [this] ( ) {
+        _upgradeManager->checkForUpgrades( { } );
+    } );
 
     std::vector<TabBase*> tabs {
         _fileTab     = new FileTab,
@@ -186,8 +190,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     }
 
     setCentralWidget( _tabWidget );
-
-    _upgradeManager->checkForUpgrades( { } );
 }
 
 Window::~Window( ) {
