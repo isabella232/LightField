@@ -161,6 +161,8 @@ void UDisksMonitor::probeForExistingDevices( ) {
             }
         }
     }
+
+    emit ready( );
 }
 
 void UDisksMonitor::_interfacesAdded( QDBusObjectPath const& path, InterfaceList const& interfaces ) {

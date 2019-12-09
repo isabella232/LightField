@@ -116,15 +116,17 @@ UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
 {
     _signalHandler = new SignalHandler { this };
 
-    (void) QObject::connect( _monitor,       &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
-    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
-    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded          );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded     );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded    );
                                              
-    (void) QObject::connect( _monitor,       &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
-    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
-    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved        );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved   );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved  );
 
-    (void) QObject::connect( _signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived     );
+    (void) QObject::connect( _monitor,       &UDisksMonitor::ready,              this, &UsbDeviceMounter::_udisksMonitor_ready );
+
+    (void) QObject::connect( _signalHandler, &SignalHandler::signalReceived,     this, &UsbDeviceMounter::_signalReceived      );
 
     _signalHandler->subscribe( SignalList );
 
@@ -329,6 +331,10 @@ void UsbDeviceMounter::_mount_readyReadStandardError( QString const& data ) {
 
     debug( "[mount/stderr] %s\n", _mountStderrBuffer.left( index ).replace( NewLineRegex, "\n[mount/stderr] " ).toUtf8( ).data( ) );
     _mountStderrBuffer.remove( 0, index + 1 );
+}
+
+void UsbDeviceMounter::_udisksMonitor_ready( ) {
+    printf( "ready:\n" );
 }
 
 void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive ) {

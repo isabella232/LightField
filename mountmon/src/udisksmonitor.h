@@ -43,6 +43,8 @@ signals:
     void partitionRemoved      ( QDBusObjectPath const& path, UPartition*      partition      );
     void filesystemRemoved     ( QDBusObjectPath const& path, UFilesystem*     filesystem     );
 
+    void ready( );
+
 public slots:
     ;
 
