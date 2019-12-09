@@ -8,8 +8,9 @@
 #include "shepherd.h"
 #include "timinglogger.h"
 
-//
-// Before printing:
+// ================================
+// == Section A: Before printing ==
+// ================================
 //
 // A1. Raise the build platform to maximum Z at high speed.
 // A2. Prompt user to dispense print solution.
@@ -17,29 +18,52 @@
 // A4. Lower to first layer height at low speed.
 // A5. Wait for four seconds.
 //
-// For each layer:
+// ===============================
+// == Section B: For each layer ==
+// ===============================
 //
-// B1. Start projection: "set-projector-power ${powerLevel}".
-// --- no-pause region starts
+// B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
+// --- pause is disabled
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
 // B3. Stop projection: "set-projector-power 0".
 // B4. Pause before raise.
 // B5. Raise the build platform by LiftDistance at low speed.
-// --- no-pause region ends
+// --- pause is re-enabled
 // B6. Lower the build platform by LiftDistance - LayerHeight at low speed.
 // B7. Pause before projection.
 //
-// After printing, whether successful or not:
+// ===============================
+// == Section C: After printing ==
+// ===============================
 //
-// C1. Raise the build platform to maximum Z.
+// C1. Raise the build platform to high-speed threshold Z at low speed.
+// C2. Raise the build platform to maximum Z at high speed.
 //
+// =================================
+// == Section D: Pause and resume ==
+// =================================
+//
+// D1. Raise the build platform to high-speed threshold Z at low speed.
+// D2. Raise the build platform to maximum Z at high speed.
+// --- wait for Resume to be pressed
+// D3. Lower the build platform to high-speed threshold Z at high speed.
+// D4. Lower the build platform to next layer height at low speed.
+//
+
+#define ICEBUG 1
 
 namespace {
 
+#if ICEBUG
+    auto const PauseAfterPrintSolutionDispensed = 250;  // ms
+    auto const PauseBeforeProject               = 250;  // ms
+    auto const PauseBeforeLift                  = 250;  // ms
+#else
     auto const PauseAfterPrintSolutionDispensed = 4000; // ms
     auto const PauseBeforeProject               = 4000; // ms
     auto const PauseBeforeLift                  = 2000; // ms
-    auto const LiftDistance                     = 2.00; // mm
+#endif
+    auto const LiftDistance = 2.00; // mm
 
     char const* PrintStepStrings[] {
         "none",
@@ -72,6 +96,8 @@ PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     _shepherd ( shepherd )
 {
     _setProjectorPowerProcess = new ProcessRunner( this );
+
+    QObject::connect( _shepherd, &Shepherd::printer_positionReport, this, &PrintManager::printer_positionReport );
 }
 
 PrintManager::~PrintManager( ) {
@@ -99,6 +125,13 @@ void PrintManager::_stopAndCleanUpTimer( QTimer*& timer ) {
     timer = nullptr;
 }
 
+void PrintManager::_pausePrinting( ) {
+    debug( "+ PrintManager::_pausePrinting: step: %s; position: %.2f mm\n", ToString( _step ), _position );
+    _pausedPosition = _position;
+    _pausedStep     = _step;
+    stepD1_start( );
+}
+
 void PrintManager::_cleanUp( ) {
     QObject::disconnect( this );
 
@@ -121,6 +154,10 @@ void PrintManager::_cleanUp( ) {
         _setProjectorPowerProcess = nullptr;
     }
 }
+
+// ================================
+// == Section A: Before printing ==
+// ================================
 
 // A1. Raise the build platform to maximum Z at high speed.
 void PrintManager::stepA1_start( ) {
@@ -199,7 +236,6 @@ void PrintManager::stepA4_start( ) {
     _step = PrintStep::A4;
 
     auto firstLayerHeight = ( std::max( 100, _printJob->layerThickness ) + g_settings.buildPlatformOffset ) / 1000.0;
-
     debug( "+ PrintManager::stepA4_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
@@ -246,11 +282,15 @@ void PrintManager::stepA5_completed( ) {
     stepB1_start( );
 }
 
+// ===============================
+// == Section B: For each layer ==
+// ===============================
+
 // B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
 void PrintManager::stepB1_start( ) {
     _step = PrintStep::B1;
     if ( _paused ) {
-        emit printPaused( );
+        _pausePrinting( );
         return;
     }
 
@@ -406,12 +446,12 @@ void PrintManager::stepB5_completed( bool const success ) {
 void PrintManager::stepB6_start( ) {
     _step = PrintStep::B6;
     if ( _paused ) {
-        emit printPaused( );
+        _pausePrinting( );
         return;
     }
 
     auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
-    debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", moveDistance );
+    debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", -moveDistance );
 
     QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
     _shepherd->doMoveRelative( moveDistance, _printJob->printSpeed );
@@ -437,7 +477,7 @@ void PrintManager::stepB6_completed( bool const success ) {
 void PrintManager::stepB7_start( ) {
     _step = PrintStep::B7;
     if ( _paused ) {
-        emit printPaused( );
+        _pausePrinting( );
         return;
     }
 
@@ -459,6 +499,10 @@ void PrintManager::stepB7_completed( ) {
     stepB1_start( );
 }
 
+// ===============================
+// == Section C: After printing ==
+// ===============================
+
 // C1. Raise the build platform to high-speed threshold Z at low speed.
 void PrintManager::stepC1_start( ) {
     _step = PrintStep::C1;
@@ -472,11 +516,10 @@ void PrintManager::stepC1_start( ) {
         emit lampStatusChange( false );
     }
 
-    double threshold = std::min( PrinterRaiseToMaximumZ, PrinterHighSpeedThresholdZ + _printJob->layerCount * _printJob->layerThickness / 1000.0 );
-    debug( "+ PrintManager::stepC1_start: raising build platform to threshold Z, %.2f mm\n", threshold );
+    debug( "+ PrintManager::stepC1_start: raising build platform to threshold Z (%.2f mm) at low speed\n", _threshold );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
-    _shepherd->doMoveAbsolute( threshold, PrinterDefaultHighSpeed );
+    _shepherd->doMoveAbsolute( _threshold, _printJob->printSpeed );
 }
 
 void PrintManager::stepC1_completed( bool const success ) {
@@ -499,10 +542,11 @@ void PrintManager::stepC1_completed( bool const success ) {
     stepC2_start( );
 }
 
+// C2. Raise the build platform to maximum Z at high speed.
 void PrintManager::stepC2_start( ) {
-    _step = PrintStep::C1;
+    _step = PrintStep::C2;
 
-    debug( "+ PrintManager::stepC2_start: raising build platform to maximum Z\n" );
+    debug( "+ PrintManager::stepC2_start: raising build platform to maximum Z at high speed\n" );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC2_completed );
     _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
@@ -527,6 +571,124 @@ void PrintManager::stepC2_completed( bool const success ) {
     _cleanUp( );
 }
 
+// =================================
+// == Section D: Pause and resume ==
+// =================================
+
+// D1. Raise the build platform to high-speed threshold Z at low speed.
+void PrintManager::stepD1_start( ) {
+    _step = PrintStep::D1;
+
+    debug( "+ PrintManager::stepD1_start: raising build platform to threshold Z (%.2f mm) at low speed\n", _threshold );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD1_completed );
+    _shepherd->doMoveAbsolute( _threshold, _printJob->printSpeed );
+}
+
+void PrintManager::stepD1_completed( bool const success ) {
+    debug( "+ PrintManager::stepD1_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD1_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
+        return;
+    }
+
+    stepD2_start( );
+}
+
+// D2. Raise the build platform to maximum Z at high speed.
+void PrintManager::stepD2_start( ) {
+    _step = PrintStep::D2;
+
+    debug( "+ PrintManager::stepD2_start: raising build platform to maximum Z at high speed\n" );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD2_completed );
+    _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
+}
+
+void PrintManager::stepD2_completed( bool const success ) {
+    debug( "+ PrintManager::stepD2_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD2_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
+        return;
+    }
+
+    emit printPaused( );
+    debug( "+ PrintManager::stepD2_completed: waiting to resume\n" );
+}
+
+// D3. Lower the build platform to high-speed threshold Z at high speed.
+void PrintManager::stepD3_start( ) {
+    _step = PrintStep::D3;
+
+    debug( "+ PrintManager::stepD3_start: lowering build platform to threshold Z (%.2f mm) at high speed\n", _threshold );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD3_completed );
+    _shepherd->doMoveAbsolute( _threshold, PrinterDefaultHighSpeed );
+}
+
+void PrintManager::stepD3_completed( bool const success ) {
+    debug( "+ PrintManager::stepD3_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD3_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
+        return;
+    }
+
+    stepD4_start( );
+}
+
+// D4. Lower the build platform to next layer height at low speed.
+void PrintManager::stepD4_start( ) {
+    _step = PrintStep::D4;
+
+    debug( "+ PrintManager::stepD4_start: lowering build platform to saved position (%.2f mm) at low speed\n", _pausedPosition );
+
+    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD4_completed );
+    _shepherd->doMoveAbsolute( _pausedPosition, PrinterDefaultHighSpeed );
+}
+
+void PrintManager::stepD4_completed( bool const success ) {
+    debug( "+ PrintManager::stepD4_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD4_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepC1_start( );
+        return;
+    }
+
+    emit printResumed( );
+    switch ( _pausedStep ) {
+        case PrintStep::B1: stepB1_start( ); break;
+        case PrintStep::B6: stepB6_start( ); break;
+        case PrintStep::B7: stepB7_start( ); break;
+        default:
+            debug( "+ PrintManager::stepD4_completed: paused at invalid step %s?\n", ToString( _pausedStep ) );
+            this->abort( );
+            return;
+    }
+}
+
 void PrintManager::print( PrintJob* printJob ) {
     if ( _printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
@@ -547,10 +709,6 @@ void PrintManager::print( PrintJob* printJob ) {
 
 void PrintManager::pause( ) {
     debug( "+ PrintManager::pause\n" );
-    if ( _paused ) {
-        return;
-    }
-
     _paused = true;
 }
 
@@ -561,16 +719,7 @@ void PrintManager::resume( ) {
     }
 
     _paused = false;
-    switch ( _step ) {
-        case PrintStep::B1: stepB1_start( ); break;
-        case PrintStep::B6: stepB6_start( ); break;
-        case PrintStep::B7: stepB7_start( ); break;
-        default:
-            debug( "+ PrintManager::resume: paused at invalid step %s\n", ToString( _step ) );
-            this->abort( );
-            return;
-    }
-    emit printResumed( );
+    stepD3_start( );
 }
 
 void PrintManager::terminate( ) {
@@ -629,4 +778,10 @@ void PrintManager::setPngDisplayer( PngDisplayer* pngDisplayer ) {
 
 void PrintManager::printSolutionDispensed( ) {
     stepA2_completed( );
+}
+
+void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
+    _position  = px;
+    _threshold = std::min( PrinterRaiseToMaximumZ, PrinterHighSpeedThresholdZ + _position );
+    debug( "+ PrintManager::printer_positionReport: new position %.2f mm, new threshold %.2f mm\n", _position, _threshold );
 }

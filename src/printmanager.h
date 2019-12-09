@@ -44,8 +44,12 @@ private:
 
     bool           _lampOn                   { };
     PrintStep      _step                     { };
+    PrintStep      _pausedStep               { };
     int            _currentLayer             { };
     bool           _paused                   { false };
+    double         _position                 { };
+    double         _pausedPosition           { };
+    double         _threshold                { PrinterHighSpeedThresholdZ };
 
     QTimer*        _preProjectionTimer       { };
     QTimer*        _layerProjectionTimer     { };
@@ -53,6 +57,7 @@ private:
 
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );
+    void    _pausePrinting( );
     void    _cleanUp( );
 
 signals:
@@ -79,6 +84,8 @@ public slots:
     void abort( );
 
     void printSolutionDispensed( );
+
+    void printer_positionReport( double px, int cx );
 
 protected slots:
 
@@ -128,6 +135,19 @@ private slots:
 
     void stepC2_start( );
     void stepC2_completed( bool const success );
+
+
+    void stepD1_start( );
+    void stepD1_completed( bool const success );
+
+    void stepD2_start( );
+    void stepD2_completed( bool const success );
+
+    void stepD3_start( );
+    void stepD3_completed( bool const success );
+
+    void stepD4_start( );
+    void stepD4_completed( bool const success );
 
 };
 
