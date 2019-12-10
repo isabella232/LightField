@@ -69,7 +69,7 @@ private slots:
     void _mount_readyReadStandardOutput( QString const& data );
     void _mount_readyReadStandardError( QString const& data );
 
-    void _udisksMonitor_ready( );
+    void _monitorReady( );
 
 };
 
