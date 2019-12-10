@@ -340,46 +340,39 @@ void UsbDeviceMounter::_monitorReady( ) {
 }
 
 void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive ) {
-    debug( "+ UsbDeviceMounter::_driveAdded: path %s; properties:\n", path.path( ).toUtf8( ).data( ) );
+    if ( ( 0 != drive->ConnectionBus.compare( "usb", Qt::CaseInsensitive ) ) ) {
+        return;
+    }
+
+    debug( "+ UsbDeviceMounter::_driveAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
+    if ( !drive->MediaAvailable ) {
+        debug( "  + note: media not available\n" );
+    }
 
     char const* unit;
     double driveSize;
     ScaleSize( drive->Size, driveSize, unit );
     debug( "%s  + Size:           %.2f %s\n", ToString( drive ).toUtf8( ).data( ), driveSize, unit );
 
-    if ( 0 != drive->ConnectionBus.compare( "usb", Qt::CaseInsensitive ) ) {
-        debug( "  + bad value for property ConnectionBus: '%s'\n", drive->ConnectionBus.toUtf8( ).data( ) );
-        return;
-    }
-    if ( !drive->MediaAvailable ) {
-        debug( "  + [[warning]] bad value for property MediaAvailable: '%s'\n", drive->MediaAvailable ? "true" : "false" );
-    }
-
     drive->setParent( this );
     _drives.insert( path, drive );
 }
 
 void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDevice* blockDevice ) {
-    debug( "+ UsbDeviceMounter::_blockDeviceAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
-
-    if ( !_drives.contains( blockDevice->Drive ) ) {
-        debug( "  + not interested in this block device\n" );
-        return;
-    }
-    if ( blockDevice->HintIgnore ) {
-        debug( "  + block device has ignore hint set, so ignoring it\n" );
+    if ( blockDevice->HintIgnore || !_drives.contains( blockDevice->Drive ) ) {
         return;
     }
 
     char const* unit;
     double driveSize;
     ScaleSize( blockDevice->Size, driveSize, unit );
-
     debug(
+        "+ UsbDeviceMounter::_blockDeviceAdded: path %s\n"
         "  + Device: '%s'\n"
         "  + Size:   %.2f %s\n"
         "  + System? %s\n"
         "",
+        path.path( ).toUtf8( ).data( ),
         blockDevice->Device.data( ),
         driveSize, unit,
         blockDevice->HintSystem ? "yes" : "no"
@@ -390,12 +383,11 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
 }
 
 void UsbDeviceMounter::_filesystemAdded( QDBusObjectPath const& path, UFilesystem* filesystem ) {
-    debug( "+ UsbDeviceMounter::_filesystemAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
-
     if ( !_blockDevices.contains( path ) ) {
-        debug( "  + not interested in this filesystem\n" );
         return;
     }
+
+    debug( "+ UsbDeviceMounter::_filesystemAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
 
     filesystem->setParent( this );
     _filesystems.insert( path, filesystem );
@@ -404,21 +396,20 @@ void UsbDeviceMounter::_filesystemAdded( QDBusObjectPath const& path, UFilesyste
 }
 
 void UsbDeviceMounter::_driveRemoved( QDBusObjectPath const& path ) {
-    debug( "+ UsbDeviceMounter::_driveRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
-
-    _drives.remove( path );
+    if ( _drives.remove( path ) > 0 ) {
+        debug( "+ UsbDeviceMounter::_driveRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
+    }
 }
 
 void UsbDeviceMounter::_blockDeviceRemoved( QDBusObjectPath const& path ) {
-    debug( "+ UsbDeviceMounter::_blockDeviceRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
-
-    _blockDevices.remove( path );
+    if ( _blockDevices.remove( path ) > 0 ) {
+        debug( "+ UsbDeviceMounter::_blockDeviceRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
+    }
 }
 
 void UsbDeviceMounter::_filesystemRemoved( QDBusObjectPath const& path ) {
-    debug( "+ UsbDeviceMounter::_filesystemRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
-
     if ( _filesystems.contains( path ) ) {
+        debug( "+ UsbDeviceMounter::_filesystemRemoved: path %s\n", path.path( ).toUtf8( ).data( ) );
         _unmount( _filesystems[path] );
     }
 }
