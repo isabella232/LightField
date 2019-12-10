@@ -97,7 +97,7 @@ void UDisksMonitor::_createObject( QDBusObjectPath const& path, QString const& i
 }
 
 void UDisksMonitor::probeForExistingDevices( ) {
-    debug( "+ UDisksMonitor::probeForExistingDevices: attempting to find existing objects by calling GetManagedObjects\n" );
+    debug( "+ UDisksMonitor::probeForExistingDevices: Searching for USB storage devices via GetManagedObjects\n" );
     QDBusReply<GetManagedObjectsResult> reply {
         QDBusConnection::systemBus( ).call(
             QDBusMessage::createMethodCall(
@@ -109,10 +109,11 @@ void UDisksMonitor::probeForExistingDevices( ) {
         )
     };
     if ( !reply.isValid( ) ) {
-        auto const& err = reply.error( );
+        auto const& err { reply.error( ) };
+
+        debug( "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call failed:\n" );
         if ( err.isValid( ) ) {
             debug(
-                "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call failed:\n"
                 "  + error type:    %s\n"
                 "  + error name:    %s\n"
                 "  + error message: %s\n"
@@ -122,16 +123,14 @@ void UDisksMonitor::probeForExistingDevices( ) {
                 err.message( ).toUtf8( ).data( )
             );
         } else {
-            debug( "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call failed and detailed error information is not available\n" );
+            debug( "  + detailed error information is not available\n" );
         }
         return;
     }
 
-    debug( "+ UDisksMonitor::probeForExistingDevices: GetManagedObjects call results:\n" );
     auto objectPaths { reply.value( ) };
 
     // first, find Drive objects
-    debug( "+ UDisksMonitor::probeForExistingDevices: Drive objects:\n" );
     for ( auto objectPathsIter = objectPaths.begin( ); objectPathsIter != objectPaths.end( ); ++objectPathsIter ) {
         auto const& objectPath    { objectPathsIter.key( )   };
         auto const& interfaceList { objectPathsIter.value( ) };
@@ -140,14 +139,12 @@ void UDisksMonitor::probeForExistingDevices( ) {
             auto const& properties { interfaceListIter.value( ) };
 
             if ( isDrive( interface ) ) {
-                debug( "+ UDisksMonitor::probeForExistingDevices: Object path: %s\n", objectPath.path( ).toUtf8( ).data( ) );
                 _createObject( objectPath, interface, properties );
             }
         }
     }
 
     // then, find everything else
-    debug( "+ UDisksMonitor::probeForExistingDevices: Other objects:\n" );
     for ( auto objectPathsIter = objectPaths.begin( ); objectPathsIter != objectPaths.end( ); ++objectPathsIter ) {
         auto const& objectPath    { objectPathsIter.key( )   };
         auto const& interfaceList { objectPathsIter.value( ) };
@@ -156,7 +153,6 @@ void UDisksMonitor::probeForExistingDevices( ) {
             auto const& properties { interfaceListIter.value( ) };
 
             if ( !isDrive( interface ) ) {
-                debug( "+ UDisksMonitor::probeForExistingDevices: Object path: %s\n", objectPath.path( ).toUtf8( ).data( ) );
                 _createObject( objectPath, interface, properties );
             }
         }
