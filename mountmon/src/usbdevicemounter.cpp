@@ -162,6 +162,8 @@ void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesys
 
     if ( !_blockDevices.contains( path ) ) {
         debug( "+ UsbDeviceMounter::_mount: can't find block device for D-Bus object path\n" );
+        --_pendingMounts;
+        _monitorReady( );
         return;
     }
     UBlockDevice* blockDevice = _blockDevices[path];
@@ -194,12 +196,18 @@ void UsbDeviceMounter::_mount( QDBusObjectPath const& path, UFilesystem* filesys
 
         printf( "mount:%s\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
 
+        --_pendingMounts;
+        _monitorReady( );
+
         mountProcess->deleteLater( );
     } );
 
     (void) QObject::connect( mountProcess, &ProcessRunner::failed, this, [ this, filesystem, mountProcess ] ( ) {
         _dumpStdioBuffers( );
         debug( "+ UsbDeviceMounter::_mount: mount of %s failed\n", filesystem->OurMountPoint.toUtf8( ).data( ) );
+
+        --_pendingMounts;
+        _monitorReady( );
 
         mountProcess->deleteLater( );
     } );
@@ -334,9 +342,16 @@ void UsbDeviceMounter::_mount_readyReadStandardError( QString const& data ) {
 }
 
 void UsbDeviceMounter::_monitorReady( ) {
-    debug( "+ UsbDeviceMounter::_monitorReady\n" );
+    if ( _ready ) {
+        return;
+    }
 
-    printf( "ready:\n" );
+    int pendingMounts = _pendingMounts;
+    debug( "+ UsbDeviceMounter::_monitorReady: pending mounts: %d\n", pendingMounts );
+    if ( 0 == _pendingMounts ) {
+        _ready = true;
+        printf( "ready:\n" );
+    }
 }
 
 void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive ) {
@@ -367,7 +382,8 @@ void UsbDeviceMounter::_blockDeviceAdded( QDBusObjectPath const& path, UBlockDev
     double driveSize;
     ScaleSize( blockDevice->Size, driveSize, unit );
     debug(
-        "+ UsbDeviceMounter::_blockDeviceAdded: path %s\n"
+        "+ UsbDeviceMounter::_blockDeviceAdded:\n"
+        "  + Path:   '%s'\n"
         "  + Device: '%s'\n"
         "  + Size:   %.2f %s\n"
         "  + System? %s\n"
@@ -392,6 +408,7 @@ void UsbDeviceMounter::_filesystemAdded( QDBusObjectPath const& path, UFilesyste
     filesystem->setParent( this );
     _filesystems.insert( path, filesystem );
 
+    ++_pendingMounts;
     _mount( path, filesystem );
 }
 

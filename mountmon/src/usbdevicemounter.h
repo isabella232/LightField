@@ -34,6 +34,9 @@ private:
     QString                              _mountStdoutBuffer;
     QString                              _mountStderrBuffer;
 
+    std::atomic_int                      _pendingMounts;
+    std::atomic_bool                     _ready;
+
     void _dumpStdioBuffers( );
 
     void _mount( QDBusObjectPath const& path, UFilesystem* filesystem );
