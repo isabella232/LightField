@@ -13,9 +13,10 @@ public:
     UsbMountManager( QObject* parent = nullptr );
     virtual ~UsbMountManager( ) override;
 
-    void remount( bool const writable );
+    void    remount( bool const writable );
 
-    bool isWritable( ) { return _isWritable; }
+    bool    isWritable( ) { return _isWritable; }
+    QString mountPoint( ) { return _mountPoint; }
 
 protected:
 
