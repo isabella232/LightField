@@ -47,6 +47,10 @@ namespace {
     }
 
     QString ToString( UDrive* drive ) {
+        char const* unit;
+        double driveSize;
+
+        ScaleSize( drive->Size, driveSize, unit );
         return QString::asprintf(
             "  + Path:                  %s\n"
             "  + CanPowerOff:           %s\n"
@@ -70,7 +74,7 @@ namespace {
             "  + Seat:                  %s\n"
             "  + Serial:                %s\n"
             "  + SiblingId:             %s\n"
-            "  + Size:                  %llu\n"
+            "  + Size:                  %llu (%.2f %s)\n"
             "  + SortKey:               %s\n"
             "  + TimeDetected:          %llu\n"
             "  + TimeMediaDetected:     %llu\n"
@@ -99,7 +103,7 @@ namespace {
             drive->Seat.toUtf8( ).data( ),
             drive->Serial.toUtf8( ).data( ),
             drive->SiblingId.toUtf8( ).data( ),
-            drive->Size,
+            drive->Size, driveSize, unit,
             drive->SortKey.toUtf8( ).data( ),
             drive->TimeDetected,
             drive->TimeMediaDetected,
@@ -119,7 +123,7 @@ UsbDeviceMounter::UsbDeviceMounter( UDisksMonitor* monitor, QObject* parent ):
     (void) QObject::connect( _monitor,       &UDisksMonitor::driveAdded,         this, &UsbDeviceMounter::_driveAdded         );
     (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemAdded,    this, &UsbDeviceMounter::_filesystemAdded    );
     (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceAdded,   this, &UsbDeviceMounter::_blockDeviceAdded   );
-                                             
+
     (void) QObject::connect( _monitor,       &UDisksMonitor::driveRemoved,       this, &UsbDeviceMounter::_driveRemoved       );
     (void) QObject::connect( _monitor,       &UDisksMonitor::filesystemRemoved,  this, &UsbDeviceMounter::_filesystemRemoved  );
     (void) QObject::connect( _monitor,       &UDisksMonitor::blockDeviceRemoved, this, &UsbDeviceMounter::_blockDeviceRemoved );
@@ -232,7 +236,7 @@ void UsbDeviceMounter::_remount( QString const& path, bool const writable ) {
         debug( "+ UsbDeviceMounter::_remount: couldn't find mount point '%s' in our list of mounted filesystems, returning failure\n", path.toUtf8( ).data( ) );
         printf( "remount:failure:r%c:%s\n", writable ? 'w' : 'o', path.toUtf8( ).data( ) );
         return;
-    } 
+    }
     UFilesystem* filesystem = *iter;
     if ( filesystem->IsReadWrite == writable ) {
         debug( "+ UsbDeviceMounter::_remount: already mounted read-%s, returning success\n", writable ? "write" : "only" );
@@ -359,15 +363,7 @@ void UsbDeviceMounter::_driveAdded( QDBusObjectPath const& path, UDrive* drive )
         return;
     }
 
-    debug( "+ UsbDeviceMounter::_driveAdded: path %s\n", path.path( ).toUtf8( ).data( ) );
-    if ( !drive->MediaAvailable ) {
-        debug( "  + note: media not available\n" );
-    }
-
-    char const* unit;
-    double driveSize;
-    ScaleSize( drive->Size, driveSize, unit );
-    debug( "%s  + Size:           %.2f %s\n", ToString( drive ).toUtf8( ).data( ), driveSize, unit );
+    debug( "+ UsbDeviceMounter::_driveAdded:\n%s", ToString( drive ).toUtf8( ).data( ) );
 
     drive->setParent( this );
     _drives.insert( path, drive );
