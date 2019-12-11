@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "buildinfo.h"
 #include "lightfieldstyle.h"
 #include "signalhandler.h"
 #include "version.h"
@@ -241,7 +242,7 @@ void App::_setTheme( ) {
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _debugManager = new DebugManager;
-    debug( "LightField version %s (built on %s at %s) starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, __DATE__, __TIME__, QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
+    debug( "LightField version %s (built at %s) starting at %s (pid: %d).\n", LIGHTFIELD_VERSION_STRING, g_BuildTimestamp.toUtf8( ).data( ), QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ) );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );

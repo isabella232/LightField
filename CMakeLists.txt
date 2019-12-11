@@ -32,6 +32,7 @@ set(CMAKE_AUTOUIC ON)
 set(Project_Sources src/advancedtab.cpp
 src/app.cpp
 src/backdrop.cpp
+src/buildinfo.cpp
 src/canvas.cpp
 src/constants.cpp
 src/debug.cpp
@@ -72,6 +73,7 @@ src/window.cpp
 set(Project_Headers src/advancedtab.h
 src/app.h
 src/backdrop.h
+src/buildinfo.h
 src/canvas.h
 src/constants.h
 src/coordinate.h

@@ -88,6 +88,11 @@ HERE
 	echo "${BUILD}" > ${BUILDDIR}/.lastbuildmode
     fi
 
+    if ! make -q
+    then
+        rm buildinfo.o
+    fi
+
     make -j${QT_BUILD_JOBS-12}
 }
 
