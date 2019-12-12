@@ -50,7 +50,7 @@
 // D4. Lower the build platform to next layer height at low speed.
 //
 
-#define ICEBUG 1
+#define ICEBUG 0
 
 namespace {
 
