@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <sys/utsname.h>
+
 #include "upgrademanager.h"
 
 #include "gpgsignaturechecker.h"
@@ -12,32 +14,31 @@
 
 namespace {
 
-    QStringList UpgradeKitFileGlobs {
-        "lightfield-debug_*_amd64.kit",
-        "lightfield-release_*_amd64.kit"
+    QStringList const UpgradeKitFileGlobs {
+        "lightfield-*.kit",
     };
 
-    QStringList UpgradeKitDirGlobs {
-        "lightfield-debug_*_amd64",
-        "lightfield-release_*_amd64"
+    QStringList const UpgradeKitDirGlobs {
+        "lightfield-*",
     };
 
-    QMap<BuildType, QString> BuildTypeToString {
+    QMap<BuildType, QString> const BuildTypeToString {
         { BuildType::Release, "release" },
         { BuildType::Debug,   "debug"   },
     };
 
-    QMap<QString, BuildType> StringToBuildType {
+    QMap<QString, BuildType> const StringToBuildType {
         { "release", BuildType::Release },
         { "debug",   BuildType::Debug   },
     };
 
-    QRegularExpression const MetadataFieldMatcherRegex { "^([-0-9A-Za-z]+):\\s*" };
-    QRegularExpression const WhitespaceRegex           { "\\s+"                  };
-    QRegularExpression const CommentMatcherRegex       { "\\s+#.*$"              };
+    QRegularExpression const MetadataFieldMatcherRegex { "^([-0-9A-Za-z]+):\\s*"                                     };
+    QRegularExpression const WhitespaceRegex           { "\\s+"                                                      };
+    QRegularExpression const CommentMatcherRegex       { "\\s+#.*$"                                                  };
+    QRegularExpression const KitFileMatcherRegex       { "^lightfield(?:-(.*?))?-(debug|release)_(.*?)_(.*?)\\.kit$" };
+    QRegularExpression const KitDirMatcherRegex        { "^lightfield(?:-(.*?))?-(debug|release)_(.*?)_(.*?)$"       };
 
-    QStringList ExpectedMetadataFields {
-        "Metadata-Version",
+    QStringList const ExpectedMetadataV1Fields {
         "Version",
         "Build-Type",
         "Release-Date",
@@ -45,12 +46,34 @@ namespace {
         "Checksums-SHA256"
     };
 
+    QStringList const ExpectedMetadataV2Fields {
+        "Architecture",
+        "Release-Train"
+    };
+
+    QStringList _EnsureMapContainsKeys( QMap<QString, QString> map, QStringList keyList ) {
+        QStringList result;
+        for ( auto const& key : keyList ) {
+            if ( !map.contains( key ) ) {
+                result += key;
+            }
+        }
+        return result;
+    }
+
 }
 
 UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
     _stderrLogger  = new StdioLogger   { "apt-get/stderr", this };
     _stdoutLogger  = new StdioLogger   { "apt-get/stdout", this };
     _processRunner = new ProcessRunner {                   this };
+
+    {
+        utsname u;
+
+        uname( &u );
+        _architecture = u.machine;
+    }
 
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  _stderrLogger, &StdioLogger::read );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, _stdoutLogger, &StdioLogger::read );
@@ -106,18 +129,41 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
     for ( auto kitDirInfo : QDir { UpdatesRootPath }.entryInfoList( UpgradeKitDirGlobs, QDir::Dirs | QDir::Readable | QDir::Executable, QDir::Name ) ) {
         QString kitPath { kitDirInfo.absoluteFilePath( ) };
         QDir    kitDir  { kitPath };
-        debug( "  + found unpacked kit in '%s'\n", kitPath.toUtf8( ).data( ) );
+
+        auto match { KitDirMatcherRegex.match( kitDirInfo.fileName( ) ) };
+        if ( !match.hasMatch( ) ) {
+            debug( "  + ignoring unpacked kit '%s': folder name doesn't match schema\n", kitPath.toUtf8( ).data( ) );
+            continue;
+        }
+        if ( match.captured( 4 ) != _architecture ) {
+            debug( "  + ignoring unpacked kit '%s': wrong architecture\n", kitPath.toUtf8( ).data( ) );
+            continue;
+        }
 
         if ( !kitDir.exists( "version.inf" ) ) {
-            debug( "  + deleting bad unpacked kit: version.inf file is missing\n" );
+            debug( "  + deleting bad unpacked kit '%s': version.inf file is missing\n", kitPath.toUtf8( ).data( ) );
             kitDir.removeRecursively( );
             continue;
         }
         if ( !kitDir.exists( "version.inf.sig" ) ) {
-            debug( "  + deleting bad unpacked kit: version.inf.sig file is missing\n" );
+            debug( "  + deleting bad unpacked kit '%s': version.inf.sig file is missing\n", kitPath.toUtf8( ).data( ) );
             kitDir.removeRecursively( );
             continue;
         }
+
+        debug(
+            "+ UpgradeManager::_checkForUpgrades: found unpacked kit in '%s'\n"
+            "  + Version:       %s\n"
+            "  + Build type:    %s\n"
+            "  + Release train: %s\n"
+            "  + Architecture:  %s\n"
+            "",
+            kitPath.toUtf8( ).data( ),
+            match.captured( 3 ).toUtf8( ).data( ),
+            match.captured( 2 ).toUtf8( ).data( ),
+            match.captured( 1 ).toUtf8( ).data( ),
+            match.captured( 4 ).toUtf8( ).data( )
+        );
 
         _unprocessedUpgradeKits.append( UpgradeKitInfo { kitPath } );
     }
@@ -125,13 +171,37 @@ void UpgradeManager::_checkForUpgrades( QString const& upgradesPath ) {
     if ( !upgradesPath.isEmpty( ) ) {
         debug( "+ UpgradeManager::_checkForUpgrades: looking for upgrade kits in path '%s'\n", upgradesPath.toUtf8( ).data( ) );
         for ( auto kitFile : QDir { upgradesPath }.entryInfoList( UpgradeKitFileGlobs, QDir::Files | QDir::Readable, QDir::Name ) ) {
-            debug( "+ UpgradeManager::_checkForUpgrades: found kit file '%s'\n", kitFile.absoluteFilePath( ).toUtf8( ).data( ) );
+            auto kitFilePath { kitFile.absoluteFilePath( ) };
 
-            QFileInfo sigFile { kitFile.absoluteFilePath( ) % ".sig" };
-            if ( !sigFile.exists( ) ) {
-                debug( "  + ignoring kit: signature file is missing\n" );
+            auto match { KitFileMatcherRegex.match( kitFile.fileName( ) ) };
+            if ( !match.hasMatch( ) ) {
+                debug( "  + ignoring kit '%s': file name doesn't match schema\n", kitFilePath.toUtf8( ).data( ) );
                 continue;
             }
+            if ( match.captured( 4 ) != _architecture ) {
+                debug( "  + ignoring kit '%s': wrong architecture\n", kitFilePath.toUtf8( ).data( ) );
+                continue;
+            }
+
+            QFileInfo sigFile { kitFilePath % ".sig" };
+            if ( !sigFile.exists( ) ) {
+                debug( "  + ignoring kit '%s': signature file is missing\n", kitFilePath.toUtf8( ).data( ) );
+                continue;
+            }
+
+            debug(
+                "+ UpgradeManager::_checkForUpgrades: found kit file '%s'\n"
+                "  + Version:       '%s'\n"
+                "  + Build type:    '%s'\n"
+                "  + Release train: '%s'\n"
+                "  + Architecture:  '%s'\n"
+                "",
+                kitFilePath.toUtf8( ).data( ),
+                match.captured( 3 ).toUtf8( ).data( ),
+                match.captured( 2 ).toUtf8( ).data( ),
+                match.captured( 1 ).toUtf8( ).data( ),
+                match.captured( 4 ).toUtf8( ).data( )
+            );
 
             _unprocessedUpgradeKits.append( UpgradeKitInfo { kitFile, sigFile } );
         }
@@ -378,31 +448,36 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
         ++index;
     }
 
-    bool missingMetadata = false;
-    for ( auto const& field : ExpectedMetadataFields ) {
-        if ( !fields.contains( field ) ) {
-            debug( "  + metadata is missing field \"%s\"\n", field.toUtf8( ).data( ) );
-            missingMetadata = true;
-        }
-    }
-    if ( missingMetadata ) {
-        return false;
-    }
-
     {
-        update.metadataVersionString = fields["Metadata-Version"];
+        update.metadataVersionString = fields.value( "Metadata-Version" );
 
         bool ok = false;
-        update.metadataVersion = update.metadataVersionString.toInt( &ok );
+        update.metadataVersion = update.metadataVersionString.isEmpty( ) ? 0 : update.metadataVersionString.toInt( &ok );
         if ( !ok ) {
             debug( "  + bad metadata version \"%s\"\n", update.metadataVersionString.toUtf8( ).data( ) );
             return false;
         }
 
-        if ( update.metadataVersion != 1 ) {
+        if ( ( update.metadataVersion < 1 ) || ( update.metadataVersion > 2 ) ) {
             debug( "  + unknown metadata version \"%s\"\n", update.metadataVersionString.toUtf8( ).data( ) );
             return false;
         }
+    }
+
+    QStringList missingMetadataFields;
+    if ( update.metadataVersion >= 1 ) {
+        if ( auto missingFields = _EnsureMapContainsKeys( fields, ExpectedMetadataV1Fields ); !missingFields.isEmpty( ) ) {
+            missingMetadataFields += missingFields;
+        }
+    }
+    if ( update.metadataVersion >= 2 ) {
+        if ( auto missingFields = _EnsureMapContainsKeys( fields, ExpectedMetadataV2Fields ); !missingFields.isEmpty( ) ) {
+            missingMetadataFields += missingFields;
+        }
+    }
+    if ( !missingMetadataFields.isEmpty( ) ) {
+        debug( "  + metadata is missing field%s %s\n", missingMetadataFields.count( ) != 1 ? "s" : "", missingMetadataFields.join( ", " ) );
+        return false;
     }
 
     {
@@ -463,6 +538,15 @@ bool UpgradeManager::_parseVersionInfo( QString const& versionInfoFileName, Upgr
 
         update.checksums[path + pieces[1]] = pieces[0];
         debug( "    + file '%s': checksum %s\n", ( path + pieces[1] ).toUtf8( ).data( ), pieces[0].toUtf8( ).data( ) );
+    }
+
+    if ( update.metadataVersion > 1 ) {
+        update.architecture = fields["Architecture"];
+        if ( _architecture != update.architecture ) {
+            debug( "  + wrong architecture '%s'\n", update.architecture.toUtf8( ).data( ) );
+            return false;
+        }
+        update.releaseTrain = fields["Release-Train"];
     }
 
     return true;
