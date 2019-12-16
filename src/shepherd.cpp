@@ -348,13 +348,13 @@ void Shepherd::start( ) {
 
 void Shepherd::doMoveRelative( float const relativeDistance, float const speed ) {
     if ( getReady( "doMoveRelative", PendingCommand::moveRelative, 4 ) ) {
-        _process->write( QString::asprintf( "moveRel %.2f %.2f\n", relativeDistance, speed ).toUtf8( ) );
+        _process->write( QString::asprintf( "moveRel %.3f %.3f\n", relativeDistance, speed ).toUtf8( ) );
     }
 }
 
 void Shepherd::doMoveAbsolute( float const absolutePosition, float const speed ) {
     if ( getReady( "doMoveAbsolute", PendingCommand::moveAbsolute, 4 ) ) {
-        _process->write( QString::asprintf( "moveAbs %.2f %.2f\n", absolutePosition, speed ).toUtf8( ) );
+        _process->write( QString::asprintf( "moveAbs %.3f %.3f\n", absolutePosition, speed ).toUtf8( ) );
     }
 }
 

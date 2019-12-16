@@ -126,7 +126,7 @@ void PrintManager::_stopAndCleanUpTimer( QTimer*& timer ) {
 }
 
 void PrintManager::_pausePrinting( ) {
-    debug( "+ PrintManager::_pausePrinting: step: %s; position: %.2f mm\n", ToString( _step ), _position );
+    debug( "+ PrintManager::_pausePrinting: step: %s; position: %.3f mm\n", ToString( _step ), _position );
     _pausedPosition = _position;
     _pausedStep     = _step;
     stepD1_start( );
@@ -163,7 +163,7 @@ void PrintManager::_cleanUp( ) {
 void PrintManager::stepA1_start( ) {
     _step = PrintStep::A1;
 
-    debug( "+ PrintManager::stepA1_start: raising build platform to %.2f mm\n", PrinterRaiseToMaximumZ );
+    debug( "+ PrintManager::stepA1_start: raising build platform to %.3f mm\n", PrinterRaiseToMaximumZ );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA1_completed );
     _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
@@ -209,7 +209,7 @@ void PrintManager::stepA2_completed( ) {
 void PrintManager::stepA3_start( ) {
     _step = PrintStep::A3;
 
-    debug( "+ PrintManager::stepA3_start: lowering build platform to %.2f mm\n", PrinterHighSpeedThresholdZ );
+    debug( "+ PrintManager::stepA3_start: lowering build platform to %.3f mm\n", PrinterHighSpeedThresholdZ );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA3_completed );
     _shepherd->doMoveAbsolute( PrinterHighSpeedThresholdZ, PrinterDefaultHighSpeed );
@@ -236,7 +236,7 @@ void PrintManager::stepA4_start( ) {
     _step = PrintStep::A4;
 
     auto firstLayerHeight = ( std::max( 100, _printJob->layerThickness ) + g_settings.buildPlatformOffset ) / 1000.0;
-    debug( "+ PrintManager::stepA4_start: lowering build platform to %.2f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
+    debug( "+ PrintManager::stepA4_start: lowering build platform to %.3f mm (layer thickness: %d µm)\n", firstLayerHeight, _printJob->layerThickness );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepA4_completed );
     _shepherd->doMoveAbsolute( firstLayerHeight, _printJob->printSpeed );
@@ -419,7 +419,7 @@ void PrintManager::stepB5_start( ) {
 
         stepC1_start( );
     } else {
-        debug( "+ PrintManager::stepB5_start: raising build platform by %.2f mm\n", LiftDistance );
+        debug( "+ PrintManager::stepB5_start: raising build platform by %.3f mm\n", LiftDistance );
 
         QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB5_completed );
         _shepherd->doMoveRelative( LiftDistance, _printJob->printSpeed );
@@ -451,7 +451,7 @@ void PrintManager::stepB6_start( ) {
     }
 
     auto const moveDistance = -LiftDistance + _printJob->layerThickness / 1000.0;
-    debug( "+ PrintManager::stepB6_start: lowering build platform by %.2f mm\n", -moveDistance );
+    debug( "+ PrintManager::stepB6_start: lowering build platform by %.3f mm\n", -moveDistance );
 
     QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &PrintManager::stepB6_completed );
     _shepherd->doMoveRelative( moveDistance, _printJob->printSpeed );
@@ -516,7 +516,7 @@ void PrintManager::stepC1_start( ) {
         emit lampStatusChange( false );
     }
 
-    debug( "+ PrintManager::stepC1_start: raising build platform to threshold Z (%.2f mm) at low speed\n", _threshold );
+    debug( "+ PrintManager::stepC1_start: raising build platform to threshold Z (%.3f mm) at low speed\n", _threshold );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepC1_completed );
     _shepherd->doMoveAbsolute( _threshold, _printJob->printSpeed );
@@ -579,7 +579,7 @@ void PrintManager::stepC2_completed( bool const success ) {
 void PrintManager::stepD1_start( ) {
     _step = PrintStep::D1;
 
-    debug( "+ PrintManager::stepD1_start: raising build platform to threshold Z (%.2f mm) at low speed\n", _threshold );
+    debug( "+ PrintManager::stepD1_start: raising build platform to threshold Z (%.3f mm) at low speed\n", _threshold );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD1_completed );
     _shepherd->doMoveAbsolute( _threshold, _printJob->printSpeed );
@@ -632,7 +632,7 @@ void PrintManager::stepD2_completed( bool const success ) {
 void PrintManager::stepD3_start( ) {
     _step = PrintStep::D3;
 
-    debug( "+ PrintManager::stepD3_start: lowering build platform to threshold Z (%.2f mm) at high speed\n", _threshold );
+    debug( "+ PrintManager::stepD3_start: lowering build platform to threshold Z (%.3f mm) at high speed\n", _threshold );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD3_completed );
     _shepherd->doMoveAbsolute( _threshold, PrinterDefaultHighSpeed );
@@ -658,7 +658,7 @@ void PrintManager::stepD3_completed( bool const success ) {
 void PrintManager::stepD4_start( ) {
     _step = PrintStep::D4;
 
-    debug( "+ PrintManager::stepD4_start: lowering build platform to saved position (%.2f mm) at low speed\n", _pausedPosition );
+    debug( "+ PrintManager::stepD4_start: lowering build platform to saved position (%.3f mm) at low speed\n", _pausedPosition );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintManager::stepD4_completed );
     _shepherd->doMoveAbsolute( _pausedPosition, PrinterDefaultHighSpeed );
@@ -783,5 +783,5 @@ void PrintManager::printSolutionDispensed( ) {
 void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
     _position  = px;
     _threshold = std::min( PrinterRaiseToMaximumZ, PrinterHighSpeedThresholdZ + _position );
-    debug( "+ PrintManager::printer_positionReport: new position %.2f mm, new threshold %.2f mm\n", _position, _threshold );
+    debug( "+ PrintManager::printer_positionReport: new position %.3f mm, new threshold %.3f mm\n", _position, _threshold );
 }
