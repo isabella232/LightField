@@ -50,7 +50,7 @@ double                    const  PrinterMaximumZ            =  50.00; // mm
 double                    const  PrinterRaiseToMaximumZ     =  60.00; // mm
 double                    const  PrinterHighSpeedThresholdZ =  10.00; // mm
 
-double                    const  PrinterDefaultHighSpeed    = 600.00; // mm/min
+double                    const  PrinterDefaultHighSpeed    = 200.00; // mm/min
 double                    const  PrinterDefaultLowSpeed     =  50.00; // mm/min
 
 double                    const  AspectRatio5to3            =   5.0 /  3.0;
