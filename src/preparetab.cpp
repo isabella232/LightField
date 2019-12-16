@@ -32,6 +32,11 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
+    _layerThickness25Button->setEnabled( false );
+    _layerThickness25Button->setText( "Super-high res (25 µm)" );
+    _layerThickness25Button->setFont( font12pt );
+    QObject::connect( _layerThickness25Button, &QPushButton::clicked, this, &PrepareTab::layerThickness25Button_clicked );
+
     _sliceStatusLabel->setText( "Slicer:" );
 
     _sliceStatus->setText( "idle" );
@@ -87,7 +92,8 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         _layerThicknessLabel,
         WrapWidgetsInVBox(
             _layerThickness100Button,
-            _layerThickness50Button
+            _layerThickness50Button,
+            _layerThickness25Button
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -280,6 +286,13 @@ bool PrepareTab::_checkJobDirectory( ) {
     return preSliced;
 }
 
+void PrepareTab::layerThickness100Button_clicked( bool ) {
+    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
+    _printJob->layerThickness = 100;
+
+    _checkJobDirectory( );
+}
+
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
     _printJob->layerThickness = 50;
@@ -287,9 +300,9 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _checkJobDirectory( );
 }
 
-void PrepareTab::layerThickness100Button_clicked( bool ) {
-    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->layerThickness = 100;
+void PrepareTab::layerThickness25Button_clicked( bool ) {
+    debug( "+ PrepareTab::layerThickness25Button_clicked\n" );
+    _printJob->layerThickness = 25;
 
     _checkJobDirectory( );
 }
@@ -320,6 +333,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
+    _layerThickness25Button->setEnabled( enabled );
 
     update( );
 }
