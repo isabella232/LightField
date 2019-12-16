@@ -8,11 +8,7 @@ VERSION=1.0.10.0
 ##                                                     ##
 #########################################################
 
-if [ "${UID}" != "0" ]
-then
-    echo This script must be run as root.
-    exit 1
-fi
+[ "${UID}" != "0" ] && exec sudo "${0}" "${@}"
 
 function clear () {
     echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
@@ -33,9 +29,12 @@ function error-trap () {
 
 function usage () {
     cat <<EOF
-Usage: $(basename $0) [-q] [-x]
-Where: -q         build quietly
-       -x         force rebuild all
+Usage: $(basename "$0") [-q] [-x] [-a <arch>] [-t <train>]
+Where: -q           Build quietly.
+       -x           Force rebuild all.
+       -a <arch>    Sets the architecture. Valid values: amd64 arm7l.
+                    Default: ${DEFAULT_ARCHITECTURE}
+       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
 EOF
 }
 
@@ -52,17 +51,43 @@ CHXXXVERBOSE=-c
 FORCEREBUILD=
 BUILDQUIETLY=
 
+RELEASE_TRAIN=base
+ARCHITECTURE=$(uname -m)
+[ "${ARCHITECTURE}" = "x86_64" ] && ARCHITECTURE=amd64
+
+DEFAULT_RELEASE_TRAIN=${RELEASE_TRAIN}
+DEFAULT_ARCHITECTURE=${ARCHITECTURE}
+
+if ! getopt -Q -q -n 'install-lightfield.sh' -o 'qxa:t:' -- "$@"
+then
+    usage
+    return
+fi
+
+ARGS=$(getopt -Q -q -n 'install-lightfield.sh' -o 'qxa:t:' -- "$@")
+eval set -- "$ARGS"
+
 while [ -n "$1" ]
 do
     case "$1" in
-        "-q")
+        '-q')
             VERBOSE=
             CHXXXVERBOSE=
             BUILDQUIETLY=-q
         ;;
 
-        "-x")
+        '-x')
             FORCEREBUILD=-x
+        ;;
+
+        '-a')
+            ARCHITECTURE="${2}"
+            shift
+        ;;
+
+        '-t')
+            RELEASE_TRAIN="${2}"
+            shift
         ;;
 
         *)
@@ -135,8 +160,16 @@ install ${VERBOSE} -DT -m 644                   Util/constants.py               
 
 blue-bar • Configuring system
 
-perl -lp -i -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
-echo "deb file:/var/lib/lightfield/software-updates/lightfield-debug_${VERSION}_amd64 ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+perl -lpi -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
+
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    RELEASE_TRAIN=
+else
+    RELEASE_TRAIN=-${RELEASE_TRAIN}
+fi
+
+echo "deb file:/var/lib/lightfield/software-updates/lightfield${RELEASE_TRAIN}-debug_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
 systemctl daemon-reload

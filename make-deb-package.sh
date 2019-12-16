@@ -1,6 +1,9 @@
 #!/bin/bash
 
+ARCHITECTURE=amd64
+RELEASE_TRAIN=base
 VERSION=1.0.10.0
+
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -18,19 +21,22 @@ function red-bar () {
 }
 
 function error-trap () {
-    red-bar Failed\!
+    red-bar "Failed!"
     exit 1
 }
 
 function usage () {
     cat <<EOF
 Usage: $(basename "$0") [-q] BUILDTYPE
-Where: -q         build quietly
-       -X         don't force rebuild
-       BUILDTYPE  is one of
-                  release  create a release-build kit
-                  debug    create a debug-build kit
-                  both     create both kits
+Where: -q           build quietly
+       -X           don't force rebuild
+       -a <arch>    Sets the architecture. Valid values: amd64 arm7l.
+                    Default: ${DEFAULT_ARCHITECTURE}
+       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
+       BUILDTYPE    is one of
+                    release  create a release-build kit
+                    debug    create a debug-build kit
+                    both     create both kits
 
 If the build is successful, the requested package set(s) will be found in
   ${DEB_BUILD_DIR}/
@@ -44,7 +50,7 @@ PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 MOUNTMON_SRC="${LIGHTFIELD_SRC}/mountmon"
 USBDRIVER_SRC="${LIGHTFIELD_SRC}/usb-driver"
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}"
+PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
 DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
 LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
@@ -52,7 +58,20 @@ LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
 VERBOSE=-v
 CHXXXVERBOSE=-c
 FORCEREBUILD=-x
-BUILDTYPE=
+
+BUILDTYPE=debug
+
+DEFAULT_ARCHITECTURE=${ARCHITECTURE}
+DEFAULT_RELEASE_TRAIN=${RELEASE_TRAIN}
+
+if ! getopt -Q -q -n 'make-deb-package.sh' -o 'qXa:t:' -- "$@"
+then
+    usage
+    exit 1
+fi
+
+ARGS=$(getopt -Q -q -n 'make-deb-package.sh' -o 'qXa:t:' -- "$@")
+eval set -- "$ARGS"
 
 while [ -n "$1" ]
 do
@@ -66,8 +85,25 @@ do
             FORCEREBUILD=
         ;;
 
+        "-a")
+            if [ "${2}" = "amd64" ] || [ "${2}" = "arm7l" ]
+            then
+                ARCHITECTURE="${2}"
+                shift
+            else
+                usage
+                exit 1
+            fi
+        ;;
+
+        "-t")
+            RELEASE_TRAIN="${2}"
+            shift
+        ;;
+
         "release" | "debug" | "both")
-            BUILDTYPE="$1"
+            BUILDTYPE="${1}"
+            break
         ;;
 
         *)
@@ -84,17 +120,23 @@ then
     exit 1
 fi
 
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    SUFFIX=-${BUILDTYPE}
+else
+    SUFFIX=-${RELEASE_TRAIN}-${BUILDTYPE}
+fi
+
 if [ "${BUILDTYPE}" = "both" ]
 then
-    ARG=$([ -z ${VERBOSE} ] && echo -q)
-    $0 "${ARG}" release || exit $?
-    $0 "${ARG}" debug   || exit $?
+    "$0" "${ARGS}" release || exit $?
+    "$0" "${ARGS}" debug   || exit $?
     exit 0
 fi
 
 ##################################################
 
-blue-bar • Setting up build environment
+blue-bar "• Setting up build environment"
 
 [ -d "${PACKAGE_BUILD_ROOT}"        ] || mkdir ${VERBOSE} -p  "${PACKAGE_BUILD_ROOT}"
 [ -h "${PACKAGE_BUILD_ROOT}/latest" ] && rm    ${VERBOSE}     "${PACKAGE_BUILD_ROOT}/latest"
@@ -112,7 +154,7 @@ cd "${USBDRIVER_SRC}"
 
 ##################################################
 
-blue-bar • Building "${BUILDTYPE}" version of set-projector-power
+blue-bar "• Building ${BUILDTYPE} version of set-projector-power"
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -121,7 +163,7 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     OPTS="-s -O3 -DNDEBUG"
 fi
-g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" "${OPTS}" -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
 
 ##################################################
 
@@ -129,7 +171,7 @@ cd "${MOUNTMON_SRC}"
 
 ##################################################
 
-blue-bar • Building "${BUILDTYPE}" version of Mountmon
+blue-bar "• Building ${BUILDTYPE} version of Mountmon"
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -147,7 +189,7 @@ cd "${LIGHTFIELD_SRC}"
 
 ##################################################
 
-blue-bar • Building "${BUILDTYPE}" version of LightField
+blue-bar "• Building ${BUILDTYPE} version of LightField"
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -162,7 +204,7 @@ install ${VERBOSE} -DT -m 755 build/lf "${LIGHTFIELD_FILES}/usr/bin/lf"
 
 ##################################################
 
-blue-bar • Copying files into packaging directory
+blue-bar "• Copying LightField files into packaging directory"
 
 install ${VERBOSE} -DT -m 644 system-stuff/99untrustworthy-clock              "${LIGHTFIELD_FILES}/etc/apt/apt.conf.d/99untrustworthy-clock"
 install ${VERBOSE} -DT -m 644 gpg/new-pubring.gpg                             "${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg"
@@ -189,7 +231,7 @@ cd "${PRINTRUN_SRC}"
 
 ##################################################
 
-blue-bar • Copying printrun files into packaging directory
+blue-bar "• Copying printrun files into packaging directory"
 
 install ${VERBOSE} -DT -m 644 printrun/__init__.py                            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/__init__.py"
 install ${VERBOSE} -DT -m 644 printrun/eventhandler.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/eventhandler.py"
@@ -205,14 +247,31 @@ cd "${LIGHTFIELD_PACKAGE}"
 
 ##################################################
 
-blue-bar • Building Debian packages
+blue-bar "• Building Debian packages"
 
-cp -v "debian/${BUILDTYPE}-control" debian/control
+## TODO TODO TODO TODO TODO
+## TODO need to embed the release train name into the stuff in debian/
+## TODO TODO TODO TODO TODO
+
+if [ "${BUILDTYPE}" = debug ]
+then
+    ANTIBUILDTYPE=release
+else
+    ANTIBUILDTYPE=debug
+fi
+
+sed                                             \
+    -e     "s/@@BUILDTYPE@@/${BUILDTYPE}/g"     \
+    -e "s/@@ANTIBUILDTYPE@@/${ANTIBUILDTYPE}/g" \
+    -e "s/@@RELEASE_TRAIN@@/${RELEASE_TRAIN}/g" \
+    < debian/control.in                         \
+    > debian/control
+
 dpkg-buildpackage --build=any,all --no-sign
 
 ##################################################
 
-blue-bar • Cleaning up
+blue-bar "• Cleaning up"
 
 cd ..
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script for lightfield-debug
+# preinst script for lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
 #
 # see: dh_installdeb(1)
 #
@@ -13,8 +13,6 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
-#echo "+ lightfield-debug.preinst: args are $*" 1>&2
 case "$1" in
     install|upgrade|abort-upgrade)
     ;;

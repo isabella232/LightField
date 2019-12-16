@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for lightfield-debug
+# prerm script for lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
 #
 # see: dh_installdeb(1)
 #
@@ -16,8 +16,6 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
-#echo "+ lightfield-debug.prerm: args are $*" 1>&2
 case "$1" in
     remove)
         systemctl daemon-reload

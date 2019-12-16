@@ -18,19 +18,21 @@ inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major,
     build = static_cast<int>(   versionCode          & 0xFFu );
 }
 
-char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@@LIGHTFIELD_VERSION_STRING@@";
-unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = @@LIGHTFIELD_VERSION_MAJOR@@;
-unsigned  const  LIGHTFIELD_VERSION_MINOR                          = @@LIGHTFIELD_VERSION_MINOR@@;
-unsigned  const  LIGHTFIELD_VERSION_TEENY                          = @@LIGHTFIELD_VERSION_TEENY@@;
-unsigned  const  LIGHTFIELD_VERSION_BUILD                          = @@LIGHTFIELD_VERSION_BUILD@@;
-unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
+char      const* LIGHTFIELD_VERSION_STRING        __attribute__(( weak )) = "@@VERSION_STRING@@";
+unsigned  const  LIGHTFIELD_VERSION_MAJOR                                 = @@VERSION_MAJOR@@;
+unsigned  const  LIGHTFIELD_VERSION_MINOR                                 = @@VERSION_MINOR@@;
+unsigned  const  LIGHTFIELD_VERSION_TEENY                                 = @@VERSION_TEENY@@;
+unsigned  const  LIGHTFIELD_VERSION_BUILD                                 = @@VERSION_BUILD@@;
+unsigned  const  LIGHTFIELD_VERSION_CODE                                  = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
 
 #if defined _DEBUG
-BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Debug;
-#elif defined NDEBUG
-BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                     = BuildType::Release;
+BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                            = BuildType::Debug;
+#elif defined NDEBUG                                              
+BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                            = BuildType::Release;
 #else
 #   error Unknown build type: Neither _DEBUG nor NDEBUG are #define:d.
 #endif
+
+char      const* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__(( weak )) = "@@RELEASE_TRAIN@@";
 
 #endif // __VERSION_H__

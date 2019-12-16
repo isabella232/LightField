@@ -12,13 +12,13 @@ Homepage: https://github.com/VolumetricBio/LightField
 Vcs-Browser: https://github.com/VolumetricBio/LightField
 Vcs-Git: https://github.com/VolumetricBio/LightField.git
 
-Package: lightfield-debug
+Package: lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
 Architecture: any
-Breaks: lightfield-release
-Conflicts: lightfield-release
-Replaces: lightfield-release
+Breaks: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
+Conflicts: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
+Replaces: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
 Depends:
- lightfield-common (= ${binary:Version}),
+ lightfield@@RELEASE_TRAIN@@-common (= ${binary:Version}),
  ${shlibs:Depends},
  ${misc:Depends},
  libhidapi-libusb0 (>> 0.8),
@@ -34,7 +34,7 @@ Recommends:
  fonts-font-awesome (>= 5.0.10)
 Description: Printer software for Volumetric's Lumen X 3D printer - debug version
 
-Package: lightfield-common
+Package: lightfield@@RELEASE_TRAIN@@-common
 Architecture: all
 Multi-Arch: foreign
 Depends:
