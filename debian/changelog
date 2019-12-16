@@ -1,3 +1,9 @@
+lightfield (1.0.10.1) stable; urgency=medium
+
+  * New: 25 µm slice option.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 16 Dec 2019 14:34:30 -0800
+
 lightfield (1.0.10.0) stable; urgency=medium
 
   * Fixed: LightField will now notice a USB stick that was connected before it starts.
