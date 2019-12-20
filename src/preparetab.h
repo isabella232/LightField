@@ -39,7 +39,7 @@ private:
     QLabel*       _layerThicknessLabel         { new QLabel       };
     QRadioButton* _layerThickness100Button     { new QRadioButton };
     QRadioButton* _layerThickness50Button      { new QRadioButton };
-    QRadioButton* _layerThickness25Button      { new QRadioButton };
+    QRadioButton* _layerThickness20Button      { new QRadioButton };
 
     QLabel*       _sliceStatusLabel            { new QLabel       };
     QLabel*       _sliceStatus                 { new QLabel       };
@@ -108,7 +108,7 @@ private slots:
 
     void layerThickness100Button_clicked( bool );
     void layerThickness50Button_clicked( bool );
-    void layerThickness25Button_clicked( bool );
+    void layerThickness20Button_clicked( bool );
 
     void navigateFirst_clicked( bool );
     void navigatePrevious_clicked( bool );

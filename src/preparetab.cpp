@@ -32,10 +32,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
-    _layerThickness25Button->setEnabled( false );
-    _layerThickness25Button->setText( "Super-high res (25 µm)" );
-    _layerThickness25Button->setFont( font12pt );
-    QObject::connect( _layerThickness25Button, &QPushButton::clicked, this, &PrepareTab::layerThickness25Button_clicked );
+    _layerThickness20Button->setEnabled( false );
+    _layerThickness20Button->setText( "Super-high res (20 µm)" );
+    _layerThickness20Button->setFont( font12pt );
+    QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
 
     _sliceStatusLabel->setText( "Slicer:" );
 
@@ -93,7 +93,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         WrapWidgetsInVBox(
             _layerThickness100Button,
             _layerThickness50Button,
-            _layerThickness25Button
+            _layerThickness20Button
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -300,9 +300,9 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _checkJobDirectory( );
 }
 
-void PrepareTab::layerThickness25Button_clicked( bool ) {
-    debug( "+ PrepareTab::layerThickness25Button_clicked\n" );
-    _printJob->layerThickness = 25;
+void PrepareTab::layerThickness20Button_clicked( bool ) {
+    debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
+    _printJob->layerThickness = 20;
 
     _checkJobDirectory( );
 }
@@ -333,7 +333,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
-    _layerThickness25Button->setEnabled( enabled );
+    _layerThickness20Button->setEnabled( enabled );
 
     update( );
 }
