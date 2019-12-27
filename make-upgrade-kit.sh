@@ -1,6 +1,5 @@
 #!/bin/bash
 
-ARCHITECTURE=amd64
 RELEASE_TRAIN=base
 VERSION=1.0.10.0
 
@@ -30,9 +29,7 @@ function usage () {
     cat <<EOF
 Usage: $(basename "$0") [-q] BUILDTYPE
 Where: -q           build quietly
-       -a <arch>    Sets the architecture. Valid values: amd64 arm7l.
-                    Default: ${DEFAULT_ARCHITECTURE}
-       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
+       -t <train>   Sets the release train. Default: ${RELEASE_TRAIN}
        BUILDTYPE    is one of
                     release  create a release-build kit
                     debug    create a debug-build kit
@@ -60,46 +57,31 @@ fi
 
 VERBOSE=-v
 
-ARCHITECTURE=$(uname -m)
-[ "${ARCHITECTURE}" = "x86_64" ] && ARCHITECTURE=amd64
 BUILDTYPE=
+ARCHITECTURE=$(uname -m)
+RELEASE_TRAIN=base
 
-DEFAULT_ARCHITECTURE=${ARCHITECTURE}
-DEFAULT_RELEASE_TRAIN=${RELEASE_TRAIN}
-
-if ! getopt -Q -q -n 'make-upgrade-kit.sh' -o 'qa:t:' -- "$@"
+ARGS=$(getopt -n 'make-upgrade-kit.sh' -o 'qa:t:' -- "$@")
+# shellcheck disable=SC2181
+if [ ${?} -ne 0 ]
 then
     usage
-    exit 1
 fi
-
-ARGS=$(getopt -Q -q -n 'make-upgrade-kit.sh' -o 'qa:t:' -- "$@")
 eval set -- "$ARGS"
 
 while [ -n "$1" ]
 do
     case "$1" in
-        "-q")
+        '-q')
             VERBOSE=
         ;;
 
-        "-a")
-            if [ "${2}" = "amd64" ] || [ "${2}" = "arm7l" ]
-            then
-                ARCHITECTURE="${2}"
-                shift
-            else
-                usage
-                exit 1
-            fi
-        ;;
-
-        "-t")
+        '-t')
             RELEASE_TRAIN="${2}"
             shift
         ;;
 
-        "release" | "debug" | "both")
+        'release' | 'debug' | 'both')
             BUILDTYPE="${1}"
             break
         ;;
@@ -118,7 +100,7 @@ then
     exit 1
 fi
 
-if [ "${RELEASE_TRAIN}" = "base" ]
+if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
 then
     SUFFIX=${BUILDTYPE}
 else
@@ -128,9 +110,6 @@ fi
 LIGHTFIELD_SRC="/home/lumen/Volumetric/LightField"
 PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
 DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
-#LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
-#LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
-
 KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 
 if [ "${BUILDTYPE}" = "both" ]

@@ -14,9 +14,10 @@ Vcs-Git: https://github.com/VolumetricBio/LightField.git
 
 Package: lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
 Architecture: any
-Breaks: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
-Conflicts: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
-Replaces: lightfield@@RELEASE_TRAIN@@-@@ANTIBUILDTYPE@@
+Provides: lightfield-@@BUILDTYPE@@
+Breaks: lightfield-@@ANTIBUILDTYPE@@
+Conflicts: lightfield-@@ANTIBUILDTYPE@@
+Replaces: lightfield-@@ANTIBUILDTYPE@@
 Depends:
  lightfield@@RELEASE_TRAIN@@-common (= ${binary:Version}),
  ${shlibs:Depends},
@@ -37,6 +38,7 @@ Description: Printer software for Volumetric's Lumen X 3D printer - debug versio
 Package: lightfield@@RELEASE_TRAIN@@-common
 Architecture: all
 Multi-Arch: foreign
+Provides: lightfield-common
 Depends:
  ${misc:Depends},
  python3 (>= 3.6),

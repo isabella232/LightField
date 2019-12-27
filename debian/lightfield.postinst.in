@@ -17,18 +17,22 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-RELEASE_TRAIN=-@@RELEASE_TRAIN@@
-BUILD=@@BUILD@@
+RELEASE_TRAIN=@@RELEASE_TRAIN@@
+BUILDTYPE=@@BUILDTYPE@@
 VERSION=@@VERSION@@
 ARCHITECTURE=@@ARCHITECTURE@@
-
-[ "${RELEASE_TRAIN}" = "-base" ] && RELEASE_TRAIN=
+if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
+then
+    SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
+else
+    SUFFIX=${BUILDTYPE}
+fi
 
 case "$1" in
     configure)
         perl -lpi -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 
-        echo "deb file:/var/lib/lightfield/software-updates/lightfield${RELEASE_TRAIN}-${BUILD}_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+        echo "deb file:/var/lib/lightfield/software-updates/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
         chown lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
         chmod 644 /etc/apt/sources.list.d/volumetric-lightfield.list
 

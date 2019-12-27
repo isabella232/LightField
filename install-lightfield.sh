@@ -33,8 +33,8 @@ Usage: $(basename "$0") [-q] [-x] [-a <arch>] [-t <train>]
 Where: -q           Build quietly.
        -x           Force rebuild all.
        -a <arch>    Sets the architecture. Valid values: amd64 arm7l.
-                    Default: ${DEFAULT_ARCHITECTURE}
-       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
+                    Default: ${ARCHITECTURE}
+       -t <train>   Sets the release train. Default: ${RELEASE_TRAIN}
 EOF
 }
 
@@ -52,19 +52,15 @@ FORCEREBUILD=
 BUILDQUIETLY=
 
 RELEASE_TRAIN=base
-ARCHITECTURE=$(uname -m)
-[ "${ARCHITECTURE}" = "x86_64" ] && ARCHITECTURE=amd64
+ARCHITECTURE=amd64
 
-DEFAULT_RELEASE_TRAIN=${RELEASE_TRAIN}
-DEFAULT_ARCHITECTURE=${ARCHITECTURE}
-
-if ! getopt -Q -q -n 'install-lightfield.sh' -o 'qxa:t:' -- "$@"
+ARGS=$(getopt -n 'install-lightfield.sh' -o 'qxa:t:' -- "${@}")
+# shellcheck disable=SC2181
+if [ ${?} -ne 0 ]
 then
     usage
-    return
+    exit 1
 fi
-
-ARGS=$(getopt -Q -q -n 'install-lightfield.sh' -o 'qxa:t:' -- "$@")
 eval set -- "$ARGS"
 
 while [ -n "$1" ]
@@ -81,13 +77,24 @@ do
         ;;
 
         '-a')
-            ARCHITECTURE="${2}"
-            shift
+            if [ "${2}" = "amd64" ] || [ "${2}" = "arm7l" ]
+            then
+                ARCHITECTURE="${2}"
+                shift
+            else
+                echo "Unknown architecture '{$2}'." 1>&2
+                usage
+            fi
         ;;
 
         '-t')
             RELEASE_TRAIN="${2}"
             shift
+        ;;
+
+        '--')
+            shift
+            break
         ;;
 
         *)
@@ -162,14 +169,15 @@ blue-bar • Configuring system
 
 perl -lpi -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 
-if [ "${RELEASE_TRAIN}" = "base" ]
+if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
 then
     RELEASE_TRAIN=
+    SUFFIX=debug
 else
-    RELEASE_TRAIN=-${RELEASE_TRAIN}
+    SUFFIX=${RELEASE_TRAIN}-debug
 fi
 
-echo "deb file:/var/lib/lightfield/software-updates/lightfield${RELEASE_TRAIN}-debug_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
+echo "deb file:/var/lib/lightfield/software-updates/lightfield${SUFFIX}_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
 
 systemctl daemon-reload
