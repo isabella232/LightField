@@ -1,4 +1,4 @@
-BUILD    = release
+BUILD    = debug
 PREFIX   = /usr/local
 
 LIBTOOL  = libtool
