@@ -9,6 +9,7 @@
 #include "dlpc_common.h"
 #include "dlpc347x_dual.h"
 #include "cypress_i2c.h"
+#include "CyUSBCommon.h"
 
 #define FLASH_WRITE_BLOCK_SIZE 1024
 #define FLASH_READ_BLOCK_SIZE   256
@@ -73,6 +74,13 @@ int main( int argc, char** argv ) {
             return 1;
         }
         setPowerLevel = true;
+    }
+
+    CY_RETURN_STATUS cyret;
+    cyret = CyLibraryInit( );
+    if ( CY_SUCCESS != cyret ) {
+        fprintf( stderr, "set-projector-power: can't initialize Cypress I2C library: %d\n", cyret );
+        return 1;
     }
 
     DLPC_COMMON_InitCommandLibrary( s_WriteBuffer, sizeof( s_WriteBuffer ), s_ReadBuffer, sizeof( s_ReadBuffer ), WriteI2C, WriteReadI2C );
