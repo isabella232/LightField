@@ -13,7 +13,7 @@ set(MOUNTMON_VERSION_PATCH "0")
 set(PROJECT_VERSION "${MOUNTMON_VERSION_MAJOR}.${MOUNTMON_VERSION_MINOR}.${MOUNTMON_VERSION_PATCH}")
 
 if(WIN32)
-set (Qt5_DIR "F:\\\\Qt\\\\5.13.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
+set (Qt5_DIR "F:\\\\Qt\\\\5.14.0\\\\msvc2017_64\\\\lib\\\\cmake\\\\Qt5")
 endif(WIN32)
 
 project(mountmon)
