@@ -13,7 +13,7 @@ TARGET              = set-projector-power
 SOURCES             = set-projector-power.cpp
 OBJECTS             = $(SOURCES:.cpp=.lo)
 
-CFLAGS              = -std=gnu++17 -Wall -Wextra -Wno-unused-parameter -Werror -pedantic -I../libMPSSE__0-6_Source/Release/include -I../libMPSSE__0-6_Source/Release/include/linux
+CFLAGS              = -std=gnu++17 -Wall -Wextra -Wno-unused-parameter -Werror -pedantic
 LFLAGS              = 
 
 ifeq ($(BUILD),debug)
@@ -30,7 +30,7 @@ all: $(TARGET)
 	$(CXX) $(CFLAGS) -c $<
 
 $(TARGET): $(OBJECTS)
-	$(LD) $(LFLAGS) -o $@ $^ ../libMPSSE__0-6_Source/LibMPSSE/Build/Linux/libMPSSE.a -ldl
+	$(LD) $(LFLAGS) -o $@ $^ -lftdi1
 
 install: $(TARGET)
 	$(SUDO) $(INSTALL) -D -m 755 $(TARGET) $(PREFIX)/bin
