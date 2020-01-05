@@ -1,25 +1,43 @@
-all: set-projector-power
+BUILD               = debug
+PREFIX              = /usr/local
 
-#.PHONY: cyusbserial dlpc347x set-projector-power
+LIBTOOL             = libtool
+SUDO                = sudo
 
-cyusbserial: cyusbserial/libcyusbserial.la
-cyusbserial/libcyusbserial.la:
-	$(MAKE) -C cyusbserial
+CXX                 = $(LIBTOOL) --mode=compile g++
+INSTALL             = $(LIBTOOL) --mode=install install
+LD                  = $(LIBTOOL) --mode=link g++
+RM                  = $(LIBTOOL) --mode=clean rm
 
-dlpc347x: cyusbserial dlpc347x/libdlpc347x.la
-dlpc347x/libdlpc347x.la: cyusbserial/libcyusbserial.la 
-	$(MAKE) -C dlpc347x
+TARGET              = set-projector-power
+SOURCES             = set-projector-power.cpp
+OBJECTS             = $(SOURCES:.cpp=.lo)
 
-set-projector-power: cyusbserial dlpc347x set-projector-power/set-projector-power
-set-projector-power/set-projector-power: dlpc347x/libdlpc347x.la cyusbserial/libcyusbserial.la
-	$(MAKE) -C set-projector-power
+CFLAGS              = -std=gnu++17 -Wall -Wextra -Wno-unused-parameter -Werror -pedantic
+LFLAGS              = 
 
-install:
-	$(MAKE) -C cyusbserial install
-	$(MAKE) -C dlpc347x install
-	$(MAKE) -C set-projector-power install
+ifeq ($(BUILD),debug)
+CFLAGS             += -D_DEBUG -g -Og
+LFLAGS             += -g
+else ifeq ($(BUILD),release)
+CFLAGS             += -DNDEBUG -O3
+LFLAGS             += -s
+endif
+
+all: $(TARGET)
+
+%.lo: %.cpp
+	$(CXX) $(CFLAGS) -c $<
+
+$(TARGET): $(OBJECTS)
+	$(LD) $(LFLAGS) -o $@ $^
+
+install: $(TARGET)
+	$(SUDO) $(INSTALL) -D -m 755 $(TARGET) $(PREFIX)/bin
 
 clean:
-	$(MAKE) -C cyusbserial clean
-	$(MAKE) -C dlpc347x clean
-	$(MAKE) -C set-projector-power clean
+	-$(RM) $(TARGET) $(OBJECTS) 
+
+## Dependencies
+
+set-projector-power.lo: set-projector-power.cpp
