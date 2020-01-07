@@ -13,7 +13,7 @@ TARGET              = set-projector-power
 SOURCES             = set-projector-power.cpp
 OBJECTS             = $(SOURCES:.cpp=.lo)
 
-CFLAGS              = -std=gnu++17 -Wall -Wextra -Wno-unused-parameter -Werror -pedantic
+CFLAGS              = -std=gnu++17 -Wall -Wextra -Werror -pedantic
 LFLAGS              = 
 
 ifeq ($(BUILD),debug)
