@@ -1,21 +1,15 @@
 BUILD               = debug
-PREFIX              = /usr/local
 
-LIBTOOL             = libtool
-SUDO                = sudo
-
-CXX                 = $(LIBTOOL) --mode=compile g++
-INSTALL             = $(LIBTOOL) --mode=install install
-LD                  = $(LIBTOOL) --mode=link g++
-RM                  = $(LIBTOOL) --mode=clean rm
+CXX                 = g++
+LD                  = g++
+RM                  = rm
 
 TARGET              = set-projector-power
 SOURCES             = set-projector-power.cpp
-OBJECTS             = $(SOURCES:.cpp=.lo)
+OBJECTS             = $(SOURCES:.cpp=.o)
 
 CFLAGS              = -std=gnu++17 -Wall -Wextra -Werror -pedantic
 LFLAGS              = 
-
 ifeq ($(BUILD),debug)
 CFLAGS             += -D_DEBUG -g -Og
 LFLAGS             += -g
@@ -26,18 +20,15 @@ endif
 
 all: $(TARGET)
 
-%.lo: %.cpp
+%.o: %.cpp
 	$(CXX) $(CFLAGS) -c $<
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LFLAGS) -o $@ $^
-
-install: $(TARGET)
-	$(SUDO) $(INSTALL) -D -m 755 $(TARGET) $(PREFIX)/bin
 
 clean:
 	-$(RM) $(TARGET) $(OBJECTS) 
 
 ## Dependencies
 
-set-projector-power.lo: set-projector-power.cpp
+set-projector-power.o: set-projector-power.cpp
