@@ -108,7 +108,7 @@ namespace {
     }
 
     bool IsGoodResponse( char const* result ) {
-        return ( 0 == strncmp( "OK:", result, 3 ) ) || ( 0 == strcmp( "OK", result ) );
+        return ( 0 != strcmp( "ERROR", result ) );
     }
 
     bool CheckChecksum( unsigned const value, unsigned const checksum ) {
@@ -293,20 +293,6 @@ int main( int argc, char** argv ) {
         }
     }
 
-    fprintf( stderr,
-        "+ command-line parse result\n"
-        "  + mode:       %d\n"
-        "  + monitor:    %s\n"
-        "  + powerLevel: %lu\n"
-        "  + duration:   %lu\n"
-        "",
-        static_cast<int>( mode ),
-        monitor ? "true" : "false",
-        powerLevel,
-        duration
-    );
-    exit( 69 );
-
     fd = open( "/dev/ttyUSB0", O_RDWR );
     if ( -1 == fd ) {
         perror( "set-projector-power: open" );
@@ -347,6 +333,7 @@ int main( int argc, char** argv ) {
 
     switch ( mode ) {
         case Mode::FirstTimeConfiguration:
+            printf( "Setting default boot state\n" );
             if ( !SendCommand( fd, buf, "WT+SPWR=%d", 1 ) ) {
                 fprintf( stderr, "set-projector-power: command WT+SPWR: failed to send command" );
                 goto bail2;
@@ -356,6 +343,7 @@ int main( int argc, char** argv ) {
                 goto bail2;
             }
 
+            printf( "Setting default LED state\n" );
             if ( !SendCommand( fd, buf, "WT+SLED=%d", 0 ) ) {
                 fprintf( stderr, "set-projector-power: command WT+SLED: failed to send command" );
                 goto bail2;
@@ -365,7 +353,8 @@ int main( int argc, char** argv ) {
                 goto bail2;
             }
 
-            if ( !SendCommand( fd, buf, "WT+SBTN=%d", 1023 ) ) {
+            printf( "Setting default brightness\n" );
+            if ( !SendCommand( fd, buf, "WT+SBTN=%d", 0 ) ) {
                 fprintf( stderr, "set-projector-power: command WT+SBTN: failed to send command" );
                 goto bail2;
             }
@@ -373,46 +362,37 @@ int main( int argc, char** argv ) {
                 fprintf( stderr, "set-projector-power: command WT+SBTN: got negative response ('%s')\n", buf );
                 goto bail2;
             }
+
+            printf( "Done!\n" );
             break;
 
         case Mode::SetPowerLevel:
-            if ( 0 == powerLevel ) {
-                if ( !SendCommand( fd, buf, "WT+LEDE=%d", 0 ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDE: failed to send command" );
-                    goto bail2;
-                }
-                if ( !IsGoodResponse( buf ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDE: got negative response ('%s')\n", buf );
-                    goto bail2;
-                }
-            } else {
-                if ( !SendCommand( fd, buf, "WT+LEDE=%d", 1 ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDE: failed to send command" );
-                    goto bail2;
-                }
-                if ( !IsGoodResponse( buf ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDE: got negative response ('%s')\n", buf );
-                    goto bail2;
-                }
+            if ( !SendCommand( fd, buf, "WT+LEDE=%d", ( 0 == powerLevel ) ? 0 : 1 ) ) {
+                fprintf( stderr, "set-projector-power: command WT+LEDE: failed to send command" );
+                goto bail2;
+            }
+            if ( !IsGoodResponse( buf ) ) {
+                fprintf( stderr, "set-projector-power: command WT+LEDE: got negative response ('%s')\n", buf );
+                goto bail2;
+            }
 
-                if ( !SendCommand( fd, buf, "WT+LEDS=%lu", powerLevel ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDS: failed to send command" );
+            if ( !SendCommand( fd, buf, "WT+LEDS=%lu", powerLevel ) ) {
+                fprintf( stderr, "set-projector-power: command WT+LEDS: failed to send command" );
+                goto bail2;
+            }
+            if ( !IsGoodResponse( buf ) ) {
+                fprintf( stderr, "set-projector-power: command WT+LEDS: got negative response ('%s')\n", buf );
+                goto bail2;
+            }
+
+            if ( duration > 0 ) {
+                if ( !SendCommand( fd, buf, "WT+LEDT=%lu", duration ) ) {
+                    fprintf( stderr, "set-projector-power: command WT+LEDT: failed to send command" );
                     goto bail2;
                 }
                 if ( !IsGoodResponse( buf ) ) {
-                    fprintf( stderr, "set-projector-power: command WT+LEDS: got negative response ('%s')\n", buf );
+                    fprintf( stderr, "set-projector-power: command WT+LEDT: got negative response ('%s')\n", buf );
                     goto bail2;
-                }
-
-                if ( duration > 0 ) {
-                    if ( !SendCommand( fd, buf, "WT+LEDT=%lu", duration ) ) {
-                        fprintf( stderr, "set-projector-power: command WT+LEDT: failed to send command" );
-                        goto bail2;
-                    }
-                    if ( !IsGoodResponse( buf ) ) {
-                        fprintf( stderr, "set-projector-power: command WT+LEDT: got negative response ('%s')\n", buf );
-                        goto bail2;
-                    }
                 }
             }
             // FALLTHROUGH
@@ -426,6 +406,11 @@ int main( int argc, char** argv ) {
                 fprintf( stderr, "set-projector-power: command WT+LEDR: got negative response ('%s')\n", buf );
                 goto bail2;
             }
+            if ( !StringToUnsignedLong( buf, 10, &powerLevel ) ) {
+                fprintf( stderr, "set-projector-power: command WT+LEDR: couldn't convert '%s' to a number\n", buf );
+                goto bail2;
+            }
+            printf( "LED brightness: %lu\n", powerLevel );
             break;
     }
 
