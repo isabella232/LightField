@@ -11,7 +11,7 @@ RequiresMountsFor=/usr
 Type=oneshot
 RemainAfterExit=yes
 User=root
-ExecStart=/usr/bin/set-projector-power 0
+ExecStart=/usr/share/lightfield/libexec/reset-lumen-projector-port
 ExecStop=/usr/bin/set-projector-power 0
 Restart=no
 

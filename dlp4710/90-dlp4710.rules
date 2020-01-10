@@ -1,0 +1,3 @@
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",                         MODE="0666", GROUP="plugdev"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", KERNEL=="ttyUSB[0-9]*", MODE="0666", GROUP="plugdev", SYMLINK+="lumen-projector"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="27b1", ATTRS{idProduct}=="0001", KERNEL=="ttyACM[0-9]*", MODE="0666", GROUP="plugdev", SYMLINK+="lumen-arduino"

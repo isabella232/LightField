@@ -43,7 +43,7 @@ set -e
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 MOUNTMON_SRC="${LIGHTFIELD_SRC}/mountmon"
-USBDRIVER_SRC="${LIGHTFIELD_SRC}/usb-driver"
+PROJECTORDRIVER_SRC="${LIGHTFIELD_SRC}/dlp4710"
 PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}"
 DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
@@ -108,20 +108,16 @@ ln    ${VERBOSE} -s  "${PACKAGE_BUILD_DIR}"     "${PACKAGE_BUILD_ROOT}/latest"
 
 ##################################################
 
-cd "${USBDRIVER_SRC}"
+cd "${PROJECTORDRIVER_SRC}"
 
 ##################################################
 
 blue-bar • Building "${BUILDTYPE}" version of set-projector-power
 
-if [ "${BUILDTYPE}" = "debug" ]
-then
-    OPTS="-g -Og -D_DEBUG"
-elif [ "${BUILDTYPE}" = "release" ]
-then
-    OPTS="-s -O3 -DNDEBUG"
-fi
-g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+cd ${PROJECTORDRIVER_SRC}
+[ -n "${FORCEREBUILD}" ] && make BUILD="${BUILDTYPE}" clean
+make BUILD="${BUILDTYPE}"
+install ${VERBOSE} -DT -m 755 dlp4710/set-projector-power "${LIGHTFIELD_FILES}/usr/bin/set-projector-power"
 
 ##################################################
 
@@ -175,8 +171,9 @@ install ${VERBOSE} -DT -m 600 gpg/new-pubring.kbx                             "$
 install ${VERBOSE} -DT -m 600 gpg/trustdb.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/trustdb.gpg"
 install ${VERBOSE} -DT -m 644 system-stuff/clean-up-mount-points.service      "${LIGHTFIELD_FILES}/lib/systemd/system/clean-up-mount-points.service"
 install ${VERBOSE} -DT -m 644 system-stuff/set-projector-power.service        "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
-install ${VERBOSE} -DT -m 644 usb-driver/90-dlpc350.rules                     "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlpc350.rules"
+install ${VERBOSE} -DT -m 644 dlp4710/90-dlp4710.rules                        "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlp4710.rules"
 install ${VERBOSE} -DT -m 755 system-stuff/reset-lumen-arduino-port           "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-arduino-port"
+install ${VERBOSE} -DT -m 755 system-stuff/reset-lumen-projector-port         "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-projector-port"
 install ${VERBOSE} -DT -m 644 stdio-shepherd/printer.py                       "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/printer.py"
 install ${VERBOSE} -DT -m 755 stdio-shepherd/stdio-shepherd.py                "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py"
 install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare.conf                  "${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf"

@@ -45,7 +45,7 @@ set -e
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
-USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
+PROJECTORDRIVER_SRC=${LIGHTFIELD_SRC}/dlp4710
 
 VERBOSE=-v
 CHXXXVERBOSE=-c
@@ -76,9 +76,9 @@ done
 clear
 
 blue-bar • Building debugging version of set-projector-power
-cd ${USBDRIVER_SRC}
-[ -f set-projector-power ] && rm ${VERBOSE} -f set-projector-power
-g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+cd ${PROJECTORDRIVER_SRC}
+[ -n "${FORCEREBUILD}" ] && make BUILD=debug clean
+make BUILD=debug
 
 blue-bar • Building debugging version of Mountmon
 cd ${MOUNTMON_SRC}
@@ -88,7 +88,7 @@ blue-bar • Building debugging version of LightField
 cd ${LIGHTFIELD_SRC}
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
-chown ${CHXXXVERBOSE} -R lumen:lumen ${USBDRIVER_SRC}
+chown ${CHXXXVERBOSE} -R lumen:lumen ${PROJECTORDRIVER_SRC}
 chown ${CHXXXVERBOSE} -R lumen:lumen ${MOUNTMON_SRC}/build
 chown ${CHXXXVERBOSE} -R lumen:lumen ${LIGHTFIELD_SRC}/build
 
@@ -113,13 +113,14 @@ install ${VERBOSE} -DT -m 600 -o lumen -g lumen gpg/pubring.gpg                 
 install ${VERBOSE} -DT -m 600 -o lumen -g lumen gpg/trustdb.gpg                                 /home/lumen/.gnupg/trustdb.gpg
 install ${VERBOSE} -DT -m 644                   system-stuff/clean-up-mount-points.service      /lib/systemd/system/clean-up-mount-points.service
 install ${VERBOSE} -DT -m 644                   system-stuff/set-projector-power.service        /lib/systemd/system/set-projector-power.service
-install ${VERBOSE} -DT -m 644                   usb-driver/90-dlpc350.rules                     /lib/udev/rules.d/90-dlpc350.rules
+install ${VERBOSE} -DT -m 644                   dlp4710/90-dlp4710.rules                        /lib/udev/rules.d/90-dlp4710.rules
 install ${VERBOSE} -DT -m 755                   build/lf                                        /usr/bin/lf
 install ${VERBOSE} -DT -m 755                   mountmon/build/mountmon                         /usr/bin/mountmon
-install ${VERBOSE} -DT -m 755                   usb-driver/set-projector-power                  /usr/bin/set-projector-power
+install ${VERBOSE} -DT -m 755                   dlp4710/set-projector-power                     /usr/bin/set-projector-power
 install ${VERBOSE} -DT -m 644                   stdio-shepherd/printer.py                       /usr/share/lightfield/libexec/stdio-shepherd/printer.py
 install ${VERBOSE} -DT -m 755                   stdio-shepherd/stdio-shepherd.py                /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-arduino-port           /usr/share/lightfield/libexec/reset-lumen-arduino-port
+install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-projector-port         /usr/share/lightfield/libexec/reset-lumen-projector-port
 install ${VERBOSE} -DT -m 644                   system-stuff/99-waveshare.conf                  /usr/share/X11/xorg.conf.d/99-waveshare.conf
 chmod 700 /home/lumen/.gnupg
 [ -f /home/lumen/.gnupg/pubring.kbx ] && rm ${VERBOSE} /home/lumen/.gnupg/pubring.kbx

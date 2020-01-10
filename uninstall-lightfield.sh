@@ -29,7 +29,7 @@ rm -f                                                         \
     /home/lumen/.gnupg/trustdb.gpg                            \
     /lib/systemd/system/clean-up-mount-points.service         \
     /lib/systemd/system/set-projector-power.service           \
-    /lib/udev/rules.d/90-dlpc350.rules                        \
+    /lib/udev/rules.d/90-dlp4710.rules                        \
     /usr/bin/lf                                               \
     /usr/bin/mountmon                                         \
     /usr/bin/set-projector-power                              \

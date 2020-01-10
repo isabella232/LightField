@@ -293,7 +293,7 @@ int main( int argc, char** argv ) {
         }
     }
 
-    fd = open( "/dev/ttyUSB0", O_RDWR );
+    fd = open( "/dev/lumen-projector", O_RDWR );
     if ( -1 == fd ) {
         perror( "set-projector-power: open" );
         goto bail1;
