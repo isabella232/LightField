@@ -1,19 +1,19 @@
 #include "pch.h"
 #include "constants.h"
 
-QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"   };
-QRegularExpression        const  NewLineRegex                  { "\\r?\\n" };
+QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"    };
+QRegularExpression        const  NewLineRegex                  { "\\r?\\n"  };
 
-QSize                     const  SmallMainWindowSize           {  800, 480 };
-QSize                     const  SmallMainButtonSize           {  218,  74 };
-QSize                     const  SmallMaximalRightHandPaneSize {  564, 424 };
+QSize                     const  SmallMainWindowSize           {  800,  480 };
+QSize                     const  SmallMainButtonSize           {  218,   74 };
+QSize                     const  SmallMaximalRightHandPaneSize {  564,  424 };
 
-QSize                            MainWindowSize                { 1024, 600 };
-QSize                            MainButtonSize                {  279,  93 };
-QSize                            MaximalRightHandPaneSize      {  722, 530 };
+QSize                            MainWindowSize                { 1024,  600 };
+QSize                            MainButtonSize                {  279,   93 };
+QSize                            MaximalRightHandPaneSize      {  722,  530 };
 
-QSize                     const  ButtonPadding                 {   20,   4 };
-QSize                     const  ProjectorWindowSize           { 1280, 800 };
+QSize                     const  ButtonPadding                 {   20,    4 };
+QSize                     const  ProjectorWindowSize           { 1920, 1080 };
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
