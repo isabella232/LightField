@@ -28,9 +28,9 @@ Usage: $(basename "$0") [-q] BUILDTYPE
 Where: -q         build quietly
        -X         don't force rebuild
        BUILDTYPE  is one of
-                  release  create a release-build kit
-                  debug    create a debug-build kit
-                  both     create both kits
+                  release  create release-build package set
+                  debug    create debug-build package set
+                  both     create both package sets
 
 If the build is successful, the requested package set(s) will be found in
   ${DEB_BUILD_DIR}/
@@ -117,7 +117,7 @@ blue-bar • Building "${BUILDTYPE}" version of set-projector-power
 cd ${PROJECTORDRIVER_SRC}
 [ -n "${FORCEREBUILD}" ] && make BUILD="${BUILDTYPE}" clean
 make BUILD="${BUILDTYPE}"
-install ${VERBOSE} -DT -m 755 dlp4710/set-projector-power "${LIGHTFIELD_FILES}/usr/bin/set-projector-power"
+install ${VERBOSE} -DT -m 755 set-projector-power "${LIGHTFIELD_FILES}/usr/bin/set-projector-power"
 
 ##################################################
 
