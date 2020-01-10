@@ -18,10 +18,10 @@ inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major,
     build = static_cast<int>(   versionCode          & 0xFFu );
 }
 
-char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "1.0.10.0";
+char      const* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "1.0.11.0";
 unsigned  const  LIGHTFIELD_VERSION_MAJOR                          = 1;
 unsigned  const  LIGHTFIELD_VERSION_MINOR                          = 0;
-unsigned  const  LIGHTFIELD_VERSION_TEENY                          = 10;
+unsigned  const  LIGHTFIELD_VERSION_TEENY                          = 11;
 unsigned  const  LIGHTFIELD_VERSION_BUILD                          = 0;
 unsigned  const  LIGHTFIELD_VERSION_CODE                           = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
 
