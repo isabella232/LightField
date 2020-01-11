@@ -12,9 +12,9 @@ class AppSettings {
 
 public:
 
-    QPoint mainWindowPosition       { 0, 800 };
-    QPoint projectorWindowPosition  { 0,   0 };
-    QPoint projectorOffset          { 0,   0 };
+    QPoint mainWindowPosition       {  0,  0 };
+    QPoint projectorWindowPosition  {  0,  0 };
+    QPoint projectorOffset          {  0,  0 };
 
     Theme  theme                    {        };
     bool   frameless                { false  };

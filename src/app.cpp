@@ -109,6 +109,8 @@ void App::_parseCommandLine( ) {
     if ( MoveMainWindow ) {
         g_settings.mainWindowPosition.setY( 0 );
         g_settings.projectorWindowPosition.setY( MainWindowSize.height( ) );
+    } else {
+        g_settings.mainWindowPosition.setY( ProjectorWindowSize.height( ) );
     }
 }
 
