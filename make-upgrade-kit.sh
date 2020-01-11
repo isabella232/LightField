@@ -48,14 +48,12 @@ LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
 
 KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 
-if [ "${USE_KEY_SET}" = "current" ]; then
-    #REPO_KEY_ID=18DDFE4E607507208C9F6E6582768C36BD8725D2
-    #PKG_KEY_ID=0EF6486549978C0C76B49E99C9FC781B66B69981
-    REPO_KEY_ID=lightfield-repo-maint@volumetricbio.com
-    PKG_KEY_ID=lightfield-packager@volumetricbio.com
-elif [ "${USE_KEY_SET}" = "future" ]; then
+if [ "${USE_KEY_SET}" = "current" ]
+then
     REPO_KEY_ID=E91BD3361F39D49C78B1E3A2B55C0E8D4B632A66
     PKG_KEY_ID=78DAD29978EB392992D7FE0423025033D9E840F7
+#elif [ "${USE_KEY_SET}" = "future" ]
+#then
 else
     red-bar "The key set '${USE_KEY_SET}' is unrecognized."
 fi
