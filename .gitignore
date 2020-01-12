@@ -7,6 +7,8 @@ copy-to-usb-stick.sh
 deps-junk-1.txt
 deps-junk-2.txt
 deps-junk-3.txt
+dlp4710/set-projector-power
+dlp4710/set-projector-power.o
 do-it.sh
 gpg/gpg-agent.conf
 gpg/openpgp-revocs.d
