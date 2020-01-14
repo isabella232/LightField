@@ -1,7 +1,9 @@
 #!/bin/bash
 
 VERSION=1.0.10.0
-
+BUILDTYPE=
+ARCHITECTURE=amd64
+RELEASE_TRAIN=base
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 
 #########################################################
@@ -67,10 +69,6 @@ USBDRIVER_SRC="${LIGHTFIELD_SRC}/usb-driver"
 VERBOSE=-v
 CHXXXVERBOSE=-c
 FORCEREBUILD=-x
-
-BUILDTYPE=
-ARCHITECTURE=$(uname -m)
-RELEASE_TRAIN=base
 
 ARGS=$(getopt -n 'make-deb-package.sh' -o 'qXa:t:' -- "$@")
 # shellcheck disable=SC2181

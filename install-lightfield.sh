@@ -1,6 +1,8 @@
 #!/bin/bash
 
 VERSION=1.0.10.0
+RELEASE_TRAIN=base
+ARCHITECTURE=amd64
 
 #########################################################
 ##                                                     ##
@@ -50,9 +52,6 @@ VERBOSE=-v
 CHXXXVERBOSE=-c
 FORCEREBUILD=
 BUILDQUIETLY=
-
-RELEASE_TRAIN=base
-ARCHITECTURE=amd64
 
 ARGS=$(getopt -n 'install-lightfield.sh' -o 'qxa:t:' -- "${@}")
 # shellcheck disable=SC2181

@@ -1,8 +1,9 @@
 #!/bin/bash
 
-RELEASE_TRAIN=base
 VERSION=1.0.10.0
-
+BUILDTYPE=
+ARCHITECTURE=amd64
+RELEASE_TRAIN=base
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 USE_KEY_SET=current
 
@@ -56,10 +57,6 @@ else
 fi
 
 VERBOSE=-v
-
-BUILDTYPE=
-ARCHITECTURE=$(uname -m)
-RELEASE_TRAIN=base
 
 ARGS=$(getopt -n 'make-upgrade-kit.sh' -o 'qa:t:' -- "$@")
 # shellcheck disable=SC2181
