@@ -4,6 +4,7 @@ VERSION=1.0.10.0
 BUILDTYPE=
 ARCHITECTURE=amd64
 RELEASE_TRAIN=base
+LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
 PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 USE_KEY_SET=current
 
@@ -43,14 +44,6 @@ EOF
 
 trap error-trap ERR
 set -e
-
-LIGHTFIELD_SRC="/home/lumen/Volumetric/LightField"
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}"
-DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
-LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
-LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
-
-KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 
 if [ "${USE_KEY_SET}" = "current" ]
 then
@@ -110,11 +103,6 @@ else
     SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
 fi
 
-LIGHTFIELD_SRC="/home/lumen/Volumetric/LightField"
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
-DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
-KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
-
 if [ "${BUILDTYPE}" = "both" ]
 then
     "${0}" "${ARGS}" release || exit $?
@@ -122,6 +110,9 @@ then
     exit 0
 fi
 
+PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
+DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
+KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
 RELEASEDATE=$(date "+%Y-%m-%d")
 
