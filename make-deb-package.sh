@@ -43,19 +43,19 @@ EOF
 }
 
 function apply-atsign-substitution () {
-    local CODE='\e[0;30;48;2;146;208;80m»'
-    local RST='«\e[0m'
+    local CODE='\e[0;30;48;2;146;208;80m'
+    local RST='\e[0m'
     # shellcheck disable=SC2145
-    echo "Substituting value ${CODE}${2}${RST} for token ${CODE}@@${1}@@${RST} in files ${CODE}${@:3}${RST}"
-    perl -ilp -e "s/\\@\\@${1}\\@\\@/${2}/g;" "${@:3}"
+    echo -e "Substituting value ${CODE}${2}${RST} for token ${CODE}@@${1}@@${RST} in files ${CODE}${@:3}${RST}"
+    sed -i "s/@@${1}@@/${2}/g" "${@:3}"
 }
 
 function apply-assignment-substitution () {
-    local CODE='\e[0;30;48;2;0;146;208m»'
-    local RST='«\e[0m'
+    local CODE='\e[0;30;48;2;0;146;208m'
+    local RST='\e[0m'
     # shellcheck disable=SC2145
-    echo "Substituting value ${CODE}${2}${RST} into variable assignment ${CODE}${1}${RST} in files ${CODE}${@:3}${RST}"
-    perl -ilp -e "s/^(\\s*)${1}=.*\$/\$1${1}=${2}/g;" "${@:3}"
+    echo -e "Substituting value ${CODE}${2}${RST} into variable assignment ${CODE}${1}${RST} in files ${CODE}${@:3}${RST}"
+    sed -i 's/^'"${1}"'=.*$/'"${1}"'='"${2}"'/g' "${@:3}"
 }
 
 trap error-trap ERR
