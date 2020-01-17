@@ -1,0 +1,12 @@
+files/etc/apt/trusted.gpg.d/volumetric-keyring.gpg           etc/apt/trusted.gpg.d
+files/etc/sudoers.d/lumen-lightfield                         etc/sudoers.d
+files/home/lumen/.bash_profile                               home/lumen
+files/home/lumen/.real_bash_profile                          home/lumen
+files/home/lumen/.gnupg/pubring.gpg                          home/lumen/.gnupg
+files/home/lumen/.gnupg/pubring.kbx                          home/lumen/.gnupg
+files/home/lumen/.gnupg/trustdb.gpg                          home/lumen/.gnupg
+files/lib/udev/rules.d/90-dlp4710.rules                      lib/udev/rules.d
+files/usr/share/lightfield/libexec/reset-lumen-arduino-port  usr/share/lightfield/libexec
+files/usr/share/lightfield/libexec/printrun/*                usr/share/lightfield/libexec/printrun
+files/usr/share/lightfield/libexec/stdio-shepherd/*          usr/share/lightfield/libexec/stdio-shepherd
+files/usr/share/X11/xorg.conf.d/99-waveshare.conf            usr/share/X11/xorg.conf.d

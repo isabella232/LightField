@@ -15,8 +15,11 @@ Usage: $(basename "$0") [-t <release-train>] <a.b.c[.d]>
 Changes the LightField version in all the relevant places in the source.
 
   -t <release-train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
+                       Available release trains:
+                       base      LightField with DLPC350 support
+                       dlpc4710  LightField with DLP4710 support
   <a.b.c[.d]>          Version number. If the fourth element is omitted,
-                       it is defaulted to 0.
+                       it defaults to 0.
 HERE
     exit 1
 }

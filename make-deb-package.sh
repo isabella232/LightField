@@ -14,14 +14,13 @@ PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 
 function usage () {
     cat 1>&2 <<EOF
-Usage: $(basename "$0") [-q] [-X] [-t <train>] BUILDTYPE
-Where: -q           build quietly
-       -X           don't force rebuild
-       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
-       BUILDTYPE    is one of
-                    release  create a release-build kit
-                    debug    create a debug-build kit
-                    both     create both kits
+Usage: $(basename "$0") [-q] [-X] BUILDTYPE
+Where: -q         build quietly
+       -X         don't force rebuild
+       BUILDTYPE  is one of
+                  release  create a release-build kit
+                  debug    create a debug-build kit
+                  both     create both kits
 
 If the build is successful, the requested package set(s) will be found in a
 subdirectory of ${PACKAGE_BUILD_ROOT}/ .
@@ -36,7 +35,7 @@ VERBOSE=-v
 CHXXXVERBOSE=-c
 FORCEREBUILD=-x
 
-ARGS=$(getopt -n 'make-deb-package.sh' -o 'qXt:' -- "$@")
+ARGS=$(getopt -n 'make-deb-package.sh' -o 'qX' -- "$@")
 # shellcheck disable=SC2181
 if [ ${?} -ne 0 ]
 then
@@ -54,11 +53,6 @@ do
 
         '-X')
             FORCEREBUILD=
-        ;;
-
-        '-t')
-            RELEASE_TRAIN="${2}"
-            shift
         ;;
 
         --)
@@ -213,22 +207,32 @@ install ${VERBOSE} -DT -m 755 build/lf "${LIGHTFIELD_FILES}/usr/bin/lf"
 
 blue-bar "• Copying LightField files into packaging directory"
 
-install ${VERBOSE} -DT -m 644 system-stuff/99untrustworthy-clock              "${LIGHTFIELD_FILES}/etc/apt/apt.conf.d/99untrustworthy-clock"
-install ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg"
-install ${VERBOSE} -DT -m 440 system-stuff/lumen-lightfield                   "${LIGHTFIELD_FILES}/etc/sudoers.d/lumen-lightfield"
-install ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf "${LIGHTFIELD_FILES}/etc/systemd/system/getty@tty1.service.d/override.conf"
-install ${VERBOSE} -DT -m 600 system-stuff/lumen-bash_profile                 "${LIGHTFIELD_FILES}/home/lumen/.bash_profile"
-install ${VERBOSE} -DT -m 600 system-stuff/lumen-real_bash_profile            "${LIGHTFIELD_FILES}/home/lumen/.real_bash_profile"
-install ${VERBOSE} -DT -m 600 gpg/pubring.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.gpg"
-install ${VERBOSE} -DT -m 600 gpg/pubring.kbx                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.kbx"
-install ${VERBOSE} -DT -m 600 gpg/trustdb.gpg                                 "${LIGHTFIELD_FILES}/home/lumen/.gnupg/trustdb.gpg"
-install ${VERBOSE} -DT -m 644 system-stuff/clean-up-mount-points.service      "${LIGHTFIELD_FILES}/lib/systemd/system/clean-up-mount-points.service"
-install ${VERBOSE} -DT -m 644 system-stuff/set-projector-power.service        "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
-install ${VERBOSE} -DT -m 644 usb-driver/90-dlpc350.rules                     "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlpc350.rules"
-install ${VERBOSE} -DT -m 755 system-stuff/reset-lumen-arduino-port           "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-arduino-port"
-install ${VERBOSE} -DT -m 644 stdio-shepherd/printer.py                       "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/printer.py"
-install ${VERBOSE} -DT -m 755 stdio-shepherd/stdio-shepherd.py                "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py"
-install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare.conf                  "${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf"
+install     ${VERBOSE} -DT -m 644 system-stuff/99untrustworthy-clock               "${LIGHTFIELD_FILES}/etc/apt/apt.conf.d/99untrustworthy-clock"
+install     ${VERBOSE} -DT -m 644 gpg/pubring.gpg                                  "${LIGHTFIELD_FILES}/etc/apt/trusted.gpg.d/volumetric-keyring.gpg"
+install     ${VERBOSE} -DT -m 440 system-stuff/lumen-lightfield                    "${LIGHTFIELD_FILES}/etc/sudoers.d/lumen-lightfield"
+install     ${VERBOSE} -DT -m 644 system-stuff/getty@tty1.service.d_override.conf  "${LIGHTFIELD_FILES}/etc/systemd/system/getty@tty1.service.d/override.conf"
+install     ${VERBOSE} -DT -m 600 system-stuff/lumen-bash_profile                  "${LIGHTFIELD_FILES}/home/lumen/.bash_profile"
+install     ${VERBOSE} -DT -m 600 system-stuff/lumen-real_bash_profile             "${LIGHTFIELD_FILES}/home/lumen/.real_bash_profile"
+install     ${VERBOSE} -DT -m 600 gpg/pubring.gpg                                  "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.gpg"
+install     ${VERBOSE} -DT -m 600 gpg/pubring.kbx                                  "${LIGHTFIELD_FILES}/home/lumen/.gnupg/pubring.kbx"
+install     ${VERBOSE} -DT -m 600 gpg/trustdb.gpg                                  "${LIGHTFIELD_FILES}/home/lumen/.gnupg/trustdb.gpg"
+install     ${VERBOSE} -DT -m 644 system-stuff/clean-up-mount-points.service       "${LIGHTFIELD_FILES}/lib/systemd/system/clean-up-mount-points.service"
+install     ${VERBOSE} -DT -m 755 system-stuff/reset-lumen-arduino-port            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-arduino-port"
+install     ${VERBOSE} -DT -m 644 stdio-shepherd/printer.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/printer.py"
+install     ${VERBOSE} -DT -m 755 stdio-shepherd/stdio-shepherd.py                 "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py"
+
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    install ${VERBOSE} -DT -m 644 system-stuff/dlpc350-set-projector-power.service "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
+    install ${VERBOSE} -DT -m 644 usb-driver/90-dlpc350.rules                      "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlpc350.rules"
+    install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare-dlpc350.conf           "${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf"
+elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
+then
+    install ${VERBOSE} -DT -m 644 system-stuff/dlp4710-set-projector-power.service "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
+    install ${VERBOSE} -DT -m 644 dlp4710/90-dlp4710.rules                         "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlp4710.rules"
+    install ${VERBOSE} -DT -m 644 system-stuff/dlp4710-reset-lumen-projector-port  "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-projector-port"
+    install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare-dlp4710.conf           "${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf"
+fi
 
 chmod ${CHXXXVERBOSE} -R go= "${LIGHTFIELD_FILES}/home/lumen/.gnupg"
 
@@ -238,13 +242,13 @@ blue-bar "• Copying printrun files into packaging directory"
 
 cd "${PRINTRUN_SRC}"
 
-install ${VERBOSE} -DT -m 644 printrun/__init__.py                            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/__init__.py"
-install ${VERBOSE} -DT -m 644 printrun/eventhandler.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/eventhandler.py"
-install ${VERBOSE} -DT -m 644 printrun/gcoder.py                              "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/gcoder.py"
-install ${VERBOSE} -DT -m 644 printrun/printcore.py                           "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/printcore.py"
-install ${VERBOSE} -DT -m 644 printrun/utils.py                               "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/utils.py"
-install ${VERBOSE} -DT -m 644 printrun/plugins/__init__.py                    "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/__init__.py"
-install ${VERBOSE} -DT -m 644 Util/constants.py                               "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/Util/constants.py"
+install     ${VERBOSE} -DT -m 644 printrun/__init__.py                            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/__init__.py"
+install     ${VERBOSE} -DT -m 644 printrun/eventhandler.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/eventhandler.py"
+install     ${VERBOSE} -DT -m 644 printrun/gcoder.py                              "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/gcoder.py"
+install     ${VERBOSE} -DT -m 644 printrun/printcore.py                           "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/printcore.py"
+install     ${VERBOSE} -DT -m 644 printrun/utils.py                               "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/utils.py"
+install     ${VERBOSE} -DT -m 644 printrun/plugins/__init__.py                    "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/__init__.py"
+install     ${VERBOSE} -DT -m 644 Util/constants.py                               "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/Util/constants.py"
 
 ##################################################
 
@@ -252,12 +256,13 @@ blue-bar "• Building Debian packages"
 
 cd "${LIGHTFIELD_PACKAGE}"
 
-mv debian/control.in             debian/control
-mv debian/lightfield.install     debian/lightfield-"${SUFFIX}".install
-mv debian/lightfield.preinst     debian/lightfield-"${SUFFIX}".preinst
-mv debian/lightfield.prerm       debian/lightfield-"${SUFFIX}".prerm
-mv debian/lightfield.postinst.in debian/lightfield-"${SUFFIX}".postinst
-mv debian/lightfield.postrm      debian/lightfield-"${SUFFIX}".postrm
+mv debian/control.in                                   debian/control
+mv debian/lightfield.install                           debian/lightfield-"${SUFFIX}".install
+mv debian/lightfield-common-"${RELEASE_TRAIN}".install debian/lightfield-common-"${SUFFIX}".install
+mv debian/lightfield.preinst                           debian/lightfield-"${SUFFIX}".preinst
+mv debian/lightfield.prerm                             debian/lightfield-"${SUFFIX}".prerm
+mv debian/lightfield.postinst.in                       debian/lightfield-"${SUFFIX}".postinst
+mv debian/lightfield.postrm                            debian/lightfield-"${SUFFIX}".postrm
 
 apply-atsign-substitution     BUILDTYPE     "${BUILDTYPE}"      debian/control
 apply-atsign-substitution     ANTIBUILDTYPE "${ANTIBUILDTYPE}"  debian/control

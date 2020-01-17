@@ -16,12 +16,11 @@ BUILDTYPE=
 function usage () {
     cat <<EOF
 Usage: $(basename "$0") [-q] BUILDTYPE
-Where: -q           build quietly
-       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
-       BUILDTYPE    is one of
-                    release  create a release-build kit
-                    debug    create a debug-build kit
-                    both     create both kits
+Where: -q         build quietly
+       BUILDTYPE  is one of
+                  release  create a release-build kit
+                  debug    create a debug-build kit
+                  both     create both kits
 
 If the build is successful, the requested upgrade kit(s) will be found in
   ${KIT_DIR}/lightfield$([ "${DEFAULT_RELEASE_TRAIN}" = "base" ] || echo "-${DEFAULT_RELEASE_TRAIN}" )-BUILDTYPE_${VERSION}_${DEFAULT_ARCHITECTURE}.kit
@@ -34,7 +33,7 @@ source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
 VERBOSE=-v
 
-ARGS=$(getopt -n 'make-upgrade-kit.sh' -o 'qa:t:' -- "$@")
+ARGS=$(getopt -n 'make-upgrade-kit.sh' -o 'q' -- "$@")
 # shellcheck disable=SC2181
 if [ ${?} -ne 0 ]
 then
@@ -47,16 +46,6 @@ do
     case "$1" in
         '-q')
             VERBOSE=
-        ;;
-
-        '-t')
-            RELEASE_TRAIN="${2}"
-            shift
-        ;;
-
-        'release' | 'debug' | 'both')
-            BUILDTYPE="${1}"
-            break
         ;;
 
         --)
