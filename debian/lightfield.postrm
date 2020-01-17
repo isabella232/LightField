@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
+# postrm script for lightfield
 #
 # see: dh_installdeb(1)
 #

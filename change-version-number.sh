@@ -1,62 +1,30 @@
 #!/bin/bash
+# shellcheck disable=SC2164
 
-function blue-bar () {
-    echo -e "\r\e[1;37;44m$*\e[K\e[0m" 1>&2
-}
+LIGHTFIELD_ROOT="/home/lumen/Volumetric/LightField"
 
-function red-bar () {
-    echo -e "\r\e[1;33;41m$*\e[K\e[0m" 1>&2
-}
-
-function error-trap () {
-    red-bar 'Failed!'
-    exit 1
-}
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
 
 function usage () {
     cat 1>&2 <<HERE
 Usage: $(basename "$0") [-t <release-train>] <a.b.c[.d]>
 Changes the LightField version in all the relevant places in the source.
 
-  -a <architecture>    Sets the architecture. Default: ${DEFAULT_ARCHITECTURE}
   -t <release-train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
+  <a.b.c[.d]>          Version number. If the fourth element is omitted,
+                       it is defaulted to 0.
 HERE
     exit 1
 }
 
-function apply-atsign-substitution () {
-    local CODE='\e[0;30;48;2;146;208;80m'
-    local RST='\e[0m'
-    # shellcheck disable=SC2145
-    echo -e "Substituting value ${CODE}${2}${RST} for token ${CODE}@@${1}@@${RST} in files ${CODE}${@:3}${RST}"
-    sed -i "s/@@${1}@@/${2}/g" "${@:3}"
-}
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
-function apply-assignment-substitution () {
-    local CODE='\e[0;30;48;2;0;146;208m'
-    local RST='\e[0m'
-    # shellcheck disable=SC2145
-    echo -e "Substituting value ${CODE}${2}${RST} into variable assignment ${CODE}${1}${RST} in files ${CODE}${@:3}${RST}"
-    sed -i 's/^'"${1}"'=.*$/'"${1}"'='"${2}"'/g' "${@:3}"
-}
-
-LIGHTFIELD_ROOT="/home/lumen/Volumetric/LightField"
-LIGHTFIELD_SRC="${LIGHTFIELD_ROOT}/src"
-
-DEFAULT_RELEASE_TRAIN=base
-DEFAULT_ARCHITECTURE=$(uname -m)
-if [ "${DEFAULT_ARCHITECTURE}" = "x86_64" ]
-then
-    DEFAULT_ARCHITECTURE=amd64
-fi
-
-ARCHITECTURE=${DEFAULT_ARCHITECTURE}
-RELEASE_TRAIN=${DEFAULT_RELEASE_TRAIN}
-VERSION=
-
-#################################################
-
-ARGS=$(getopt -n 'change-version-number.sh' -o 'a:t:' -- "${@}")
+ARGS=$(getopt -n 'change-version-number.sh' -o 't:' -- "${@}")
 # shellcheck disable=SC2181
 if [ ${?} -ne 0 ]
 then
@@ -67,16 +35,6 @@ eval set -- "$ARGS"
 while [ -n "${1}" ]
 do
     case "${1}" in
-        '-a')
-            if [ "${2}" != "amd64" ] && [ "${2}" != "arm7l" ]
-            then
-                red-bar "Unrecognized argument to -a switch; valid values are amd64 and arm7l."
-                usage
-            fi
-            ARCHITECTURE="${2}"
-            shift
-        ;;
-
         '-t')
             RELEASE_TRAIN="${2}"
             shift
@@ -134,8 +92,7 @@ VERSION:       ${VERSION}
 STRINGVER:     ${STRINGVER}
 HERE
 
-# shellcheck disable=SC2164
-cd "${LIGHTFIELD_SRC}"
+cd "${LIGHTFIELD_ROOT}/src"
 
 blue-bar 'Generating src/version.h from src/version.h.in'
 
@@ -148,13 +105,12 @@ apply-atsign-substitution VERSION_TEENY  "${VER[2]}"        version.h
 apply-atsign-substitution VERSION_BUILD  "${VER[3]}"        version.h
 apply-atsign-substitution RELEASE_TRAIN  "${RELEASE_TRAIN}" version.h
 
-# shellcheck disable=SC2164
 cd "${LIGHTFIELD_ROOT}"
 
 blue-bar 'Updating build and packaging scripts'
 
-apply-assignment-substitution ARCHITECTURE  "${ARCHITECTURE}"  install-lightfield.sh make-deb-package.sh make-upgrade-kit.sh
-apply-assignment-substitution RELEASE_TRAIN "${RELEASE_TRAIN}" install-lightfield.sh make-deb-package.sh make-upgrade-kit.sh
-apply-assignment-substitution VERSION       "${STRINGVER}"     install-lightfield.sh make-deb-package.sh make-upgrade-kit.sh
+apply-assignment-substitution ARCHITECTURE  "${ARCHITECTURE}"  shared-stuff.sh
+apply-assignment-substitution RELEASE_TRAIN "${RELEASE_TRAIN}" shared-stuff.sh
+apply-assignment-substitution VERSION       "${STRINGVER}"     shared-stuff.sh
 
 blue-bar 'Done!'

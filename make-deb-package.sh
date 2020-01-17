@@ -1,10 +1,10 @@
 #!/bin/bash
+# shellcheck disable=SC2103
+# shellcheck disable=SC2164
 
-VERSION=1.0.10.0
 BUILDTYPE=
-ARCHITECTURE=amd64
-RELEASE_TRAIN=base
-PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 
 #########################################################
 ##                                                     ##
@@ -12,25 +12,12 @@ PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
 ##                                                     ##
 #########################################################
 
-function blue-bar () {
-    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function red-bar () {
-    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function error-trap () {
-    red-bar "Failed!"
-    exit 1
-}
-
 function usage () {
     cat 1>&2 <<EOF
-Usage: $(basename "$0") [-q] BUILDTYPE
+Usage: $(basename "$0") [-q] [-X] [-t <train>] BUILDTYPE
 Where: -q           build quietly
        -X           don't force rebuild
-       -t <train>   Sets the release train. Default: ${RELEASE_TRAIN}
+       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
        BUILDTYPE    is one of
                     release  create a release-build kit
                     debug    create a debug-build kit
@@ -42,35 +29,14 @@ EOF
     exit 1
 }
 
-function apply-atsign-substitution () {
-    local CODE='\e[0;30;48;2;146;208;80m'
-    local RST='\e[0m'
-    # shellcheck disable=SC2145
-    echo -e "Substituting value ${CODE}${2}${RST} for token ${CODE}@@${1}@@${RST} in files ${CODE}${@:3}${RST}"
-    sed -i "s/@@${1}@@/${2}/g" "${@:3}"
-}
-
-function apply-assignment-substitution () {
-    local CODE='\e[0;30;48;2;0;146;208m'
-    local RST='\e[0m'
-    # shellcheck disable=SC2145
-    echo -e "Substituting value ${CODE}${2}${RST} into variable assignment ${CODE}${1}${RST} in files ${CODE}${@:3}${RST}"
-    sed -i 's/^'"${1}"'=.*$/'"${1}"'='"${2}"'/g' "${@:3}"
-}
-
-trap error-trap ERR
-set -e
-
-PRINTRUN_SRC=/home/lumen/Volumetric/printrun
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
-MOUNTMON_SRC="${LIGHTFIELD_SRC}/mountmon"
-USBDRIVER_SRC="${LIGHTFIELD_SRC}/usb-driver"
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
 VERBOSE=-v
 CHXXXVERBOSE=-c
 FORCEREBUILD=-x
 
-ARGS=$(getopt -n 'make-deb-package.sh' -o 'qXa:t:' -- "$@")
+ARGS=$(getopt -n 'make-deb-package.sh' -o 'qXt:' -- "$@")
 # shellcheck disable=SC2181
 if [ ${?} -ne 0 ]
 then
@@ -95,14 +61,8 @@ do
             shift
         ;;
 
-        'release' | 'debug' | 'both')
-            if [ -z "${BUILDTYPE}" ]
-            then
-                BUILDTYPE="${1}"
-            else
-                echo "Too many build types specified -- use 'both' to build debug and release packages." 1>&2
-                usage
-            fi
+        --)
+            shift
             break
         ;;
 
@@ -114,22 +74,37 @@ do
     shift
 done
 
-if [ -z "${BUILDTYPE}" ]
+if [ -z "${1}" ]
 then
+    red-bar 'No build type given.'
     usage
-fi
-
-if [ "${BUILDTYPE}" = "both" ]
+elif [ -n "${2}" ]
 then
-    "$0" "${ARGS}" release || exit $?
-    "$0" "${ARGS}" debug   || exit $?
-    exit 0
+    red-bar 'Too many arguments given.'
+    usage
+else
+    if [ "${1}" = "debug" ] || [ "${1}" = "release" ]
+    then
+        BUILDTYPE="${1}"
+    elif [ "${1}" = "both" ]
+    then
+        "$0" "${ARGS}" release || exit $?
+        "$0" "${ARGS}" debug   || exit $?
+        exit 0
+    else
+        red-bar "Unknown build type '${1}'."
+        usage
+    fi
 fi
 
-if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
+if [ -z "${RELEASE_TRAIN}" ]
+then
+    RELEASE_TRAIN=base
+fi
+
+if [ "${RELEASE_TRAIN}" = "base" ]
 then
     SUFFIX=${BUILDTYPE}
-    RELEASE_TRAIN=
 else
     SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
 fi
@@ -141,10 +116,39 @@ else
     ANTIBUILDTYPE=debug
 fi
 
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
+PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+MOUNTMON_SRC="${LIGHTFIELD_ROOT}/mountmon"
+if [ "${RELEASE_TRAIN}" = "dlp4710" ]
+then
+    PROJECTOR_SRC="${LIGHTFIELD_ROOT}/dlp4710"
+else
+    PROJECTOR_SRC="${LIGHTFIELD_ROOT}/usb-driver"
+fi
+
+PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}-${SUFFIX}"
 DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
 LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
+
+#cat <<EOF
+#LIGHTFIELD_ROOT:    ${LIGHTFIELD_ROOT}
+#PACKAGE_BUILD_ROOT: ${PACKAGE_BUILD_ROOT}
+#VERBOSE:            ${VERBOSE}
+#CHXXXVERBOSE:       ${CHXXXVERBOSE}
+#FORCEREBUILD:       ${FORCEREBUILD}
+#BUILDTYPE:          ${BUILDTYPE}
+#RELEASE_TRAIN:      ${RELEASE_TRAIN}
+#SUFFIX:             ${SUFFIX}
+#ANTIBUILDTYPE:      ${ANTIBUILDTYPE}
+#PRINTRUN_SRC:       ${PRINTRUN_SRC}
+#MOUNTMON_SRC:       ${MOUNTMON_SRC}
+#PROJECTOR_SRC:      ${PROJECTOR_SRC}
+#PACKAGE_BUILD_DIR:  ${PACKAGE_BUILD_DIR}
+#DEB_BUILD_DIR:      ${DEB_BUILD_DIR}
+#LIGHTFIELD_PACKAGE: ${LIGHTFIELD_PACKAGE}
+#LIGHTFIELD_FILES:   ${LIGHTFIELD_FILES}
+#EOF
+#exit
 
 ##################################################
 
@@ -155,34 +159,27 @@ blue-bar "• Setting up build environment"
 [ -d "${DEB_BUILD_DIR}"             ] && rm    ${VERBOSE} -rf "${DEB_BUILD_DIR}"
 
 mkdir ${VERBOSE} -p  "${LIGHTFIELD_FILES}"
-cp    ${VERBOSE} -ar "${LIGHTFIELD_SRC}/debian" "${LIGHTFIELD_PACKAGE}/"
-ln    ${VERBOSE} -s  "${PACKAGE_BUILD_DIR}"     "${PACKAGE_BUILD_ROOT}/latest"
+cp    ${VERBOSE} -ar "${LIGHTFIELD_ROOT}/debian" "${LIGHTFIELD_PACKAGE}/"
+ln    ${VERBOSE} -s  "${PACKAGE_BUILD_DIR}"      "${PACKAGE_BUILD_ROOT}/latest"
 
 [ -d "${LIGHTFIELD_FILES}/usr/bin" ] || mkdir ${VERBOSE} -p "${LIGHTFIELD_FILES}/usr/bin"
 
 ##################################################
 
-cd "${USBDRIVER_SRC}"
-
-##################################################
-
 blue-bar "• Building ${BUILDTYPE} version of set-projector-power"
 
-if [ "${BUILDTYPE}" = "debug" ]
-then
-    OPTS="-g -Og -D_DEBUG"
-elif [ "${BUILDTYPE}" = "release" ]
-then
-    OPTS="-s -O3 -DNDEBUG"
-fi
-# shellcheck disable=SC2086
-g++ -o "${LIGHTFIELD_FILES}/usr/bin/set-projector-power" ${OPTS} -pipe -std=gnu++1z -Wall -W -D_GNU_SOURCE -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+cd "${PROJECTOR_SRC}"
+
+[ -n "${FORCEREBUILD}" ] && make clean
+make
+
+install ${VERBOSE} -DT -m 755 set-projector-power "${LIGHTFIELD_FILES}/usr/bin/set-projector-power"
 
 ##################################################
 
-cd "${MOUNTMON_SRC}"
-
 blue-bar "• Building ${BUILDTYPE} version of Mountmon"
+
+cd "${MOUNTMON_SRC}"
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -197,9 +194,9 @@ install ${VERBOSE} -DT -m 755 build/mountmon "${LIGHTFIELD_FILES}/usr/bin/mountm
 
 ##################################################
 
-cd "${LIGHTFIELD_SRC}"
-
 blue-bar "• Building ${BUILDTYPE} version of LightField"
+
+cd "${LIGHTFIELD_ROOT}"
 
 if [ "${BUILDTYPE}" = "debug" ]
 then
@@ -237,9 +234,9 @@ chmod ${CHXXXVERBOSE} -R go= "${LIGHTFIELD_FILES}/home/lumen/.gnupg"
 
 ##################################################
 
-cd "${PRINTRUN_SRC}"
-
 blue-bar "• Copying printrun files into packaging directory"
+
+cd "${PRINTRUN_SRC}"
 
 install ${VERBOSE} -DT -m 644 printrun/__init__.py                            "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/__init__.py"
 install ${VERBOSE} -DT -m 644 printrun/eventhandler.py                        "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/eventhandler.py"
@@ -251,29 +248,30 @@ install ${VERBOSE} -DT -m 644 Util/constants.py                               "$
 
 ##################################################
 
-cd "${LIGHTFIELD_PACKAGE}"
-
 blue-bar "• Building Debian packages"
 
-cp debian/control.in debian/control
-for a in install preinst postinst prerm postrm
-do
-    cp "${VERBOSE}" "debian/lightfield.${a}.in" "debian/lightfield-${SUFFIX}.${a}"
-done
+cd "${LIGHTFIELD_PACKAGE}"
+
+mv debian/control.in             debian/control
+mv debian/lightfield.install     debian/lightfield-"${SUFFIX}".install
+mv debian/lightfield.preinst     debian/lightfield-"${SUFFIX}".preinst
+mv debian/lightfield.prerm       debian/lightfield-"${SUFFIX}".prerm
+mv debian/lightfield.postinst.in debian/lightfield-"${SUFFIX}".postinst
+mv debian/lightfield.postrm      debian/lightfield-"${SUFFIX}".postrm
 
 apply-atsign-substitution     BUILDTYPE     "${BUILDTYPE}"      debian/control
 apply-atsign-substitution     ANTIBUILDTYPE "${ANTIBUILDTYPE}"  debian/control
-if [ -n "${RELEASE_TRAIN}" ]
+if [ "${RELEASE_TRAIN}" = "base" ]
 then
-    apply-atsign-substitution RELEASE_TRAIN "-${RELEASE_TRAIN}" debian/control
-else
     apply-atsign-substitution RELEASE_TRAIN ""                  debian/control
+else
+    apply-atsign-substitution RELEASE_TRAIN "-${RELEASE_TRAIN}" debian/control
 fi
 
-apply-assignment-substitution ARCHITECTURE  "${ARCHITECTURE}"  debian/lightfield.postinst.in
-apply-assignment-substitution BUILDTYPE     "${BUILDTYPE}"     debian/lightfield.postinst.in
-apply-assignment-substitution RELEASE_TRAIN "${RELEASE_TRAIN}" debian/lightfield.postinst.in
-apply-assignment-substitution VERSION       "${VERSION}"       debian/lightfield.postinst.in
+apply-assignment-substitution ARCHITECTURE  "${ARCHITECTURE}"   debian/lightfield-"${SUFFIX}".postinst
+apply-assignment-substitution BUILDTYPE     "${BUILDTYPE}"      debian/lightfield-"${SUFFIX}".postinst
+apply-assignment-substitution RELEASE_TRAIN "${RELEASE_TRAIN}"  debian/lightfield-"${SUFFIX}".postinst
+apply-assignment-substitution VERSION       "${VERSION}"        debian/lightfield-"${SUFFIX}".postinst
 
 dpkg-buildpackage --build=any,all --no-sign
 

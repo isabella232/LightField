@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
+# postinst script for lightfield
 #
 # see: dh_installdeb(1)
 #
@@ -21,11 +21,11 @@ RELEASE_TRAIN=@@RELEASE_TRAIN@@
 BUILDTYPE=@@BUILDTYPE@@
 VERSION=@@VERSION@@
 ARCHITECTURE=@@ARCHITECTURE@@
-if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
+if [ "${RELEASE_TRAIN}" = "base" ]
 then
-    SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
-else
     SUFFIX=${BUILDTYPE}
+else
+    SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
 fi
 
 case "$1" in

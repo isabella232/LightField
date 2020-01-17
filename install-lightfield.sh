@@ -1,8 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.10.0
-RELEASE_TRAIN=base
-ARCHITECTURE=amd64
+LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
 
 #########################################################
 ##                                                     ##
@@ -12,48 +10,28 @@ ARCHITECTURE=amd64
 
 [ "${UID}" != "0" ] && exec sudo "${0}" "${@}"
 
-function clear () {
-    echo -ne "\x1B[0m\x1B[H\x1B[J\x1B[3J"
-}
-
-function blue-bar () {
-    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function red-bar () {
-    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function error-trap () {
-    red-bar Failed\!
-    exit 1
-}
-
 function usage () {
     cat <<EOF
-Usage: $(basename "$0") [-q] [-x] [-a <arch>] [-t <train>]
+Usage: $(basename "$0") [-q] [-x] [-t <train>]
 Where: -q           Build quietly.
        -x           Force rebuild all.
-       -a <arch>    Sets the architecture. Valid values: amd64 arm7l.
-                    Default: ${ARCHITECTURE}
-       -t <train>   Sets the release train. Default: ${RELEASE_TRAIN}
+       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
 EOF
 }
 
-trap error-trap ERR
-set -e
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
-MOUNTMON_SRC=${LIGHTFIELD_SRC}/mountmon
-USBDRIVER_SRC=${LIGHTFIELD_SRC}/usb-driver
+MOUNTMON_SRC=${LIGHTFIELD_ROOT}/mountmon
+USBDRIVER_SRC=${LIGHTFIELD_ROOT}/usb-driver
 
 VERBOSE=-v
 CHXXXVERBOSE=-c
-FORCEREBUILD=
 BUILDQUIETLY=
+FORCEREBUILD=
 
-ARGS=$(getopt -n 'install-lightfield.sh' -o 'qxa:t:' -- "${@}")
+ARGS=$(getopt -n 'install-lightfield.sh' -o 'qxt:' -- "${@}")
 # shellcheck disable=SC2181
 if [ ${?} -ne 0 ]
 then
@@ -75,17 +53,6 @@ do
             FORCEREBUILD=-x
         ;;
 
-        '-a')
-            if [ "${2}" = "amd64" ] || [ "${2}" = "arm7l" ]
-            then
-                ARCHITECTURE="${2}"
-                shift
-            else
-                echo "Unknown architecture '{$2}'." 1>&2
-                usage
-            fi
-        ;;
-
         '-t')
             RELEASE_TRAIN="${2}"
             shift
@@ -104,24 +71,37 @@ do
     shift
 done
 
-clear
+if [ -z "${RELEASE_TRAIN}" ]
+then
+    RELEASE_TRAIN=base
+fi
+
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    SUFFIX=debug
+else
+    SUFFIX=${RELEASE_TRAIN}-debug
+fi
 
 blue-bar • Building debugging version of set-projector-power
+# shellcheck disable=SC2164
 cd ${USBDRIVER_SRC}
-[ -f set-projector-power ] && rm ${VERBOSE} -f set-projector-power
-g++ -o set-projector-power -pipe -g -Og -D_DEBUG -std=gnu++1z -Wall -W -D_REENTRANT -fPIC dlpc350_usb.cpp dlpc350_api.cpp main.cpp -lhidapi-libusb
+[ "${FORCEREBUILD}" = "-x" ] && make clean
+make
 
 blue-bar • Building debugging version of Mountmon
+# shellcheck disable=SC2164
 cd ${MOUNTMON_SRC}
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
 blue-bar • Building debugging version of LightField
-cd ${LIGHTFIELD_SRC}
+# shellcheck disable=SC2164
+cd ${LIGHTFIELD_ROOT}
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
 chown ${CHXXXVERBOSE} -R lumen:lumen ${USBDRIVER_SRC}
 chown ${CHXXXVERBOSE} -R lumen:lumen ${MOUNTMON_SRC}/build
-chown ${CHXXXVERBOSE} -R lumen:lumen ${LIGHTFIELD_SRC}/build
+chown ${CHXXXVERBOSE} -R lumen:lumen ${LIGHTFIELD_ROOT}/build
 
 blue-bar • Creating any missing directories
 [ ! -d /var/cache/lightfield/print-jobs     ] && mkdir ${VERBOSE} -p /var/cache/lightfield/print-jobs
@@ -155,6 +135,7 @@ install ${VERBOSE} -DT -m 644                   system-stuff/99-waveshare.conf  
 chmod 700 /home/lumen/.gnupg
 [ -f /home/lumen/.gnupg/pubring.kbx ] && rm ${VERBOSE} /home/lumen/.gnupg/pubring.kbx
 
+# shellcheck disable=SC2164
 cd ${PRINTRUN_SRC}
 install ${VERBOSE} -DT -m 644                   printrun/__init__.py                            /usr/share/lightfield/libexec/printrun/printrun/__init__.py
 install ${VERBOSE} -DT -m 644                   printrun/eventhandler.py                        /usr/share/lightfield/libexec/printrun/printrun/eventhandler.py
@@ -167,14 +148,6 @@ install ${VERBOSE} -DT -m 644                   Util/constants.py               
 blue-bar • Configuring system
 
 perl -lpi -e 's/^(?!##LF## )/##LF## /;' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
-
-if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
-then
-    RELEASE_TRAIN=
-    SUFFIX=debug
-else
-    SUFFIX=${RELEASE_TRAIN}-debug
-fi
 
 echo "deb file:/var/lib/lightfield/software-updates/lightfield${SUFFIX}_${VERSION}_${ARCHITECTURE} ./" > /etc/apt/sources.list.d/volumetric-lightfield.list
 chown ${CHXXXVERBOSE} lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list

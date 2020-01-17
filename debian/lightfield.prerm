@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
+# prerm script for lightfield
 #
 # see: dh_installdeb(1)
 #

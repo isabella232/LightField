@@ -1,12 +1,11 @@
 #!/bin/bash
+# shellcheck disable=SC2103
+# shellcheck disable=SC2164
 
-VERSION=1.0.10.0
-BUILDTYPE=
-ARCHITECTURE=amd64
-RELEASE_TRAIN=base
-LIGHTFIELD_SRC=/home/lumen/Volumetric/LightField
-PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 USE_KEY_SET=current
+BUILDTYPE=
 
 #########################################################
 ##                                                     ##
@@ -14,46 +13,24 @@ USE_KEY_SET=current
 ##                                                     ##
 #########################################################
 
-function blue-bar () {
-    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function red-bar () {
-    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function error-trap () {
-    red-bar Failed\!
-    exit 1
-}
-
 function usage () {
     cat <<EOF
 Usage: $(basename "$0") [-q] BUILDTYPE
 Where: -q           build quietly
-       -t <train>   Sets the release train. Default: ${RELEASE_TRAIN}
+       -t <train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
        BUILDTYPE    is one of
                     release  create a release-build kit
                     debug    create a debug-build kit
                     both     create both kits
 
 If the build is successful, the requested upgrade kit(s) will be found in
-  ${KIT_DIR}/lightfield$([ "${RELEASE_TRAIN}" = "base" ] || echo "-${RELEASE_TRAIN}" )-BUILDTYPE_${VERSION}_${ARCHITECTURE}.kit
+  ${KIT_DIR}/lightfield$([ "${DEFAULT_RELEASE_TRAIN}" = "base" ] || echo "-${DEFAULT_RELEASE_TRAIN}" )-BUILDTYPE_${VERSION}_${DEFAULT_ARCHITECTURE}.kit
 EOF
+    exit 1
 }
 
-trap error-trap ERR
-set -e
-
-if [ "${USE_KEY_SET}" = "current" ]
-then
-    REPO_KEY_ID=E91BD3361F39D49C78B1E3A2B55C0E8D4B632A66
-    PKG_KEY_ID=78DAD29978EB392992D7FE0423025033D9E840F7
-#elif [ "${USE_KEY_SET}" = "future" ]
-#then
-else
-    red-bar "The key set '${USE_KEY_SET}' is unrecognized."
-fi
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
 VERBOSE=-v
 
@@ -82,21 +59,48 @@ do
             break
         ;;
 
+        --)
+            shift
+            break
+        ;;
+
         *)
+            echo "Unknown parameter '${1}'."
             usage
-            exit 1
         ;;
     esac
     shift
 done
 
-if [ -z "${BUILDTYPE}" ]
+if [ -z "${1}" ]
 then
+    red-bar 'No build type given.'
     usage
-    exit 1
+elif [ -n "${2}" ]
+then
+    red-bar 'Too many arguments given.'
+    usage
+else
+    if [ "${1}" = "debug" ] || [ "${1}" = "release" ]
+    then
+        BUILDTYPE="${1}"
+    elif [ "${1}" = "both" ]
+    then
+        "$0" "${ARGS}" release || exit $?
+        "$0" "${ARGS}" debug   || exit $?
+        exit 0
+    else
+        red-bar "Unknown build type '${1}'."
+        usage
+    fi
 fi
 
-if [ -z "${RELEASE_TRAIN}" ] || [ "${RELEASE_TRAIN}" = "base" ]
+if [ -z "${RELEASE_TRAIN}" ]
+then
+    RELEASE_TRAIN=base
+fi
+
+if [ "${RELEASE_TRAIN}" = "base" ]
 then
     SUFFIX=${BUILDTYPE}
 else
@@ -110,7 +114,19 @@ then
     exit 0
 fi
 
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${SUFFIX}-${VERSION}"
+if [ "${USE_KEY_SET}" = "current" ]
+then
+    REPO_KEY_ID=E91BD3361F39D49C78B1E3A2B55C0E8D4B632A66
+    PKG_KEY_ID=78DAD29978EB392992D7FE0423025033D9E840F7
+#elif [ "${USE_KEY_SET}" = "future" ]
+#then
+# no future keys currently
+else
+    red-bar "The key set '${USE_KEY_SET}' is unrecognized."
+    usage
+fi
+
+PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}-${SUFFIX}"
 DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
@@ -125,7 +141,7 @@ blue-bar "• Creating LightField ${VERSION} ${RELEASE_TRAIN} ${BUILDTYPE}-build
 mkdir ${VERBOSE} -p "${REPO_DIR}"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
-install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_SRC}/fonts-montserrat_7.200_all.deb"
+install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_ROOT}/fonts-montserrat_7.200_all.deb"
 install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
 
 if [ "${BUILDTYPE}" = "release" ]
@@ -153,7 +169,7 @@ cd "${REPO_DIR}"
 
 dpkg-scanpackages . | tee Packages | xz -ceT0 > Packages.xz
 
-apt-ftparchive --config-file ${LIGHTFIELD_SRC}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
+apt-ftparchive --config-file ${LIGHTFIELD_ROOT}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
 
 gpg                               \
     ${VERBOSE}                    \
@@ -185,16 +201,16 @@ sha256sum -- -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
         -e   "s/@@RELEASEDATE@@/${RELEASEDATE}/g"    \
         -e "s/@@RELEASE_TRAIN@@/${RELEASE_TRAIN}/g"  \
         -e       "s/@@VERSION@@/${VERSION}/g"        \
-        "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
+        "${LIGHTFIELD_ROOT}/apt-files/version.inf.in"
 
-    # extract description from ${LIGHTFIELD_SRC}/debian/changelog
-    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_SRC}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
+    # extract description from ${LIGHTFIELD_ROOT}/debian/changelog
+    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_ROOT}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
     if [ -z "${linecount}" ] || [ "${linecount}" -lt 1 ]
     then
-        red-bar "!!! Can't find end of first change in ${LIGHTFIELD_SRC}/debian/changelog, aborting"
+        red-bar "!!! Can't find end of first change in ${LIGHTFIELD_ROOT}/debian/changelog, aborting"
         exit 1
     fi
-    head -$((linecount - 2)) ${LIGHTFIELD_SRC}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
+    head -$((linecount - 2)) ${LIGHTFIELD_ROOT}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
 
     echo 'Checksums-SHA256:'
     cat .hashes
