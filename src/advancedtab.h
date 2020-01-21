@@ -1,7 +1,7 @@
 #ifndef __ADVANCEDTAB_H__
 #define __ADVANCEDTAB_H__
 
-#undef ENABLE_TEMPERATURE_SETTING
+#define ENABLE_TEMPERATURE_SETTING
 
 #include "tabbase.h"
 
