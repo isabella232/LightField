@@ -90,7 +90,7 @@ fi
 blue-bar • Building debugging version of set-projector-power
 # shellcheck disable=SC2164
 cd ${PROJECTOR_SRC}
-[ "${FORCEREBUILD}" = "-x" ] && make clean
+[ "${FORCEREBUILD}" = "-x" ] && make clean || true
 make
 
 blue-bar • Building debugging version of Mountmon
