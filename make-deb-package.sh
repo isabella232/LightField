@@ -230,7 +230,7 @@ elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
 then
     install ${VERBOSE} -DT -m 644 system-stuff/dlp4710-set-projector-power.service "${LIGHTFIELD_FILES}/lib/systemd/system/set-projector-power.service"
     install ${VERBOSE} -DT -m 644 dlp4710/90-dlp4710.rules                         "${LIGHTFIELD_FILES}/lib/udev/rules.d/90-dlp4710.rules"
-    install ${VERBOSE} -DT -m 644 system-stuff/dlp4710-reset-lumen-projector-port  "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-projector-port"
+    install ${VERBOSE} -DT -m 755 system-stuff/dlp4710-reset-lumen-projector-port  "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/reset-lumen-projector-port"
     install ${VERBOSE} -DT -m 644 system-stuff/99-waveshare-dlp4710.conf           "${LIGHTFIELD_FILES}/usr/share/X11/xorg.conf.d/99-waveshare.conf"
 fi
 
