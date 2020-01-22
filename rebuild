@@ -1,18 +1,9 @@
 #!/usr/bin/env bash
 
-if [ -z "${BUILDDIR}" ]
-then
-    export BUILDDIR="/home/lumen/Volumetric/LightField/build"
-fi
+[ -z "${BUILDDIR}" ] && export BUILDDIR="/home/lumen/Volumetric/LightField/build"
 
-rebuild () {
-    local BUILD=debug
-    local CLEAN=
-    local NUKE=
-    local QMAKE=
-
-    if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
-	cat <<HERE
+function usage () {
+    cat <<HERE
 Usage: rebuild [-cnqrx] [--clean|--nuke-first|--qmake-anyway|--release]
 Runs "qmake" to regenerate the Makefile, if necessary, then "make" to
 rebuild LightField.
@@ -25,75 +16,91 @@ rebuild LightField.
   -r,     --release        Perform a release build instead of a debug
                              build.
 HERE
-	return
+}
+
+function rebuild () {
+    local BUILD=debug
+    local CLEAN=
+    local NUKE=
+    local QMAKE=
+    local ARGS=
+    local LASTBUILDMODE=
+
+    if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
+        usage
+        return
     fi
 
-    local ARGS=$(getopt -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@")
+    ARGS=$(getopt -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@")
     eval set -- "$ARGS"
 
     while [ -n "${1}" ]
     do
-	case "${1}" in
-	    '-c'        | '--clean'        ) CLEAN=yes     ;;
-	    '-n' | '-x' | '--nuke-first'   )  NUKE=yes     ;;
-	    '-q'        | '--qmake-anyway' ) QMAKE=yes     ;;
-	    '-r'        | '--release'      ) BUILD=release ;;
-	    '--' )
-		shift
-		break
-		;;
-	    * )
-		return
-		;;
-	esac
-	shift
+        case "${1}" in
+            '-c'        | '--clean'        ) CLEAN=yes     ;;
+            '-n' | '-x' | '--nuke-first'   )  NUKE=yes     ;;
+            '-q'        | '--qmake-anyway' ) QMAKE=yes     ;;
+            '-r'        | '--release'      ) BUILD=release ;;
+
+            '--' )
+                shift
+                break
+                ;;
+
+            * )
+                return
+                ;;
+        esac
+        shift
     done
 
     if [ -d "${BUILDDIR}" ]
     then
-	if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
-	then
-	    echo ${BUILD} > ${BUILDDIR}/.lastbuildmode
-	    NUKE=yes
-	fi
+        if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
+        then
+            echo "${BUILD}" > "${BUILDDIR}/.lastbuildmode"
+            NUKE=yes
+        fi
 
-	local LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-	if [ -n "${LASTBUILDMODE}"  -a  "${BUILD}" != "${LASTBUILDMODE}" ]
-	then
-	    echo Switching from ${LASTBUILDMODE} to ${BUILD}.
-	    NUKE=yes
-	fi
+        LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
+        if [ -n "${LASTBUILDMODE}" ] && [ "${BUILD}" != "${LASTBUILDMODE}" ]
+        then
+            echo Switching from "${LASTBUILDMODE}" to "${BUILD}".
+            NUKE=yes
+        fi
 
-	if [ -n "${NUKE}" ]
-	then
-	    unset CLEAN
-	    QMAKE=yes
-	    rm -dr ${BUILDDIR} && mkdir -p ${BUILDDIR}
-	fi
+        if [ -n "${NUKE}" ]
+        then
+            unset CLEAN
+            QMAKE=yes
+            rm -dr "${BUILDDIR}" && mkdir -p "${BUILDDIR}"
+        fi
     else
-	mkdir -p ${BUILDDIR}
+        mkdir -p "${BUILDDIR}"
     fi
 
-    cd ${BUILDDIR}
+    cd "${BUILDDIR}"
 
     if [ -n "${CLEAN}" ]
     then
-	QMAKE=yes
-	make distclean
+        QMAKE=yes
+        make distclean
     fi
 
-    if [ -n "${QMAKE}"   -o  ! -f Makefile  -o  ../qt/lf.pro -nt Makefile ]
+    if [ -n "${QMAKE}" ] || [ ! -f Makefile ] || [ ../qt/lf.pro -nt Makefile ]
     then
-	qmake CONFIG+=${BUILD} ../qt/lf.pro || return
-	echo "${BUILD}" > ${BUILDDIR}/.lastbuildmode
+        qmake CONFIG+="${BUILD}" ../qt/lf.pro || return
+        echo "${BUILD}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
-    if ! make -q
+    if make -q 1> /dev/null 2>&1
     then
-        rm buildinfo.o
+        echo "make: Nothing to be done for 'first'."
+        return
     fi
 
-    make -j${QT_BUILD_JOBS-12}
+    rm buildinfo.o 1> /dev/null 2>&1
+    make -j"${QT_BUILD_JOBS-12}"
 }
 
 rebuild $*

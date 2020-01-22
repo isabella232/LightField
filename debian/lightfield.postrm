@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for lightfield-release
+# postrm script for lightfield
 #
 # see: dh_installdeb(1)
 #
@@ -18,19 +18,13 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
-#echo "+ lightfield-release.postrm: args are $*" 1>&2
 case "$1" in
-    remove)
-        echo + Setting default back to graphical.target
+    remove|purge)
         systemctl set-default graphical.target
-        echo + Getting default
-        systemctl get-default
-        echo + Starting tty1
         systemctl start getty@tty1
     ;;
 
-    purge|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
 
     *)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for lightfield-debug
+# postrm script for lightfield-common
 #
 # see: dh_installdeb(1)
 #
@@ -18,8 +18,6 @@
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
-#echo "+ lightfield-debug.postrm: args are $*" 1>&2
 case "$1" in
     remove)
         rm /etc/apt/sources.list.d/volumetric-lightfield.list 2>/dev/null

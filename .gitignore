@@ -14,6 +14,7 @@ gpg/gpg-agent.conf
 gpg/openpgp-revocs.d
 gpg/private-keys-v1.d
 gpg/random_seed
+installer
 model-library
 mountmon/.gdbinit
 mountmon/.qmake.stash
@@ -22,5 +23,9 @@ mountmon/build
 newConfigureUbuntuAndInstallLightField.sh
 out
 packaging
+src/version.h
 superclean.sh
 usb-driver/set-projector-power
+usb-driver/dlpc350_api.o
+usb-driver/dlpc350_usb.o
+usb-driver/main.o

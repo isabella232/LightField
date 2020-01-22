@@ -1,8 +1,11 @@
 #!/bin/bash
+# shellcheck disable=SC2103
+# shellcheck disable=SC2164
 
-VERSION=1.0.11.0
-PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 USE_KEY_SET=current
+BUILDTYPE=
 
 #########################################################
 ##                                                     ##
@@ -10,43 +13,95 @@ USE_KEY_SET=current
 ##                                                     ##
 #########################################################
 
-function blue-bar () {
-    echo -e "\r\x1B[1;37;44m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function red-bar () {
-    echo -e "\r\x1B[1;33;41m$*\x1B[K\x1B[0m" 1>&2
-}
-
-function error-trap () {
-    red-bar Failed\!
-    exit 1
-}
-
 function usage () {
     cat <<EOF
-Usage: $(basename $0) [-q] BUILDTYPE
+Usage: $(basename "$0") [-q] BUILDTYPE
 Where: -q         build quietly
-and:   BUILDTYPE  is one of
+       BUILDTYPE  is one of
                   release  create a release-build kit
                   debug    create a debug-build kit
                   both     create both kits
 
 If the build is successful, the requested upgrade kit(s) will be found in
-  ${KIT_DIR}/lightfield-BUILDTYPE_${VERSION}_amd64.kit
+  ${KIT_DIR}/lightfield$([ "${DEFAULT_RELEASE_TRAIN}" = "base" ] || echo "-${DEFAULT_RELEASE_TRAIN}" )-BUILDTYPE_${VERSION}_${DEFAULT_ARCHITECTURE}.kit
 EOF
+    exit 1
 }
 
-trap error-trap ERR
-set -e
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
-LIGHTFIELD_SRC="/home/lumen/Volumetric/LightField"
-PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}"
-DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
-LIGHTFIELD_PACKAGE="${DEB_BUILD_DIR}/lightfield-${VERSION}"
-LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
+VERBOSE=-v
 
-KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
+ARGS=$(getopt -n 'make-upgrade-kit.sh' -o 'q' -- "$@")
+# shellcheck disable=SC2181
+if [ ${?} -ne 0 ]
+then
+    usage
+fi
+eval set -- "$ARGS"
+
+while [ -n "$1" ]
+do
+    case "$1" in
+        '-q')
+            VERBOSE=
+        ;;
+
+        --)
+            shift
+            break
+        ;;
+
+        *)
+            echo "Unknown parameter '${1}'."
+            usage
+        ;;
+    esac
+    shift
+done
+
+if [ -z "${1}" ]
+then
+    red-bar 'No build type given.'
+    usage
+elif [ -n "${2}" ]
+then
+    red-bar 'Too many arguments given.'
+    usage
+else
+    if [ "${1}" = "debug" ] || [ "${1}" = "release" ]
+    then
+        BUILDTYPE="${1}"
+    elif [ "${1}" = "both" ]
+    then
+        "$0" "${ARGS}" release || exit $?
+        "$0" "${ARGS}" debug   || exit $?
+        exit 0
+    else
+        red-bar "Unknown build type '${1}'."
+        usage
+    fi
+fi
+
+if [ -z "${RELEASE_TRAIN}" ]
+then
+    RELEASE_TRAIN=base
+fi
+
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    SUFFIX=${BUILDTYPE}
+else
+    SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
+fi
+
+if [ "${BUILDTYPE}" = "both" ]
+then
+    "${0}" "${ARGS}" release || exit $?
+    "${0}" "${ARGS}" debug   || exit $?
+    exit 0
+fi
 
 if [ "${USE_KEY_SET}" = "current" ]
 then
@@ -54,81 +109,48 @@ then
     PKG_KEY_ID=78DAD29978EB392992D7FE0423025033D9E840F7
 #elif [ "${USE_KEY_SET}" = "future" ]
 #then
+# no future keys currently
 else
     red-bar "The key set '${USE_KEY_SET}' is unrecognized."
-fi
-
-VERBOSE=-v
-BUILDTYPE=
-
-while [ -n "$1" ]
-do
-    case "$1" in
-        "-q")
-            VERBOSE=
-        ;;
-
-        "release" | "debug" | "both")
-            BUILDTYPE=$1
-        ;;
-
-        *)
-            usage
-            exit 1
-        ;;
-    esac
-    shift
-done
-
-if [ -z "${BUILDTYPE}" ]
-then
     usage
-    exit 1
 fi
 
-if [ "${BUILDTYPE}" = "both" ]
-then
-    ARG=$(if [ -z "${VERBOSE}" ]; then echo -q; fi)
-    $0 ${ARG} release || exit $?
-    $0 ${ARG} debug   || exit $?
-    exit 0
-fi
-
+PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}-${SUFFIX}"
+DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
+KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
-DISTRIBUTION=cosmic
-
 RELEASEDATE=$(date "+%Y-%m-%d")
 
 cd "${PACKAGE_BUILD_DIR}"
 
-blue-bar • Creating LightField "${VERSION}" "${BUILDTYPE}"-build update kit
+blue-bar "• Creating LightField ${VERSION} ${RELEASE_TRAIN} ${BUILDTYPE}-build update kit"
 
-[ -d "${REPO_DIR}"      ] && rm ${VERBOSE} -rf "${REPO_DIR}"
+[ -d "${REPO_DIR}" ] && rm ${VERBOSE} -rf "${REPO_DIR}"
 
 mkdir ${VERBOSE} -p "${REPO_DIR}"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
-install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_SRC}/fonts-montserrat_7.200_all.deb"
+install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_ROOT}/fonts-montserrat_7.200_all.deb"
 install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
 
 if [ "${BUILDTYPE}" = "release" ]
 then
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-release_${VERSION}_amd64.deb"
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.deb"
 elif [ "${BUILDTYPE}" = "debug" ]
 then
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug_${VERSION}_amd64.deb"
-    if [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb" ]
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.deb"
+    if [ -f "${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.deb" ]
     then
-        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
-    elif [ -f "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb" ]
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.deb"
+    elif [ -f "${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb" ]
     then
-        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
+        install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb"
     else
-	red-bar "!!! Unable to find either"
-	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.deb"
-	red-bar "!!! or"
-	red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-debug-dbgsym_${VERSION}_amd64.ddeb"
-	red-bar "!!! Build failed!"
+    red-bar "!!! Unable to find either"
+    red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.deb"
+    red-bar "!!! or"
+    red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb"
+    red-bar "!!! Build failed!"
     fi
 fi
 
@@ -136,95 +158,102 @@ cd "${REPO_DIR}"
 
 dpkg-scanpackages . | tee Packages | xz -ceT0 > Packages.xz
 
-apt-ftparchive --config-file ${LIGHTFIELD_SRC}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
+apt-ftparchive --config-file ${LIGHTFIELD_ROOT}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "${REPO_KEY_ID}"                                 \
-    --output InRelease                                            \
-    --clearsign                                                   \
+gpg                               \
+    ${VERBOSE}                    \
+    --batch                       \
+    --armor                       \
+    --local-user "${REPO_KEY_ID}" \
+    --output InRelease            \
+    --clearsign                   \
     Release
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "${REPO_KEY_ID}"                                 \
-    --output Release.gpg                                          \
-    --detach-sign                                                 \
+gpg                               \
+    ${VERBOSE}                    \
+    --batch                       \
+    --armor                       \
+    --local-user "${REPO_KEY_ID}" \
+    --output Release.gpg          \
+    --detach-sign                 \
     Release
 
-rm ${VERBOSE} -f                                                  \
-    version.inf                                                   \
+rm ${VERBOSE} -f                  \
+    version.inf                   \
     version.inf.sig
 
-sha256sum -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
+sha256sum -- -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
 (
-    sed -e "s/@@VERSION@@/${VERSION}/g" -e "s/@@BUILDTYPE@@/${BUILDTYPE}/g" -e "s/@@RELEASEDATE@@/${RELEASEDATE}/g" "${LIGHTFIELD_SRC}/apt-files/version.inf.in"
+    sed                                              \
+        -e  "s/@@ARCHITECTURE@@/${ARCHITECTURE}/g"   \
+        -e     "s/@@BUILDTYPE@@/${BUILDTYPE}/g"      \
+        -e   "s/@@RELEASEDATE@@/${RELEASEDATE}/g"    \
+        -e "s/@@RELEASE_TRAIN@@/${RELEASE_TRAIN}/g"  \
+        -e       "s/@@VERSION@@/${VERSION}/g"        \
+        "${LIGHTFIELD_ROOT}/apt-files/version.inf.in"
 
-    # extract description from ${LIGHTFIELD_SRC}/debian/changelog
-    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_SRC}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
-    if [ -z "${linecount}" -o \( "${linecount}" -lt 1 \) ]
+    # extract description from ${LIGHTFIELD_ROOT}/debian/changelog
+    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_ROOT}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
+    if [ -z "${linecount}" ] || [ "${linecount}" -lt 1 ]
     then
-        red-bar " *** Can't find end of first change in ${LIGHTFIELD_SRC}/debian/changelog, aborting"
+        red-bar "!!! Can't find end of first change in ${LIGHTFIELD_ROOT}/debian/changelog, aborting"
         exit 1
     fi
-    head -$((linecount - 2)) ${LIGHTFIELD_SRC}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
+    head -$((linecount - 2)) ${LIGHTFIELD_ROOT}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
 
     echo 'Checksums-SHA256:'
     cat .hashes
 ) > version.inf
 rm .hashes
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "${PKG_KEY_ID}"                                  \
-    --output version.inf.sig                                      \
-    --detach-sign                                                 \
+gpg                                                                      \
+    ${VERBOSE}                                                           \
+    --batch                                                              \
+    --armor                                                              \
+    --local-user "${PKG_KEY_ID}"                                         \
+    --output version.inf.sig                                             \
+    --detach-sign                                                        \
     version.inf
 
-rm                                                                \
-    ${VERBOSE}                                                    \
-    -f                                                            \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"     \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig" \
-    "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"
+rm                                                                       \
+    ${VERBOSE}                                                           \
+    -f                                                                   \
+    "${KIT_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit"     \
+    "${KIT_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit.sig" \
+    "${KIT_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit.zip"
 
-tar                                                               \
-    ${VERBOSE} ${VERBOSE}                                         \
-    -c                                                            \
-    -f "${KIT_DIR}/lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"  \
-    --owner=root                                                  \
-    --group=root                                                  \
-    --sort=name                                                   \
+tar                                                                      \
+    ${VERBOSE} ${VERBOSE}                                                \
+    -c                                                                   \
+    -f "${KIT_DIR}/lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit"  \
+    --owner=root                                                         \
+    --group=root                                                         \
+    --sort=name                                                          \
+    --                                                                   \
     *
 
-cd ${KIT_DIR}
+cd "${KIT_DIR}"
 
-gpg                                                               \
-    ${VERBOSE}                                                    \
-    --batch                                                       \
-    --armor                                                       \
-    --local-user "${PKG_KEY_ID}"                                  \
-    --output "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"   \
-    --detach-sign                                                 \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"
+gpg                                                                      \
+    ${VERBOSE}                                                           \
+    --batch                                                              \
+    --armor                                                              \
+    --local-user "${PKG_KEY_ID}"                                         \
+    --output "lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit.sig"   \
+    --detach-sign                                                        \
+    "lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit"
 
-zip                                                               \
-    -0joq                                                         \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.zip"            \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit"                \
-    "lightfield-${BUILDTYPE}_${VERSION}_amd64.kit.sig"
+zip                                                                      \
+    -0joq                                                                \
+    "lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit.zip"            \
+    "lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit"                \
+    "lightfield-${SUFFIX}_${VERSION}_${ARCHITECTURE}.kit.sig"
 
-blue-bar • Cleaning up
+blue-bar "• Cleaning up"
 
 cd ..
 
-rm ${VERBOSE} -rf ${REPO_DIR}
+rm ${VERBOSE} -rf "${REPO_DIR}"
 
 blue-bar ""
 blue-bar "• Done!"

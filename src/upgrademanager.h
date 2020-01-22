@@ -50,7 +50,11 @@ public:
 
     BuildType              buildType             { };
 
+    QString                architecture;
+
     QDate                  releaseDate;
+
+    QString                releaseTrain;
 
     QString                description;
 
@@ -98,6 +102,8 @@ private:
 
     QString              _stderrJournal;
     QString              _stdoutJournal;
+
+    QString              _architecture;
 
     void _flushLoggers( );
     void _clearJournals( );
