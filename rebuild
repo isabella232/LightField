@@ -102,6 +102,16 @@ function rebuild () {
         echo "${BUILD}-${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
+    if [ "${RELEASE_TRAIN}" = "base" ]
+    then
+        cp ../images/dlpc350-focus-image.png ../images/focus-image.png
+        cp ../images/dlpc350-white-field.png ../images/white-field.png
+    elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
+    then
+        cp ../images/dlp4710-focus-image.png ../images/focus-image.png
+        cp ../images/dlp4710-white-field.png ../images/white-field.png
+    fi
+
     if make -q 1> /dev/null 2>&1
     then
         echo "make: Nothing to be done for 'first'."
