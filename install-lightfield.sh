@@ -90,8 +90,9 @@ fi
 blue-bar • Building debugging version of set-projector-power
 # shellcheck disable=SC2164
 cd ${PROJECTOR_SRC}
-[ "${FORCEREBUILD}" = "-x" ] && make clean || true
-make
+# shellcheck disable=SC2015
+[ "${FORCEREBUILD}" = "-x" ] && make BUILD=debug clean || true
+make BUILD=debug
 
 blue-bar • Building debugging version of Mountmon
 # shellcheck disable=SC2164
@@ -143,7 +144,7 @@ elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               dlp4710/90-dlp4710.rules                         /lib/udev/rules.d/90-dlp4710.rules
-    install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-reset-lumen-projector-port  /usr/share/lightfield/libexec/reset-lumen-projector-port
+    install ${VERBOSE} -DT -m 755               system-stuff/dlp4710-reset-lumen-projector-port  /usr/share/lightfield/libexec/reset-lumen-projector-port
     install ${VERBOSE} -DT -m 644               system-stuff/99-waveshare-dlp4710.conf           /usr/share/X11/xorg.conf.d/99-waveshare.conf
 fi
 
