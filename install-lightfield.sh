@@ -90,6 +90,7 @@ fi
 blue-bar • Building debugging version of set-projector-power
 # shellcheck disable=SC2164
 cd ${PROJECTOR_SRC}
+# shellcheck disable=SC2015
 [ "${FORCEREBUILD}" = "-x" ] && make BUILD=debug clean || true
 make BUILD=debug
 
@@ -129,7 +130,6 @@ install ${VERBOSE} -DT -m 600 -o lumen -g lumen gpg/trustdb.gpg                 
 install ${VERBOSE} -DT -m 644                   system-stuff/clean-up-mount-points.service       /lib/systemd/system/clean-up-mount-points.service
 install ${VERBOSE} -DT -m 755                   build/lf                                         /usr/bin/lf
 install ${VERBOSE} -DT -m 755                   mountmon/build/mountmon                          /usr/bin/mountmon
-install ${VERBOSE} -DT -m 755                   usb-driver/set-projector-power                   /usr/bin/set-projector-power
 install ${VERBOSE} -DT -m 644                   stdio-shepherd/printer.py                        /usr/share/lightfield/libexec/stdio-shepherd/printer.py
 install ${VERBOSE} -DT -m 755                   stdio-shepherd/stdio-shepherd.py                 /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-arduino-port            /usr/share/lightfield/libexec/reset-lumen-arduino-port
@@ -138,11 +138,13 @@ if [ "${RELEASE_TRAIN}" = "base" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlpc350-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               usb-driver/90-dlpc350.rules                      /lib/udev/rules.d/90-dlpc350.rules
+    install ${VERBOSE} -DT -m 755               usb-driver/set-projector-power                   /usr/bin/set-projector-power
     install ${VERBOSE} -DT -m 644               system-stuff/99-waveshare-dlpc350.conf           /usr/share/X11/xorg.conf.d/99-waveshare.conf
 elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               dlp4710/90-dlp4710.rules                         /lib/udev/rules.d/90-dlp4710.rules
+    install ${VERBOSE} -DT -m 755               dlp4710/set-projector-power                      /usr/bin/set-projector-power
     install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-reset-lumen-projector-port  /usr/share/lightfield/libexec/reset-lumen-projector-port
     install ${VERBOSE} -DT -m 644               system-stuff/99-waveshare-dlp4710.conf           /usr/share/X11/xorg.conf.d/99-waveshare.conf
 fi
