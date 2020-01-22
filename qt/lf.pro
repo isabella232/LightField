@@ -111,3 +111,7 @@ static {
 debug {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
 }
+
+dlp4710 {
+    DEFINES += DLP4710
+}

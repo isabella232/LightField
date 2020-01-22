@@ -30,11 +30,11 @@ inline QString RemoveFileExtension( QString const& fileName ) {
 }
 
 inline constexpr int PercentagePowerLevelToRawLevel( int percentage ) {
-    return static_cast<int>( static_cast<double>( percentage ) / 100.0 * 255.0 + 0.5 );
+    return static_cast<int>( static_cast<double>( percentage ) / 100.0 * ProjectorMaxPowerLevel + 0.5 );
 }
 
 inline constexpr int RawPowerLevelToPercentage( int raw ) {
-    return static_cast<int>( static_cast<double>( raw ) / 255.0 * 100.0 + 0.5 );
+    return static_cast<int>( static_cast<double>( raw ) / ProjectorMaxPowerLevel * 100.0 + 0.5 );
 }
 
 template<typename... Rest>
