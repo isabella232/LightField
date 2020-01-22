@@ -164,8 +164,8 @@ blue-bar "• Building ${BUILDTYPE} version of set-projector-power"
 
 cd "${PROJECTOR_SRC}"
 
-[ -n "${FORCEREBUILD}" ] && make clean
-make
+[ -n "${FORCEREBUILD}" ] && make BUILD=debug clean || true
+make BUILD=debug
 
 install ${VERBOSE} -DT -m 755 set-projector-power "${LIGHTFIELD_FILES}/usr/bin/set-projector-power"
 
