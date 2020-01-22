@@ -144,7 +144,7 @@ elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               dlp4710/90-dlp4710.rules                         /lib/udev/rules.d/90-dlp4710.rules
-    install ${VERBOSE} -DT -m 755               dlp4710/set-projector-power                      /usr/bin/set-projector-power
+    install ${VERBOSE} -DT -m 4111              dlp4710/set-projector-power                      /usr/bin/set-projector-power
     install ${VERBOSE} -DT -m 755               system-stuff/dlp4710-reset-lumen-projector-port  /usr/share/lightfield/libexec/reset-lumen-projector-port
     install ${VERBOSE} -DT -m 644               system-stuff/99-waveshare-dlp4710.conf           /usr/share/X11/xorg.conf.d/99-waveshare.conf
 fi
