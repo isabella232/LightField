@@ -9,7 +9,7 @@ SOURCES             = dlpc350_usb.cpp dlpc350_api.cpp main.cpp
 OBJECTS             = $(SOURCES:.cpp=.o)
 
 CFLAGS              = -std=gnu++17 -Wall -Wextra -Werror -pedantic
-LFLAGS              = 
+LFLAGS              =
 ifeq ($(BUILD),debug)
 CFLAGS             += -D_DEBUG -g -Og
 LFLAGS             += -g
@@ -27,7 +27,7 @@ $(TARGET): $(OBJECTS)
 	$(LD) $(LFLAGS) -o $@ $^ -lhidapi-libusb
 
 clean:
-	@$(RM) $(TARGET) $(OBJECTS) 
+	-$(RM) $(TARGET) $(OBJECTS)
 
 ## Dependencies
 
