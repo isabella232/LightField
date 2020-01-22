@@ -48,8 +48,8 @@ public:
     int        layerThickness          { 100 }; // unit: µm
     double     exposureTime            { 1.0 }; // unit: s
     double     exposureTimeScaleFactor { 1.0 }; // for first two layers
-    int        powerLevel              { 128 }; // range: 0..255
-    double     printSpeed              { PrinterDefaultLowSpeed }; // unit: mm/min; range: 50-200
+    int        powerLevel              { static_cast<int>( ProjectorMaxPowerLevel / 2.0 + 0.5 ) }; // range: 0..ProjectorMaxPowerLevel
+    double     printSpeed              { PrinterDefaultLowSpeed                                 }; // unit: mm/min; range: 50-200
 
 };
 

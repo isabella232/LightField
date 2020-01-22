@@ -155,8 +155,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _powerLevelValueLayout = WrapWidgetsInHBox( _powerLevelLabel, nullptr, _powerLevelValue );
 
     _powerLevelSlider->setEnabled( false );
-    _powerLevelSlider->setMinimum( 20 );
-    _powerLevelSlider->setMaximum( 100 );
+    _powerLevelSlider->setMinimum( ProjectorMinPercent );
+    _powerLevelSlider->setMaximum( ProjectorMaxPercent );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
     _powerLevelSlider->setPageStep( 5 );
     _powerLevelSlider->setSingleStep( 1 );

@@ -41,22 +41,38 @@ QChar              extern const  FA_Backward;
 QChar              extern const  FA_Forward;
 QChar              extern const  FA_FastForward;
 
-int                       const  DebugLogPathCount          =   6;
+int                       const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
-double                    const  PrinterMaximumX            =  64.00; // mm
-double                    const  PrinterMaximumY            =  40.00; // mm
-double                    const  PrinterMaximumZ            =  50.00; // mm
-double                    const  PrinterRaiseToMaximumZ     =  60.00; // mm
-double                    const  PrinterHighSpeedThresholdZ =  10.00; // mm
+double constexpr          const  PrinterMaximumX            =   64.00; // mm
+double constexpr          const  PrinterMaximumY            =   40.00; // mm
+double constexpr          const  PrinterMaximumZ            =   50.00; // mm
+double constexpr          const  PrinterRaiseToMaximumZ     =   60.00; // mm
+double constexpr          const  PrinterHighSpeedThresholdZ =   10.00; // mm
 
-double                    const  PrinterDefaultHighSpeed    = 200.00; // mm/min
-double                    const  PrinterDefaultLowSpeed     =  50.00; // mm/min
+double constexpr          const  PrinterDefaultHighSpeed    =  200.00; // mm/min
+double constexpr          const  PrinterDefaultLowSpeed     =   50.00; // mm/min
 
-double                    const  AspectRatio5to3            =   5.0 /  3.0;
-double                    const  AspectRatio16to10          =  16.0 / 10.0;
+double constexpr          const  AspectRatio5to3            =    5.0 /  3.0;
+double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
-double                    const  LargeFontSize              =  22.0; // pt
-double                    const  NormalFontSize             =  12.0; // pt
+double constexpr          const  LargeFontSize              =   22.0; // pt
+double constexpr          const  NormalFontSize             =   12.0; // pt
+
+#   if defined DLP4710
+
+double constexpr          const  ProjectorMaxPowerLevel     = 1023.0;
+
+int    constexpr          const  ProjectorMinPercent        =    5;
+int    constexpr          const  ProjectorMaxPercent        =   80;
+
+#   else
+
+double constexpr          const  ProjectorMaxPowerLevel     =  255.0;
+
+int    constexpr          const  ProjectorMinPercent        =   20;
+int    constexpr          const  ProjectorMaxPercent        =   80;
+
+#   endif
 
 #endif // __CONSTANTS_H__

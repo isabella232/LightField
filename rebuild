@@ -1,6 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-[ -z "${BUILDDIR}" ] && export BUILDDIR="/home/lumen/Volumetric/LightField/build"
+LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+
+# shellcheck disable=SC1090
+source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
+
+[ -z "${BUILDDIR}" ] && export BUILDDIR="${LIGHTFIELD_ROOT}/build"
 
 function usage () {
     cat <<HERE
@@ -25,6 +30,9 @@ function rebuild () {
     local QMAKE=
     local ARGS=
     local LASTBUILDMODE=
+    local ADDTOCONFIG=
+
+    [ "${RELEASE_TRAIN}" = "dlp4710" ] && ADDTOCONFIG="CONFIG+=dlp4710"
 
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
         usage
@@ -58,14 +66,14 @@ function rebuild () {
     then
         if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
         then
-            echo "${BUILD}" > "${BUILDDIR}/.lastbuildmode"
+            echo "${BUILD}-${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
             NUKE=yes
         fi
 
         LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-        if [ -n "${LASTBUILDMODE}" ] && [ "${BUILD}" != "${LASTBUILDMODE}" ]
+        if [ -n "${LASTBUILDMODE}" ] && [ "${LASTBUILDMODE}" != "${BUILD}-${RELEASE_TRAIN}" ]
         then
-            echo Switching from "${LASTBUILDMODE}" to "${BUILD}".
+            echo Switching from "${LASTBUILDMODE}" to "${BUILD}-${RELEASE_TRAIN}".
             NUKE=yes
         fi
 
@@ -79,6 +87,7 @@ function rebuild () {
         mkdir -p "${BUILDDIR}"
     fi
 
+    # shellcheck disable=SC2164
     cd "${BUILDDIR}"
 
     if [ -n "${CLEAN}" ]
@@ -89,8 +98,8 @@ function rebuild () {
 
     if [ -n "${QMAKE}" ] || [ ! -f Makefile ] || [ ../qt/lf.pro -nt Makefile ]
     then
-        qmake CONFIG+="${BUILD}" ../qt/lf.pro || return
-        echo "${BUILD}" > "${BUILDDIR}/.lastbuildmode"
+        qmake CONFIG+="${BUILD}" ${ADDTOCONFIG} ../qt/lf.pro || return
+        echo "${BUILD}-${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
     if make -q 1> /dev/null 2>&1
@@ -99,8 +108,9 @@ function rebuild () {
         return
     fi
 
-    rm buildinfo.o 1> /dev/null 2>&1
+    # shellcheck disable=SC2015
+    [ -f buildinfo.o ] && rm buildinfo.o 1> /dev/null 2>&1 || true
     make -j"${QT_BUILD_JOBS-12}"
 }
 
-rebuild $*
+rebuild "$@"

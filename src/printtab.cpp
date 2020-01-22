@@ -70,8 +70,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelValue->setAlignment( Qt::AlignRight );
     _powerLevelValue->setFont( boldFont );
 
-    _powerLevelSlider->setMinimum( 20 );
-    _powerLevelSlider->setMaximum( 100 );
+    _powerLevelSlider->setMinimum( ProjectorMinPercent );
+    _powerLevelSlider->setMaximum( ProjectorMaxPercent );
     _powerLevelSlider->setOrientation( Qt::Horizontal );
     _powerLevelSlider->setPageStep( 5 );
     _powerLevelSlider->setSingleStep( 1 );
