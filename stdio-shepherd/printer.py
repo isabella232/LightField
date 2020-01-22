@@ -111,7 +111,7 @@ class printer(PrinterEventHandler):
         if(self.onlinecb):
             self.onlinecb()
 
-    def connect(self,port=None,baud=250000):
+    def connect(self,port='/dev/lumen-arduino',baud=250000):
         baselist=[]
         for g in ['/dev/ttyUSB*', '/dev/ttyACM*']:
             baselist += glob.glob(g)
