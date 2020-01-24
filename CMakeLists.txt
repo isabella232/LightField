@@ -50,6 +50,8 @@ src/mesh.cpp
 src/pngdisplayer.cpp
 src/preparetab.cpp
 src/printmanager.cpp
+src/printprofile.cpp
+src/printprofilemanager.cpp
 src/printtab.cpp
 src/processrunner.cpp
 src/shepherd.cpp
@@ -93,6 +95,8 @@ src/pngdisplayer.h
 src/preparetab.h
 src/printjob.h
 src/printmanager.h
+src/printprofile.h
+src/printprofilemanager.h
 src/printtab.h
 src/processrunner.h
 src/shepherd.h
