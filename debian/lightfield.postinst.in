@@ -41,6 +41,11 @@ case "$1" in
         systemctl enable --now set-projector-power.service clean-up-mount-points.service
         systemctl enable getty@tty1.service
         systemctl daemon-reload
+
+        if [ "${RELEASE_TRAIN}" = "dlp4710" ]
+        then
+            set-projector-power --first-time
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
