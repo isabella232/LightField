@@ -23,7 +23,7 @@ Where: -q         build quietly
                   both     create both kits
 
 If the build is successful, the requested upgrade kit(s) will be found in
-  ${KIT_DIR}/lightfield$([ "${DEFAULT_RELEASE_TRAIN}" = "base" ] || echo "-${DEFAULT_RELEASE_TRAIN}" )-BUILDTYPE_${VERSION}_${DEFAULT_ARCHITECTURE}.kit
+  ${PACKAGE_BUILD_ROOT}/VERSION[-RELEASE_TRAIN]-BUILDTYPE/kit/lightfield[-RELEASE_TRAIN]-BUILDTYPE_VERSION_ARCHITECTURE.kit
 EOF
     exit 1
 }
@@ -88,20 +88,7 @@ if [ -z "${RELEASE_TRAIN}" ]
 then
     RELEASE_TRAIN=base
 fi
-
-if [ "${RELEASE_TRAIN}" = "base" ]
-then
-    SUFFIX=${BUILDTYPE}
-else
-    SUFFIX=${RELEASE_TRAIN}-${BUILDTYPE}
-fi
-
-if [ "${BUILDTYPE}" = "both" ]
-then
-    "${0}" "${ARGS}" release || exit $?
-    "${0}" "${ARGS}" debug   || exit $?
-    exit 0
-fi
+SUFFIX=$(generate-suffix "${RELEASE_TRAIN}" "${BUILDTYPE}")
 
 if [ "${USE_KEY_SET}" = "current" ]
 then
@@ -116,8 +103,8 @@ else
 fi
 
 PACKAGE_BUILD_DIR="${PACKAGE_BUILD_ROOT}/${VERSION}-${SUFFIX}"
-DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 KIT_DIR="${PACKAGE_BUILD_DIR}/kit"
+DEB_BUILD_DIR="${PACKAGE_BUILD_DIR}/deb"
 REPO_DIR="${PACKAGE_BUILD_DIR}/repo"
 RELEASEDATE=$(date "+%Y-%m-%d")
 
@@ -131,7 +118,12 @@ mkdir ${VERBOSE} -p "${REPO_DIR}"
 mkdir ${VERBOSE} -p "${KIT_DIR}"
 
 install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${LIGHTFIELD_ROOT}/fonts-montserrat_7.200_all.deb"
-install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
+if [ "${RELEASE_TRAIN}" = "base" ]
+then
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
+else
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${RELEASE_TRAIN}-common_${VERSION}_all.deb"
+fi
 
 if [ "${BUILDTYPE}" = "release" ]
 then
@@ -146,11 +138,11 @@ then
     then
         install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb"
     else
-    red-bar "!!! Unable to find either"
-    red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.deb"
-    red-bar "!!! or"
-    red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb"
-    red-bar "!!! Build failed!"
+        red-bar "!!! Unable to find either"
+        red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.deb"
+        red-bar "!!! or"
+        red-bar "!!!    ${DEB_BUILD_DIR}/lightfield-${SUFFIX}-dbgsym_${VERSION}_${ARCHITECTURE}.ddeb"
+        red-bar "!!! Build failed!"
     fi
 fi
 
