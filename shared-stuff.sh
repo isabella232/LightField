@@ -34,6 +34,23 @@ function apply-assignment-substitution () {
     sed -i 's/^'"${1}"'=.*$/'"${1}"'='"${2}"'/g' "${@:3}"
 }
 
+function generate-suffix () {
+    local RELEASE_TRAIN="${1}"
+    local BUILDTYPE="${2}"
+
+    if [ -z "${RELEASE_TRAIN}" ]
+    then
+        RELEASE_TRAIN=base
+    fi
+
+    if [ "${RELEASE_TRAIN}" = "base" ]
+    then
+        echo "${BUILDTYPE}"
+    else
+        echo "${RELEASE_TRAIN}-${BUILDTYPE}"
+    fi
+}
+
 DEFAULT_RELEASE_TRAIN=base
 DEFAULT_ARCHITECTURE=$(uname -m)
 if [ "${DEFAULT_ARCHITECTURE}" = "x86_64" ]
