@@ -122,7 +122,7 @@ if [ "${RELEASE_TRAIN}" = "base" ]
 then
     install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common_${VERSION}_all.deb"
 else
-    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-${RELEASE_TRAIN}-common_${VERSION}_all.deb"
+    install ${VERBOSE} -Dt "${REPO_DIR}/" -m 644 "${DEB_BUILD_DIR}/lightfield-common-${RELEASE_TRAIN}_${VERSION}_all.deb"
 fi
 
 if [ "${BUILDTYPE}" = "release" ]
