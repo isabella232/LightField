@@ -19,7 +19,7 @@ Breaks: lightfield-@@ANTIBUILDTYPE@@
 Conflicts: lightfield-@@ANTIBUILDTYPE@@
 Replaces: lightfield-@@ANTIBUILDTYPE@@
 Depends:
- lightfield@@RELEASE_TRAIN@@-common (= ${binary:Version}),
+ lightfield-common@@RELEASE_TRAIN@@ (= ${binary:Version}),
  ${shlibs:Depends},
  ${misc:Depends},
  libhidapi-libusb0 (>> 0.8),
@@ -35,7 +35,7 @@ Recommends:
  fonts-font-awesome (>= 5.0.10)
 Description: Printer software for Volumetric's Lumen X 3D printer - debug version
 
-Package: lightfield@@RELEASE_TRAIN@@-common
+Package: lightfield-common@@RELEASE_TRAIN@@
 Architecture: all
 Multi-Arch: foreign
 Provides: lightfield-common

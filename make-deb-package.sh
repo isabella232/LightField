@@ -259,11 +259,16 @@ cd "${LIGHTFIELD_PACKAGE}"
 
 mv debian/control.in                                   debian/control
 mv debian/lightfield.install                           debian/lightfield-"${SUFFIX}".install
-mv debian/lightfield-common-"${RELEASE_TRAIN}".install debian/lightfield-common-"${SUFFIX}".install
 mv debian/lightfield.preinst                           debian/lightfield-"${SUFFIX}".preinst
 mv debian/lightfield.prerm                             debian/lightfield-"${SUFFIX}".prerm
 mv debian/lightfield.postinst.in                       debian/lightfield-"${SUFFIX}".postinst
 mv debian/lightfield.postrm                            debian/lightfield-"${SUFFIX}".postrm
+if [ "${RELEASE_TRAIN}" != "base" ]
+then
+    mv debian/lightfield-common.preinst                debian/lightfield-common-"${RELEASE_TRAIN}".preinst
+    mv debian/lightfield-common.postinst               debian/lightfield-common-"${RELEASE_TRAIN}".postinst
+    mv debian/lightfield-common.postrm                 debian/lightfield-common-"${RELEASE_TRAIN}".postrm
+fi
 
 apply-atsign-substitution     BUILDTYPE     "${BUILDTYPE}"      debian/control
 apply-atsign-substitution     ANTIBUILDTYPE "${ANTIBUILDTYPE}"  debian/control
