@@ -1,6 +1,8 @@
 #ifndef __PRINTPROFILE_H__
 #define __PRINTPROFILE_H__
 
+#include "printpumpingparameters.h"
+
 class PrintProfile: public QObject {
 
     Q_OBJECT;
@@ -15,20 +17,55 @@ public:
         /*empty*/
     }
 
+    //
+    // Accessors
+    //
+
     QString const& profileName( ) const {
         return _name;
     }
+
+    int baseLayerCount( ) const {
+        return _baseLayerCount;
+    }
+
+    PrintPumpingParameters const& baseLayersPumpingParameters( ) const {
+        return _baseLayersPumpingParameters;
+    }
+
+    PrintPumpingParameters const& bodyLayersPumpingParameters( ) const {
+        return _bodyLayersPumpingParameters;
+    }
+
+    //
+    // Mutators
+    //
 
     void setProfileName( QString const& newName ) {
         emit profileNameChanged( newName );
         _name = newName;
     }
 
+    void setBaseLayerCount( int const newCount ) {
+        _baseLayerCount = newCount;
+    }
+
+    void setBaseLayersPumpingParameters( PrintPumpingParameters const& newParameters ) {
+        _baseLayersPumpingParameters = newParameters;
+    }
+
+    void setBodyLayersPumpingParameters( PrintPumpingParameters const& newParameters ) {
+        _bodyLayersPumpingParameters = newParameters;
+    }
+
 protected:
 
 private:
 
-    QString _name;
+    QString                _name;
+    int                    _baseLayerCount;
+    PrintPumpingParameters _baseLayersPumpingParameters;
+    PrintPumpingParameters _bodyLayersPumpingParameters;
 
 signals:
     ;
