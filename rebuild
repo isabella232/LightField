@@ -2,6 +2,12 @@
 
 LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
 
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
+
 # shellcheck disable=SC1090
 source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
@@ -66,14 +72,14 @@ function rebuild () {
     then
         if [ ! -f "${BUILDDIR}/.lastbuildmode" ]
         then
-            echo "${BUILD}-${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
+            echo "${BUILD}:${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
             NUKE=yes
         fi
 
         LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
-        if [ -n "${LASTBUILDMODE}" ] && [ "${LASTBUILDMODE}" != "${BUILD}-${RELEASE_TRAIN}" ]
+        if [ -n "${LASTBUILDMODE}" ] && [ "${LASTBUILDMODE}" != "${BUILD}:${RELEASE_TRAIN}" ]
         then
-            echo Switching from "${LASTBUILDMODE}" to "${BUILD}-${RELEASE_TRAIN}".
+            echo Switching from "${LASTBUILDMODE}" to "${BUILD}:${RELEASE_TRAIN}".
             NUKE=yes
         fi
 
@@ -85,6 +91,23 @@ function rebuild () {
         fi
     else
         mkdir -p "${BUILDDIR}"
+    fi
+
+    if [ ! -f "${LIGHTFIELD_ROOT}/version.h" ]
+    then
+        if [ -n "${RELEASE_TRAIN}" ] && [ -n "${VERSION}" ]
+        then
+            if ! "${LIGHTFIELD_ROOT}/change-version-number.sh" -t "${RELEASE_TRAIN}" "${VERSION}"
+            then
+                red-bar "Unable to generate missing src/version.h."
+                red-bar "Run change-version-number.sh manually."
+                exit 1
+            fi
+        fi
+    else
+        red-bar "src/version.h does not exist, and the version number is unconfigured."
+        red-bar "Run change-version-number.sh manually."
+        exit 1
     fi
 
     # shellcheck disable=SC2164
@@ -99,27 +122,27 @@ function rebuild () {
     if [ -n "${QMAKE}" ] || [ ! -f Makefile ] || [ ../qt/lf.pro -nt Makefile ]
     then
         qmake CONFIG+="${BUILD}" ${ADDTOCONFIG} ../qt/lf.pro || return
-        echo "${BUILD}-${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
+        echo "${BUILD}:${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
     if [ "${RELEASE_TRAIN}" = "base" ]
     then
-        cp ../images/dlpc350-focus-image.png ../images/focus-image.png
-        cp ../images/dlpc350-white-field.png ../images/white-field.png
+        cp -a ../images/dlpc350-focus-image.png ../images/focus-image.png
+        cp -a ../images/dlpc350-white-field.png ../images/white-field.png
     elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
     then
-        cp ../images/dlp4710-focus-image.png ../images/focus-image.png
-        cp ../images/dlp4710-white-field.png ../images/white-field.png
+        cp -a ../images/dlp4710-focus-image.png ../images/focus-image.png
+        cp -a ../images/dlp4710-white-field.png ../images/white-field.png
     fi
 
-    if make -q 1> /dev/null 2>&1
+    if make -q 1>/dev/null 2>&1
     then
         echo "make: Nothing to be done for 'first'."
         return
     fi
 
     # shellcheck disable=SC2015
-    [ -f buildinfo.o ] && rm buildinfo.o 1> /dev/null 2>&1 || true
+    [ -f buildinfo.o ] && rm buildinfo.o 1>/dev/null 2>&1 || true
     make -j"${QT_BUILD_JOBS-12}"
 }
 
