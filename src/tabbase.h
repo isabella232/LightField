@@ -26,6 +26,7 @@ public:
         Print,
         Status,
         Advanced,
+        Profiles,
         System,
     };
     Q_ENUM( TabIndex );

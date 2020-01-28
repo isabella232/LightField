@@ -18,6 +18,7 @@ class PrepareTab;
 class PrintTab;
 class StatusTab;
 class AdvancedTab;
+class ProfilesTab;
 class SystemTab;
 
 class Window: public QMainWindow {
@@ -53,6 +54,7 @@ private:
     PrintTab*           _printTab;
     StatusTab*          _statusTab;
     AdvancedTab*        _advancedTab;
+    ProfilesTab*        _profilesTab;
     SystemTab*          _systemTab;
     QPushButton*        _helpButton        { new QPushButton };
 

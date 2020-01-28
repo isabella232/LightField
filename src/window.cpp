@@ -15,6 +15,7 @@
 #include "printtab.h"
 #include "statustab.h"
 #include "advancedtab.h"
+#include "profilestab.h"
 #include "systemtab.h"
 
 namespace {
@@ -70,6 +71,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _printTab    = new PrintTab,
         _statusTab   = new StatusTab,
         _advancedTab = new AdvancedTab,
+        _profilesTab = new ProfilesTab,
         _systemTab   = new SystemTab,
     };
 
@@ -154,6 +156,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
+
+    //
+    // "Profiles" tab
+    //
+
+    _profilesTab->setContentsMargins( { } );
+    _profilesTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // "System" tab

@@ -47,6 +47,7 @@ namespace {
         "Print",
         "Status",
         "Advanced",
+        "Profiles",
         "System",
     };
 

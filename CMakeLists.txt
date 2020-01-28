@@ -54,6 +54,7 @@ src/printprofile.cpp
 src/printprofilemanager.cpp
 src/printtab.cpp
 src/processrunner.cpp
+src/profilestab.cpp
 src/shepherd.cpp
 src/signalhandler.cpp
 src/statustab.cpp
@@ -100,6 +101,7 @@ src/printprofilemanager.h
 src/printpumpingparameters.h
 src/printtab.h
 src/processrunner.h
+src/profilestab.h
 src/shepherd.h
 src/signalhandler.h
 src/statustab.h
