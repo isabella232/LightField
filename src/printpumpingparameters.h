@@ -60,6 +60,11 @@ public:
         return _noPumpUpVelocity;
     }
 
+    // unit: none
+    int pumpEveryNthLayer( ) const {
+        return _pumpEveryNthLayer;
+    }
+
     // unit: µm
     int layerThickness( ) const {
         return _layerThickness;
@@ -70,9 +75,9 @@ public:
         return _layerExposureTime;
     }
 
-    // unit: none
-    int pumpEveryNthLayer( ) const {
-        return _pumpEveryNthLayer;
+    // unit: percent
+    double powerLevel( ) const {
+        return _powerLevel;
     }
 
     //
@@ -104,6 +109,11 @@ public:
         _noPumpUpVelocity = value;
     }
 
+    // unit: none
+    void setPumpEveryNthLayer( int const value ) {
+        _pumpEveryNthLayer = value;
+    }
+
     // unit: µm
     void setLayerThickness( int const value ) {
         _layerThickness = value;
@@ -114,9 +124,9 @@ public:
         _layerExposureTime = value;
     }
 
-    // unit: none
-    void setPumpEveryNthLayer( int const value ) {
-        _pumpEveryNthLayer = value;
+    // unit: percent
+    void setPowerLevel( double const value ) {
+        _powerLevel = value;
     }
 
 private:
@@ -126,9 +136,10 @@ private:
     int    _pumpUpPause       { 2000    }; // ms
     int    _pumpDownPause     { 4000    }; // ms
     int    _noPumpUpVelocity  {  200    }; // mm/min
+    int    _pumpEveryNthLayer {    1    };
     int    _layerThickness    {  100    }; // µm
     int    _layerExposureTime { 1000    }; // ms
-    int    _pumpEveryNthLayer {    1    };
+    double _powerLevel        {   50.0  }; // percent
 
 };
 
