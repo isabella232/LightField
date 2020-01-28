@@ -93,7 +93,7 @@ function rebuild () {
         mkdir -p "${BUILDDIR}"
     fi
 
-    if [ ! -f "${LIGHTFIELD_ROOT}/version.h" ]
+    if [ ! -f "${LIGHTFIELD_ROOT}/src/version.h" ]
     then
         if [ -n "${RELEASE_TRAIN}" ] && [ -n "${VERSION}" ]
         then
