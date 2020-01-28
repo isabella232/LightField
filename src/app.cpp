@@ -251,7 +251,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationName( "LightField" );
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat", NormalFontSize ) );
-
+QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     _parseCommandLine( );
 
     if ( !_isAlreadyRunning( ) ) {

@@ -37,7 +37,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
-
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
     setFixedSize( MainWindowSize );
     move( g_settings.mainWindowPosition );
@@ -484,4 +483,10 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
 #endif // defined _DEBUG
 
     close( );
+}
+
+void Window::showEvent( QShowEvent* aShowEvent )
+{
+    QMainWindow::showEvent(aShowEvent);
+    activateWindow();
 }

@@ -6,9 +6,11 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QT += virtualkeyboard
 
 SOURCES +=                          \
     ../src/advancedtab.cpp          \
+    ../src/advancedtabselectionmodel.cpp \
     ../src/app.cpp                  \
     ../src/backdrop.cpp             \
     ../src/buildinfo.cpp            \
@@ -26,6 +28,7 @@ SOURCES +=                          \
     ../src/loader.cpp               \
     ../src/main.cpp                 \
     ../src/mesh.cpp                 \
+    ../src/paramslider.cpp          \
     ../src/pngdisplayer.cpp         \
     ../src/preparetab.cpp           \
     ../src/printmanager.cpp         \
@@ -52,6 +55,7 @@ SOURCES +=                          \
 
 HEADERS  +=                         \
     ../src/advancedtab.h            \
+    ../src/advancedtabselectionmodel.h \
     ../src/app.h                    \
     ../src/backdrop.h               \
     ../src/buildinfo.h              \
@@ -70,6 +74,7 @@ HEADERS  +=                         \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
     ../src/mesh.h                   \
+    ../src/paramslider.h            \
     ../src/pngdisplayer.h           \
     ../src/preparetab.h             \
     ../src/printjob.h               \
@@ -121,4 +126,12 @@ debug {
 
 dlp4710 {
     DEFINES += DLP4710
-}
+}QT += core gui widgets xml
+
+TARGET   = lf
+TEMPLATE = app
+
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QT += virtualkeyboard
