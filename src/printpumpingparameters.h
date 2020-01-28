@@ -35,9 +35,19 @@ public:
         return _pumpUpPause;
     }
 
+    // unit: mm, multiples of 0.01
+    double pumpDownDistance_Effective( ) const {
+        return _pumpUpDistance - ( _layerThickness / 1000.0 );
+    }
+
     // unit: ms
-    int pumpDownTime( ) const {
-        return _pumpDownTime;
+    int pumpDownTime_Effective( ) const {
+        return ( pumpDownDistance_Effective( ) / pumpDownVelocity_Effective( ) ) / ( 60.0 / 1000.0 ) + 0.5;
+    }
+
+    // unit: mm/min
+    double pumpDownVelocity_Effective( ) const {
+        return pumpDownDistance_Effective( ) / ( pumpDownTime_Effective( ) / 1000.0 / 60.0 );
     }
 
     // unit: ms
@@ -85,11 +95,6 @@ public:
     }
 
     // unit: ms
-    void setPumpDownTime( int const value ) {
-        _pumpDownTime = value;
-    }
-
-    // unit: ms
     void setPumpDownPause( int const value ) {
         _pumpDownPause = value;
     }
@@ -116,15 +121,14 @@ public:
 
 private:
 
-    double _pumpUpDistance    { };
-    int    _pumpUpTime        { };
-    int    _pumpUpPause       { };
-    int    _pumpDownTime      { };
-    int    _pumpDownPause     { };
-    int    _noPumpUpVelocity  { };
-    int    _layerThickness    { };
-    int    _layerExposureTime { };
-    int    _pumpEveryNthLayer { };
+    double _pumpUpDistance    {    2.00 }; // mm
+    int    _pumpUpTime        {  600    }; // ms
+    int    _pumpUpPause       { 2000    }; // ms
+    int    _pumpDownPause     { 4000    }; // ms
+    int    _noPumpUpVelocity  {  200    }; // mm/min
+    int    _layerThickness    {  100    }; // µm
+    int    _layerExposureTime { 1000    }; // ms
+    int    _pumpEveryNthLayer {    1    };
 
 };
 
