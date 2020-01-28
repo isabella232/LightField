@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+LIGHTFIELD_ROOT="${PWD}"
 
 #########################################################
 ##                                                     ##
@@ -76,7 +76,7 @@ function rebuild () {
             NUKE=yes
         fi
 
-        LASTBUILDMODE="$(<${BUILDDIR}/.lastbuildmode)"
+        LASTBUILDMODE=$(<"${BUILDDIR}/.lastbuildmode")
         if [ -n "${LASTBUILDMODE}" ] && [ "${LASTBUILDMODE}" != "${BUILD}:${RELEASE_TRAIN}" ]
         then
             echo Switching from "${LASTBUILDMODE}" to "${BUILD}:${RELEASE_TRAIN}".
