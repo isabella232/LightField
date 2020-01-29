@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION=1.0.11.0
-PACKAGE_BUILD_ROOT=/home/lumen/Volumetric/LightField/packaging
+PACKAGE_BUILD_ROOT="${PWD}/packaging"
 
 #########################################################
 ##                                                     ##

@@ -29,11 +29,11 @@ public:
         return _baseLayerCount;
     }
 
-    PrintPumpingParameters const& baseLayersPumpingParameters( ) const {
+    PrintPumpingParameters& baseLayersPumpingParameters( ) {
         return _baseLayersPumpingParameters;
     }
 
-    PrintPumpingParameters const& bodyLayersPumpingParameters( ) const {
+    PrintPumpingParameters& bodyLayersPumpingParameters( ) {
         return _bodyLayersPumpingParameters;
     }
 
