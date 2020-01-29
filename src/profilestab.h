@@ -2,7 +2,6 @@
 #define __PROFILESTAB_H__
 
 #include "tabbase.h"
-
 #include "printprofilemanager.h"
 
 class ProfilesTab: public TabBase {
@@ -16,9 +15,15 @@ public:
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Profiles; }
 
+    void setPrintProfileManager( PrintProfileManager* printProfileManager ) {
+        _printProfileManager = printProfileManager;
+    }
+
 protected:
 
 private:
+
+    PrintProfileManager* _printProfileManager;
 
 signals:
     ;
