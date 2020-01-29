@@ -2,7 +2,7 @@
 # shellcheck disable=SC2103
 # shellcheck disable=SC2164
 
-LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+LIGHTFIELD_ROOT="${PWD}"
 PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 USE_KEY_SET=current
 BUILDTYPE=
@@ -150,7 +150,7 @@ cd "${REPO_DIR}"
 
 dpkg-scanpackages . | tee Packages | xz -ceT0 > Packages.xz
 
-apt-ftparchive --config-file ${LIGHTFIELD_ROOT}/apt-files/release.conf release . | tee Release | xz -ceT0 > Release.xz
+apt-ftparchive --config-file "${LIGHTFIELD_ROOT}/apt-files/release.conf" release . | tee Release | xz -ceT0 > Release.xz
 
 gpg                               \
     ${VERBOSE}                    \
@@ -185,13 +185,13 @@ sha256sum -- -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
         "${LIGHTFIELD_ROOT}/apt-files/version.inf.in"
 
     # extract description from ${LIGHTFIELD_ROOT}/debian/changelog
-    linecount=$(grep -n '^ -- LightField packager' ${LIGHTFIELD_ROOT}/debian/changelog | head -1 | cut -d: -f1 || echo 0)
+    linecount=$(grep -n '^ -- LightField packager' "${LIGHTFIELD_ROOT}/debian/changelog" | head -1 | cut -d: -f1 || echo 0)
     if [ -z "${linecount}" ] || [ "${linecount}" -lt 1 ]
     then
         red-bar "!!! Can't find end of first change in ${LIGHTFIELD_ROOT}/debian/changelog, aborting"
         exit 1
     fi
-    head -$((linecount - 2)) ${LIGHTFIELD_ROOT}/debian/changelog | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
+    head -$((linecount - 2)) "${LIGHTFIELD_ROOT}/debian/changelog" | tail +3 | perl -lpe 's/\s+$//; s/^$/./; s/^/ /'
 
     echo 'Checksums-SHA256:'
     cat .hashes
