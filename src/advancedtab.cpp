@@ -22,26 +22,12 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
-    // import/export operations
-
-    _importParams->setFixedSize( MainButtonSize );
-    _importParams->setFont( ModifyFont( _importParams->font( ), LargeFontSize ) );
-    _importParams->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-
-    _exportParams->setFixedSize( MainButtonSize );
-    _exportParams->setFont( ModifyFont( _exportParams->font( ), LargeFontSize ) );
-    _exportParams->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-    _setupExportSettingsForm();
-
     _forms[0] = _generalForm;
     _forms[1] = _temperatureForm;
     _forms[2] = _basePumpForm;
     _forms[3] = _baseLayerForm;
     _forms[4] = _bodyLayersForm;
     _forms[5] = _bodyPumpForm;
-    _forms[6] = _exportSettingsForm;
 
     //menu
     this->_setupLeftMenu(fontAwesome);
@@ -69,10 +55,10 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
 
     _rightColumn->setLayout(WrapWidgetsInVBox(_generalForm, _temperatureForm, _basePumpForm, _baseLayerForm,
-                                              _bodyLayersForm, _bodyPumpForm, _exportSettingsForm, nullptr));
+                                              _bodyLayersForm, _bodyPumpForm, nullptr));
 
     setLayout( WrapWidgetsInHBox(
-        WrapWidgetsInVBox(_leftMenu, _importParams, _exportParams),
+        WrapWidgetsInVBox( _leftMenu ),
         _rightColumn, nullptr
         )
     );
@@ -507,7 +493,7 @@ void AdvancedTab::_setupTemperaturelForm(QFont boldFont) {
 
 void AdvancedTab::_setupBasePumpForm(QFont boldFont)
 {
-    _basePumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 40, MaximalRightHandPaneSize.height() + 20));
+    _basePumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 35, MaximalRightHandPaneSize.height() + 25));
     _basePumpForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     QWidget* container = new QWidget();
@@ -572,7 +558,7 @@ void AdvancedTab::_setupBodyPumpForm(QFont boldFont)
 {
     QWidget* container = new QWidget();
 
-    _bodyPumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 40, MaximalRightHandPaneSize.height() + 20));
+    _bodyPumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 35, MaximalRightHandPaneSize.height() + 25));
     _bodyPumpForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     container = new QWidget();
@@ -603,59 +589,4 @@ void AdvancedTab::_setupBodyPumpForm(QFont boldFont)
     );
 
     _bodyPumpForm->setWidget(container);
-}
-
-void AdvancedTab::_setupExportSettingsForm()
-{
-    QObject::connect(_exportParams, &QPushButton::clicked, this, &AdvancedTab::showExportForm);
-
-    _saveButton->setFixedSize( MainButtonSize );
-    _saveButton->setFont( ModifyFont( _importParams->font( ), LargeFontSize ) );
-    _saveButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-    _fileNameValue->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
-
-    _exportSettingsForm->setLayout(
-        WrapWidgetsInVBox(
-                WrapWidgetsInHBox(nullptr, _fileNameLabel, _fileNameValue, nullptr),
-                _saveButton,
-               nullptr
-        )
-    );
-}
-
-void AdvancedTab::showExportForm(bool)
-{
-    auto origFont    = font( );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
-
-    for(int i=0; i<FORMS_COUNT; i++)
-    {
-        _forms[i]->setVisible(false);
-    }
-
-    _exportSettingsForm->setVisible(true);
-
-    /*QQuickWindow* window = new QQuickWindow();
-
-    //window->setColor()
-
-    QSurfaceFormat surfaceFormat = window->requestedFormat();
-    surfaceFormat.setAlphaBufferSize(8);
-    surfaceFormat.setRenderableType(QSurfaceFormat::OpenGL);
-
-    window->setFormat(surfaceFormat);
-    window->setColor(QColor(Qt::transparent));
-    window->setClearBeforeRendering(true);
-
-    window->
-    /*window->showFullScreen();*/
-
-
-   QInputDialog* inputDialog = new QInputDialog();
-   inputDialog->setModal(true);
-   inputDialog->open();
-   inputDialog->move(0,0);
-   inputDialog->setFont(fontAwesome);
-   inputDialog->setFocus(Qt::FocusReason::ActiveWindowFocusReason);
 }

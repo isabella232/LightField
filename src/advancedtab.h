@@ -116,18 +116,7 @@ private:
     ParamSlider*  _bodyUpVelocitySlider            { new ParamSlider("Body Pump Up Velocity", "µm/ms", 1000, 2000, 1) };
 
 
-    //Export Settings Form
-    QWidget*      _exportSettingsForm              { new QWidget     };
-    QLabel*       _fileNameLabel                   { new QLabel("file name: ") };
-    QLineEdit*    _fileNameValue                   { new QLineEdit };
-    QPushButton*  _saveButton                      { new QPushButton("Save Profile") };
-    QPushButton*  _importParams                    { new QPushButton("Import settings") };
-    QPushButton*  _exportParams                    { new QPushButton("Export settings") };
-
-    //Import Settings Form
-
-
-    static const int       FORMS_COUNT { 7 };
+    static const int       FORMS_COUNT { 6 };
     QWidget*        _forms[FORMS_COUNT];
 
     PngDisplayer* _pngDisplayer                    { };
@@ -145,7 +134,6 @@ private:
     void          _setupBaseLayerForm();
     void          _setupBodyLayersForm();
     void          _setupBodyPumpForm(QFont fontBold);
-    void          _setupExportSettingsForm();
 signals:
     ;
 
@@ -161,7 +149,6 @@ public slots:
     void setPrinterAvailable( bool const value );
 
     void projectorPowerLevel_changed( int const percentage );
-    void showExportForm(bool checked=false);
 
 protected slots:
     ;

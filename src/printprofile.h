@@ -10,7 +10,7 @@ class PrintProfile: public QObject {
 public:
 
     PrintProfile( QObject* parent = nullptr ): QObject( parent ) {
-        /*empty*/
+
     }
 
     virtual ~PrintProfile( ) override {

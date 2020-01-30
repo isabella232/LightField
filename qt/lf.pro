@@ -84,6 +84,7 @@ HEADERS  +=                         \
     ../src/printpumpingparameters.h \
     ../src/printtab.h               \
     ../src/processrunner.h          \
+    ../src/profilesjsonparser.h     \
     ../src/profilestab.h            \
     ../src/shepherd.h               \
     ../src/signalhandler.h          \
