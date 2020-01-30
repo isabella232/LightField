@@ -108,7 +108,6 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
     QStandardItem* item = nullptr;
     QStandardItem* firstItem = nullptr;
     QVector<PrintProfile*>* profiles = ProfilesJsonParser::loadProfiles();
-
     for(int i=0; i<profiles->count(); ++i)
     {
         PrintProfile* profile = (*profiles)[i];
@@ -116,8 +115,10 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
 
         item = new QStandardItem(profile->profileName());
         item->setEditable( false );
-        if( !i )
+        if( !i ) {
             firstItem=item;
+            _printProfileManager->setActiveProfile(profile->profileName());
+        }
 
         _model->setItem( i, 0, item );
     }
@@ -289,15 +290,35 @@ void ProfilesTab::loadProfile_clicked(bool)
 
 bool ProfilesTab::_createNewProfile(QString profileName)
 {
-    return false;
+    PrintProfile* printProfile = (PrintProfile*)_printProfileManager->activeProfile();
+    PrintProfile* profileCopy = printProfile->copy();
+
+    profileCopy->setProfileName(profileName);
+    _printProfileManager->addProfile(profileCopy);
+
+    QStandardItem* item = new QStandardItem(profileName);
+    item->setEditable(false);
+
+    _model->appendRow(item);
+
+    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+
+    return true;
 }
 
 bool ProfilesTab::_deletePrintProfile()
 {
-    return false;
+    QModelIndex index = _profilesList->currentIndex();
+    QString itemText = index.data(Qt::DisplayRole).toString();
+    _printProfileManager->removeProfile(itemText);
+
+    _model->removeRows(index.row(), 1);
+    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
 }
 
 bool ProfilesTab::_loadPrintProfile()
 {
-    return false;
+    QModelIndex index = _profilesList->currentIndex();
+    QString itemText = index.data(Qt::DisplayRole).toString();
+    return _printProfileManager->setActiveProfile(itemText);
 }

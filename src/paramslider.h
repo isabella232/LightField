@@ -19,7 +19,10 @@ class ParamSlider: public QGroupBox {
         ~ParamSlider();
 
         int getValue();
+        void setValue(int value);
 
+    signals:
+        void valuechanged();
     public slots:
         void onvaluechanged(int value);
 };

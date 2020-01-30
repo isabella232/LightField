@@ -39,7 +39,6 @@ private:
     bool _createNewProfile(QString profileName);
     bool _deletePrintProfile();
     bool _loadPrintProfile();
-
 signals:
     ;
 

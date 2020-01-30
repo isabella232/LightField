@@ -27,14 +27,14 @@ public:
         log( "get root array ..." );
         QJsonArray array = jsonDocument.array();
 
-        log( "iter over array ..." );
+        log( "iter over array ... " + std::to_string(array.count()) );
         for(int i=0; i<array.count(); ++i) {
                 try {
                     PrintProfile* printProfile = new PrintProfile();
 
-                    QJsonObject obj = array.takeAt(i).toObject();
+                    QJsonObject obj = array[i].toObject();
 
-                    log( "get name ..." );
+                    log( "get name ..." + std::to_string(i));
                     auto name = obj["name"];
 
                     if(name.isString()) {
@@ -60,32 +60,28 @@ public:
                     log( "get baseLayersPumpingParameters ..." );
                     auto baseLayersPumpingParameters = obj["baseLayersPumpingParameters"];
 
-                    if(!baseLayersPumpingParameters.isNull())
+                    if(!baseLayersPumpingParameters.isUndefined() && !baseLayersPumpingParameters.isNull())
                     {
                         PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
                         printProfile->setBaseLayersPumpingParameters(params);
+                        printProfile->setAddBaseLayersPumpingParameters(true);
                     }
                     else
-                    {
-                        std::cerr<<"Error while parsing baseLayersPumpingParameters field";
-                        throw new QException();
-                    }
+                        printProfile->setAddBaseLayersPumpingParameters(false);
 
                     log( "get bodyLayersPumpingParameters ..." );
                     auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
 
-                    if(!bodyLayersPumpingParameters.isNull())
+                    if(!bodyLayersPumpingParameters.isUndefined() && !bodyLayersPumpingParameters.isNull())
                     {
                         PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
                         printProfile->setBodyLayersPumpingParameters(params);
+                        printProfile->setAddBodyLayersPumpingParameters(true);
                     }
                     else
-                    {
-                        std::cerr<<"Error while parsing bodyLayersPumpingParameters field";
-                        throw new QException();
-                    }
+                        printProfile->setAddBodyLayersPumpingParameters(false);
 
-                    log( "push back to list ..." );
+                    log( "push back to list ... " + std::to_string(array.count()) + " " + std::to_string(i) );
                     profilesList->push_back(printProfile);
                 }
                 catch (QException e) { }
@@ -101,25 +97,38 @@ public:
 
     static void saveProfiles(const QVector<PrintProfile*>* profiles)
     {
+        log( "saveProfiles ..." );
         QFile jsonFile(PrintProfilesPath);
+
         QJsonDocument jsonDocument=QJsonDocument();
 
         QJsonArray jsonArray;
 
-
+        log( "loop start ..." );
         for(int i=0; i<profiles->count(); ++i)
         {
             auto profile = (*profiles)[i];
+
+            log( "serializing profile " + profile->profileName().toStdString() );
+            if(profile->profileName() == "temp")
+                continue;
+
             QJsonObject json;
 
             json["name"] = profile->profileName();
             json["baseLayerCount"] = profile->baseLayerCount();
 
-            QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersPumpingParameters());
-            json["baseLayersPumpingParameters"]= baseParameters;
+            if(profile->whetherAddBaseLayersPumpingParameters())
+            {
+                QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersPumpingParameters());
+                json["baseLayersPumpingParameters"]= baseParameters;
+            }
 
-            QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersPumpingParameters());
-            json["bodyLayersPumpingParameters"]= bodyParameters;
+            if(profile->whetherAddBodyLayersPumpingParameters())
+            {
+                QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersPumpingParameters());
+                json["bodyLayersPumpingParameters"]= bodyParameters;
+            }
 
             jsonArray.append(json);
         }

@@ -1,5 +1,6 @@
 #include "paramslider.h"
 
+
 void ParamSlider::init(QString name, QString unit, int startValue, int maxValue, int step)
 {
     QString valueLabel = QString::number(startValue) + QString(" ") + unit;
@@ -31,9 +32,15 @@ int ParamSlider::getValue()
     return _slider->value();
 }
 
-void ParamSlider::onvaluechanged(int value)
+void ParamSlider::setValue(int value)
+{
+    _slider->setValue(value);
+}
+
+void ParamSlider::onvaluechanged(int)
 {
     this->_valueLabel->setText(QString::number(_slider->value()) + " " + QString(_unit));
+    emit valuechanged();
 }
 
 ParamSlider::ParamSlider(QString name, QString unit, int startValue, int maxValue, int step)
