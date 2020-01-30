@@ -1,0 +1,28 @@
+[
+    {
+        "name": "exampleProfile",
+        "baseLayerCount": 1,
+        "baseLayersPumpingParameters": {
+            "pumpUpDistance": 2.00,
+            "pumpUpTime": 600,
+            "pumpUpPause": 2000,
+            "pumpDownPause": 4000,
+            "noPumpUpVelocity": 200,
+            "pumpEveryNthLayer": 1,
+            "layerThickness": 100,
+            "layerExposureTime": 1000,
+            "powerLevel": 50.0
+        },
+        "bodyLayersPumpingParameters": {
+            "pumpUpDistance": 2.00,
+            "pumpUpTime": 600,
+            "pumpUpPause": 2000,
+            "pumpDownPause": 4000,
+            "noPumpUpVelocity": 200,
+            "pumpEveryNthLayer": 1,
+            "layerThickness": 100,
+            "layerExposureTime": 1000,
+            "powerLevel": 50.0
+        }
+    }
+]
