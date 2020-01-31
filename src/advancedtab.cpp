@@ -9,7 +9,6 @@
 #include "advancedtabselectionmodel.h"
 #include "paramslider.h"
 #include <iostream>
-#include <QtVirtualKeyboard>
 
 namespace {
 

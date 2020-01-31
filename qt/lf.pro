@@ -1,4 +1,4 @@
-QT += core gui virtualkeyboard widgets xml
+QT += core gui widgets xml
 
 TARGET   = lf
 TEMPLATE = app

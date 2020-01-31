@@ -6,8 +6,7 @@ Build-Depends:
  debhelper (>= 11),
  libhidapi-dev (>> 0.8),
  python3 (>> 3.6),
- qtbase5-dev (>= 5.11.1),
- libqt5virtualkeyboard5-dev (>= 5.11.1)
+ qtbase5-dev (>= 5.11.1)
 Standards-Version: 4.1.3
 Homepage: https://github.com/VolumetricBio/LightField
 Vcs-Browser: https://github.com/VolumetricBio/LightField
@@ -26,11 +25,9 @@ Depends:
  libhidapi-libusb0 (>> 0.8),
  libqt5dbus5 (>= 5.11.1),
  libqt5network5 (>= 5.11.1),
- libqt5virtualkeyboard5 (>= 5.11.1),
  avrdude (>= 6.3),
  gpg (>= 2.2.8),
  graphicsmagick (>> 1.3),
- qtvirtualkeyboard-plugin (>= 5.11.1),
  slic3r (>= 1.2.9),
  sudo (>= 1.8.23)
 Recommends:

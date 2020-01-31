@@ -9,7 +9,6 @@ void _initializeOpenGL( ) {
 }
 
 int main( int argc, char* argv[] ) {
-    //qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     _initializeOpenGL( );
     return App( argc, argv ).exec( );
 }
