@@ -10,11 +10,25 @@ class PrintProfile: public QObject {
 public:
 
     PrintProfile( QObject* parent = nullptr ): QObject( parent ) {
-        /*empty*/
+
     }
 
     virtual ~PrintProfile( ) override {
         /*empty*/
+    }
+
+    PrintProfile* copy() {
+        PrintProfile* printProfile = new PrintProfile();
+
+        printProfile->_name = this->_name;
+        printProfile->_baseLayerCount = this->_baseLayerCount;
+        printProfile->_addBaseLayersPumpingParameters = this->_addBaseLayersPumpingParameters;
+        printProfile->_addBodyLayersPumpingParameters = this->_addBodyLayersPumpingParameters;
+
+        printProfile->_baseLayersPumpingParameters = this->_baseLayersPumpingParameters;
+        printProfile->_bodyLayersPumpingParameters = this->_bodyLayersPumpingParameters;
+
+        return printProfile;
     }
 
     //
@@ -35,6 +49,14 @@ public:
 
     PrintPumpingParameters& bodyLayersPumpingParameters( ) {
         return _bodyLayersPumpingParameters;
+    }
+
+    bool whetherAddBaseLayersPumpingParameters() {
+        return _addBaseLayersPumpingParameters;
+    }
+
+    bool whetherAddBodyLayersPumpingParameters() {
+        return _addBodyLayersPumpingParameters;
     }
 
     //
@@ -58,13 +80,22 @@ public:
         _bodyLayersPumpingParameters = newParameters;
     }
 
+    void setAddBaseLayersPumpingParameters(bool value) {
+        _addBaseLayersPumpingParameters = value;
+    }
+
+    void setAddBodyLayersPumpingParameters(bool value) {
+        _addBodyLayersPumpingParameters = value;
+    }
 protected:
 
 private:
 
     QString                _name;
     int                    _baseLayerCount;
+    bool                   _addBaseLayersPumpingParameters;
     PrintPumpingParameters _baseLayersPumpingParameters;
+    bool                   _addBodyLayersPumpingParameters;
     PrintPumpingParameters _bodyLayersPumpingParameters;
 
 signals:

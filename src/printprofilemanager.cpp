@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "printprofilemanager.h"
-
 PrintProfile* PrintProfileManager::_findProfile( QString const& profileName ) {
     auto iter = std::find_if( _profiles->begin( ), _profiles->end( ), [&profileName] ( PrintProfile* p ) { return profileName == p->profileName( ); } );
     return ( iter != _profiles->end( ) ) ? *iter : nullptr;

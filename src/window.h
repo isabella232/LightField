@@ -36,7 +36,7 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-
+    void showEvent( QShowEvent* aShowEvent ) override;
 private:
 
     SignalHandler*       _signalHandler       { };
@@ -77,7 +77,6 @@ signals:
     void printerPrepared( bool const value );
 
     void terminationRequested( );
-
 public slots:
     ;
 

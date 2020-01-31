@@ -6,9 +6,11 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QT += virtualkeyboard
 
 SOURCES +=                          \
     ../src/advancedtab.cpp          \
+    ../src/advancedtabselectionmodel.cpp \
     ../src/app.cpp                  \
     ../src/backdrop.cpp             \
     ../src/buildinfo.cpp            \
@@ -22,10 +24,13 @@ SOURCES +=                          \
     ../src/glmesh.cpp               \
     ../src/gpgsignaturechecker.cpp  \
     ../src/hasher.cpp               \
+    ../src/key.cpp                  \
+    ../src/keyboard.cpp             \
     ../src/lightfieldstyle.cpp      \
     ../src/loader.cpp               \
     ../src/main.cpp                 \
     ../src/mesh.cpp                 \
+    ../src/paramslider.cpp          \
     ../src/pngdisplayer.cpp         \
     ../src/preparetab.cpp           \
     ../src/printmanager.cpp         \
@@ -52,6 +57,7 @@ SOURCES +=                          \
 
 HEADERS  +=                         \
     ../src/advancedtab.h            \
+    ../src/advancedtabselectionmodel.h \
     ../src/app.h                    \
     ../src/backdrop.h               \
     ../src/buildinfo.h              \
@@ -66,10 +72,14 @@ HEADERS  +=                         \
     ../src/glmesh.h                 \
     ../src/gpgsignaturechecker.h    \
     ../src/hasher.h                 \
+    ../src/inputdialog.h            \
+    ../src/key.h                    \
+    ../src/keyboard.h               \
     ../src/initialshoweventmixin.h  \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
     ../src/mesh.h                   \
+    ../src/paramslider.h            \
     ../src/pngdisplayer.h           \
     ../src/preparetab.h             \
     ../src/printjob.h               \
@@ -79,6 +89,7 @@ HEADERS  +=                         \
     ../src/printpumpingparameters.h \
     ../src/printtab.h               \
     ../src/processrunner.h          \
+    ../src/profilesjsonparser.h     \
     ../src/profilestab.h            \
     ../src/shepherd.h               \
     ../src/signalhandler.h          \
@@ -121,4 +132,12 @@ debug {
 
 dlp4710 {
     DEFINES += DLP4710
-}
+}QT += core gui widgets xml
+
+TARGET   = lf
+TEMPLATE = app
+
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+QT += virtualkeyboard

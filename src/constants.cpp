@@ -24,6 +24,10 @@ QString                   const  ShepherdPath                  { "/usr/share/lig
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
+//QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
+QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"                };
+
+//QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };
