@@ -7,8 +7,8 @@ key::key(QString t,QObject *parent) : QObject(parent)
   text = t;
   X =10;
   Y =10;
-  W =t.length()*4 + 50;
-  H =50;
+  W =t.length()*4 + 78;
+  H =62;
   pressed = false;
 }
 
@@ -46,7 +46,7 @@ void key::setPressed( bool b)
 void key::draw(QPainter *p,QStyle *style) {
 
     QStyleOptionButton opt;
-    opt.palette = QPalette(Qt::red);
+    opt.palette = QPalette(QColor(0,51,102,127));
     /*
     if ( pressed )
            {

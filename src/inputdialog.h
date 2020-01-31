@@ -24,6 +24,7 @@ class InputDialog: public QDialog {
             Window* win = App::mainWindow();
             QRect r = win->geometry();
             move(r.x()+100, r.y()+100);
+            resize(824, 400);
 
             _message->setText(text);
 

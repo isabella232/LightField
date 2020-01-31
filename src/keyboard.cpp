@@ -82,9 +82,9 @@ void Keyboard::initKeys( int indexArraykeys,const char *keymap[])
         if ( n>0)
         {
             //if (keymap[n] == "return" )     keys[indexArraykeys][n]->setIconFile(":/img/img/enter.png");
-            if (keymap[n] == "backspace" )  keys[indexArraykeys][n]->W=70;
+            if (keymap[n] == "backspace" )  keys[indexArraykeys][n]->W=95;
             if (keymap[n] == "Caps" )       keys[indexArraykeys][n]->W=70;
-            if (keymap[n] == "space" )      keys[indexArraykeys][n]->W=380;
+            if (keymap[n] == "space" )      keys[indexArraykeys][n]->W=570;
 
             if (row_keymapp[n-1]!=row_keymapp[n])
             {
@@ -93,11 +93,11 @@ void Keyboard::initKeys( int indexArraykeys,const char *keymap[])
             } else {
                 keys[indexArraykeys][n]->setX(keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W);
             }
-            keys[indexArraykeys][n]->setY(row_keymapp[n]*50);
+            keys[indexArraykeys][n]->setY(row_keymapp[n]*62);
         } else {
           //  keys[indexArraykeys][n]->setX(offetrows[0]);
             keys[indexArraykeys][n]->setX(0);
-            keys[indexArraykeys][n]->setY(row_keymapp[n]*50);
+            keys[indexArraykeys][n]->setY(row_keymapp[n]*62);
         }
     }
 }
