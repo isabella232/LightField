@@ -1,7 +1,6 @@
 #ifndef __PARAMSLIDER_H__
 #define __PARAMSLIDER_H__
 
-#include "tabbase.h"
 
 class ParamSlider: public QGroupBox {
     Q_OBJECT
@@ -19,7 +18,10 @@ class ParamSlider: public QGroupBox {
         ~ParamSlider();
 
         int getValue();
+        void setValue(int value);
 
+    signals:
+        void valuechanged();
     public slots:
         void onvaluechanged(int value);
 };

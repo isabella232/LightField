@@ -9,8 +9,7 @@ void _initializeOpenGL( ) {
 }
 
 int main( int argc, char* argv[] ) {
-    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
-    qputenv("QT_VIRTUALKEYBOARD_STYLE_PATH","./styles");
+    //qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     _initializeOpenGL( );
     return App( argc, argv ).exec( );
 }

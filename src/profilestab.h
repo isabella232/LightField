@@ -2,7 +2,6 @@
 #define __PROFILESTAB_H__
 
 #include "tabbase.h"
-
 #include "printprofilemanager.h"
 
 class ProfilesTab: public TabBase {
@@ -16,10 +15,30 @@ public:
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Profiles; }
 
+    void setPrintProfileManager( PrintProfileManager* printProfileManager );
+
 protected:
 
 private:
 
+    PrintProfileManager* _printProfileManager;
+
+
+    QPushButton*        _importParams                    { new QPushButton("Import")              };
+    QPushButton*        _exportParams                    { new QPushButton("Export")              };
+    QPushButton*        _newProfile                      { new QPushButton("Create profile")      };
+    QPushButton*        _deleteProfile                   { new QPushButton("Delete selected")     };
+    QPushButton*        _loadProfile                     { new QPushButton("Load selected")       };
+    QCheckBox*          _cpyProfilesUsb                  { new QCheckBox("Copy profiles to USB")  };
+    QCheckBox*          _cpyStlFilesUsb                  { new QCheckBox("Copy STL files to USB") };
+    QListView*          _profilesList                    { new QListView                          };
+    QStandardItemModel* _model                           { new QStandardItemModel                 };
+    QFont*              _fontAwesome;
+
+    void _setupProfilesList(QFont font);
+    bool _createNewProfile(QString profileName);
+    bool _deletePrintProfile();
+    bool _loadPrintProfile();
 signals:
     ;
 
@@ -33,6 +52,12 @@ protected slots:
 
 private slots:
     ;
+
+    void importParams_clicked(bool);
+    void exportParams_clicked(bool);
+    void newProfile_clicked(bool);
+    void deleteProfile_clicked(bool);
+    void loadProfile_clicked(bool);
 
 };
 

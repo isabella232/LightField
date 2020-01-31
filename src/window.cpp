@@ -5,6 +5,7 @@
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
+#include "printprofilemanager.h"
 #include "shepherd.h"
 #include "signalhandler.h"
 #include "upgrademanager.h"
@@ -56,8 +57,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printJob = new PrintJob;
 
-    _upgradeManager  = new UpgradeManager;
-    _usbMountManager = new UsbMountManager;
+    _printProfileManager = new PrintProfileManager;
+    _upgradeManager      = new UpgradeManager;
+    _usbMountManager     = new UsbMountManager;
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -90,10 +92,11 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
 
-    _fileTab    ->setUsbMountManager( _usbMountManager );
-    _advancedTab->setPngDisplayer   ( _pngDisplayer    );
-    _systemTab  ->setUpgradeManager ( _upgradeManager  );
-    _systemTab  ->setUsbMountManager( _usbMountManager );
+    _fileTab    ->setUsbMountManager    ( _usbMountManager     );
+    _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _profilesTab->setPrintProfileManager( _printProfileManager );
+    _systemTab  ->setUpgradeManager     ( _upgradeManager      );
+    _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 
     _shepherd->start( );
 
@@ -155,7 +158,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
+    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
 
+    _advancedTab->setPrintProfileManager( _printProfileManager );
     //
     // "Profiles" tab
     //
