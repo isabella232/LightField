@@ -1,16 +1,8 @@
 #include "advancedtabselectionmodel.h"
-#include <iostream>
-
 
 void AdvancedTabSelectionModel::onclick(const QModelIndex &index)
 {
-    QStandardItem *item = this->itemFromIndex(index);
-    
     int row = index.row();
-    int column = index.column();
-
-    std::cout << row << std::endl;
-    std::cout << column << std::endl;
 
     for(int i=0; i<_panelsCount; i++)
     {

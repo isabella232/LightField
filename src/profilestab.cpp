@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "inputdialog.h"
 #include "profilestab.h"
 #include "profilesjsonparser.h"
 #include "window.h"
@@ -212,15 +213,18 @@ void ProfilesTab::newProfile_clicked(bool)
     msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
 
-    QInputDialog inputDialog;
+    /*QInputDialog inputDialog;
     inputDialog.setModal(true);
     inputDialog.move(r.x()+100, r.y()+100);
     inputDialog.setFont(*_fontAwesome);
     inputDialog.setFocus(Qt::FocusReason::ActiveWindowFocusReason);
     inputDialog.setLabelText("Enter a profile name: ");
-    int ret = inputDialog.exec();
+    int ret = inputDialog.exec();*/
 
-    QString filename = inputDialog.textValue();
+    InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
+    int ret = inputDialog->exec();
+
+    QString filename = inputDialog->getValue();
     if (ret && !filename.isEmpty())
     {
         if(!_createNewProfile(filename))

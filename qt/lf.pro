@@ -24,6 +24,8 @@ SOURCES +=                          \
     ../src/glmesh.cpp               \
     ../src/gpgsignaturechecker.cpp  \
     ../src/hasher.cpp               \
+    ../src/key.cpp                  \
+    ../src/keyboard.cpp             \
     ../src/lightfieldstyle.cpp      \
     ../src/loader.cpp               \
     ../src/main.cpp                 \
@@ -70,6 +72,9 @@ HEADERS  +=                         \
     ../src/glmesh.h                 \
     ../src/gpgsignaturechecker.h    \
     ../src/hasher.h                 \
+    ../src/inputdialog.h            \
+    ../src/key.h                    \
+    ../src/keyboard.h               \
     ../src/initialshoweventmixin.h  \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
