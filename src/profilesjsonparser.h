@@ -84,7 +84,7 @@ public:
                     log( "push back to list ... " + std::to_string(array.count()) + " " + std::to_string(i) );
                     profilesList->push_back(printProfile);
                 }
-                catch (QException e) { }
+                catch (QException const& e) { }
                 catch (...)
                 {
                     std::cerr<<"Unknow error while parsing print profile";

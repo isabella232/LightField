@@ -318,6 +318,8 @@ bool ProfilesTab::_deletePrintProfile()
 
     _model->removeRows(index.row(), 1);
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+
+    return true;
 }
 
 bool ProfilesTab::_loadPrintProfile()

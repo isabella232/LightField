@@ -1,4 +1,4 @@
-QT += core gui widgets xml
+QT += core gui virtualkeyboard widgets xml
 
 TARGET   = lf
 TEMPLATE = app
@@ -6,7 +6,6 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
-QT += virtualkeyboard
 
 SOURCES +=                          \
     ../src/advancedtab.cpp          \
@@ -132,7 +131,7 @@ debug {
 
 dlp4710 {
     DEFINES += DLP4710
-}QT += core gui widgets xml
+}
 
 TARGET   = lf
 TEMPLATE = app
@@ -140,4 +139,3 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
-QT += virtualkeyboard

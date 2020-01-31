@@ -44,7 +44,7 @@ const char *en_punctuation_keymap[] = {
 };
 
 // In witch row are the key... (there's 4 rows )
-const int row_keymapp[] = {
+const int row_keymap[] = {
     0,0,0,0,0,0,0,0,0,0,
     1,1,1,1,1,1,1,1,1,1,
     2,2,2,2,2,2,2,2,2,2,
@@ -82,22 +82,22 @@ void Keyboard::initKeys( int indexArraykeys,const char *keymap[])
         if ( n>0)
         {
             //if (keymap[n] == "return" )     keys[indexArraykeys][n]->setIconFile(":/img/img/enter.png");
-            if (keymap[n] == "backspace" )  keys[indexArraykeys][n]->W=95;
-            if (keymap[n] == "Caps" )       keys[indexArraykeys][n]->W=70;
-            if (keymap[n] == "space" )      keys[indexArraykeys][n]->W=570;
+            if (0 == strcasecmp( keymap[n], "backspace")) keys[indexArraykeys][n]->W=95;
+            if (0 == strcasecmp( keymap[n], "Caps"     )) keys[indexArraykeys][n]->W=70;
+            if (0 == strcasecmp( keymap[n], "space"    )) keys[indexArraykeys][n]->W=570;
 
-            if (row_keymapp[n-1]!=row_keymapp[n])
+            if (row_keymap[n-1]!=row_keymap[n])
             {
                 row ++;
                 keys[indexArraykeys][n]->setX(0); //offetrows[row]);
             } else {
                 keys[indexArraykeys][n]->setX(keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W);
             }
-            keys[indexArraykeys][n]->setY(row_keymapp[n]*62);
+            keys[indexArraykeys][n]->setY(row_keymap[n]*62);
         } else {
           //  keys[indexArraykeys][n]->setX(offetrows[0]);
             keys[indexArraykeys][n]->setX(0);
-            keys[indexArraykeys][n]->setY(row_keymapp[n]*62);
+            keys[indexArraykeys][n]->setY(row_keymap[n]*62);
         }
     }
 }
@@ -203,7 +203,7 @@ key *Keyboard::findKey(QPoint p)
     return 0x0;
 }
 
-void Keyboard::setKeyPressed( key *k, QPoint pos)
+void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
 {
     currentKey = k;
     if (k == 0x0) return;
