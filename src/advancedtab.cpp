@@ -642,11 +642,11 @@ void AdvancedTab::updatePrintProfile() {
     {
         PrintPumpingParameters baseParams;
 
-        baseParams.setPumpUpDistance(_distanceSlider->getValue());
+        baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000 );
         baseParams.setPumpUpTime(_upTimeSlider->getValue());
         baseParams.setPumpUpPause(_upPauseSlider->getValue());
         baseParams.setPumpDownPause(_downPauseSlider->getValue());
-        baseParams.setNoPumpUpVelocity(_upVelocitySlider->getValue());
+        baseParams.setNoPumpUpVelocity( ((double)_upVelocitySlider->getValue()) / (1000/60));
         baseParams.setPumpEveryNthLayer(0);
         baseParams.setLayerThickness(_baseThicknessSlider->getValue());
         baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
@@ -660,11 +660,11 @@ void AdvancedTab::updatePrintProfile() {
     {
         PrintPumpingParameters bodyParams;
 
-        bodyParams.setPumpUpDistance(_bodyDistanceSlider->getValue());
+        bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
         bodyParams.setPumpUpTime(_bodyUpTimeSlider->getValue());
         bodyParams.setPumpUpPause(_bodyUpPauseSlider->getValue());
         bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
-        bodyParams.setNoPumpUpVelocity(_bodyUpVelocitySlider->getValue());
+        bodyParams.setNoPumpUpVelocity( ((double)_bodyUpVelocitySlider->getValue()) / (1000/60));
         bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
         bodyParams.setLayerThickness(_bodyThicknessSlider->getValue());
         bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
@@ -675,7 +675,6 @@ void AdvancedTab::updatePrintProfile() {
 
     if(setActive)
     {
-        std::cout<<"!!!!!!!!!!!!!!!!!!!!!! setActiveProfile: " << std::endl;
         _printProfileManager->setActiveProfile(tempProfileName);
     }
 }

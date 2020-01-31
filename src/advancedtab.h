@@ -83,7 +83,7 @@ private:
     QScrollArea*  _basePumpForm                    { new QScrollArea     };
     QCheckBox*    _addBasePumpCheckbox             { new QCheckBox("add base pump") };
 
-    ParamSlider*  _distanceSlider                  { new ParamSlider("Base Pump Distance", "µm", 1000, 8000, 1)     };
+    ParamSlider*  _distanceSlider                  { new ParamSlider("Base Pump Distance", "µm", 1000, 8000, 250)     };
     ParamSlider*  _upTimeSlider                    { new ParamSlider("Base Pump Up Time", "ms", 1000, 8000, 1)      };
     ParamSlider*  _upPauseSlider                   { new ParamSlider("Base Pump Up Pause", "ms", 1000, 8000, 1)     };
     ParamSlider*  _downTimeSlider                  { new ParamSlider("Base Pump Down Time", "ms", 1000, 8000, 1)    };
