@@ -2,7 +2,6 @@
 #define PROFILESJSONPARSER_H
 
 #include "printprofile.h"
-#include <iostream>
 
 #define DEBUG_LOGS
 
@@ -12,104 +11,109 @@ public:
     static QVector<PrintProfile*>* loadProfiles() {
         QVector<PrintProfile*>* profilesList = new QVector<PrintProfile*>();
 
-        log( "opening file ..." );
+        debug( "ProfilesJsonParser::loadProfiles: opening file\n" );
         QFile jsonFile(PrintProfilesPath);
         if(!jsonFile.exists())
         {
-            std::cerr << "File " << PrintProfilesPath.toStdString() << " does not exists" << std::endl;
+            debug( "ProfilesJsonParser::loadProfiles: File %s does not exist\n", PrintProfilesPath.toUtf8( ).data( ) );
             return profilesList;
         }
         jsonFile.open(QIODevice::ReadOnly);
 
-        log( "building document ..." );
+        debug( "ProfilesJsonParser::loadProfiles: building document\n" );
         QJsonDocument jsonDocument=QJsonDocument().fromJson(jsonFile.readAll());
 
-        log( "get root array ..." );
+        debug( "ProfilesJsonParser::loadProfiles: get root array\n" );
         QJsonArray array = jsonDocument.array();
 
-        log( "iter over array ... " + std::to_string(array.count()) );
+        debug( "ProfilesJsonParser::loadProfiles: iter over array: %d elements\n", array.count() );
         for(int i=0; i<array.count(); ++i) {
-                try {
-                    PrintProfile* printProfile = new PrintProfile();
+            PrintProfile* printProfile = new PrintProfile();
+            try {
 
-                    QJsonObject obj = array[i].toObject();
+                QJsonObject obj = array[i].toObject();
 
-                    log( "get name ..." + std::to_string(i));
-                    auto name = obj["name"];
+                debug( "ProfilesJsonParser::loadProfiles: element %d\n", i );
+                debug( "  + get name\n");
+                auto name = obj["name"];
 
-                    if(name.isString()) {
-                        printProfile->setProfileName(obj["name"].toString());
-                    }
-                    else
-                    {
-                        std::cerr<<"Error while parsing name field";
-                        throw new QException();
-                    }
-
-                    log( "get baseLayerCount ..." );
-                    auto blc = obj["baseLayerCount"];
-
-                    if(blc.isDouble())
-                        printProfile->setBaseLayerCount(blc.toInt());
-                    else
-                    {
-                        std::cerr<<"Error while parsing baseLayerCount field";
-                        throw new QException();
-                    }
-
-                    log( "get baseLayersPumpingParameters ..." );
-                    auto baseLayersPumpingParameters = obj["baseLayersPumpingParameters"];
-
-                    if(!baseLayersPumpingParameters.isUndefined() && !baseLayersPumpingParameters.isNull())
-                    {
-                        PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
-                        printProfile->setBaseLayersPumpingParameters(params);
-                        printProfile->setAddBaseLayersPumpingParameters(true);
-                    }
-                    else
-                        printProfile->setAddBaseLayersPumpingParameters(false);
-
-                    log( "get bodyLayersPumpingParameters ..." );
-                    auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
-
-                    if(!bodyLayersPumpingParameters.isUndefined() && !bodyLayersPumpingParameters.isNull())
-                    {
-                        PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
-                        printProfile->setBodyLayersPumpingParameters(params);
-                        printProfile->setAddBodyLayersPumpingParameters(true);
-                    }
-                    else
-                        printProfile->setAddBodyLayersPumpingParameters(false);
-
-                    log( "push back to list ... " + std::to_string(array.count()) + " " + std::to_string(i) );
-                    profilesList->push_back(printProfile);
+                if(name.isString()) {
+                    printProfile->setProfileName(obj["name"].toString());
                 }
-                catch (QException const& e) { }
-                catch (...)
+                else
                 {
-                    std::cerr<<"Unknow error while parsing print profile";
+                    debug( "ProfilesJsonParser::loadProfiles: Error while parsing name field" );
+                    throw new QException();
                 }
-            }
 
-        log( "end parsing ..." );
+                debug( "  + get baseLayerCount\n" );
+                auto blc = obj["baseLayerCount"];
+
+                if(blc.isDouble())
+                    printProfile->setBaseLayerCount(blc.toInt());
+                else
+                {
+                    debug( "ProfilesJsonParser::loadProfiles: Error while parsing baseLayerCount field" );
+                    throw new QException();
+                }
+
+                debug( "  + get baseLayersPumpingParameters\n" );
+                auto baseLayersPumpingParameters = obj["baseLayersPumpingParameters"];
+
+                if(!baseLayersPumpingParameters.isUndefined() && !baseLayersPumpingParameters.isNull())
+                {
+                    PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
+                    printProfile->setBaseLayersPumpingParameters(params);
+                    printProfile->setAddBaseLayersPumpingParameters(true);
+                }
+                else
+                    printProfile->setAddBaseLayersPumpingParameters(false);
+
+                debug( "  + get bodyLayersPumpingParameters\n" );
+                auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
+
+                if(!bodyLayersPumpingParameters.isUndefined() && !bodyLayersPumpingParameters.isNull())
+                {
+                    PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
+                    printProfile->setBodyLayersPumpingParameters(params);
+                    printProfile->setAddBodyLayersPumpingParameters(true);
+                }
+                else
+                    printProfile->setAddBodyLayersPumpingParameters(false);
+
+                debug( "  + push back to list\n" );
+                profilesList->push_back(printProfile);
+            }
+            catch (QException*)
+            {
+                delete printProfile;
+            }
+            catch (...)
+            {
+                debug( "ProfilesJsonParser::loadProfiles: Unknown error while parsing print profile\n" );
+                delete printProfile;
+            }
+        }
+
+        debug( "ProfilesJsonParser::loadProfiles: end parsing\n" );
         return profilesList;
     }
 
     static void saveProfiles(const QVector<PrintProfile*>* profiles)
     {
-        log( "saveProfiles ..." );
+        debug( "ProfilesJsonParser::saveProfiles:\n" );
         QFile jsonFile(PrintProfilesPath);
 
         QJsonDocument jsonDocument=QJsonDocument();
 
         QJsonArray jsonArray;
 
-        log( "loop start ..." );
+        debug( "  + loop start: %d profiles\n", profiles->count( ) );
         for(int i=0; i<profiles->count(); ++i)
         {
             auto profile = (*profiles)[i];
 
-            log( "serializing profile " + profile->profileName().toStdString() );
+            debug( "  + serializing profile %s\n", profile->profileName( ).toUtf8( ).data( ) );
             if(profile->profileName() == "temp")
                 continue;
 
@@ -167,8 +171,8 @@ private:
            return value.toInt();
         else
         {
-           std::cerr<<"Error while parsing " << propertyName.toStdString() << " field";
-           throw new QException();
+            debug( "ProfilesJsonParser::_parseIntValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
+            throw new QException();
         }
     }
 
@@ -182,8 +186,8 @@ private:
            return value.toDouble();
         else
         {
-           std::cerr<<"Error while parsing " << propertyName.toStdString() << " field";
-           throw new QException();
+            debug( "ProfilesJsonParser::_parseDoubleValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
+            throw new QException();
         }
     }
 
@@ -204,12 +208,6 @@ private:
         return result;
     }
 
-    static void log(std::string message)
-    {
-#ifdef DEBUG_LOGS
-        std::cout << message << std::endl;
-#endif
-    }
 };
 
 #endif // PROFILESJSONPARSER_H
