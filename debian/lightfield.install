@@ -4,3 +4,4 @@ files/lib/systemd/system/set-projector-power.service         lib/systemd/system
 files/usr/bin/lf                                             usr/bin
 files/usr/bin/mountmon                                       usr/bin
 files/usr/bin/set-projector-power                            usr/bin
+files/usr/bin/set-projector-power.real                       usr/bin
