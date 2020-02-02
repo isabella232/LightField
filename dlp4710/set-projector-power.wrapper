@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo /bin/fuser -k /dev/lumen-projector
+exec /usr/bin/set-projector-power.real "${@}"
