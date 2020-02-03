@@ -13,8 +13,9 @@ QSize              extern        MainButtonSize;
 QSize              extern        MaximalRightHandPaneSize;
 
 QSize              extern const  ButtonPadding;
+
 QSize              extern const  ProjectorWindowSize;
-                                                             
+
 QString            extern const  AptSourcesFilePath;
 QString            extern const  JobWorkingDirectoryPath;
 QString            extern const  MountmonCommand;
@@ -41,23 +42,33 @@ QChar              extern const  FA_Backward;
 QChar              extern const  FA_Forward;
 QChar              extern const  FA_FastForward;
 
-int                       const  DebugLogPathCount          =    6;
+int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
-double constexpr          const  PrinterMaximumX            =   64.00; // mm
-double constexpr          const  PrinterMaximumY            =   40.00; // mm
-double constexpr          const  PrinterMaximumZ            =   50.00; // mm
-double constexpr          const  PrinterRaiseToMaximumZ     =   60.00; // mm
-double constexpr          const  PrinterHighSpeedThresholdZ =   10.00; // mm
+#   if defined DLP4710
 
-double constexpr          const  PrinterDefaultHighSpeed    =  200.00; // mm/min
-double constexpr          const  PrinterDefaultLowSpeed     =   50.00; // mm/min
+double constexpr          const  ProjectorPixelSize         =    0.0355; // mm
+
+#   else // ! defined DLP4710
+
+double constexpr          const  ProjectorPixelSize         =    0.0500; // mm
+
+#   endif // defined DLP4710
+
+double             extern const  PrinterMaximumX;
+double             extern const  PrinterMaximumY;
+double constexpr          const  PrinterMaximumZ            =   50.00;   // mm
+double constexpr          const  PrinterRaiseToMaximumZ     =   60.00;   // mm
+double constexpr          const  PrinterHighSpeedThresholdZ =   10.00;   // mm
+
+double constexpr          const  PrinterDefaultHighSpeed    =  200.00;   // mm/min
+double constexpr          const  PrinterDefaultLowSpeed     =   50.00;   // mm/min
+
+double constexpr          const  LargeFontSize              =   22.0;   // pt
+double constexpr          const  NormalFontSize             =   12.0;   // pt
 
 double constexpr          const  AspectRatio5to3            =    5.0 /  3.0;
 double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
-
-double constexpr          const  LargeFontSize              =   22.0; // pt
-double constexpr          const  NormalFontSize             =   12.0; // pt
 
 #   if defined DLP4710
 
@@ -66,13 +77,13 @@ double constexpr          const  ProjectorMaxPowerLevel     = 1023.0;
 int    constexpr          const  ProjectorMinPercent        =    5;
 int    constexpr          const  ProjectorMaxPercent        =   80;
 
-#   else
+#   else // ! defined DLP4710
 
 double constexpr          const  ProjectorMaxPowerLevel     =  255.0;
 
 int    constexpr          const  ProjectorMinPercent        =   20;
 int    constexpr          const  ProjectorMaxPercent        =   80;
 
-#   endif
+#   endif // defined DLP4710
 
 #endif // __CONSTANTS_H__

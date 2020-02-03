@@ -13,7 +13,16 @@ QSize                            MainButtonSize                {  279,   93 };
 QSize                            MaximalRightHandPaneSize      {  722,  530 };
 
 QSize                     const  ButtonPadding                 {   20,    4 };
-QSize                     const  ProjectorWindowSize           { 1920, 1080 };
+
+#if defined DLP4710
+
+QSize constexpr           const  ProjectorWindowSize           { 1920, 1080 };
+
+#else // ! defined DLP4710
+
+QSize constexpr           const  ProjectorWindowSize           { 1280,  800 };
+
+#endif // defined DLP4710
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
@@ -40,6 +49,9 @@ QChar                     const  FA_FastBackward               { L'\uF049' };
 QChar                     const  FA_Backward                   { L'\uF04A' };
 QChar                     const  FA_Forward                    { L'\uF04E' };
 QChar                     const  FA_FastForward                { L'\uF050' };
+
+double                    const  PrinterMaximumX               { ProjectorWindowSize.width( )  * ProjectorPixelSize }; // mm
+double                    const  PrinterMaximumY               { ProjectorWindowSize.height( ) * ProjectorPixelSize }; // mm
 
 char                      const* DebugLogPaths[DebugLogPathCount]
 {
