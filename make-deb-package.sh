@@ -259,7 +259,7 @@ blue-bar "• Building Debian packages"
 cd "${LIGHTFIELD_PACKAGE}"
 
 mv debian/control.in                                   debian/control
-mv debian/lightfield.install                           debian/lightfield-"${SUFFIX}".install
+mv debian/lightfield-"${RELEASE_TRAIN}".install        debian/lightfield-"${SUFFIX}".install
 mv debian/lightfield.preinst                           debian/lightfield-"${SUFFIX}".preinst
 mv debian/lightfield.prerm                             debian/lightfield-"${SUFFIX}".prerm
 mv debian/lightfield.postinst.in                       debian/lightfield-"${SUFFIX}".postinst
