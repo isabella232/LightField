@@ -36,6 +36,9 @@ case "$1" in
         chown lumen:lumen /etc/apt/sources.list.d/volumetric-lightfield.list
         chmod 644 /etc/apt/sources.list.d/volumetric-lightfield.list
 
+        udevadm control --reload
+        udevadm trigger /dev/ttyACM* /dev/ttyUSB*
+
         systemctl daemon-reload
         systemctl set-default multi-user.target
         systemctl enable --now set-projector-power.service clean-up-mount-points.service
