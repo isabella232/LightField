@@ -64,10 +64,10 @@ public:
                 {
                     PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
                     printProfile->setBaseLayersPumpingParameters(params);
-                    printProfile->setAddBaseLayersPumpingParameters(true);
+                    printProfile->setBaseLayersPumpingEnabled(true);
                 }
                 else
-                    printProfile->setAddBaseLayersPumpingParameters(false);
+                    printProfile->setBaseLayersPumpingEnabled(false);
 
                 debug( "  + get bodyLayersPumpingParameters\n" );
                 auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
@@ -76,10 +76,10 @@ public:
                 {
                     PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
                     printProfile->setBodyLayersPumpingParameters(params);
-                    printProfile->setAddBodyLayersPumpingParameters(true);
+                    printProfile->setBodyLayersPumpingEnabled(true);
                 }
                 else
-                    printProfile->setAddBodyLayersPumpingParameters(false);
+                    printProfile->setBodyLayersPumpingEnabled(false);
 
                 debug( "  + push back to list\n" );
                 profilesList->push_back(printProfile);
@@ -122,13 +122,13 @@ public:
             json["name"] = profile->profileName();
             json["baseLayerCount"] = profile->baseLayerCount();
 
-            if(profile->whetherAddBaseLayersPumpingParameters())
+            if(profile->baseLayersPumpingEnabled())
             {
                 QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersPumpingParameters());
                 json["baseLayersPumpingParameters"]= baseParameters;
             }
 
-            if(profile->whetherAddBodyLayersPumpingParameters())
+            if(profile->bodyLayersPumpingEnabled())
             {
                 QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersPumpingParameters());
                 json["bodyLayersPumpingParameters"]= bodyParameters;

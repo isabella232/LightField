@@ -22,8 +22,8 @@ public:
 
         printProfile->_name = this->_name;
         printProfile->_baseLayerCount = this->_baseLayerCount;
-        printProfile->_addBaseLayersPumpingParameters = this->_addBaseLayersPumpingParameters;
-        printProfile->_addBodyLayersPumpingParameters = this->_addBodyLayersPumpingParameters;
+        printProfile->_baseLayersPumpingEnabled = this->_baseLayersPumpingEnabled;
+        printProfile->_bodyLayersPumpingEnabled = this->_bodyLayersPumpingEnabled;
 
         printProfile->_baseLayersPumpingParameters = this->_baseLayersPumpingParameters;
         printProfile->_bodyLayersPumpingParameters = this->_bodyLayersPumpingParameters;
@@ -51,12 +51,12 @@ public:
         return _bodyLayersPumpingParameters;
     }
 
-    bool whetherAddBaseLayersPumpingParameters() {
-        return _addBaseLayersPumpingParameters;
+    bool baseLayersPumpingEnabled() {
+        return _baseLayersPumpingEnabled;
     }
 
-    bool whetherAddBodyLayersPumpingParameters() {
-        return _addBodyLayersPumpingParameters;
+    bool bodyLayersPumpingEnabled() {
+        return _bodyLayersPumpingEnabled;
     }
 
     //
@@ -80,12 +80,12 @@ public:
         _bodyLayersPumpingParameters = newParameters;
     }
 
-    void setAddBaseLayersPumpingParameters(bool value) {
-        _addBaseLayersPumpingParameters = value;
+    void setBaseLayersPumpingEnabled(bool value) {
+        _baseLayersPumpingEnabled = value;
     }
 
-    void setAddBodyLayersPumpingParameters(bool value) {
-        _addBodyLayersPumpingParameters = value;
+    void setBodyLayersPumpingEnabled(bool value) {
+        _bodyLayersPumpingEnabled = value;
     }
 protected:
 
@@ -93,9 +93,9 @@ private:
 
     QString                _name;
     int                    _baseLayerCount;
-    bool                   _addBaseLayersPumpingParameters;
+    bool                   _baseLayersPumpingEnabled;
     PrintPumpingParameters _baseLayersPumpingParameters;
-    bool                   _addBodyLayersPumpingParameters;
+    bool                   _bodyLayersPumpingEnabled;
     PrintPumpingParameters _bodyLayersPumpingParameters;
 
 signals:

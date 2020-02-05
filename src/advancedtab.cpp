@@ -636,7 +636,7 @@ void AdvancedTab::updatePrintProfile() {
 
     profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
 
-    profile->setAddBaseLayersPumpingParameters(_addBasePumpCheckbox->isChecked());
+    profile->setBaseLayersPumpingEnabled(_addBasePumpCheckbox->isChecked());
     if(_addBasePumpCheckbox->isChecked())
     {
         PrintPumpingParameters baseParams;
@@ -654,7 +654,7 @@ void AdvancedTab::updatePrintProfile() {
         profile->setBaseLayersPumpingParameters(baseParams);
     }
 
-    profile->setAddBaseLayersPumpingParameters(_addBodyPumpCheckbox->isChecked());
+    profile->setBaseLayersPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     if(_addBodyPumpCheckbox->isChecked())
     {
         PrintPumpingParameters bodyParams;
@@ -684,7 +684,7 @@ void AdvancedTab::loadPrintProfile(PrintProfile const* profilePtr) {
 
     _numberOfBaseLayersSlider->setValue(profile->baseLayerCount());
 
-    if(profile->whetherAddBaseLayersPumpingParameters())
+    if(profile->baseLayersPumpingEnabled())
     {
         PrintPumpingParameters baseParams = profile->baseLayersPumpingParameters();
 
@@ -698,7 +698,7 @@ void AdvancedTab::loadPrintProfile(PrintProfile const* profilePtr) {
         _powerLevelSlider->setValue(baseParams.powerLevel());
     }
 
-    if(profile->whetherAddBodyLayersPumpingParameters())
+    if(profile->bodyLayersPumpingEnabled())
     {
         PrintPumpingParameters bodyParams = profile->baseLayersPumpingParameters();
 
