@@ -1,3 +1,9 @@
+lightfield (1.0.11.3) stable; urgency=medium
+
+  * Fixed: An issue with first-time configuration of the DLP4710 projector.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 05 Feb 2020 17:27:02 -0800
+
 lightfield (1.0.11.2) stable; urgency=medium
 
   * Fixed: Image scaling for DLP4710 projector, based on pixel size.
