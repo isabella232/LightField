@@ -27,6 +27,8 @@ private:
     QPushButton*        _importParams                    { new QPushButton("Import")              };
     QPushButton*        _exportParams                    { new QPushButton("Export")              };
     QPushButton*        _newProfile                      { new QPushButton("Create profile")      };
+    QPushButton*        _renameProfile                   { new QPushButton("Rename profile")      };
+    QPushButton*        _overwriteProfile                { new QPushButton("Update profile")   };
     QPushButton*        _deleteProfile                   { new QPushButton("Delete selected")     };
     QPushButton*        _loadProfile                     { new QPushButton("Load selected")       };
     QCheckBox*          _cpyProfilesUsb                  { new QCheckBox("Copy profiles to USB")  };
@@ -37,6 +39,8 @@ private:
 
     void _setupProfilesList(QFont font);
     bool _createNewProfile(QString profileName);
+    bool _renamePProfile(QString profileName);
+    bool _updateProfile();
     bool _deletePrintProfile();
     bool _loadPrintProfile();
 signals:
@@ -56,6 +60,8 @@ private slots:
     void importParams_clicked(bool);
     void exportParams_clicked(bool);
     void newProfile_clicked(bool);
+    void renamePProfile_clicked(bool);
+    void updateProfile_clicked(bool);
     void deleteProfile_clicked(bool);
     void loadProfile_clicked(bool);
 

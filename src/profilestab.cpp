@@ -38,6 +38,14 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     _newProfile->setFixedSize( MainButtonSize );
     _newProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
+    _renameProfile->setFont(fontAwesome);
+    _renameProfile->setFixedSize( MainButtonSize );
+    _renameProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
+    _overwriteProfile->setFont(fontAwesome);
+    _overwriteProfile->setFixedSize( MainButtonSize );
+    _overwriteProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+
     _deleteProfile->setFont(fontAwesome);
     _deleteProfile->setFixedSize( MainButtonSize );
     _deleteProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -51,6 +59,8 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _importParams, &QPushButton::clicked, this, &ProfilesTab::importParams_clicked );
     QObject::connect( _exportParams, &QPushButton::clicked, this, &ProfilesTab::exportParams_clicked );
     QObject::connect( _newProfile, &QPushButton::clicked, this, &ProfilesTab::newProfile_clicked );
+    QObject::connect( _renameProfile, &QPushButton::clicked, this, &ProfilesTab::renamePProfile_clicked );
+    QObject::connect( _overwriteProfile, &QPushButton::clicked, this, &ProfilesTab::updateProfile_clicked );
     QObject::connect( _deleteProfile, &QPushButton::clicked, this, &ProfilesTab::deleteProfile_clicked );
     QObject::connect( _loadProfile, &QPushButton::clicked, this, &ProfilesTab::loadProfile_clicked );
 
@@ -60,11 +70,19 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
                    _exportParams,
                    cpyProfilesUsbBox,
                    cpyStlFilesUsbBox,
-                   _importParams,
-                   _newProfile,
-                   _loadProfile,
-                   _deleteProfile,
-                   nullptr
+                   nullptr,
+                   WrapWidgetsInHBox(
+                       WrapWidgetsInVBox(
+                            _importParams,
+                            _loadProfile,
+                            _deleteProfile
+                       ),
+                       WrapWidgetsInVBox(
+                            _newProfile,
+                            _renameProfile,
+                            _overwriteProfile
+                       )
+                   )
               ),
               _profilesList
         )
@@ -98,7 +116,6 @@ void ProfilesTab::_setupProfilesList(QFont font) {
     _profilesList->setFont( font );
     _profilesList->setVisible( true );
     _profilesList->setSelectionBehavior( QAbstractItemView::SelectRows );
-    _profilesList->setMinimumSize(QSize(MaximalRightHandPaneSize.width(), MaximalRightHandPaneSize.height()));
     _profilesList->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
 }
@@ -240,6 +257,61 @@ void ProfilesTab::newProfile_clicked(bool)
     }
 }
 
+void ProfilesTab::renamePProfile_clicked(bool)
+{
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.move(r.x()+100, r.y()+100);
+    msgBox.setFont(*_fontAwesome);
+
+    InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
+    int ret = inputDialog->exec();
+
+    QString filename = inputDialog->getValue();
+    if (ret && !filename.isEmpty())
+    {
+        if(!_renamePProfile(filename))
+        {
+            msgBox.setText("Something went wrong.");
+            msgBox.exec();
+        }
+        else
+        {
+            msgBox.setText("Profile successfuly renamed.");
+            msgBox.exec();
+        }
+    }
+}
+
+void ProfilesTab::updateProfile_clicked(bool)
+{
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.move(r.x()+100, r.y()+100);
+    msgBox.setFont(*_fontAwesome);
+    msgBox.setText("Are You sure to update selected profile?");
+    int ret = msgBox.exec();
+
+    switch (ret) {
+        case QMessageBox::Yes:
+            if(!_updateProfile())
+            {
+               msgBox.setText("Something went wrong.");
+               msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.exec();
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void ProfilesTab::deleteProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
@@ -304,6 +376,73 @@ bool ProfilesTab::_createNewProfile(QString profileName)
     item->setEditable(false);
 
     _model->appendRow(item);
+
+    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+
+    return true;
+}
+
+bool ProfilesTab::_renamePProfile(QString profileName)
+{
+    QModelIndex index = _profilesList->currentIndex();
+
+    QString oldName = index.data(Qt::DisplayRole).toString();
+    _model->setData(index, QVariant(profileName));
+
+    QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
+    auto iter = std::find_if( c->begin( ), c->end( ), [&oldName] ( PrintProfile* p ) { return oldName == p->profileName( ); } );
+    PrintProfile* profile = ( iter != c->end( ) ) ? *iter : nullptr;
+
+    profile->setProfileName(profileName);
+
+    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+
+    return true;
+}
+
+bool ProfilesTab::_updateProfile()
+{
+    QModelIndex index = _profilesList->currentIndex();
+    QString profileName = index.data(Qt::DisplayRole).toString();
+
+    QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
+    auto iter = std::find_if( c->begin( ), c->end( ), [&profileName] ( PrintProfile* p ) { return profileName == p->profileName( ); } );
+    PrintProfile* profile = ( iter != c->end( ) ) ? *iter : nullptr;
+    PrintProfile* activeProfile = (PrintProfile*)_printProfileManager->activeProfile();
+
+    profile->setBaseLayerCount(activeProfile->baseLayerCount());
+    profile->setBaseLayersPumpingEnabled(activeProfile->baseLayersPumpingEnabled());
+    profile->setBodyLayersPumpingEnabled(activeProfile->bodyLayersPumpingEnabled());
+
+    PrintPumpingParameters baseParams = activeProfile->baseLayersPumpingParameters();
+    PrintPumpingParameters newBaseParams;
+
+    newBaseParams.setPumpUpDistance( baseParams.pumpUpDistance() );
+    newBaseParams.setPumpUpTime( baseParams.pumpUpTime() );
+    newBaseParams.setPumpUpPause( baseParams.pumpUpPause() );
+    newBaseParams.setPumpDownPause( baseParams.pumpDownPause() );
+    newBaseParams.setNoPumpUpVelocity( baseParams.noPumpUpVelocity() );
+    newBaseParams.setPumpEveryNthLayer( baseParams.pumpEveryNthLayer() );
+    newBaseParams.setLayerThickness( baseParams.layerThickness() );
+    newBaseParams.setLayerExposureTime( baseParams.layerExposureTime() );
+    newBaseParams.setPowerLevel( baseParams.powerLevel() );
+
+    profile->setBaseLayersPumpingParameters(newBaseParams);
+
+    PrintPumpingParameters bodyParams = activeProfile->bodyLayersPumpingParameters();
+    PrintPumpingParameters newBodyParams;
+
+    newBodyParams.setPumpUpDistance( bodyParams.pumpUpDistance() );
+    newBodyParams.setPumpUpTime( bodyParams.pumpUpTime() );
+    newBodyParams.setPumpUpPause( bodyParams.pumpUpPause() );
+    newBodyParams.setPumpDownPause( bodyParams.pumpDownPause() );
+    newBodyParams.setNoPumpUpVelocity( bodyParams.noPumpUpVelocity() );
+    newBodyParams.setPumpEveryNthLayer( bodyParams.pumpEveryNthLayer() );
+    newBodyParams.setLayerThickness( bodyParams.layerThickness() );
+    newBodyParams.setLayerExposureTime( bodyParams.layerExposureTime() );
+    newBodyParams.setPowerLevel( bodyParams.powerLevel() );
+
+    profile->setBaseLayersPumpingParameters(bodyParams);
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
 
