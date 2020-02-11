@@ -1,3 +1,9 @@
+lightfield (1.0.11.6) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 10 Feb 2020 17:25:49 -0800
+
 lightfield (1.0.11.5) stable; urgency=medium
 
   * Fixed: DLPC350 projector initialization issue.
