@@ -25,7 +25,7 @@ protected:
     virtual void _connectPrintManager( )                override;
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
-
+    virtual void _connectUsbMountManager( )             override;
 private:
 
     QProcess*     _slicerProcess               { };
@@ -49,6 +49,11 @@ private:
     QLabel*       _prepareMessage              { new QLabel       };
     QProgressBar* _prepareProgress             { new QProgressBar };
     QPushButton*  _prepareButton               { new QPushButton  };
+    QPushButton*  _copyToUSBButton             { new QPushButton  };
+    QString       _usbPath;
+    QFileSystemModel*   _libraryFsModel        { new QFileSystemModel    };
+    QFileSystemModel*   _usbFsModel            {                         };
+
 
     QPixmap*      _warningHotImage             {                  };
     QLabel*       _warningHotLabel             { new QLabel       };
@@ -80,6 +85,9 @@ private:
     void _updatePrepareButtonState( );
 
     void _handlePrepareFailed( );
+    void _createUsbFsModel( );
+    void _destroyUsbFsModel( );
+    void _deleteModel( );
 
 signals:
 
@@ -96,9 +104,13 @@ public slots:
 
     void setPrinterAvailable( bool const value );
 
+
 protected slots:
 
 private slots:
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void printer_online( );
     void printer_offline( );
@@ -130,6 +142,8 @@ private slots:
     void adjustBuildPlatform_complete( bool );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
 
+    void copyToUSB_clicked( bool );
+    void usbFsModel_directoryLoaded( QString const& /*name*/ );
 };
 
 #endif // __PREPARETAB_H__
