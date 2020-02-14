@@ -1,45 +1,36 @@
 #include <QPainter>
 #include <QMouseEvent>
-#include<QDebug>
+#include <QDebug>
 #include "key.h"
 #include "keyboard.h"
 
-#define KEYS_TYPE 4
-
-// TODO make an enum
-#define LOWERCASE 0
-#define NUMBER 1
-#define UPPERCASE 2
-#define PUNCTUATION 3
 
 // Declaration off the differente keys...
-
-
 const char *en_lower_keymap[] = {
     "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
     "a", "s", "d", "f", "g", "h", "j", "k", "l",";",
-    "Caps", "z", "x", "c", "v", "b", "n", "m",",", "backspace",
+    "caps", "z", "x", "c", "v", "b", "n", "m",",", "back\nspace",
     "123", ".", "space", "@"
 };
 
 const char *en_upper_keymap[] = {
     "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
     "A", "S", "D", "F", "G", "H", "J", "K", "L",";",
-    "Caps", "Z", "X", "C", "V", "B", "N", "M",",", "backspace",
+    "caps", "Z", "X", "C", "V", "B", "N", "M",",", "back\nspace",
     "123", ".", "space", "@"
 };
 
 const char *en_number_keymap[] = {
     "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
     "-", "/", ":", ";", "(", ")", "€", "&", "@", "\"",
-    "#+=", ".", ",", "?", "!", "'", "+","\\","%","backspace",
+    "#+=", ".", ",", "?", "!", "'", "+","\\","%","back\nspace",
     "ABC", ",", "space", "."
 };
 
 const char *en_punctuation_keymap[] = {
     "[", "]", "{", "}", "#", "%", "^", "*", "+", "=",
     "_", "\\", "|", "~", "<", ">", "=","$", "@", "\"",
-    "123", ".", ",", "?", "!", "'","/",":",";", "backspace",
+    "123", ".", ",", "?", "!", "'","/",":",";", "back\nspace",
     "ABC", ",", "space", "."
 };
 
@@ -51,7 +42,8 @@ const int row_keymap[] = {
     3,3,3,3,3
 };
 
-const int nbkey = sizeof(en_lower_keymap)/ sizeof(char *);
+
+const int nbkey = sizeof(en_lower_keymap)/sizeof(char *);
 
 Keyboard::Keyboard(QWidget *p) : QWidget(p)
 {
@@ -67,38 +59,48 @@ Keyboard::Keyboard(QWidget *p) : QWidget(p)
       keys[n] = QVector< key * >(nbkey);
     }
 
-    initKeys(LOWERCASE,en_lower_keymap);
-    initKeys(NUMBER,en_number_keymap);
-    initKeys(UPPERCASE,en_upper_keymap);
-    initKeys(PUNCTUATION,en_punctuation_keymap);
+    initKeys(LOWERCASE,   en_lower_keymap);
+    initKeys(NUMBER,      en_number_keymap);
+    initKeys(UPPERCASE,   en_upper_keymap);
+    initKeys(PUNCTUATION, en_punctuation_keymap);
 }
 
-void Keyboard::initKeys( int indexArraykeys,const char *keymap[])
+void Keyboard::initKeys( int indexArraykeys, const char *keymap[])
 {
-    int row = 0;
-    for(int n=0; n< nbkey; n++)
+    int xCoor = 0;
+    int yCoor = 0;
+
+    for(int n=0; n<nbkey; n++)
     {
         keys[indexArraykeys][n] = new key(keymap[n]);
-        if ( n>0)
-        {
-            //if (keymap[n] == "return" )     keys[indexArraykeys][n]->setIconFile(":/img/img/enter.png");
-            if (0 == strcasecmp( keymap[n], "backspace")) keys[indexArraykeys][n]->W=95;
-            if (0 == strcasecmp( keymap[n], "Caps"     )) keys[indexArraykeys][n]->W=70;
-            if (0 == strcasecmp( keymap[n], "space"    )) keys[indexArraykeys][n]->W=570;
+       // qDebug() <<  "n="<< n;
 
+        if ( n > 0 )
+        {
+            // Special length button
+            if (0 == strcasecmp( keymap[n], "space"    )) keys[indexArraykeys][n]->W=574;
+
+            // Calculat e new ccooridinate of button
             if (row_keymap[n-1]!=row_keymap[n])
             {
-                row ++;
-                keys[indexArraykeys][n]->setX(0); //offetrows[row]);
-            } else {
-                keys[indexArraykeys][n]->setX(keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W);
+                xCoor = 2;
             }
-            keys[indexArraykeys][n]->setY(row_keymap[n]*62);
-        } else {
-          //  keys[indexArraykeys][n]->setX(offetrows[0]);
-            keys[indexArraykeys][n]->setX(0);
-            keys[indexArraykeys][n]->setY(row_keymap[n]*62);
+            else
+            {
+                xCoor = keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W;
+            }
+            yCoor = row_keymap[n] * DEFAULT_YSIZE_BUTTON;
         }
+        else
+        {
+            xCoor = 2;
+            yCoor = 0;
+        }
+
+        keys[indexArraykeys][n]->setX(xCoor);
+        keys[indexArraykeys][n]->setY(yCoor);
+
+        //qDebug() <<"N: " << n << "\t\t" <<keys[indexArraykeys][n]->text << "\t\t W= " << keys[indexArraykeys][n]->W;
     }
 }
 
@@ -111,27 +113,40 @@ void Keyboard::initTooltip()
     tooltip->setFont(serifFont);
     tooltip->setAlignment(Qt::AlignCenter);
 
+    // Bug fix of first pres button
+    tooltip->show();
+    tooltip->hide();
 }
 
-void Keyboard::mousePressEvent(QMouseEvent * e) {
+void Keyboard::mousePressEvent(QMouseEvent * e)
+{
+    //qDebug() <<  "Mouse press event";
+    QWidget::mousePressEvent(e);
+
     QPoint pos = e->pos();
     setKeyPressed( findKey(pos), pos );
 }
 
-void Keyboard::mouseMoveEvent(QMouseEvent * e) {
+void Keyboard::mouseMoveEvent(QMouseEvent * e)
+{
+    //qDebug() <<  "Mouse move event";
     QPoint pos = e->pos();
 
-    if (currentKey != 0x0 && !currentKey->getRect().contains(pos)) {
+    if (currentKey != 0x0 && !currentKey->getRect().contains(pos))
+    {
         tooltip->hide();
         currentKey->setPressed(false);
         this->repaint();
     }
     setKeyPressed( findKey(pos), pos );
- }
+}
 
-void Keyboard::mouseReleaseEvent(QMouseEvent *e) {
+void Keyboard::mouseReleaseEvent(QMouseEvent *e)
+{
+    //qDebug() <<  "Mouse release event";
     QPoint pos = e->pos();
     tooltip->hide();
+
     key *k= findKey( pos );
     if (k != 0x0 )
     {
@@ -148,8 +163,9 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e) {
             return;
         }
 
-        if (k->text=="Caps")
-        {   if ( uppercase ==false)
+        if (k->text=="caps")
+        {
+            if ( uppercase ==false)
             {
                currentindexkeyboard = UPPERCASE;
                uppercase = true;
@@ -170,27 +186,28 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e) {
         }
         else
         {
-            if ( k->text =="backspace" )
+            if ( k->text =="back\nspace" )
             {
                 emit backspacePressed();
                 return;
             }
-
-            if (k->text=="enter")
+            else if (k->text=="enter")
             {
                 emit returnPressed();
                 return;
             }
-            if ( k->text == "space")
+            else if ( k->text == "space")
             {
-                   emit keyPressed(" ");
-            } else
+                emit keyPressed(" ");
+            }
+            else
             {
                 emit keyPressed(k->text);
             }
         }
     }
 }
+
 key *Keyboard::findKey(QPoint p)
 {
     foreach (key *k, keys[currentindexkeyboard])
@@ -214,10 +231,11 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
     QPoint p = QWidget::mapToGlobal(this->pos() +QPoint( k->X, k->Y));
     tooltip->setGeometry(p.x(),p.y()-50,50, 50);
     tooltip->setText(k->text);
-    tooltip->show();
+    tooltip->show(); // this line makes bug with first relase event
 }
 
-void Keyboard::paintEvent(QPaintEvent*) {
+void Keyboard::paintEvent(QPaintEvent*)
+{
     QPainter painter(this);
     foreach (key *k, keys[currentindexkeyboard])
     {

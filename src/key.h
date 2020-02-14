@@ -9,11 +9,19 @@
 #include <QStyle>
 
 
+#define KEYS_TYPE 4
+
+#define LOWERCASE 0
+#define NUMBER 1
+#define UPPERCASE 2
+#define PUNCTUATION 3
+
+
 class key : public QObject
 {
     Q_OBJECT
 public:
-    explicit key(QString t,QObject *parent = 0);
+    explicit key(QString t, QObject *parent = 0);
 
     void setX(int  );
     void setY(int  );

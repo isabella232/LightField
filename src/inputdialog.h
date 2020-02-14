@@ -5,16 +5,18 @@
 #include "window.h"
 
 #include <iostream>
+#include <stdbool.h>
+
+
 class InputDialog: public QDialog {
     Q_OBJECT
     private:
-        Keyboard*    _keyboard     { new Keyboard(this) };
-        QLabel*      _message      { new QLabel };
-        QLineEdit*   _input        { new QLineEdit };
-        QPushButton* _okButton     { new QPushButton("Ok") };
-        QPushButton* _cancelButton { new QPushButton("Cancel")};
-
-
+        Keyboard*    _keyboard          { new Keyboard(this) };
+        QLabel*      _message           { new QLabel };
+        QLineEdit*   _input             { new QLineEdit };
+        QPushButton* _okButton          { new QPushButton("Ok") };
+        QPushButton* _cancelButton      { new QPushButton("Cancel")};
+        QWidget*     _widget            { new QWidget };
     public:
         InputDialog() { }
         InputDialog(QString text) {
@@ -23,13 +25,12 @@ class InputDialog: public QDialog {
 
             Window* win = App::mainWindow();
             QRect r = win->geometry();
+
             move(r.x()+100, r.y()+100);
             resize(824, 400);
 
-            _message->setText(text);
-
+            _message ->setText(text);
             _keyboard->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
             _message->setFont(fontAwesome);
             _okButton->setFont(fontAwesome);
             _cancelButton->setFont(fontAwesome);
@@ -39,6 +40,7 @@ class InputDialog: public QDialog {
             _cancelButton->setMinimumSize(QSize(245, 70));
             setContentsMargins( { } );
             setMinimumSize(QSize(580, 355));
+
             setLayout(
                 WrapWidgetsInVBox(
                     _message,
@@ -49,6 +51,13 @@ class InputDialog: public QDialog {
             );
 
             setModal(true);
+
+            // Window backgorund
+            // TODO: make it transparent
+            _widget->setStyleSheet("background-color: rgba(255, 255, 255, 10%);");
+            _widget->setFixedSize(QSize(1024,600));
+            _widget->setWindowOpacity(0.5);
+            _widget->show();
 
             QWidget::connect(_keyboard, &Keyboard::keyPressed, this, &InputDialog::keyPressed);
             QWidget::connect(_keyboard, &Keyboard::backspacePressed, this, &InputDialog::backspacePressed);
@@ -62,6 +71,7 @@ class InputDialog: public QDialog {
             delete _input;
             delete _okButton;
             delete _cancelButton;
+            delete _widget;
         }
 
         QString getValue() {
@@ -87,16 +97,20 @@ class InputDialog: public QDialog {
         }
 
         void cancelCLicked_clicked(bool) {
+            _widget->hide();
             this->setResult(QDialog::Rejected);
             this->reject();
             this->close();
         }
 
         void oklCLicked_clicked(bool) {
+            _widget->hide();
             this->setResult(QDialog::Accepted);
             this->accept();
             this->close();
         }
+
+
 
     signals:
         void okclicked();

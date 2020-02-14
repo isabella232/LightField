@@ -230,13 +230,15 @@ void ProfilesTab::newProfile_clicked(bool)
     msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
 
-    /*QInputDialog inputDialog;
+    /*
+    QInputDialog inputDialog;
     inputDialog.setModal(true);
     inputDialog.move(r.x()+100, r.y()+100);
     inputDialog.setFont(*_fontAwesome);
     inputDialog.setFocus(Qt::FocusReason::ActiveWindowFocusReason);
     inputDialog.setLabelText("Enter a profile name: ");
-    int ret = inputDialog.exec();*/
+    int ret = inputDialog.exec();
+    */
 
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
@@ -255,6 +257,7 @@ void ProfilesTab::newProfile_clicked(bool)
             msgBox.exec();
         }
     }
+
 }
 
 void ProfilesTab::renamePProfile_clicked(bool)

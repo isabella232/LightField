@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <QFont>
 #include "key.h"
 
 
@@ -7,7 +8,7 @@ key::key(QString t,QObject *parent) : QObject(parent)
   text = t;
   X =10;
   Y =10;
-  W =t.length()*4 + 78;
+  W =82;//t.length()*4 + 78;
   H =62;
   pressed = false;
 }
@@ -43,10 +44,15 @@ void key::setPressed( bool b)
    pressed = b;
 }
 
-void key::draw(QPainter *p,QStyle *style) {
-
+void key::draw(QPainter *p,QStyle *style)
+{
     QStyleOptionButton opt;
+    QFont font;
+    auto fontAwesome = ModifyFont( font, "FontAwesome", 20.0 );
+
     opt.palette = QPalette(QColor(0,51,102,127));
+    p->setFont(fontAwesome);
+
     /*
     if ( pressed )
            {
@@ -59,14 +65,13 @@ void key::draw(QPainter *p,QStyle *style) {
 
     if ( iconFilename !="" )
     {
-        opt.icon = QIcon(iconFilename);
-        opt.iconSize=QSize(16,16);
+        opt.icon     = QIcon(iconFilename);
+        opt.iconSize = QSize(16,16);
     }
     else
     {
-        if (text =="&")  opt.text = "&&";
-        else opt.text = text;
+        if (text =="&") opt.text = "&&";
+        else            opt.text = text;
     }
     style->drawControl(QStyle::CE_PushButton, &opt, p);
-
 }

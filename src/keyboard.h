@@ -5,6 +5,9 @@
 #include <QLabel>
 #include <QVector>
 #include <QString>
+
+#define DEFAULT_YSIZE_BUTTON 62
+
 class key;
 
 class Keyboard : public QWidget
