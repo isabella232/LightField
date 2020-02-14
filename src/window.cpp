@@ -367,6 +367,13 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
             break;
+        case UiState::SelectedDirectory:
+            if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
+                _tabWidget->setCurrentIndex( +TabIndex::Prepare );
+
+                update( );
+            }
+            break;
     }
 }
 

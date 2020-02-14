@@ -158,9 +158,10 @@ void FileTab::_createUsbFsModel( ) {
     _destroyUsbFsModel( );
 
     _usbFsModel = new QFileSystemModel;
-    _usbFsModel->setFilter( QDir::Files );
+    _usbFsModel->setFilter( QDir::Files | QDir::Dirs );
     _usbFsModel->setNameFilterDisables( false );
-    _usbFsModel->setNameFilters( { { "*.stl" } } );
+    //_usbFsModel->setNameFilters( { { "*.stl" } } );
+    _usbFsModel->setNameFilters( { { "*.stl" }, { "*-50" }, { "*-100" } } );
     (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
     _usbFsModel->setRootPath( _usbPath );
 }
@@ -478,23 +479,33 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
     }
 
     _modelSelection = { ( ( _modelsLocation == ModelsLocation::Library ) ? StlModelLibraryPath : _usbPath ) % Slash % index.data( ).toString( ) };
+    QFileInfo check_file(_modelSelection.fileName);
+    _modelSelection.type = check_file.isFile() ? ModelFileType::File : ModelFileType::Directory;
+
     _selectedRow    = indexRow;
 
-    _availableFilesListView->setEnabled( false );
-    _selectButton->setEnabled( false );
-    _viewSolid->setEnabled( false );
-    _viewWireframe->setEnabled( false );
-    _deleteButton->setEnabled( false );
-    update( );
+    if(_modelSelection.type == ModelFileType::File)
+    {
+        _availableFilesListView->setEnabled( false );
+        _selectButton->setEnabled( false );
+        _viewSolid->setEnabled( false );
+        _viewWireframe->setEnabled( false );
+        _deleteButton->setEnabled( false );
+        update( );
 
-    if ( _processRunner ) {
-        QObject::disconnect( _processRunner, nullptr, this, nullptr );
-        _processRunner->terminate( );
-        _processRunner->deleteLater( );
-        _processRunner = nullptr;
+        if ( _processRunner ) {
+            QObject::disconnect( _processRunner, nullptr, this, nullptr );
+            _processRunner->terminate( );
+            _processRunner->deleteLater( );
+            _processRunner = nullptr;
+        }
+
+        _loadModel( _modelSelection.fileName );
     }
-
-    _loadModel( _modelSelection.fileName );
+    else
+    {
+        _selectButton->setEnabled( true );
+    }
 }
 
 void FileTab::availableFilesListView_swipeGesture( QGestureEvent* event, QSwipeGesture* gesture ) {
@@ -556,33 +567,73 @@ void FileTab::selectButton_clicked( bool ) {
         emit modelSelected( &_modelSelection );
         emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
     } else {
-        auto fileCopier   { new FileCopier };
-        auto fileNamePair { FileNamePair {
-            _modelSelection.fileName,
-            StlModelLibraryPath % Slash % GetFileBaseName( _modelSelection.fileName ) }
-        };
+        if(_modelSelection.type == ModelFileType::File) {
+            auto fileCopier   { new FileCopier };
+            auto fileNamePair { FileNamePair {
+                _modelSelection.fileName,
+                StlModelLibraryPath % Slash % GetFileBaseName( _modelSelection.fileName ) }
+            };
 
-        QObject::connect( fileCopier, &FileCopier::notify, this, [ this ] ( int const index, QString const message ) {
-            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::notify: index %d: message '%s'\n", index, message.toUtf8( ).data( ) );
-        }, Qt::QueuedConnection );
+            QObject::connect( fileCopier, &FileCopier::notify, this, [ this ] ( int const index, QString const message ) {
+                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::notify: index %d: message '%s'\n", index, message.toUtf8( ).data( ) );
+            }, Qt::QueuedConnection );
 
-        QObject::connect( fileCopier, &FileCopier::finished, this, [ this, fileNamePair ] ( int const copiedFiles, int const skippedFiles ) {
-            debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
-            if ( copiedFiles == 1 ) {
-                _showLibrary( );
+            QObject::connect( fileCopier, &FileCopier::finished, this, [ this, fileNamePair ] ( int const copiedFiles, int const skippedFiles ) {
+                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+                if ( copiedFiles == 1 ) {
+                    _showLibrary( );
 
-                auto index = _libraryFsModel->index( fileNamePair.second );
-                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
-                availableFilesListView_clicked( index );
-            } else {
-                // TODO inform user of failure somehow
+                    auto index = _libraryFsModel->index( fileNamePair.second );
+                    _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                    availableFilesListView_clicked( index );
+                } else {
+                    // TODO inform user of failure somehow
+                }
+            }, Qt::QueuedConnection );
+
+            QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
+
+            debug( "+ FileTab::selectButton_clicked: copying %s to %s\n", fileNamePair.first.toUtf8( ).data( ), fileNamePair.second.toUtf8( ).data( ) );
+            fileCopier->copy( { fileNamePair } );
+        }
+        else if (_modelSelection.type == ModelFileType::Directory)
+        {
+            auto fileCopier   { new FileCopier };
+            FileNamePairList pairList {};
+
+
+            QDir modelLib  { JobWorkingDirectoryPath };
+            QString folderCpyName = GetFileBaseName( _modelSelection.fileName );
+            QString folderCpyPath = JobWorkingDirectoryPath % Slash % folderCpyName;
+
+            modelLib.mkdir(folderCpyName);
+
+            QDirIterator it(_modelSelection.fileName, QDir::Files);
+            while (it.hasNext()) {
+                QString fileName = it.next();
+                auto fileNamePair { FileNamePair {
+                    fileName,
+                    folderCpyPath % Slash % GetFileBaseName( fileName ) }
+                };
+
+                pairList.push_back(fileNamePair);
             }
-        }, Qt::QueuedConnection );
 
-        QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
+            QObject::connect( fileCopier, &FileCopier::finished, this, [ this, folderCpyPath ] ( int const copiedFiles, int const skippedFiles ) {
+                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+                if ( copiedFiles > 0 ) {
+                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                } else {
+                    // TODO inform user of failure somehow
+                }
+            }, Qt::QueuedConnection );
 
-        debug( "+ FileTab::selectButton_clicked: copying %s to %s\n", fileNamePair.first.toUtf8( ).data( ), fileNamePair.second.toUtf8( ).data( ) );
-        fileCopier->copy( { fileNamePair } );
+            QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
+
+
+            _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % folderCpyName;
+            fileCopier->copy( pairList );
+        }
     }
 
     update( );

@@ -38,6 +38,7 @@ public:
         SliceCompleted,
         PrintStarted,
         PrintCompleted,
+        SelectedDirectory
     };
     Q_ENUM( UiState );
 

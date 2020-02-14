@@ -156,8 +156,8 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
     _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
-    _layout->addWidget( _copyToUSBButton,   2, 0, 1, 1 );
-    _layout->addWidget( _currentLayerGroup, 0, 1, 3, 1 );
+    //_layout->addWidget( _copyToUSBButton,   2, 0, 1, 1 );
+    _layout->addWidget( _currentLayerGroup, 0, 1, /* ^ 3*/ 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -670,6 +670,10 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _setSliceControlsEnabled( true );
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
+            break;
+        case UiState::SelectedDirectory:
+            _setSliceControlsEnabled( false );
+            slicerProcess_finished(0, QProcess::NormalExit);
             break;
     }
 
