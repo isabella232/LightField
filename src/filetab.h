@@ -37,7 +37,7 @@ public:
     }
 
     QString         fileName;
-    ModelFileType   type;
+    ModelFileType   type            { ModelFileType::File };
     size_t          vertexCount     { };
     Coordinate      x               { };
     Coordinate      y               { };

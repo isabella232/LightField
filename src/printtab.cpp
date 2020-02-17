@@ -358,6 +358,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
             break;
+        case UiState::SelectedDirectory:
+            break;
     }
 
     update( );

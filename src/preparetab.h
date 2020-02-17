@@ -35,6 +35,7 @@ private:
     int           _renderedLayers              { };
     bool          _isPrinterOnline             { false };
     bool          _isPrinterAvailable          { true  };
+    bool          _directoryMode               { false };           /* flag - is selected directory of images */
 
     QLabel*       _layerThicknessLabel         { new QLabel       };
     QRadioButton* _layerThickness50Button      { new QRadioButton };
@@ -85,9 +86,6 @@ private:
     void _updatePrepareButtonState( );
 
     void _handlePrepareFailed( );
-    void _createUsbFsModel( );
-    void _destroyUsbFsModel( );
-    void _deleteModel( );
 
 signals:
 
@@ -143,7 +141,6 @@ private slots:
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
 
     void copyToUSB_clicked( bool );
-    void usbFsModel_directoryLoaded( QString const& /*name*/ );
 };
 
 #endif // __PREPARETAB_H__

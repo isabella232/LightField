@@ -104,6 +104,7 @@ void ProfilesTab::tab_uiStateChanged( TabIndex const sender, UiState const state
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
+        case UiState::SelectedDirectory:
             break;
     }
 }

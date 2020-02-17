@@ -139,6 +139,8 @@ void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::PrintStarted:
             setPrinterAvailable( false );
             break;
+        case UiState::SelectedDirectory:
+            break;
     }
 }
 

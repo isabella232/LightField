@@ -156,8 +156,13 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
     _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
+
+    /* copy to USB button is turned off now */
+
     //_layout->addWidget( _copyToUSBButton,   2, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, /* ^ 3*/ 2, 1 );
+    //_layout->addWidget( _copyToUSBButton,   2, 0, 1, 1 );
+    //_layout->addWidget( _currentLayerGroup, 0, 1, 3, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -632,6 +637,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
     switch ( _uiState ) {
         case UiState::SelectStarted:
+            _directoryMode = false;
             _setSliceControlsEnabled( false );
             break;
 
@@ -657,7 +663,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             break;
 
         case UiState::SliceCompleted:
-            _setSliceControlsEnabled( true );
+            if(!_directoryMode)
+                _setSliceControlsEnabled( true );
             break;
 
         case UiState::PrintStarted:
@@ -672,7 +679,18 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             emit printerAvailabilityChanged( true );
             break;
         case UiState::SelectedDirectory:
+            _directoryMode = true;
             _setSliceControlsEnabled( false );
+
+            if(_printJob->jobWorkingDirectory.endsWith("-100"))
+            {
+                _layerThickness100Button->setChecked( true );
+            }
+            else
+            {
+                _layerThickness50Button->setChecked( true );
+            }
+
             slicerProcess_finished(0, QProcess::NormalExit);
             break;
     }
@@ -758,8 +776,9 @@ void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) 
     }
 
     _usbPath = mountPoint;
-    _createUsbFsModel( );
 
+    if(!_directoryMode && _checkPreSlicedFiles( ))
+        _copyToUSBButton->setEnabled( true );
     update( );
 }
 
@@ -772,36 +791,9 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
     }
 
     _usbPath.clear( );
-    _destroyUsbFsModel( );
     _copyToUSBButton->setEnabled( false );
 
     update( );
 }
 
-void PrepareTab::_destroyUsbFsModel( ) {
-    if ( _usbFsModel ) {
-        QObject::disconnect( _usbFsModel );
-        _usbFsModel->deleteLater( );
-        _usbFsModel = nullptr;
-    }
-}
 
-void PrepareTab::_createUsbFsModel( ) {
-    _destroyUsbFsModel( );
-
-    _usbFsModel = new QFileSystemModel;
-    _usbFsModel->setFilter( QDir::Dirs );
-    _usbFsModel->setNameFilterDisables( false );
-    _usbFsModel->setNameFilters( { { "*-50" }, {"-100"} } );
-    (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &PrepareTab::usbFsModel_directoryLoaded );
-    _usbFsModel->setRootPath( _usbPath );
-}
-
-void PrepareTab::usbFsModel_directoryLoaded( QString const& /*name*/ ) {
-    debug( "+ PrepareTab::usbFsModel_directoryLoaded\n" );
-
-    if(!_sliceButton->isEnabled())
-        _copyToUSBButton->setEnabled(true);
-
-    update( );
-}
