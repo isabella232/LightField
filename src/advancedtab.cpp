@@ -9,7 +9,7 @@
 
 namespace {
 
-    auto DefaultPrintBedTemperature = 60;
+    auto DefaultPrintBedTemperature = 75;
 
 }
 
@@ -103,7 +103,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
     _bedTemperatureSlider->setEnabled( false );
     _bedTemperatureSlider->setMinimum( 30 );
-    _bedTemperatureSlider->setMaximum( 50 );
+    _bedTemperatureSlider->setMaximum( 75 );
     _bedTemperatureSlider->setOrientation( Qt::Horizontal );
     _bedTemperatureSlider->setPageStep( 1 );
     _bedTemperatureSlider->setSingleStep( 1 );
