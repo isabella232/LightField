@@ -31,6 +31,48 @@ public:
         return printProfile;
     }
 
+    void debugPrint()
+    {
+        debug("#############################################\n");
+        debug("PrintProfile %s: \n", _name.toUtf8( ).data( ));
+        debug("#############################################\n");
+        debug("     objectAddress:                  %d\n", this);
+        debug("     baseLayerCount                  %d\n", _baseLayerCount);
+        debug("     baseLayersPumpingEnabled        %d\n", _baseLayersPumpingEnabled);
+        debug("     baseLayersPumpingParameters:    \n");
+        debug("     objectAddress:                  %d\n", &_baseLayersPumpingParameters);
+        debug("         powerLevel:                 %d\n", _baseLayersPumpingParameters.powerLevel());
+        debug("         pumpUpTime:                 %d\n", _baseLayersPumpingParameters.pumpUpTime());
+        debug("         pumpUpPause:                %d\n", _baseLayersPumpingParameters.pumpUpPause());
+        debug("         pumpDownPause:              %d\n", _baseLayersPumpingParameters.pumpDownPause());
+        debug("         layerThickness:             %d\n", _baseLayersPumpingParameters.layerThickness());
+        debug("         pumpUpDistance:             %d\n", _baseLayersPumpingParameters.pumpUpDistance());
+        debug("         noPumpUpVelocity:           %d\n", _baseLayersPumpingParameters.noPumpUpVelocity());
+        debug("         layerExposureTime:          %d\n", _baseLayersPumpingParameters.layerExposureTime());
+        debug("         pumpEveryNthLayer:          %d\n", _baseLayersPumpingParameters.pumpEveryNthLayer());
+        /*debug("         pumpDownTime_Effective:     %d\n", _baseLayersPumpingParameters.pumpDownTime_Effective());
+        debug("         pumpUpVelocity_Effective:   %d\n", _baseLayersPumpingParameters.pumpUpVelocity_Effective());
+        debug("         pumpDownDistance_Effective: %d\n", _baseLayersPumpingParameters.pumpDownDistance_Effective());
+        debug("         pumpDownVelocity_Effective: %d\n", _baseLayersPumpingParameters.pumpDownVelocity_Effective());*/
+        debug("     bodyLayersPumpingEnabled        %d\n", _bodyLayersPumpingEnabled);
+        debug("     bodyLayersPumpingParameters:    \n");
+        debug("     objectAddress:                  %d\n", &_bodyLayersPumpingParameters);
+        debug("         powerLevel:                 %d\n", _bodyLayersPumpingParameters.powerLevel());
+        debug("         pumpUpTime:                 %d\n", _bodyLayersPumpingParameters.pumpUpTime());
+        debug("         pumpUpPause:                %d\n", _bodyLayersPumpingParameters.pumpUpPause());
+        debug("         pumpDownPause:              %d\n", _bodyLayersPumpingParameters.pumpDownPause());
+        debug("         layerThickness:             %d\n", _bodyLayersPumpingParameters.layerThickness());
+        debug("         pumpUpDistance:             %d\n", _bodyLayersPumpingParameters.pumpUpDistance());
+        debug("         noPumpUpVelocity:           %d\n", _bodyLayersPumpingParameters.noPumpUpVelocity());
+        debug("         layerExposureTime:          %d\n", _bodyLayersPumpingParameters.layerExposureTime());
+        debug("         pumpEveryNthLayer:          %d\n", _bodyLayersPumpingParameters.pumpEveryNthLayer());
+        /*debug("         pumpDownTime_Effective:     %d\n", _bodyLayersPumpingParameters.pumpDownTime_Effective());
+        debug("         pumpUpVelocity_Effective:   %d\n", _bodyLayersPumpingParameters.pumpUpVelocity_Effective());
+        debug("         pumpDownDistance_Effective: %d\n", _bodyLayersPumpingParameters.pumpDownDistance_Effective());
+        debug("         pumpDownVelocity_Effective: %d\n", _bodyLayersPumpingParameters.pumpDownVelocity_Effective());*/
+        debug("#############################################\n");
+    }
+
     //
     // Accessors
     //

@@ -430,7 +430,7 @@ bool ProfilesTab::_updateProfile()
     newBaseParams.setLayerExposureTime( baseParams.layerExposureTime() );
     newBaseParams.setPowerLevel( baseParams.powerLevel() );
 
-    profile->setBaseLayersPumpingParameters(newBaseParams);
+    profile->setBaseLayersPumpingParameters( newBaseParams );
 
     PrintPumpingParameters bodyParams = activeProfile->bodyLayersPumpingParameters();
     PrintPumpingParameters newBodyParams;
@@ -445,9 +445,10 @@ bool ProfilesTab::_updateProfile()
     newBodyParams.setLayerExposureTime( bodyParams.layerExposureTime() );
     newBodyParams.setPowerLevel( bodyParams.powerLevel() );
 
-    profile->setBaseLayersPumpingParameters(bodyParams);
+    profile->setBodyLayersPumpingParameters( newBodyParams );
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+    profile->debugPrint();
 
     return true;
 }
