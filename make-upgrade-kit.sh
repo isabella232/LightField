@@ -174,7 +174,7 @@ rm ${VERBOSE} -f                  \
     version.inf                   \
     version.inf.sig
 
-sha256sum -- -b * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
+sha256sum -b -- * | sed -r -e 's/^/ /' -e 's/ +\*/ /' > .hashes
 (
     sed                                              \
         -e  "s/@@ARCHITECTURE@@/${ARCHITECTURE}/g"   \
