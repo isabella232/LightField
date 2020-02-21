@@ -10,6 +10,7 @@
 #include "shepherd.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
+#include "usbmountmanager.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -80,6 +81,13 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare" );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
+
+    //_copyToUSBButton->setEnabled( false );
+    //_copyToUSBButton->setFixedSize( MainButtonSize );
+    //_copyToUSBButton->setFont( font22pt );
+    //_copyToUSBButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    //_copyToUSBButton->setText( "Copy to USB" );
+    //QObject::connect( _copyToUSBButton, &QPushButton::clicked, this, &PrepareTab::copyToUSB_clicked );
 
     _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
@@ -177,6 +185,11 @@ void PrepareTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
+void PrepareTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &PrepareTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &PrepareTab::usbMountManager_filesystemUnmounted );
+}
+
 bool PrepareTab::_checkPreSlicedFiles( ) {
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
@@ -271,9 +284,11 @@ bool PrepareTab::_checkJobDirectory( ) {
     if ( preSliced ) {
         _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
+        //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
+        //_copyToUSBButton->setEnabled( false );
     }
 
     update( );
@@ -468,6 +483,8 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
 
     _sliceStatus->setText( "finished" );
     _imageGeneratorStatus->setText( "starting" );
+    //_copyToUSBButton->setEnabled( true );
+
     update( );
 
     _svgRenderer = new SvgRenderer;
@@ -611,6 +628,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
     switch ( _uiState ) {
         case UiState::SelectStarted:
+            _directoryMode = false;
             _setSliceControlsEnabled( false );
             break;
 
@@ -636,7 +654,9 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             break;
 
         case UiState::SliceCompleted:
-            _setSliceControlsEnabled( true );
+            if ( !_directoryMode ) {
+                _setSliceControlsEnabled( true );
+            }
             break;
 
         case UiState::PrintStarted:
@@ -649,6 +669,21 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _setSliceControlsEnabled( true );
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
+            break;
+
+        case UiState::SelectedDirectory:
+            _directoryMode = true;
+            _setSliceControlsEnabled( false );
+
+            if ( _printJob->jobWorkingDirectory.endsWith( "-100" ) ) {
+                _layerThickness100Button->setChecked( true );
+            } else if ( _printJob->jobWorkingDirectory.endsWith( "-50" ) ) {
+                _layerThickness50Button->setChecked( true );
+            } else {
+                // TODO
+            }
+
+            slicerProcess_finished( 0, QProcess::NormalExit );
             break;
     }
 
@@ -694,4 +729,65 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     debug( "+ PrepareTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updatePrepareButtonState( );
+}
+
+//void PrepareTab::copyToUSB_clicked( bool ) {
+//    debug( "+ PrepareTab::copyToUSB_clicked\n" );
+//
+//    QDir jobDir   { _printJob->jobWorkingDirectory };
+//    QDir mediaDir { _usbPath };
+//    mediaDir.mkdir( jobDir.dirName( ) );
+//
+//    QDirIterator it { _printJob->jobWorkingDirectory };
+//    while ( it.hasNext( ) ) {
+//        QString   fileName { it.next( ) };
+//        QFileInfo fileInfo { fileName   };
+//
+//        QString dest { _usbPath % Slash % jobDir.dirName( ) % Slash % fileInfo.fileName( ) };
+//
+//        debug( "  + copying %s\n", dest.toUtf8( ).data( ) );
+//        if ( !QFile::copy( fileName, dest ) ) {
+//            // TODO
+//        }
+//    }
+//
+//    update( );
+//}
+
+void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
+    debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( !_usbPath.isEmpty( ) ) {
+        debug( "  + We already have a USB storage device at '%s' mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    QFileInfo usbPathInfo { mountPoint };
+    if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
+        debug( "  + Unable to access mount point '%s' (uid: %u; gid: %u; mode: 0%03o)\n", _usbPath.toUtf8( ).data( ), usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
+        return;
+    }
+
+    _usbPath = mountPoint;
+
+    //if ( !_directoryMode && _checkPreSlicedFiles( ) ) {
+    //    _copyToUSBButton->setEnabled( true );
+    //}
+
+    update( );
+}
+
+void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
+    debug( "+ PrepareTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( mountPoint != _usbPath ) {
+        debug( "  + not our filesystem; ignoring\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    _usbPath.clear( );
+
+    //_copyToUSBButton->setEnabled( false );
+
+    update( );
 }

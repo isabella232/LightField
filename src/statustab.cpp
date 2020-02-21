@@ -561,6 +561,9 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             _stopButton->setVisible( false );
             _reprintButton->setVisible( true );
             break;
+
+        case UiState::SelectedDirectory:
+            break;
     }
 
     _updateReprintButtonState( );

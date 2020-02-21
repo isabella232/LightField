@@ -15,62 +15,68 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    bool             isPrepareButtonEnabled( ) const          { return _prepareButton->isEnabled( ); }
-    bool             isSliceButtonEnabled( )   const          { return _sliceButton->isEnabled( );   }
+    bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
+    bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
 
-    virtual TabIndex tabIndex( )               const override { return TabIndex::Prepare;            }
+    virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
 protected:
 
-    virtual void _connectPrintManager( )                override;
-    virtual void _connectShepherd( )                    override;
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void     _connectPrintManager( )                      override;
+    virtual void     _connectShepherd( )                          override;
+    virtual void     _initialShowEvent( QShowEvent* event )       override;
+    virtual void     _connectUsbMountManager( )                   override;
 
 private:
 
-    QProcess*     _slicerProcess               { };
-    SvgRenderer*  _svgRenderer                 { };
-    Hasher*       _hasher                      { };
-    int           _visibleLayer                { };
-    int           _renderedLayers              { };
-    bool          _isPrinterOnline             { false };
-    bool          _isPrinterAvailable          { true  };
+    QProcess*         _slicerProcess               { };
+    SvgRenderer*      _svgRenderer                 { };
+    Hasher*           _hasher                      { };
+    int               _visibleLayer                { };
+    int               _renderedLayers              { };
+    bool              _isPrinterOnline             { false };
+    bool              _isPrinterAvailable          { true  };
+    bool              _directoryMode               { false };
 
-    QLabel*       _layerThicknessLabel         { new QLabel       };
-    QRadioButton* _layerThickness50Button      { new QRadioButton };
-    QRadioButton* _layerThickness100Button     { new QRadioButton };
+    QLabel*           _layerThicknessLabel         { new QLabel           };
+    QRadioButton*     _layerThickness50Button      { new QRadioButton     };
+    QRadioButton*     _layerThickness100Button     { new QRadioButton     };
 
-    QLabel*       _sliceStatusLabel            { new QLabel       };
-    QLabel*       _sliceStatus                 { new QLabel       };
-    QLabel*       _imageGeneratorStatusLabel   { new QLabel       };
-    QLabel*       _imageGeneratorStatus        { new QLabel       };
+    QLabel*           _sliceStatusLabel            { new QLabel           };
+    QLabel*           _sliceStatus                 { new QLabel           };
+    QLabel*           _imageGeneratorStatusLabel   { new QLabel           };
+    QLabel*           _imageGeneratorStatus        { new QLabel           };
 
-    QGroupBox*    _prepareGroup                { new QGroupBox    };
-    QLabel*       _prepareMessage              { new QLabel       };
-    QProgressBar* _prepareProgress             { new QProgressBar };
-    QPushButton*  _prepareButton               { new QPushButton  };
+    QGroupBox*        _prepareGroup                { new QGroupBox        };
+    QLabel*           _prepareMessage              { new QLabel           };
+    QProgressBar*     _prepareProgress             { new QProgressBar     };
+    QPushButton*      _prepareButton               { new QPushButton      };
+    //QPushButton*    _copyToUSBButton             { new QPushButton      };
+    QString           _usbPath;
+    QFileSystemModel* _libraryFsModel              { new QFileSystemModel };
+    QFileSystemModel* _usbFsModel                  {                      };
 
-    QPixmap*      _warningHotImage             {                  };
-    QLabel*       _warningHotLabel             { new QLabel       };
+    QPixmap*          _warningHotImage             {                      };
+    QLabel*           _warningHotLabel             { new QLabel           };
 
-    QPixmap*      _warningUvImage              {                  };
-    QLabel*       _warningUvLabel              { new QLabel       };
+    QPixmap*          _warningUvImage              {                      };
+    QLabel*           _warningUvLabel              { new QLabel           };
 
-    QWidget*      _optionsContainer            { new QWidget      };
-    QPushButton*  _sliceButton                 { new QPushButton  };
+    QWidget*          _optionsContainer            { new QWidget          };
+    QPushButton*      _sliceButton                 { new QPushButton      };
 
-    QGroupBox*    _currentLayerGroup           { new QGroupBox    };
-    QLabel*       _currentLayerImage           { new QLabel       };
-    QVBoxLayout*  _currentLayerLayout          { new QVBoxLayout  };
+    QGroupBox*        _currentLayerGroup           { new QGroupBox        };
+    QLabel*           _currentLayerImage           { new QLabel           };
+    QVBoxLayout*      _currentLayerLayout          { new QVBoxLayout      };
 
-    QPushButton*  _navigateFirst               { new QPushButton  };
-    QPushButton*  _navigatePrevious            { new QPushButton  };
-    QLabel*       _navigateCurrentLabel        { new QLabel       };
-    QPushButton*  _navigateNext                { new QPushButton  };
-    QPushButton*  _navigateLast                { new QPushButton  };
-    QHBoxLayout*  _navigationLayout            {                  };
+    QPushButton*      _navigateFirst               { new QPushButton      };
+    QPushButton*      _navigatePrevious            { new QPushButton      };
+    QLabel*           _navigateCurrentLabel        { new QLabel           };
+    QPushButton*      _navigateNext                { new QPushButton      };
+    QPushButton*      _navigateLast                { new QPushButton      };
+    QHBoxLayout*      _navigationLayout            {                      };
 
-    QGridLayout*  _layout                      { new QGridLayout  };
+    QGridLayout*      _layout                      { new QGridLayout      };
 
     bool _checkPreSlicedFiles( );
     bool _checkJobDirectory( );
@@ -82,6 +88,7 @@ private:
     void _handlePrepareFailed( );
 
 signals:
+    ;
 
     void slicingNeeded( bool const needed );
 
@@ -91,14 +98,20 @@ signals:
     void printerAvailabilityChanged( bool const available );
 
 public slots:
+    ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setPrinterAvailable( bool const value );
 
 protected slots:
+    ;
 
 private slots:
+    ;
+
+    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void printer_online( );
     void printer_offline( );
@@ -129,6 +142,8 @@ private slots:
     void shepherd_homeComplete( bool const success );
     void adjustBuildPlatform_complete( bool );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
+
+    //void copyToUSB_clicked( bool );
 
 };
 

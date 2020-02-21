@@ -90,6 +90,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     emit printJobChanged( _printJob );
 
     _fileTab    ->setUsbMountManager( _usbMountManager );
+    _prepareTab ->setUsbMountManager( _usbMountManager );
     _advancedTab->setPngDisplayer   ( _pngDisplayer    );
     _systemTab  ->setUpgradeManager ( _upgradeManager  );
     _systemTab  ->setUsbMountManager( _usbMountManager );
@@ -236,8 +237,9 @@ void Window::terminate( ) {
     }
 
     if ( _usbMountManager ) {
-        _fileTab  ->setUsbMountManager( nullptr );
-        _systemTab->setUsbMountManager( nullptr );
+        _fileTab   ->setUsbMountManager( nullptr );
+        _prepareTab->setUsbMountManager( nullptr );
+        _systemTab ->setUsbMountManager( nullptr );
 
         QObject::disconnect( _usbMountManager );
         _usbMountManager->deleteLater( );
@@ -351,6 +353,14 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
+            break;
+
+        case UiState::SelectedDirectory:
+            if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
+                _tabWidget->setCurrentIndex( +TabIndex::Prepare );
+
+                update( );
+            }
             break;
     }
 }
