@@ -1,28 +1,80 @@
 [
     {
-        "name": "exampleProfile",
         "baseLayerCount": 1,
         "baseLayersPumpingParameters": {
-            "pumpUpDistance": 2.00,
-            "pumpUpTime": 600,
-            "pumpUpPause": 2000,
-            "pumpDownPause": 4000,
-            "noPumpUpVelocity": 200,
-            "pumpEveryNthLayer": 1,
-            "layerThickness": 100,
             "layerExposureTime": 1000,
-            "powerLevel": 50.0
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
         },
         "bodyLayersPumpingParameters": {
-            "pumpUpDistance": 2.00,
-            "pumpUpTime": 600,
-            "pumpUpPause": 2000,
-            "pumpDownPause": 4000,
-            "noPumpUpVelocity": 200,
-            "pumpEveryNthLayer": 1,
-            "layerThickness": 100,
             "layerExposureTime": 1000,
-            "powerLevel": 50.0
-        }
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "name": "profile_1"
+    },
+    {
+        "baseLayerCount": 1,
+        "baseLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "bodyLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "name": "profile_2"
+    },
+    {
+        "baseLayerCount": 1,
+        "baseLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "bodyLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 50,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 2,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "name": "profile_3"
     }
 ]

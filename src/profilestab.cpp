@@ -23,6 +23,7 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     cpyStlFilesUsbBox->setLayout(WrapWidgetsInVBox(_cpyStlFilesUsb, nullptr));
     cpyStlFilesUsbBox->setContentsMargins( { } );
 
+
     _cpyProfilesUsb->setFont(fontAwesome);
     _cpyStlFilesUsb->setFont(fontAwesome);
 
@@ -51,9 +52,11 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     _deleteProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
     _loadProfile->setFont(fontAwesome);
-    _loadProfile->setFixedSize( MainButtonSize );
+    _loadProfile->setFixedSize( MainButtonSize );  
     _loadProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
+    // Default disabled all button  no profile is selected
+    _enableButtonProfile(false);
     _setupProfilesList(fontAwesome);
 
     QObject::connect( _importParams, &QPushButton::clicked, this, &ProfilesTab::importParams_clicked );
@@ -63,6 +66,7 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _overwriteProfile, &QPushButton::clicked, this, &ProfilesTab::updateProfile_clicked );
     QObject::connect( _deleteProfile, &QPushButton::clicked, this, &ProfilesTab::deleteProfile_clicked );
     QObject::connect( _loadProfile, &QPushButton::clicked, this, &ProfilesTab::loadProfile_clicked );
+    QObject::connect( _profilesList, &QListView::clicked, this, &ProfilesTab::itemClicked );
 
     setLayout(
         WrapWidgetsInHBox(
@@ -91,6 +95,20 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
 
 ProfilesTab::~ProfilesTab( ) {
     /*empty*/
+}
+
+
+void ProfilesTab::itemClicked(QModelIndex const& index)
+{
+   _enableButtonProfile(true);
+}
+
+
+void ProfilesTab::_enableButtonProfile( bool enabled ) {
+    _overwriteProfile->setEnabled(enabled);
+    _deleteProfile->setEnabled(enabled);
+    _loadProfile->setEnabled(enabled);
+    _renameProfile->setEnabled(enabled);
 }
 
 void ProfilesTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -136,6 +154,7 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
         if( !i ) {
             firstItem=item;
             _printProfileManager->setActiveProfile(profile->profileName());
+             _enableButtonProfile(true);
         }
 
         _model->setItem( i, 0, item );
@@ -150,16 +169,14 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
 void ProfilesTab::importParams_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
-    msgBox.setText("Are You sure to import all profiles from USB memory stick?");
+    // <nobr> because when two line text causes wrong value of sizeHint().width() and sizeHint().height()
+    msgBox.setText("<center><nobr>Are You sure to import all profiles <br>from USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
-
-
+    msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -168,14 +185,16 @@ void ProfilesTab::importParams_clicked(bool)
             // @todo how to pass checkboxes values? what filename means?
             if(!_printProfileManager->importProfiles(nullptr))
             {
-               msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
+               msgBox.setText("<center><nobr>Something went wrong. Make sure memory <br>stick is inserted into USB drive.</nobr></center>");
                msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             else
             {
                msgBox.setText("Import successed.");
                msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -187,31 +206,30 @@ void ProfilesTab::importParams_clicked(bool)
 void ProfilesTab::exportParams_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
-    msgBox.setText("Are You sure to export all profiles to USB memory stick?");
+    msgBox.setText("<center><nobr>Are You sure to export all profiles <br>to USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
-
+    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
         case QMessageBox::Yes:
-
             // @todo how to pass checkboxes values? what filename means?
             if(!_printProfileManager->exportProfiles(nullptr))
             {
                msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
                msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             else
             {
                msgBox.setText("Import successed.");
                msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -223,53 +241,40 @@ void ProfilesTab::exportParams_clicked(bool)
 void ProfilesTab::newProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
-
-    /*
-    QInputDialog inputDialog;
-    inputDialog.setModal(true);
-    inputDialog.move(r.x()+100, r.y()+100);
-    inputDialog.setFont(*_fontAwesome);
-    inputDialog.setFocus(Qt::FocusReason::ActiveWindowFocusReason);
-    inputDialog.setLabelText("Enter a profile name: ");
-    int ret = inputDialog.exec();
-    */
 
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
 
     QString filename = inputDialog->getValue();
+
     if (ret && !filename.isEmpty())
     {
-        if(!_createNewProfile(filename))
+       if(!_createNewProfile(filename))
         {
             msgBox.setText("Something went wrong.");
+            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly added.");
+            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
-
 }
 
 void ProfilesTab::renamePProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
-
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
 
@@ -279,11 +284,13 @@ void ProfilesTab::renamePProfile_clicked(bool)
         if(!_renamePProfile(filename))
         {
             msgBox.setText("Something went wrong.");
+            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly renamed.");
+            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
@@ -292,13 +299,12 @@ void ProfilesTab::renamePProfile_clicked(bool)
 void ProfilesTab::updateProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to update selected profile?");
+    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -318,13 +324,13 @@ void ProfilesTab::updateProfile_clicked(bool)
 void ProfilesTab::deleteProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
+
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to delete selected profile?");
+    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -344,13 +350,13 @@ void ProfilesTab::deleteProfile_clicked(bool)
 void ProfilesTab::loadProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.move(r.x()+100, r.y()+100);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to load selected profile?");
+    //qDebug() << w->width() << " " << msgBox.sizeHint().width() << " " << w->height() << " " << msgBox.sizeHint().height();
+    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -359,6 +365,7 @@ void ProfilesTab::loadProfile_clicked(bool)
             {
                msgBox.setText("Something went wrong.");
                msgBox.setStandardButtons(QMessageBox::Ok);
+               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -374,14 +381,10 @@ bool ProfilesTab::_createNewProfile(QString profileName)
 
     profileCopy->setProfileName(profileName);
     _printProfileManager->addProfile(profileCopy);
-
     QStandardItem* item = new QStandardItem(profileName);
     item->setEditable(false);
-
     _model->appendRow(item);
-
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
-
     return true;
 }
 
@@ -460,6 +463,9 @@ bool ProfilesTab::_deletePrintProfile()
 
     _model->removeRows(index.row(), 1);
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+
+    ProfilesJsonParser::loadProfiles();
+    _enableButtonProfile(false); // Because no item is selected after deleted
 
     return true;
 }
