@@ -39,7 +39,7 @@ case "$1" in
         udevadm control --reload
         udevadm trigger /dev/ttyACM* /dev/ttyUSB*
 
-        if [ "${RELEASE_TRAIN}" = "dlp4710" ]
+        if [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "xdlp4710" ]
         then
             fuser -k /dev/lumen-projector
             set-projector-power --first-time
