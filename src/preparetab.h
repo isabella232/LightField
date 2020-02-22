@@ -39,8 +39,11 @@ private:
     bool              _directoryMode               { false };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };
-    QRadioButton*     _layerThickness50Button      { new QRadioButton     };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };
+    QRadioButton*     _layerThickness50Button      { new QRadioButton     };
+#if defined EXPERIMENTAL
+    QRadioButton*     _layerThickness20Button      { new QRadioButton     };
+#endif
 
     QLabel*           _sliceStatusLabel            { new QLabel           };
     QLabel*           _sliceStatus                 { new QLabel           };
@@ -118,8 +121,11 @@ private slots:
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
     void printManager_lampStatusChange( bool const on );
 
-    void layerThickness50Button_clicked( bool );
     void layerThickness100Button_clicked( bool );
+    void layerThickness50Button_clicked( bool );
+#if defined EXPERIMENTAL
+    void layerThickness20Button_clicked( bool );
+#endif
 
     void navigateFirst_clicked( bool );
     void navigatePrevious_clicked( bool );

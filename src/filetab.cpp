@@ -177,7 +177,14 @@ void FileTab::_createUsbFsModel( ) {
     _usbFsModel = new QFileSystemModel;
     _usbFsModel->setFilter( QDir::Files | QDir::Dirs );
     _usbFsModel->setNameFilterDisables( false );
-    _usbFsModel->setNameFilters( { { "*.stl" }, { "*-50" }, { "*-100" } } );
+    _usbFsModel->setNameFilters( {
+        { "*.stl" },
+#if defined EXPERIMENTAL
+        { "*-20"  },
+#endif
+        { "*-50"  },
+        { "*-100" }
+    } );
     (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
     _usbFsModel->setRootPath( _usbPath );
 }
