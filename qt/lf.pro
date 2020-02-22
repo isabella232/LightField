@@ -115,3 +115,7 @@ debug {
 dlp4710 {
     DEFINES += DLP4710
 }
+
+experimental {
+    DEFINES += EXPERIMENTAL
+}

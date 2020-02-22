@@ -37,8 +37,28 @@ function rebuild () {
     local ARGS=
     local LASTBUILDMODE=
     local ADDTOCONFIG=
+    local PROJECTOR_TYPE=
 
-    [ "${RELEASE_TRAIN}" = "dlp4710" ] && ADDTOCONFIG="CONFIG+=dlp4710"
+    case "${RELEASE_TRAIN}" in
+        'base' )
+            PROJECTOR_TYPE=dlpc350
+            ;;
+
+        'xbase' )
+            ADDTOCONFIG="CONFIG+=experimental"
+            PROJECTOR_TYPE=dlpc350
+            ;;
+
+        'dlp4710' )
+            ADDTOCONFIG="CONFIG+=dlp4710"
+            PROJECTOR_TYPE=dlp4710
+            ;;
+
+        'xdlp4710' )
+            ADDTOCONFIG="CONFIG+=dlp4710,experimental"
+            PROJECTOR_TYPE=dlp4710
+            ;;
+    esac
 
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then
         usage
@@ -125,11 +145,11 @@ function rebuild () {
         echo "${BUILD}:${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
-    if [ "${RELEASE_TRAIN}" = "base" ]
+    if [ "${PROJECTOR_TYPE}" = "dlpc350" ]
     then
         cp -a ../images/dlpc350-focus-image.png ../images/focus-image.png
         cp -a ../images/dlpc350-white-field.png ../images/white-field.png
-    elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
+    elif [ "${PROJECTOR_TYPE}" = "dlp4710" ]
     then
         cp -a ../images/dlp4710-focus-image.png ../images/focus-image.png
         cp -a ../images/dlp4710-white-field.png ../images/white-field.png
@@ -143,7 +163,7 @@ function rebuild () {
 
     # shellcheck disable=SC2015
     [ -f buildinfo.o ] && rm buildinfo.o 1>/dev/null 2>&1 || true
-    make -j"${QT_BUILD_JOBS-12}"
+    make -j"${QT_BUILD_JOBS-3}"
 }
 
 rebuild "$@"
