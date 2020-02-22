@@ -76,10 +76,10 @@ else
     SUFFIX=${RELEASE_TRAIN}-debug
 fi
 
-if [ "${RELEASE_TRAIN}" = "base" ]
+if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
 then
     PROJECTOR_SRC=${LIGHTFIELD_ROOT}/usb-driver
-elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
+elif [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "xdlp4710" ]
 then
     PROJECTOR_SRC=${LIGHTFIELD_ROOT}/dlp4710
 else
@@ -134,13 +134,13 @@ install ${VERBOSE} -DT -m 644                   stdio-shepherd/printer.py       
 install ${VERBOSE} -DT -m 755                   stdio-shepherd/stdio-shepherd.py                 /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-arduino-port            /usr/share/lightfield/libexec/reset-lumen-arduino-port
 
-if [ "${RELEASE_TRAIN}" = "base" ]
+if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlpc350-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               usb-driver/90-dlpc350.rules                      /lib/udev/rules.d/90-dlpc350.rules
     install ${VERBOSE} -DT -m 755               usb-driver/set-projector-power                   /usr/bin/set-projector-power
     install ${VERBOSE} -DT -m 644               system-stuff/99-waveshare-dlpc350.conf           /usr/share/X11/xorg.conf.d/99-waveshare.conf
-elif [ "${RELEASE_TRAIN}" = "dlp4710" ]
+elif [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "xdlp4710" ]
 then
     install ${VERBOSE} -DT -m 644               system-stuff/dlp4710-set-projector-power.service /lib/systemd/system/set-projector-power.service
     install ${VERBOSE} -DT -m 644               dlp4710/90-dlp4710.rules                         /lib/udev/rules.d/90-dlp4710.rules

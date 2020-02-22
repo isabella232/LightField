@@ -16,8 +16,10 @@ Changes the LightField version in all the relevant places in the source.
 
   -t <release-train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
                        Available release trains:
-                       base      LightField with DLPC350 support
-                       dlpc4710  LightField with DLP4710 support
+                       base       LightField with DLPC350 support
+                       dlpc4710   LightField with DLP4710 support
+                       xbase      LightField with DLPC350 support (experimental)
+                       xdlpc4710  LightField with DLP4710 support (experimental)
   <a.b.c[.d]>          Version number. If the fourth element is omitted,
                        it defaults to 0.
 HERE
@@ -39,7 +41,13 @@ while [ -n "${1}" ]
 do
     case "${1}" in
         '-t')
-            RELEASE_TRAIN="${2}"
+            if [ "${2}" = "base" ] || [ "${2}" = "xbase" ] || [ "${2}" = "dlp4710" ] || [ "${2}" = "xdlp4710" ]
+            then
+                RELEASE_TRAIN="${2}"
+            else
+                red-bar "Unknown release train name '${2}'."
+                usage
+            fi
             shift
         ;;
 
