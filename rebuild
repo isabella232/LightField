@@ -45,17 +45,17 @@ function rebuild () {
             ;;
 
         'xbase' )
-            ADDTOCONFIG="CONFIG+=experimental"
+            ADDTOCONFIG=" experimental"
             PROJECTOR_TYPE=dlpc350
             ;;
 
         'dlp4710' )
-            ADDTOCONFIG="CONFIG+=dlp4710"
+            ADDTOCONFIG=" dlp4710"
             PROJECTOR_TYPE=dlp4710
             ;;
 
         'xdlp4710' )
-            ADDTOCONFIG="CONFIG+=dlp4710 experimental"
+            ADDTOCONFIG=" dlp4710 experimental"
             PROJECTOR_TYPE=dlp4710
             ;;
     esac
@@ -141,7 +141,7 @@ function rebuild () {
 
     if [ -n "${QMAKE}" ] || [ ! -f Makefile ] || [ ../qt/lf.pro -nt Makefile ]
     then
-        qmake CONFIG+="${BUILD}" "${ADDTOCONFIG}" ../qt/lf.pro || return
+        qmake CONFIG+="${BUILD}${ADDTOCONFIG}" ../qt/lf.pro || return
         echo "${BUILD}:${RELEASE_TRAIN}" > "${BUILDDIR}/.lastbuildmode"
     fi
 
