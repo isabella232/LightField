@@ -114,8 +114,14 @@ debug {
 
 dlp4710 {
     DEFINES += DLP4710
+    message(Configuring for DLP4710.)
+}
+
+!dlp4710 {
+    message(Configuring for DLPC350.)
 }
 
 experimental {
     DEFINES += EXPERIMENTAL
+    message(Configuring for EXPERIMENTAL.)
 }
