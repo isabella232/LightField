@@ -622,8 +622,8 @@ void FileTab::selectButton_clicked( bool ) {
             debug( "+ FileTab::selectButton_clicked: copying %s to %s\n", fileNamePair.first.toUtf8( ).data( ), fileNamePair.second.toUtf8( ).data( ) );
             fileCopier->copy( { fileNamePair } );
         } else if ( _modelSelection.type == ModelFileType::Directory ) {
-            auto folderCpyName { GetFileBaseName( _modelSelection.fileName ) };
-            auto folderCpyPath { JobWorkingDirectoryPath % Slash % folderCpyName };
+            QString folderCpyName { GetFileBaseName( _modelSelection.fileName ) };
+            QString folderCpyPath { JobWorkingDirectoryPath % Slash % folderCpyName };
 
             QDir modelLib { JobWorkingDirectoryPath };
             modelLib.mkdir( folderCpyName );
