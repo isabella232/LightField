@@ -1,3 +1,9 @@
+lightfield (1.0.12.3) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 26 Feb 2020 13:01:30 -0800
+
 lightfield (1.0.12.2) stable; urgency=medium
 
   * New: Load a folder of presliced images.
