@@ -15,24 +15,23 @@ QSize                            MaximalRightHandPaneSize      {  722,  530 };
 QSize                     const  ButtonPadding                 {   20,    4 };
 QSize                     const  ProjectorWindowSize           { 1920, 1080 };
 
-QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
-QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
-QString                   const  MountmonCommand               { "mountmon"                                               };
-QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
-QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
-QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
-QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
-QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
-QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
-//QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
-QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"                };
-
-//QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
+QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"                   };
+QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                                     };
+QString                   const  MountmonCommand               { "mountmon"                                                             };
+QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port"               };
+QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                                  };
+QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"                         };
+QString                   const  SlicedSvgFileName             { "sliced.svg"                                                           };
+QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                                    };
+QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                                 };
+//QString                 const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                              };
+QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json" };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };
 QChar                     const  Space                         { L'\u0020' };
 QChar                     const  Comma                         { L'\u002C' };
+QChar                     const  HyphenMinus                   { L'\u002D' };
 QChar                     const  Slash                         { L'\u002F' };
 QChar                     const  DigitZero                     { L'\u0030' };
 QChar                     const  EmDash                        { L'\u2014' };
