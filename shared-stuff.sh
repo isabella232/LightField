@@ -60,7 +60,7 @@ fi
 
 ARCHITECTURE=amd64
 RELEASE_TRAIN=base
-VERSION=1.0.12.3
+VERSION=1.0.12.4
 
 trap error-trap ERR
 set -e
