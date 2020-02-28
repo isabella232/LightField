@@ -25,6 +25,34 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
+void SvgRenderer::loadSlices ( QString const& workingDirectory )
+{
+    debug( "+ SvgRenderer::loadSlices\n" );
+
+    QDir dir (workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files);
+    debug( "+ SvgRenderer::loadSlices lookup files in directory: %s\n", workingDirectory.toUtf8().data() );
+    int maxNumber=0;
+    QStringList list = dir.entryList();
+
+    for( const auto& it: list) {
+        QString fileName = it;
+
+        debug( "+ SvgRenderer::loadSlices loading: %s\n", fileName.toUtf8().data() );
+
+        fileName = fileName.replace(".png", "");
+        int number = fileName.toInt();
+
+        maxNumber = number > maxNumber ? number : maxNumber;
+        emit layerComplete( number + 1 );
+    }
+
+    debug( "+ SvgRenderer::loadSlices: end folder lookup\n" );
+    _totalLayers = maxNumber;
+    emit layerCount( maxNumber + 1 );
+    emit done( true );
+
+}
+
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );

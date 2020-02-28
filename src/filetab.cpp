@@ -62,9 +62,16 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     QFont font16pt { ModifyFont( font( ), 16.0          ) };
     QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
 
-    _libraryFsModel->setFilter( QDir::Files );
+    _libraryFsModel->setFilter( QDir::Files | QDir::Dirs );
     _libraryFsModel->setNameFilterDisables( false );
-    _libraryFsModel->setNameFilters( { { "*.stl" } } );
+    _libraryFsModel->setNameFilters( {
+        { "*.stl" },
+#if defined EXPERIMENTAL
+        { "*-20"  },
+#endif
+        { "*-50"  },
+        { "*-100" }
+    } );
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
 
@@ -525,6 +532,14 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
         _loadModel( _modelSelection.fileName );
     } else {
         _selectButton->setEnabled( true );
+
+        _dimensionsLabel->clear( );
+        _errorLabel->clear( );
+        _viewSolid->setEnabled( false );
+        _viewWireframe->setEnabled( false );
+        _deleteButton->setEnabled( true );
+
+        QTimer::singleShot( 1, [this] ( ) { _canvas->clear( ); } );
     }
 }
 
@@ -589,8 +604,15 @@ void FileTab::selectButton_clicked( bool ) {
         ToString( _modelsLocation )
     );
     if ( _modelsLocation == ModelsLocation::Library ) {
-        emit modelSelected( &_modelSelection );
-        emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+        if ( _modelSelection.type == ModelFileType::File ) {
+            emit modelSelected( &_modelSelection );
+            emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+        }
+        else
+        {
+            _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
+            emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+        }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );
         if ( _modelSelection.type == ModelFileType::File ) {
@@ -641,8 +663,10 @@ void FileTab::selectButton_clicked( bool ) {
             }
 
             FileCopier* fileCopier { new FileCopier };
-            QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath] ( int const copiedFiles, int const skippedFiles ) {
+            QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath, folderCpyName] ( int const copiedFiles, int const skippedFiles ) {
                 debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+
+                QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
                 if ( copiedFiles > 0 ) {
                     emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
                 } else {

@@ -13,7 +13,7 @@ public:
     ~SvgRenderer( );
 
     void startRender( QString const& svgFileName, QString const& _outputDirectory );
-
+    void loadSlices ( QString const& workingDirectory );
 protected:
 
 private:
