@@ -29,13 +29,13 @@ void SvgRenderer::loadSlices ( QString const& workingDirectory )
 {
     debug( "+ SvgRenderer::loadSlices\n" );
 
-    QDirIterator it(workingDirectory, QStringList() << "*.png", QDir::Files);
-
+    QDir dir (workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files);
     debug( "+ SvgRenderer::loadSlices lookup files in directory: %s\n", workingDirectory.toUtf8().data() );
     int maxNumber=0;
-    while (it.hasNext()) {
-        it.next();
-        QString fileName = it.fileName();
+    QStringList list = dir.entryList();
+
+    for( const auto& it: list) {
+        QString fileName = it;
 
         debug( "+ SvgRenderer::loadSlices loading: %s\n", fileName.toUtf8().data() );
 
