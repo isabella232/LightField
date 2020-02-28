@@ -26,8 +26,8 @@ QString                   const  StlModelLibraryPath           { "/var/lib/light
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
 
 //QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
-QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"};
-//QString                   const  PrintProfilesPath             { "/home/mateusz/LightField/print-profiles/print-profiles.json"};
+//QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"};
+QString                   const  PrintProfilesPath             { "/home/mateusz/LightField/print-profiles/print-profiles.json"};
 
 //QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
 

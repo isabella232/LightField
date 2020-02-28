@@ -97,6 +97,7 @@ private:
     PrintPumpingParameters _baseLayersPumpingParameters;
     bool                   _bodyLayersPumpingEnabled;
     PrintPumpingParameters _bodyLayersPumpingParameters;
+    bool                   _defaultProfile;
 
 signals:
     ;

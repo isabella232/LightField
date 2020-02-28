@@ -144,6 +144,9 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
     QStandardItem* item = nullptr;
     QStandardItem* firstItem = nullptr;
     QVector<PrintProfile*>* profiles = ProfilesJsonParser::loadProfiles();
+    bool findDefaultProfile = false;
+    int listItemIndex;
+
     for(int i=0; i<profiles->count(); ++i)
     {
         PrintProfile* profile = (*profiles)[i];
@@ -151,14 +154,37 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
 
         item = new QStandardItem(profile->profileName());
         item->setEditable( false );
-        if( !i ) {
+
+        findDefaultProfile = false;
+        if ( profile->profileName() == "default" )
+        {
+            findDefaultProfile = true;
+        }
+
+        if( !i )
+        {
             firstItem=item;
             _printProfileManager->setActiveProfile(profile->profileName());
              _enableButtonProfile(true);
         }
 
-        _model->setItem( i, 0, item );
+        if ( !findDefaultProfile )
+        {
+           _model->setItem( listItemIndex, 0, item );
+           listItemIndex++;
+        }
     }
+
+    if ( findDefaultProfile )
+    {
+        qDebug() << "Find default profile";
+    }
+    else
+    {
+        // TODO: create default profile ?
+        qDebug() << "Not find default profile";
+    }
+
 
     if( firstItem )
         _profilesList->setCurrentIndex( _model->indexFromItem(firstItem) );
@@ -324,7 +350,6 @@ void ProfilesTab::updateProfile_clicked(bool)
 void ProfilesTab::deleteProfile_clicked(bool)
 {
     Window* w = App::mainWindow();
-
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);

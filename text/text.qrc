@@ -1,5 +1,7 @@
 <RCC>
-    <qresource prefix="text/">
+    <qresource prefix="/text">
         <file>copyright-message.txt</file>
+        <file>text.qrc</file>
+	<file>defaultProfle.txt</file>
     </qresource>
 </RCC>

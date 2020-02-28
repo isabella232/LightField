@@ -2,7 +2,7 @@
 #define PROFILESJSONPARSER_H
 
 #include "printprofile.h"
-#include <qdebug.h>
+//#include <qdebug.h>
 
 #define DEBUG_LOGS
 
@@ -16,6 +16,7 @@ public:
         if(!jsonFile.exists())
         {
             // Show message when not found a profile in path
+            // TODO: Create file with default profile
             QMessageBox msgBox;
             msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.setText("File print profile does not exist\n" );
