@@ -707,13 +707,24 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _directoryMode = true;
             _setSliceControlsEnabled( false );
 
-            if ( _printJob->jobWorkingDirectory.endsWith( "-100" ) ) {
-                _layerThickness100Button->setChecked( true );
-            } else if ( _printJob->jobWorkingDirectory.endsWith( "-50" ) ) {
-                _layerThickness50Button->setChecked( true );
-            } else {
-                // TODO
+#if defined EXPERIMENTAL
+            bool thickness20  = false;
+#endif // defined EXPERIMENTAL
+            bool thickness50  = false;
+            bool thickness100 = false;
+
+            switch ( _printJob->layerThickness ) {
+#if defined EXPERIMENTAL
+                case 20:  thickness20  = true; break;
+#endif // defined EXPERIMENTAL
+                case 50:  thickness50  = true; break;
+                case 100: thickness100 = true; break;
             }
+#if defined EXPERIMENTAL
+            _layerThickness20Button->setChecked( thickness20 );
+#endif // defined EXPERIMENTAL
+            _layerThickness50Button->setChecked( thickness50 );
+            _layerThickness100Button->setChecked( thickness100 );
 
             slicerProcess_finished( 0, QProcess::NormalExit );
             break;
