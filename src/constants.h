@@ -2,6 +2,7 @@
 #define __CONSTANTS_H__
 
 QRegularExpression extern const  EndsWithWhitespaceRegex;
+QRegularExpression extern const  SliceDirectoryNameRegex;
 QRegularExpression extern const  NewLineRegex;
 
 QSize              extern const  SmallMainWindowSize;

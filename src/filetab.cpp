@@ -607,11 +607,13 @@ void FileTab::selectButton_clicked( bool ) {
         if ( _modelSelection.type == ModelFileType::File ) {
             emit modelSelected( &_modelSelection );
             emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
-        }
-        else
-        {
-            _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
-            emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+        } else {
+            auto match = SliceDirectoryNameRegex.match( _modelSelection.fileName );
+            if ( match.hasMatch( ) ) {
+                _printJob->layerThickness = match.captured( 1 ).toInt( );
+                _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
+                emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+            }
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );

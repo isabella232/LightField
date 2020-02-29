@@ -1,26 +1,27 @@
 #include "pch.h"
 #include "constants.h"
 
-QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"    };
-QRegularExpression        const  NewLineRegex                  { "\\r?\\n"  };
+QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"      };
+QRegularExpression        const  SliceDirectoryNameRegex       { "-([0-9]+)$" };
+QRegularExpression        const  NewLineRegex                  { "\\r?\\n"    };
 
-QSize                     const  SmallMainWindowSize           {  800,  480 };
-QSize                     const  SmallMainButtonSize           {  218,   74 };
-QSize                     const  SmallMaximalRightHandPaneSize {  564,  424 };
+QSize                     const  SmallMainWindowSize           {    800,  480 };
+QSize                     const  SmallMainButtonSize           {    218,   74 };
+QSize                     const  SmallMaximalRightHandPaneSize {    564,  424 };
 
-QSize                            MainWindowSize                { 1024,  600 };
-QSize                            MainButtonSize                {  279,   93 };
-QSize                            MaximalRightHandPaneSize      {  722,  530 };
+QSize                            MainWindowSize                {   1024,  600 };
+QSize                            MainButtonSize                {    279,   93 };
+QSize                            MaximalRightHandPaneSize      {    722,  530 };
 
-QSize                     const  ButtonPadding                 {   20,    4 };
+QSize                     const  ButtonPadding                 {     20,    4 };
 
 #if defined DLP4710
 
-QSize constexpr           const  ProjectorWindowSize           { 1920, 1080 };
+QSize constexpr           const  ProjectorWindowSize           {   1920, 1080 };
 
 #else // ! defined DLP4710
 
-QSize constexpr           const  ProjectorWindowSize           { 1280,  800 };
+QSize constexpr           const  ProjectorWindowSize           {   1280,  800 };
 
 #endif // defined DLP4710
 
