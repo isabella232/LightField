@@ -656,7 +656,7 @@ void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {
     QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetUpdate_succeeded );
     QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetUpdate_failed    );
 
-    _processRunner->start( { "sudo" }, { "apt-get", "-y", "update", } );
+    _processRunner->start( { "sudo" }, { "-n", "apt-get", "-y", "update", } );
 }
 
 void UpgradeManager::aptGetUpdate_succeeded( ) {
@@ -671,7 +671,7 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
         releaseTrain = '-' % _kitToInstall->releaseTrain;
     }
 
-    QStringList processArgs { "apt-get", "-y", "install", };
+    QStringList processArgs { "-n", "apt-get", "-y", "install", };
     if ( _kitToInstall->version < LIGHTFIELD_VERSION_CODE ) {
         processArgs.append( "--allow-downgrades" );
     } else if ( _kitToInstall->version == LIGHTFIELD_VERSION_CODE ) {
@@ -713,7 +713,7 @@ void UpgradeManager::aptGetInstall_succeeded( ) {
     QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetDistUpgrade_succeeded );
     QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetDistUpgrade_failed    );
 
-    _processRunner->start( { "sudo" }, { "apt-get", "-y", "dist-upgrade", } );
+    _processRunner->start( { "sudo" }, { "-n", "apt-get", "-y", "dist-upgrade", } );
 }
 
 void UpgradeManager::aptGetInstall_failed( int const exitCode, QProcess::ProcessError const error ) {

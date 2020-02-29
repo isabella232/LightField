@@ -24,7 +24,7 @@ UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, _stdoutLogger, &StdioLogger::read                                 );
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this,          &UsbMountManager::mountmon_readyReadStandardOutput );
 
-    _processRunner->start( QString { "sudo" }, QStringList { MountmonCommand } );
+    _processRunner->start( QString { "sudo" }, QStringList { "-n", MountmonCommand } );
 }
 
 UsbMountManager::~UsbMountManager( ) {
