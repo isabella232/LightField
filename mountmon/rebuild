@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-MAKEDIR="/home/lumen/Volumetric/LightField/mountmon"
+MOUNTMON_ROOT="${PWD}"
+MAKEDIR="${MOUNTMON_ROOT}"
 BUILDDIR="${MAKEDIR}/build"
 PROJECTFILE="${MAKEDIR}/mountmon.pro"
 
