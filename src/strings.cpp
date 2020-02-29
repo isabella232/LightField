@@ -73,6 +73,7 @@ namespace {
         "SliceCompleted",
         "PrintStarted",
         "PrintCompleted",
+        "SelectedDirectory",
     };
 
     char const* BuildPlatformStateStrings[] {
