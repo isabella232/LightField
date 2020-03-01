@@ -25,32 +25,26 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices ( QString const& workingDirectory )
-{
-    debug( "+ SvgRenderer::loadSlices\n" );
+void SvgRenderer::loadSlices( QString const& workingDirectory ) {
+    int  layerNumber     { -1 };
+    int  prevLayerNumber { -1 };
 
-    QDir dir (workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files);
-    debug( "+ SvgRenderer::loadSlices lookup files in directory: %s\n", workingDirectory.toUtf8().data() );
-    int maxNumber=0;
-    QStringList list = dir.entryList();
-
-    for( const auto& it: list) {
-        QString fileName = it;
-
-        debug( "+ SvgRenderer::loadSlices loading: %s\n", fileName.toUtf8().data() );
-
-        fileName = fileName.replace(".png", "");
-        int number = fileName.toInt();
-
-        maxNumber = number > maxNumber ? number : maxNumber;
-        emit layerComplete( number + 1 );
+    debug( "+ SvgRenderer::loadSlices: examining files in directory '%s'\n", workingDirectory.toUtf8( ).data( ) );
+    for ( auto const& fileName : QDir { workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files }.entryList( ) ) {
+        layerNumber = RemoveFileExtension( fileName ).toInt( );
+        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
+            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
+            emit done( false );
+            return;
+        }
+        prevLayerNumber = layerNumber;
+        emit layerComplete( layerNumber );
     }
 
-    debug( "+ SvgRenderer::loadSlices: end folder lookup\n" );
-    _totalLayers = maxNumber;
-    emit layerCount( maxNumber + 1 );
+    debug( "  + Done\n" );
+    _totalLayers = layerNumber + 1;
+    emit layerCount( _totalLayers );
     emit done( true );
-
 }
 
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
