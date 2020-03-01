@@ -206,12 +206,13 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
-    auto modelFile     = QFileInfo { _printJob->modelFileName                                   };
-    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
+    auto modelFile = QFileInfo { _printJob->modelFileName };
     if ( !modelFile.exists( ) ) {
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
+
+    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -226,14 +227,10 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
-    auto jobDir = QDir { _printJob->jobWorkingDirectory };
-    jobDir.setSorting( QDir::Name );
-    jobDir.setNameFilters( { "[0-9]?????.svg" } );
-
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
-    for ( auto entry : jobDir.entryInfoList( ) ) {
+    for ( auto entry : QDir { _printJob->jobWorkingDirectory, "[0-9]?????.svg", QDir::Name, QDir::Files }.entryInfoList( ) ) {
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
             debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
@@ -516,12 +513,9 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
-    if(_directoryMode)
-    {
+    if ( _directoryMode ) {
         _svgRenderer->loadSlices( _printJob->jobWorkingDirectory );
-    }
-    else
-    {
+    } else {
         _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
     }
 }
