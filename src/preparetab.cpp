@@ -659,6 +659,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             break;
 
         case UiState::SelectCompleted:
+            _directoryMode = false;
             _setSliceControlsEnabled( false );
 
             _sliceStatus->setText( "idle" );
