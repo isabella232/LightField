@@ -102,12 +102,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         _layerThicknessLabel,
         WrapWidgetsInVBox(
             _layerThickness100Button,
-#if defined EXPERIMENTAL
-            _layerThickness50Button,
-            _layerThickness20Button
-#else
             _layerThickness50Button
-#endif
+#if defined EXPERIMENTAL
+            , _layerThickness20Button
+#endif // defined EXPERIMENTAL
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -325,7 +323,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
     _checkJobDirectory( );
 }
-#endif
+#endif // defined EXPERIMENTAL
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -355,7 +353,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThickness50Button->setEnabled( enabled );
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( enabled );
-#endif
+#endif // defined EXPERIMENTAL
 
     update( );
 }
@@ -721,7 +719,17 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _layerThickness50Button->setChecked( thickness50 );
             _layerThickness100Button->setChecked( thickness100 );
 
-            slicerProcess_finished( 0, QProcess::NormalExit );
+            _sliceStatus->setText( "finished" );
+            _imageGeneratorStatus->setText( "starting" );
+            //_copyToUSBButton->setEnabled( true );
+
+            update( );
+
+            _svgRenderer = new SvgRenderer;
+            QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
+            QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
+            QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
+            _svgRenderer->loadSlices( _printJob->jobWorkingDirectory );
             break;
     }
 
