@@ -9,6 +9,7 @@ namespace {
         "VolumeCalculation",
         "SlicingSvg",
         "RenderingPngs",
+        "LoadingPngFolder",
         "Printing",
         "UpgradeCheck",
         "UpgradeInstallation",
