@@ -19,6 +19,7 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
+    /*empty*/
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -30,6 +31,8 @@ void SvgRenderer::loadSlices( QString const& workingDirectory ) {
     int  prevLayerNumber { -1 };
 
     debug( "+ SvgRenderer::loadSlices: examining files in directory '%s'\n", workingDirectory.toUtf8( ).data( ) );
+    TimingLogger::startTiming( TimingId::RenderingPngs );
+
     for ( auto const& fileName : QDir { workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files }.entryList( ) ) {
         layerNumber = RemoveFileExtension( fileName ).toInt( );
         if ( layerNumber != ( prevLayerNumber + 1 ) ) {
@@ -48,8 +51,9 @@ void SvgRenderer::loadSlices( QString const& workingDirectory ) {
 }
 
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
-    TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
+    TimingLogger::startTiming( TimingId::RenderingPngs );
+
     _outputDirectory = outputDirectory;
 
     QFile file { svgFileName };
