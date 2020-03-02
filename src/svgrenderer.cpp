@@ -31,8 +31,8 @@ void SvgRenderer::loadSlices( QString const& workingDirectory ) {
     int  prevLayerNumber { -1 };
 
     debug( "+ SvgRenderer::loadSlices: examining files in directory '%s'\n", workingDirectory.toUtf8( ).data( ) );
-    TimingLogger::startTiming( TimingId::RenderingPngs );
 
+    TimingLogger::startTiming( TimingId::LoadingPngFolder );
     for ( auto const& fileName : QDir { workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files }.entryList( ) ) {
         layerNumber = RemoveFileExtension( fileName ).toInt( );
         if ( layerNumber != ( prevLayerNumber + 1 ) ) {
@@ -43,6 +43,7 @@ void SvgRenderer::loadSlices( QString const& workingDirectory ) {
         prevLayerNumber = layerNumber;
         emit layerComplete( layerNumber );
     }
+    TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 
     debug( "  + Done\n" );
     _totalLayers = layerNumber + 1;
