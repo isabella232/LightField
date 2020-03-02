@@ -2,7 +2,6 @@
 #define PROFILESJSONPARSER_H
 
 #include "printprofile.h"
-//#include <qdebug.h>
 
 #define DEBUG_LOGS
 
