@@ -2,6 +2,7 @@
 #define PROFILESJSONPARSER_H
 
 #include "printprofile.h"
+//#include <qdebug.h>
 
 #define DEBUG_LOGS
 
@@ -10,11 +11,18 @@ class ProfilesJsonParser
 public:
     static QVector<PrintProfile*>* loadProfiles() {
         QVector<PrintProfile*>* profilesList = new QVector<PrintProfile*>();
-
         debug( "ProfilesJsonParser::loadProfiles: opening file\n" );
         QFile jsonFile(PrintProfilesPath);
         if(!jsonFile.exists())
         {
+            // Show message when not found a profile in path
+            // TODO: Create file with default profile
+            QMessageBox msgBox;
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setText("File print profile does not exist\n" );
+            msgBox.open();
+            msgBox.exec();
+
             debug( "ProfilesJsonParser::loadProfiles: File %s does not exist\n", PrintProfilesPath.toUtf8( ).data( ) );
             return profilesList;
         }

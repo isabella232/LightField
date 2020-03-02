@@ -1,0 +1,28 @@
+[    
+	{
+        "baseLayerCount": 1,
+        "baseLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 10,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 1,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "bodyLayersPumpingParameters": {
+            "layerExposureTime": 1000,
+            "layerThickness": 100,
+            "noPumpUpVelocity": 200,
+            "powerLevel": 10,
+            "pumpDownPause": 4000,
+            "pumpEveryNthLayer": 1,
+            "pumpUpDistance": 1,
+            "pumpUpPause": 2000,
+            "pumpUpTime": 600
+        },
+        "name": "default"
+    }
+]
