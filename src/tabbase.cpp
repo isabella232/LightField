@@ -4,6 +4,7 @@
 
 #include "printjob.h"
 #include "printmanager.h"
+#include "printprofilemanager.h"
 #include "shepherd.h"
 #include "usbmountmanager.h"
 
@@ -28,6 +29,14 @@ void TabBase::_disconnectPrintManager( ) {
 }
 
 void TabBase::_connectPrintManager( ) {
+    /*empty*/
+}
+
+void TabBase::_disconnectPrintProfileManager( ) {
+    /*empty*/
+}
+
+void TabBase::_connectPrintProfileManager( ) {
     /*empty*/
 }
 
@@ -57,6 +66,12 @@ void TabBase::setPrintManager( PrintManager* printManager ) {
     _disconnectPrintManager( );
     _printManager = printManager;
     _connectPrintManager( );
+}
+
+void TabBase::setPrintProfileManager( PrintProfileManager* printProfileManager ) {
+    _disconnectPrintProfileManager( );
+    _printProfileManager = printProfileManager;
+    _connectPrintProfileManager( );
 }
 
 void TabBase::setShepherd( Shepherd* shepherd ) {
