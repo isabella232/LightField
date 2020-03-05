@@ -1,6 +1,8 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
+#include "ordermanifestmanager.h"
+
 class ProcessRunner;
 
 class SvgRenderer: public QObject {
@@ -13,7 +15,7 @@ public:
     ~SvgRenderer( );
 
     void startRender( QString const& svgFileName, QString const& _outputDirectory );
-    void loadSlices ( QString const& workingDirectory );
+    void loadSlices ( OrderManifestManager manifestManager );
 protected:
 
 private:

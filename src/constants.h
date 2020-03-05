@@ -26,6 +26,7 @@ QString            extern const  ShepherdPath;
 QString            extern const  SlicedSvgFileName;
 QString            extern const  StlModelLibraryPath;
 QString            extern const  UpdatesRootPath;
+QString            extern const  ManifestFilename;
 
 QChar              extern const  LineFeed;
 QChar              extern const  CarriageReturn;

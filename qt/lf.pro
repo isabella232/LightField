@@ -26,6 +26,7 @@ SOURCES +=                         \
     ../src/loader.cpp              \
     ../src/main.cpp                \
     ../src/mesh.cpp                \
+    ../src/ordermanifestmanager.cpp\
     ../src/pngdisplayer.cpp        \
     ../src/preparetab.cpp          \
     ../src/printmanager.cpp        \
@@ -33,6 +34,7 @@ SOURCES +=                         \
     ../src/processrunner.cpp       \
     ../src/shepherd.cpp            \
     ../src/signalhandler.cpp       \
+    ../src/slicesorderpopup.cpp	   \
     ../src/statustab.cpp           \
     ../src/stdiologger.cpp         \
     ../src/strings.cpp             \
@@ -67,6 +69,7 @@ HEADERS  +=                        \
     ../src/lightfieldstyle.h       \
     ../src/loader.h                \
     ../src/mesh.h                  \
+    ../src/ordermanifestmanager.h  \
     ../src/pngdisplayer.h          \
     ../src/preparetab.h            \
     ../src/printjob.h              \
@@ -75,6 +78,7 @@ HEADERS  +=                        \
     ../src/processrunner.h         \
     ../src/shepherd.h              \
     ../src/signalhandler.h         \
+    ../src/slicesorderpopup.h	   \
     ../src/statustab.h             \
     ../src/stdiologger.h           \
     ../src/strings.h               \

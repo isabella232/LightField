@@ -2,6 +2,7 @@
 #define __PREPARETAB_H__
 
 #include "tabbase.h"
+#include "ordermanifestmanager.h"
 
 class Hasher;
 class SvgRenderer;
@@ -37,6 +38,7 @@ private:
     bool              _isPrinterOnline             { false };
     bool              _isPrinterAvailable          { true  };
     bool              _directoryMode               { false };
+    OrderManifestManager _manifestManager          { };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };

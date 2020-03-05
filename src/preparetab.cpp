@@ -8,9 +8,11 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "slicesorderpopup.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
+#include "window.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -514,7 +516,42 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
     if ( _directoryMode ) {
-        _svgRenderer->loadSlices( _printJob->jobWorkingDirectory );
+        _manifestManager.setPath( _printJob->jobWorkingDirectory );
+        switch(_manifestManager.parse())
+        {
+        case ManifestParseResult::POSITIVE:
+            _svgRenderer->loadSlices( _manifestManager );
+
+            break;
+        case ManifestParseResult::POSITIVE_WITH_WARNINGS:
+
+
+            break;
+        case ManifestParseResult::FILE_CORRUPTED:
+
+            break;
+        case ManifestParseResult::FILE_NOT_EXIST:
+            auto origFont    = font( );
+            auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+
+            Window* w = App::mainWindow();
+            QRect r = w->geometry();
+
+            QMessageBox msgBox;
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.move(r.x()+100, r.y()+100);
+            msgBox.setFont(fontAwesome);
+            msgBox.setText("Manifest file containing order of slices doesn't exist. <br>You must enter the order manually.");
+            msgBox.exec();
+
+
+            SlicesOrderPopup slicesOrderPopup { &_manifestManager };
+            slicesOrderPopup.exec();
+
+            break;
+        }
+
+
     } else {
         _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
     }

@@ -25,12 +25,17 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( QString const& workingDirectory ) {
+void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
     int  layerNumber     { -1 };
     int  prevLayerNumber { -1 };
 
-    debug( "+ SvgRenderer::loadSlices: examining files in directory '%s'\n", workingDirectory.toUtf8( ).data( ) );
-    for ( auto const& fileName : QDir { workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files }.entryList( ) ) {
+    debug( "+ SvgRenderer::loadSlices \n");
+
+    OrderManifestManager::Iterator iter = manifestManager.iterator();
+    while ( iter.hasNext() ) {
+        QString fileName = *iter;
+        ++iter;
+
         layerNumber = RemoveFileExtension( fileName ).toInt( );
         if ( layerNumber != ( prevLayerNumber + 1 ) ) {
             debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
