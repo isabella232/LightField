@@ -6,5 +6,9 @@
         <file>warning-hot.png</file>
         <file>warning-uv.png</file>
         <file>white-field.png</file>
+        <file>backspace.png</file>
+        <file>shift.png</file>
+        <file>backspace-white.png</file>
+        <file>shift-white.png</file>
     </qresource>
 </RCC>

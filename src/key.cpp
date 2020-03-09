@@ -35,7 +35,6 @@ void key::setY(int y )
 void key::setIconFile(QString i )
 {
   iconFilename = i;
-  W = 25;
 }
 
 void key::setPressed( bool b)
@@ -66,7 +65,7 @@ void key::draw(QPainter *p,QStyle *style)
     if ( iconFilename !="" )
     {
         opt.icon     = QIcon(iconFilename);
-        opt.iconSize = QSize(16,16);
+        opt.iconSize = QSize(32,32);
     }
     else
     {

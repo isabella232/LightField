@@ -90,6 +90,9 @@ void Keyboard::initKeys( int indexArraykeys, const char *keymap[])
                 xCoor = keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W;
             }
             yCoor = row_keymap[n] * DEFAULT_YSIZE_BUTTON;
+            //Special cases of icons
+            if (0 == strcasecmp( keymap[n], "back\nspace")) keys[indexArraykeys][n]->setIconFile(":/images/backspace-white.png");
+            if (0 == strcasecmp( keymap[n], "caps"))        keys[indexArraykeys][n]->setIconFile(":/images/shift-white.png");
         }
         else
         {
@@ -202,7 +205,14 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e)
             }
             else
             {
+                if(uppercase == true){
+                    uppercase=false;
+                    currentindexkeyboard = LOWERCASE;
+                }
+                repaint();
                 emit keyPressed(k->text);
+
+
             }
         }
     }
