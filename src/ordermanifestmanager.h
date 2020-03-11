@@ -30,7 +30,7 @@ public:
 };
 
 
-class ManifestSortTypes {
+class ManifestSortType {
 public:
     enum Value : uint8_t
     {
@@ -41,10 +41,10 @@ public:
 
     static const QString strings[3];
 
-    ManifestSortTypes() = default;
-    constexpr ManifestSortTypes(Value key) : value(key) { }
+    ManifestSortType() = default;
+    constexpr ManifestSortType(Value key) : value(key) { }
 
-    ManifestSortTypes(QString key) {
+    ManifestSortType(QString key) {
         for(uint8_t i=0; i<strings->length(); ++i) {
             if(strings[i] == key) {
                 value = (Value)i;
@@ -71,9 +71,13 @@ public:
     public:
         Iterator(QStringList list) : _list(list) { _ptr = 0; }
 
-        void     operator++() { _ptr = ( _ptr < _list.size() ? _ptr++ : _ptr); }
-        QString  operator*()  { return _list[_ptr]; }
-        bool     hasNext()    { return _ptr + 1 >= _list.size(); }
+        void     operator++() { _ptr++; }
+        QString  operator*()  {
+            return _list[_ptr];
+        }
+        bool     hasNext()    {
+            return _ptr + 1 < _list.size();
+        }
     private:
             int         _ptr;
             QStringList _list;
@@ -88,76 +92,29 @@ public:
 
     QString path() { return _dirPath; }
 
-    ManifestParseResult parse(QStringList *errors=nullptr, QStringList *warningList = nullptr) {
-        debug( "+ OrderManifestManager::getSlicesList: parsing manifest file in directory '%s'\n", _dirPath.toUtf8( ).data( ) );
-        _fileNameList.clear();
+    ManifestSortType sortType() { return _type; }
 
+    void setSortType( ManifestSortType sortType) { this->_type = sortType;  }
 
-        QFile jsonFile(_dirPath % ManifestFilename);
-        if(!jsonFile.exists()) {
+    void setFileList ( QStringList list ) {
+        this->_fileNameList.clear();
+        this->_fileNameList.append(list);
 
-            debug( "+ OrderManifestManager::getSlicesList: manifest file not exist '%s'\n", _dirPath.toUtf8( ).data( ) );
-
-            return ManifestParseResult::FILE_NOT_EXIST;
-        }
-
-        if(!jsonFile.open(QIODevice::ReadOnly)) {
-
-            debug( "+ OrderManifestManager::getSlicesList: no access rights to manifest file '%s'\n", _dirPath.toUtf8( ).data( ) );
-
-            if(errors)
-                errors->push_back("No access rights to manifest file.");
-
-            return ManifestParseResult::FILE_NOT_EXIST;
-        }
-
-        debug( "OrderManifestManager::getSlicesList: building document\n" );
-        QJsonParseError parseError;
-        QJsonDocument jsonDocument = QJsonDocument().fromJson(jsonFile.readAll(), &parseError);
-
-        if(jsonDocument.isNull()) {
-
-            debug( "+ OrderManifestManager::getSlicesList: error while parsing manifest file '%s'\n", parseError.errorString().toUtf8( ).data( ) );
-
-            if(errors)
-                errors->push_back(parseError.errorString());
-
-            return ManifestParseResult::FILE_CORRUPTED;
-        }
-
-        QJsonObject           root = jsonDocument.object();
-
-        _size = root.value(ManifestKeys(ManifestKeys::SIZE).toQString()).toInt();
-        _type = ManifestSortTypes(root.value(ManifestKeys(ManifestKeys::SORT_TYPE).toQString()).toString());
-
-        QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
-
-        int i=0;
-        for(; i<entities.count(); ++i) {
-            debug( "+ OrderManifestManager::parse: '%s'\n", entities[i].toString().toUtf8( ).data( ) );
-
-            _fileNameList.push_back(entities[i].toString());
-        }
-
-        if(i != _size ) {
-            if(warningList)
-                warningList->push_back("Declared size is divergent with the number of entries.");
-
-            _size = i;
-            return ManifestParseResult::POSITIVE_WITH_WARNINGS;
-        }
-
-        return ManifestParseResult::POSITIVE;
+        this->_size = list.size();
     }
 
+    ManifestParseResult parse(QStringList *errors, QStringList *warningList);
+
+    bool save();
 
     Iterator iterator() {
         return Iterator(_fileNameList);
     }
 
+
 private:
     QString             _dirPath;
-    ManifestSortTypes   _type;
+    ManifestSortType    _type;
     int                 _size;
     QStringList         _fileNameList { };
 };

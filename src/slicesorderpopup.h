@@ -17,7 +17,7 @@ private:
     QPushButton*            _okButton                        { new QPushButton ( "Confirm" )            };
     QPushButton*            _arrowUp                         { new QPushButton ( "Up" )                 };
     QPushButton*            _arrowDown                       { new QPushButton ( "Down" )               };
-    QListView*              _list                            { new QListView                            };
+    QTableView*             _list                            { new QTableView                           };
     QStandardItemModel*     _model                           { new QStandardItemModel                   };
     OrderManifestManager*   _manifestManager;
 

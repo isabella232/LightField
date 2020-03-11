@@ -69,6 +69,7 @@ private:
 
     QWidget*          _optionsContainer            { new QWidget          };
     QPushButton*      _sliceButton                 { new QPushButton      };
+    QPushButton*      _orderButton                 { new QPushButton      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -89,7 +90,7 @@ private:
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
     void _updatePrepareButtonState( );
-
+    void _showWarning( QString content );
     void _handlePrepareFailed( );
 
 signals:
@@ -135,6 +136,8 @@ private slots:
     void navigateLast_clicked( bool );
 
     void sliceButton_clicked( bool );
+
+    void orderButton_clicked( bool );
 
     void hasher_resultReady( QString const hash );
 

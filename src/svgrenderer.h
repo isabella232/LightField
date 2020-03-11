@@ -14,8 +14,9 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& _outputDirectory );
+    void startRender( QString const& svgFileName, QString const& _outputDirectory, OrderManifestManager manifestManager );
     void loadSlices ( OrderManifestManager manifestManager );
+
 protected:
 
 private:
@@ -25,6 +26,7 @@ private:
 
     QVector<ProcessRunner*> _processRunners;
     QVector<int>            _runningLayers;
+    QStringList             _layerList;
     int                     _processesRunning { };
 
     int                     _currentLayer     { };

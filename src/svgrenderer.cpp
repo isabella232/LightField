@@ -33,15 +33,13 @@ void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
 
     OrderManifestManager::Iterator iter = manifestManager.iterator();
     while ( iter.hasNext() ) {
+        debug( "+ SvgRenderer::loadSlices next iter \n");
         QString fileName = *iter;
         ++iter;
 
+        debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
+
         layerNumber = RemoveFileExtension( fileName ).toInt( );
-        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
-            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
-            emit done( false );
-            return;
-        }
         prevLayerNumber = layerNumber;
         emit layerComplete( layerNumber );
     }
@@ -52,10 +50,11 @@ void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager manifestManager ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
+    _layerList.clear();
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
@@ -135,6 +134,13 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     emit layerCount( _totalLayers );
 
     _renderLayer( );
+
+    for(int i=0; i<_totalLayers; ++i)
+        _layerList.push_back( QString( "%1/%2.png" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero ) );
+
+    manifestManager.setFileList( _layerList );
+    manifestManager.setSortType( ManifestSortType::NUMERIC );
+    manifestManager.save();
 }
 
 void SvgRenderer::_renderLayer( ) {

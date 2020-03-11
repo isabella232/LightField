@@ -127,6 +127,13 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
+    _orderButton->setEnabled( false );
+    _orderButton->setFixedSize( MainButtonSize );
+    _orderButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _orderButton->setFont( font22pt );
+    _orderButton->setText( "Order editor" );
+    QObject::connect( _orderButton, &QPushButton::clicked, this, &PrepareTab::orderButton_clicked );
+
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
     _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -166,7 +173,8 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( _orderButton,       1, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       2, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -229,10 +237,41 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
+    _manifestManager.setPath( _printJob->jobWorkingDirectory );
+    QStringList errors;
+    QStringList warnings;
+
+    switch(_manifestManager.parse(&errors, &warnings))
+    {
+    case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+        QString warningsStr = warnings.join("<br>");
+
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+        }
+    case ManifestParseResult::POSITIVE:
+        break;
+    case ManifestParseResult::FILE_CORRUPTED:
+    case ManifestParseResult::FILE_NOT_EXIST: {
+            QString errorsStr = errors.join("<br>");
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+            SlicesOrderPopup slicesOrderPopup { &_manifestManager };
+            slicesOrderPopup.exec();
+
+            break;
+        }
+    }
+
+    OrderManifestManager::Iterator iter = _manifestManager.iterator();
+
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
-    for ( auto entry : QDir { _printJob->jobWorkingDirectory, "[0-9]?????.svg", QDir::Name, QDir::Files }.entryInfoList( ) ) {
+    while ( iter.hasNext() ) {
+
+        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % *iter);
+        ++iter;
+
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
             debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
@@ -352,6 +391,10 @@ void PrepareTab::_showLayerImage( int const layer ) {
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
+
+    if(!_directoryMode)
+        _orderButton->setEnabled( enabled );
+
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
@@ -402,6 +445,11 @@ void PrepareTab::navigateLast_clicked( bool ) {
     _showLayerImage( _visibleLayer );
 
     update( );
+}
+
+void PrepareTab::orderButton_clicked( bool ) {
+    SlicesOrderPopup popup { &_manifestManager };
+    popup.exec();
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -481,6 +529,22 @@ void PrepareTab::slicerProcess_started( ) {
     update( );
 }
 
+void PrepareTab::_showWarning(QString content) {
+    auto origFont    = font( );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setFont(fontAwesome);
+    msgBox.setText(content);
+    msgBox.show();
+    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
+    msgBox.exec();
+}
+
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     TimingLogger::stopTiming( TimingId::SlicingSvg );
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
@@ -515,45 +579,38 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
+    _manifestManager.setPath( _printJob->jobWorkingDirectory );
+
     if ( _directoryMode ) {
-        _manifestManager.setPath( _printJob->jobWorkingDirectory );
-        switch(_manifestManager.parse())
+        QStringList errors;
+        QStringList warnings;
+
+        switch(_manifestManager.parse(&errors, &warnings))
         {
+        case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+            QString warningsStr = warnings.join("<br>");
+
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+            }
         case ManifestParseResult::POSITIVE:
-            _svgRenderer->loadSlices( _manifestManager );
-
-            break;
-        case ManifestParseResult::POSITIVE_WITH_WARNINGS:
-
-
             break;
         case ManifestParseResult::FILE_CORRUPTED:
+        case ManifestParseResult::FILE_NOT_EXIST: {
+                QString errorsStr = errors.join("<br>");
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
 
-            break;
-        case ManifestParseResult::FILE_NOT_EXIST:
-            auto origFont    = font( );
-            auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+                SlicesOrderPopup slicesOrderPopup { &_manifestManager };
+                slicesOrderPopup.exec();
 
-            Window* w = App::mainWindow();
-            QRect r = w->geometry();
-
-            QMessageBox msgBox;
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.move(r.x()+100, r.y()+100);
-            msgBox.setFont(fontAwesome);
-            msgBox.setText("Manifest file containing order of slices doesn't exist. <br>You must enter the order manually.");
-            msgBox.exec();
-
-
-            SlicesOrderPopup slicesOrderPopup { &_manifestManager };
-            slicesOrderPopup.exec();
-
-            break;
+                break;
+            }
         }
 
 
+        _orderButton->setEnabled( true );
+        _svgRenderer->loadSlices(_manifestManager);
     } else {
-        _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
+        _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory, _manifestManager );
     }
 }
 
