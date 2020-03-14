@@ -47,6 +47,7 @@ src/lightfieldstyle.cpp
 src/loader.cpp
 src/main.cpp
 src/mesh.cpp
+src/movementsequencer.cpp
 src/pngdisplayer.cpp
 src/preparetab.cpp
 src/printmanager.cpp
@@ -92,6 +93,7 @@ src/initialshoweventmixin.h
 src/lightfieldstyle.h
 src/loader.h
 src/mesh.h
+src/movementsequencer.h
 src/pngdisplayer.h
 src/preparetab.h
 src/printjob.h
