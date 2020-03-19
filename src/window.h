@@ -3,6 +3,7 @@
 
 #include "coordinate.h"
 #include "tabbase.h"
+#include "tilingtab.h"
 
 class ModelSelectionInfo;
 class PngDisplayer;
@@ -50,6 +51,7 @@ private:
     QTabWidget*         _tabWidget         { new QTabWidget  };
     FileTab*            _fileTab;
     PrepareTab*         _prepareTab;
+    TilingTab*          _tilingTab;
     PrintTab*           _printTab;
     StatusTab*          _statusTab;
     AdvancedTab*        _advancedTab;

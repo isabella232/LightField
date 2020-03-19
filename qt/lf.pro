@@ -27,6 +27,7 @@ SOURCES +=                         \
     ../src/main.cpp                \
     ../src/mesh.cpp                \
     ../src/ordermanifestmanager.cpp\
+    ../src/paramslider.cpp	   \
     ../src/pngdisplayer.cpp        \
     ../src/preparetab.cpp          \
     ../src/printmanager.cpp        \
@@ -42,6 +43,8 @@ SOURCES +=                         \
     ../src/systemtab.cpp           \
     ../src/tabbase.cpp             \
     ../src/timinglogger.cpp        \
+    ../src/tilingmanager.cpp       \
+    ../src/tilingtab.cpp           \
     ../src/upgradekitunpacker.cpp  \
     ../src/upgrademanager.cpp      \
     ../src/upgradeselector.cpp     \
@@ -70,6 +73,7 @@ HEADERS  +=                        \
     ../src/loader.h                \
     ../src/mesh.h                  \
     ../src/ordermanifestmanager.h  \
+    ../src/paramslider.h	   \
     ../src/pngdisplayer.h          \
     ../src/preparetab.h            \
     ../src/printjob.h              \
@@ -86,6 +90,8 @@ HEADERS  +=                        \
     ../src/systemtab.h             \
     ../src/tabbase.h               \
     ../src/timinglogger.h          \
+    ../src/tilingmanager.h         \
+    ../src/tilingtab.h             \
     ../src/upgradekitunpacker.h    \
     ../src/upgrademanager.h        \
     ../src/upgradeselector.h       \

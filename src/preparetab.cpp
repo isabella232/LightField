@@ -85,7 +85,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
     _prepareButton->setEnabled( false );
-    _prepareButton->setFixedSize( MainButtonSize );
+    _prepareButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _prepareButton->setFont( font22pt );
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare" );
@@ -121,18 +121,25 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     ) );
 
     _sliceButton->setEnabled( false );
-    _sliceButton->setFixedSize( MainButtonSize );
+    _sliceButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _sliceButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _sliceButton->setFont( font22pt );
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
     _orderButton->setEnabled( false );
-    _orderButton->setFixedSize( MainButtonSize );
+    _orderButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _orderButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _orderButton->setFont( font22pt );
     _orderButton->setText( "Order editor" );
     QObject::connect( _orderButton, &QPushButton::clicked, this, &PrepareTab::orderButton_clicked );
+
+    _setupTiling->setEnabled( false );
+    _setupTiling->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _setupTiling->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _setupTiling->setFont( font22pt );
+    _setupTiling->setText( "Setup tiling" );
+    QObject::connect( _setupTiling, &QPushButton::clicked, this, &PrepareTab::setupTiling_clicked );
 
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
@@ -174,7 +181,8 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
     _layout->addWidget( _orderButton,       1, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       2, 0, 1, 1 );
+    _layout->addWidget( _setupTiling,      2, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -392,8 +400,10 @@ void PrepareTab::_showLayerImage( int const layer ) {
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
 
-    if(!_directoryMode)
+    if(!_directoryMode) {
         _orderButton->setEnabled( enabled );
+        _setupTiling->setEnabled( enabled );
+    }
 
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
@@ -450,6 +460,11 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     SlicesOrderPopup popup { &_manifestManager };
     popup.exec();
+}
+
+void PrepareTab::setupTiling_clicked( bool ) {
+    emit setupTiling( &_manifestManager, _printJob );
+    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -608,6 +623,7 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
 
 
         _orderButton->setEnabled( true );
+        _setupTiling->setEnabled( true );
         _svgRenderer->loadSlices(_manifestManager);
     } else {
         _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory, _manifestManager );

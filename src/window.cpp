@@ -12,6 +12,7 @@
 
 #include "filetab.h"
 #include "preparetab.h"
+#include "tilingtab.h"
 #include "printtab.h"
 #include "statustab.h"
 #include "advancedtab.h"
@@ -67,6 +68,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     std::vector<TabBase*> tabs {
         _fileTab     = new FileTab,
         _prepareTab  = new PrepareTab,
+        _tilingTab   = new TilingTab,
         _printTab    = new PrintTab,
         _statusTab   = new StatusTab,
         _advancedTab = new AdvancedTab,
@@ -118,6 +120,12 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable            );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable            );
+
+
+    _tilingTab->setContentsMargins( { } );
+    _tilingTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect( _prepareTab, &PrepareTab::setupTiling, _tilingTab,   &TilingTab::setupTilingClicked );
+
 
     //
     // "Print" tab
@@ -356,12 +364,16 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectedDirectory:
-            if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
+            if ( _tabWidget->currentIndex( ) == +TabIndex::File || _tabWidget->currentIndex() == +TabIndex::Tiling )
                 _tabWidget->setCurrentIndex( +TabIndex::Prepare );
 
                 update( );
-            }
             break;
+        case UiState::TilingClicked:
+            _tabWidget->setCurrentIndex( +TabIndex::Tiling );
+
+            update( );
+        break;
     }
 }
 
