@@ -1,5 +1,6 @@
 #include "tilingtab.h"
 #include "tilingmanager.h"
+#include "window.h"
 
 TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
     auto origFont    = font( );
@@ -115,14 +116,20 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
     switch ( _uiState ) {
         case UiState::SelectStarted:
-        case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
-        case UiState::SelectedDirectory:
         case UiState::TilingClicked:
             break;
+        case UiState::SelectedDirectory:
+        case UiState::SelectCompleted:
+            this->_step->setValue( 2 );
+            this->_space->setValueDouble( 0.25f );
+            this->_minExposure->setValue( 2 );
+            this->_printJob = nullptr;
+            this->_manifestManager = nullptr;
+            this->_currentLayerImage->clear();
     }
 
     update( );
@@ -130,15 +137,43 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
 
 void TilingTab::confirmButton_clicked ( bool ) {
-    TilingManager tilingMgr ( _manifestManager, _printJob );
+    TilingManager* tilingMgr = new  TilingManager( _manifestManager, _printJob );
 
-    tilingMgr.processImages( ProjectorWindowSize.width(),
-                             ProjectorWindowSize.height(),
-                             _minExposure->getValue(),
-                             _step->getValue(),
-                             _space->getValueDouble());
+    QDialog* dialog = new QDialog();
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
 
-    _printJob->jobWorkingDirectory = tilingMgr.getPath();
+    dialog->setModal( true );
+    dialog->setLayout( WrapWidgetsInHBox ( nullptr, new QLabel ( "Processing files ... <br>please wait" ), nullptr ) );
+
+    dialog->resize(300, 100);
+    dialog->setContentsMargins( { } );
+    dialog->setMinimumSize(QSize(300, 100));
+    dialog->show();
+
+    dialog->move(r.x() + ((r.width() - dialog->width())/2), r.y() + ((r.height() - dialog->height())/2) );
+
+
+
+    QThread *thread = QThread::create(
+        [this, tilingMgr, dialog]
+        {
+            tilingMgr->processImages( ProjectorWindowSize.width(),
+                                     ProjectorWindowSize.height(),
+                                     _minExposure->getValue(),
+                                     _step->getValue(),
+                                     _space->getValueDouble() );
+
+            _printJob->jobWorkingDirectory = tilingMgr->getPath();
+
+            dialog->done(0);
+            delete dialog;
+            delete tilingMgr;
+        }
+    );
+    thread->start();
+    dialog->exec();
+
 
     emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 }

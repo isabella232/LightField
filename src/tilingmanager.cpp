@@ -20,7 +20,7 @@ void TilingManager::processImages( int width, int height, int expoTime, int step
 
     QString jobWorkingDir = _printJob->jobWorkingDirectory;
 
-    QString dirName = "tiled-" % GetFileBaseName( jobWorkingDir );
+    QString dirName = QString("tiled-%1-%2-%3-").arg(_expoTime).arg(_step).arg(_space, 0, 'g', 3) % GetFileBaseName( jobWorkingDir );
     _path = jobWorkingDir.mid( 0, jobWorkingDir.lastIndexOf( Slash ) ) % Slash % dirName;
 
     QDir dir ( JobWorkingDirectoryPath );
