@@ -563,6 +563,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             break;
 
         case UiState::SelectedDirectory:
+        case UiState::TilingClicked:
             break;
     }
 

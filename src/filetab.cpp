@@ -296,6 +296,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
+        case UiState::TilingClicked:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
         case UiState::PrintStarted:

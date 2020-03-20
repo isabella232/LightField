@@ -347,6 +347,7 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
+        case UiState::TilingClicked:
             break;
 
         case UiState::PrintStarted:

@@ -338,13 +338,15 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered( false );
-            if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
-                _tabWidget->setCurrentIndex( +TabIndex::Prepare );
 
-                update( );
-            }
-            break;
+        _setModelRendered( false );
+        if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
+            _tabWidget->setCurrentIndex( +TabIndex::Prepare );
+
+            update( );
+        }
+
+        break;
 
         case UiState::SliceStarted:
             _setModelRendered( false );

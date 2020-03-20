@@ -763,6 +763,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     _uiState = state;
 
     switch ( _uiState ) {
+        case UiState::TilingClicked:
+            break;
         case UiState::SelectStarted:
             _directoryMode = false;
             _setSliceControlsEnabled( false );

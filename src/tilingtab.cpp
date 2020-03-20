@@ -121,6 +121,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
         case UiState::SelectedDirectory:
+        case UiState::TilingClicked:
             break;
     }
 

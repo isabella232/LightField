@@ -90,6 +90,9 @@ bool OrderManifestManager::save() {
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
     jsonDocument.setObject(root);
 
-    jsonFile.open(QFile::WriteOnly);
-    jsonFile.write(jsonDocument.toJson());
+    bool result;
+    result = jsonFile.open(QFile::WriteOnly);
+    result = result && jsonFile.write(jsonDocument.toJson()) > 0;
+
+    return result;
 }
