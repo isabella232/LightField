@@ -28,6 +28,7 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
     _confirm->setFixedSize( MainButtonSize );
     _confirm->setFont( fontAwesome );
     _confirm->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _confirm->setEnabled( false );
 
     all->setLayout(
         WrapWidgetsInVBox(
@@ -120,7 +121,9 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
+            break;
         case UiState::TilingClicked:
+            _confirm->setEnabled( true );
             break;
         case UiState::SelectedDirectory:
         case UiState::SelectCompleted:
@@ -130,6 +133,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
+            this->_confirm->setEnabled( false );
     }
 
     update( );
