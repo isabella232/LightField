@@ -81,7 +81,7 @@ void TilingTab::setStepValue()
     painter.setFont( QFont("Arial") );
     painter.setPen(Qt::red);
 
-    for(int i=0,z=0; i<wCount; ++i) {
+    for(int i=0,z=1; i<wCount; ++i) {
         for(int j=0; j<hCount; ++j,++z)
         {
 
@@ -89,7 +89,7 @@ void TilingTab::setStepValue()
             int x = ( pixmap.width( ) * value) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
             int y = ( pixmap.height( ) * value) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * value * j );
 
-            int e = _minExposure->getValue() + ( z * _step->getValue() );
+            int e = _minExposure->getValue() + ( ((wCount*hCount) - z) * _step->getValue() );
 
             painter.drawPixmap( x, y, pixmap );
             painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
