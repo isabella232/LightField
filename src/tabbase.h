@@ -23,6 +23,7 @@ public:
     enum class TabIndex {
         File,
         Prepare,
+        Tiling,
         Print,
         Status,
         Advanced,
@@ -37,7 +38,8 @@ public:
         SliceCompleted,
         PrintStarted,
         PrintCompleted,
-        SelectedDirectory
+        SelectedDirectory,
+        TilingClicked
     };
     Q_ENUM( UiState );
 

@@ -27,7 +27,6 @@ SvgRenderer::~SvgRenderer( ) {
 
 void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
     int  layerNumber     { -1 };
-    int  prevLayerNumber { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
 
@@ -40,7 +39,6 @@ void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
         debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
 
         layerNumber = RemoveFileExtension( fileName ).toInt( );
-        prevLayerNumber = layerNumber;
         emit layerComplete( layerNumber );
     }
 

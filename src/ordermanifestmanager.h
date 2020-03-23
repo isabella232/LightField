@@ -103,6 +103,8 @@ public:
         this->_size = list.size();
     }
 
+    QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
+
     ManifestParseResult parse(QStringList *errors, QStringList *warningList);
 
     bool save();

@@ -44,6 +44,7 @@ namespace {
     char const* TabIndexStrings[] {
         "File",
         "Prepare",
+        "Tiling",
         "Print",
         "Status",
         "Advanced",
