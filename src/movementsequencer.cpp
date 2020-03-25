@@ -31,8 +31,18 @@ MovementSequencer::~MovementSequencer( ) {
 }
 
 void MovementSequencer::_startNextMovement( ) {
+    if ( _aborting ) {
+        debug( "+ MovementSequencer::_startNextMovement: aborting sequence\n" );
+
+        _active = false;
+        emit movementComplete( false );
+        return;
+    }
+
     if ( _movements.isEmpty( ) ) {
         debug( "+ MovementSequencer::_startNextMovement: done\n" );
+
+        _active = false;
         emit movementComplete( true );
         return;
     }
@@ -54,9 +64,34 @@ void MovementSequencer::_startNextMovement( ) {
         case MovementInfo::delay:
             debug( "+ MovementSequencer::_startNextMovement: starting Delay: duration %d ms\n", movement.distance, movement.speed );
 
+            _timer->stop( );
             _timer->setInterval( movement.duration );
             _timer->start( );
             break;
+
+        default:
+            debug( "+ MovementSequencer::_startNextMovement: unknown movement type, aborting\n" );
+
+            abort( );
+            break;
+    }
+}
+
+void MovementSequencer::abort( ) {
+    debug( "+ MovementSequencer::abort: aborting sequence; active? %s; aborting already? %s; timer active? %s\n", YesNoString( _active ), YesNoString( _aborting ), YesNoString( _timer->isActive( ) ) );
+
+    _aborting = true;
+
+    if ( !_active ) {
+        emit movementComplete( false );
+        return;
+    }
+
+    if ( _timer->isActive( ) ) {
+        _timer->stop( );
+
+        _active = false;
+        emit movementComplete( false );
     }
 }
 
@@ -66,7 +101,7 @@ void MovementSequencer::shepherd_moveAbsoluteComplete( bool const success ) {
     if ( success ) {
         _startNextMovement( );
     } else {
-        emit movementComplete( false );
+        abort( );
     }
 }
 
@@ -76,30 +111,13 @@ void MovementSequencer::shepherd_moveRelativeComplete( bool const success ) {
     if ( success ) {
         _startNextMovement( );
     } else {
-        emit movementComplete( false );
+        abort( );
     }
 }
 
 void MovementSequencer::timer_timeout( ) {
     debug( "+ MovementSequencer::timer_timeout\n" );
+
     _timer->stop( );
-
     _startNextMovement( );
-}
-
-void MovementSequencer::addMovement( MoveType const type, double const distance, double const speed ) {
-    _movements.push_back( { type, distance, speed } );
-}
-
-void MovementSequencer::addDelay( int const duration ) {
-    _movements.push_back( { duration } );
-}
-
-void MovementSequencer::execute( ) {
-    _startNextMovement( );
-}
-
-void MovementSequencer::setMovements( MovementCollection const& movements ) {
-    _movements.clear( );
-    _movements.append( movements );
 }

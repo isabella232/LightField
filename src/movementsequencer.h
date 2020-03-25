@@ -20,7 +20,12 @@ public:
         /*empty*/
     }
 
-    MovementInfo( int const duration_ ): type ( delay ), duration ( duration_ ) { /*empty*/ }
+    MovementInfo( int const duration_ ):
+        type     ( delay     ),
+        duration ( duration_ )
+    {
+        /*empty*/
+    }
 
     enum {
         moveAbsolute,
@@ -40,7 +45,6 @@ public:
     };
 
 };
-using MovementCollection = QList<MovementInfo>;
 
 class MovementSequencer: public QObject {
 
@@ -51,29 +55,64 @@ public:
     MovementSequencer( Shepherd* shepherd, QObject* parent = nullptr );
     virtual ~MovementSequencer( ) override;
 
-    MovementSequencer( MovementSequencer const& value ) = delete;
-    MovementSequencer( MovementSequencer&& value ) = delete;
+    MovementSequencer( MovementSequencer const& ) = delete;
+    MovementSequencer( MovementSequencer&& )      = delete;
 
-    MovementSequencer& operator=( MovementSequencer const& value ) = delete;
-    MovementSequencer& operator=( MovementSequencer&& value ) = delete;
+    MovementSequencer& operator=( MovementSequencer const& ) = delete;
+    MovementSequencer& operator=( MovementSequencer&& )      = delete;
 
-    void addMovement( MoveType const type, double const distance, double const speed );
-    void addDelay( int const duration );
-    void execute( );
+    bool isAborting( ) const {
+        return _aborting;
+    }
 
-    MovementCollection const& movements( ) const {
+    bool isActive( ) const {
+        return _active;
+    }
+
+    QList<MovementInfo> const& movements( ) const {
         return _movements;
     }
 
-    void setMovements( MovementCollection const& movements );
+    void setMovements( QList<MovementInfo> const& movements ) {
+        _movements.clear( );
+        _movements.append( movements );
+    }
+
+    void clearMovements( ) {
+        _movements.clear( );
+    }
+
+    void addMovement( MoveType const type, double const distance, double const speed ) {
+        _movements.push_back( { type, distance, speed } );
+    }
+
+    void addDelay( int const duration ) {
+        _movements.push_back( { duration } );
+    }
+
+    void execute( ) {
+        if ( _active ) {
+            debug( "+ MovementSequencer::execute: already active?!\n" );
+            return;
+        }
+
+        _aborting = false;
+        _active   = true;
+        _startNextMovement( );
+    }
+
+    void abort( );
 
 protected:
 
 private:
 
-    Shepherd*          _shepherd;
-    QTimer*            _timer;
-    MovementCollection _movements;
+    Shepherd*           _shepherd;
+    QTimer*             _timer;
+    QList<MovementInfo> _movements;
+
+    std::atomic_bool    _aborting  { false };
+    std::atomic_bool    _active    { false };
 
     void _startNextMovement( );
 
