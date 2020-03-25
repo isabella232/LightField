@@ -13,8 +13,10 @@
 #endif // defined WIN32
 
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/syscall.h>
+#include <sys/sysinfo.h>
+#include <sys/types.h>
 #include <pwd.h>
 #include <fcntl.h>
 #include <signal.h>
