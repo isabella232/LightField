@@ -32,6 +32,12 @@ void TilingManager::processImages( int width, int height, int expoTime, int step
 
     _manifestMgr->setFileList( _fileNameList );
     _manifestMgr->setPath( JobWorkingDirectoryPath % Slash % dirName );
+
+    _manifestMgr->setTiled( true );
+    _manifestMgr->setTilingMinExpoTime( _expoTime );
+    _manifestMgr->setTilingSpace( _space );
+    _manifestMgr->setTilingStep( _step );
+
     _manifestMgr->save();
 }
 

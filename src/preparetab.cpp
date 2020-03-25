@@ -257,6 +257,11 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
         }
     case ManifestParseResult::POSITIVE:
+        if(_manifestManager.tiled())
+
+            debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
+
+            _setupTiling->setEnabled( false );
         break;
     case ManifestParseResult::FILE_CORRUPTED:
     case ManifestParseResult::FILE_NOT_EXIST: {
@@ -402,8 +407,9 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
 
     if(!_directoryMode) {
         _orderButton->setEnabled( enabled );
-        _setupTiling->setEnabled( enabled );
     }
+
+    _setupTiling->setEnabled( enabled && !_manifestManager.tiled() );
 
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
@@ -608,6 +614,9 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
                 _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
             }
         case ManifestParseResult::POSITIVE:
+            if(_manifestManager.tiled()) {
+                _setupTiling->setEnabled( false );
+            }
             break;
         case ManifestParseResult::FILE_CORRUPTED:
         case ManifestParseResult::FILE_NOT_EXIST: {

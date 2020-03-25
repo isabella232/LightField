@@ -14,10 +14,14 @@ public:
     {
         SIZE,
         SORT_TYPE,
-        ENTITIES
+        TILING,
+        MIN_EXPOSURE,
+        STEP,
+        SPACE,
+        ENTITIES,
     };
 
-    static const QString strings[3];
+    static const QString strings[7];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -103,6 +107,27 @@ public:
         this->_size = list.size();
     }
 
+    void setTilingMinExpoTime(int minExoTm) {
+        this->_tilingMinExposure = minExoTm;
+    }
+
+    void setTilingStep (int step) {
+        this->_tilingStep = step;
+    }
+
+    void setTilingSpace (double space) {
+        this->_tilingSpace = space;
+    }
+
+    void setTiled (bool tiled) {
+        this->_tiled = tiled;
+    }
+
+    inline bool tiled()             { return _tiled; }
+    inline int tilingMinExposure()  { return _tilingMinExposure; }
+    inline int tilingStep()         { return _tilingStep; }
+    inline double tilingSpace()     { return _tilingSpace; }
+
     QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
 
     ManifestParseResult parse(QStringList *errors, QStringList *warningList);
@@ -118,7 +143,11 @@ private:
     QString             _dirPath;
     ManifestSortType    _type;
     int                 _size;
-    QStringList         _fileNameList { };
+    bool                _tiled             { false };
+    int                 _tilingMinExposure { 2 };
+    int                 _tilingStep        { 2 };
+    double              _tilingSpace       { 0.25L };
+    QStringList         _fileNameList      { };
 };
 
 #endif // ORDERMANIFESTMANAGER_H
