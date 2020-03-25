@@ -613,6 +613,7 @@ void FileTab::selectButton_clicked( bool ) {
             if ( match.hasMatch( ) ) {
                 _printJob->layerThickness = match.captured( 1 ).toInt( );
                 _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
+                _printJob->modelFileName = GetFileBaseName( _modelSelection.fileName );
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
             }
         }
