@@ -37,14 +37,12 @@ void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
         ++iter;
 
         debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
-
-        layerNumber = RemoveFileExtension( fileName ).toInt( );
+        layerNumber++;
         emit layerComplete( layerNumber );
     }
 
     debug( "  + Done\n" );
-    _totalLayers = layerNumber + 1;
-    emit layerCount( _totalLayers );
+    emit layerCount( manifestManager.getSize() );
     emit done( true );
 }
 
@@ -126,19 +124,23 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
     }
 
+    manifestManager.restart();
+    manifestManager.setPath( _outputDirectory );
+
+    QStringList manifestFileList { };
+    for( int i=0; i<layer; ++i) {
+        manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+    }
+
+    manifestManager.setFileList( manifestFileList );
+    manifestManager.save();
+
     _totalLayers = layer;
     _runningLayers .fill( -1,      get_nprocs( ) );
     _processRunners.fill( nullptr, get_nprocs( ) );
     emit layerCount( _totalLayers );
 
     _renderLayer( );
-
-    for(int i=0; i<_totalLayers; ++i)
-        _layerList.push_back( QString( "%1/%2.png" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero ) );
-
-    manifestManager.setFileList( _layerList );
-    manifestManager.setSortType( ManifestSortType::NUMERIC );
-    manifestManager.save();
 }
 
 void SvgRenderer::_renderLayer( ) {

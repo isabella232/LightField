@@ -27,7 +27,25 @@ SlicesOrderPopup::SlicesOrderPopup(OrderManifestManager* manifestManager)
     _numerical->setFont( fontAwesome );
     _custom->setFont( fontAwesome );
 
-    _numerical->setChecked( true );
+
+
+    if( _manifestManager->initialized() ) {
+        switch(manifestManager->sortType().intVal()) {
+        case ManifestSortType::ALPHANUMERIC:
+            _alphaNum->setChecked(true);
+            break;
+        case ManifestSortType::NUMERIC:
+            _numerical->setChecked(true);
+            break;
+        case ManifestSortType::CUSTOM:
+            _custom->setChecked(true);
+            break;
+        }
+    }
+    else
+    {
+        _numerical->setChecked( true );
+    }
 
     QGroupBox* sortGB = new QGroupBox( "Sort type" );
     sortGB->setLayout( WrapWidgetsInVBox(
@@ -72,7 +90,9 @@ SlicesOrderPopup::SlicesOrderPopup(OrderManifestManager* manifestManager)
 
     _list->setModel(_model);
     _list->setStyleSheet("QAbstractItemView::indicator { width: 20px;height:20px;/*size of checkbox change here */} QTableWidget::item{width: 200px;height: 100px;} "/*size of item */);
+
     fillModel( );
+
     _list->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     _model->setHeaderData(0, Qt::Horizontal, tr("File name"));
     _model->setHeaderData(1, Qt::Horizontal, tr("Attach"));
@@ -107,8 +127,12 @@ void SlicesOrderPopup::fillModel( ) {
         // Checkable item
         checkBoxCol->setCheckable( true );
 
+        bool initialized = _manifestManager->initialized();
+        bool contains = _manifestManager->contains( GetFileBaseName ( fileName ) );
+        bool isPng = fileName.endsWith(QString("png"), Qt::CaseInsensitive);
+
         // Save checke state
-        if(fileName.endsWith(QString("png"), Qt::CaseInsensitive)) {
+        if( (initialized && contains) || (!initialized && isPng) ) {
             checkBoxCol->setData(Qt::Checked, Qt::CheckStateRole);
         } else {
             checkBoxCol->setData(Qt::Unchecked, Qt::CheckStateRole);

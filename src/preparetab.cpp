@@ -275,6 +275,8 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
         }
     }
 
+    _printJob->layerCount = _manifestManager.getSize();
+
     OrderManifestManager::Iterator iter = _manifestManager.iterator();
 
     // check that the layer SVG files are newer than the sliced SVG file,
@@ -395,7 +397,9 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    debug( "PrepareTab::_showLayerImage %s \n", QString( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) ).toUtf8().data() );
+
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -410,6 +414,8 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
 
     if(!_directoryMode) {
+        _orderButton->setEnabled( false );
+    } else {
         _orderButton->setEnabled( enabled );
     }
 
@@ -470,6 +476,11 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     SlicesOrderPopup popup { &_manifestManager };
     popup.exec();
+
+    if(_directoryMode)
+        emit  uiStateChanged(TabIndex::File, UiState::SelectedDirectory);
+    else
+        emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
 }
 
 void PrepareTab::setupTiling_clicked( bool ) {
@@ -488,6 +499,9 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _imageGeneratorStatus->setText( "waiting" );
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
+
+    _manifestManager.removeManifest();
+
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
@@ -634,7 +648,7 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
             }
         }
 
-
+        _printJob->layerCount = _manifestManager.getSize();
         _orderButton->setEnabled( true );
         _setupTiling->setEnabled( true );
         _svgRenderer->loadSlices(_manifestManager);
@@ -654,7 +668,6 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
     _renderedLayers = currentLayer;
     _imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
-
     if ( ( 0 == currentLayer ) || ( 0 == ( ( currentLayer + 1 ) % 5 ) ) || ( ( _printJob->layerCount - 1 ) == currentLayer ) ) {
         _visibleLayer = currentLayer;
         _showLayerImage( _visibleLayer );

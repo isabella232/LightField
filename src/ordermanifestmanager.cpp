@@ -83,6 +83,7 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         return ManifestParseResult::POSITIVE_WITH_WARNINGS;
     }
 
+    _initialized = true;
     return ManifestParseResult::POSITIVE;
 }
 

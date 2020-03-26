@@ -38,9 +38,9 @@ class ManifestSortType {
 public:
     enum Value : uint8_t
     {
-        NUMERIC,
-        ALPHANUMERIC,
-        CUSTOM
+        NUMERIC=0,
+        ALPHANUMERIC=1,
+        CUSTOM=2
     };
 
     static const QString strings[3];
@@ -63,6 +63,8 @@ public:
     constexpr const QString& toQString() {
         return strings[value];
     }
+
+    int intVal() { return value; }
 private:
     Value value;
 };
@@ -92,6 +94,7 @@ public:
 
     void setPath ( QString path ) {
         _dirPath = path;
+        _initialized = false;
     }
 
     QString path() { return _dirPath; }
@@ -128,17 +131,38 @@ public:
     inline int tilingStep()         { return _tilingStep; }
     inline double tilingSpace()     { return _tilingSpace; }
 
-    QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
+    inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
+
+    inline QString getElementAt(int position) {
+        return _fileNameList[position];
+    };
+
+    inline int getSize() { return _size; }
 
     ManifestParseResult parse(QStringList *errors, QStringList *warningList);
 
     bool save();
 
+    void removeManifest() {
+        QFile jsonFile( _dirPath % Slash % ManifestFilename );
+        jsonFile.remove();
+    }
+
+    void restart() {
+        _tiled = false;
+        _size = 0;
+        _initialized = true;
+        _fileNameList.clear();
+        _type = ManifestSortType::NUMERIC;
+        _dirPath = "";
+    }
+
     Iterator iterator() {
         return Iterator(_fileNameList);
     }
 
-
+    inline bool contains( QString fileName ) { return this->_fileNameList.contains(fileName); }
+    inline bool initialized ( ) { return this->_initialized; }
 private:
     QString             _dirPath;
     ManifestSortType    _type;
@@ -148,6 +172,7 @@ private:
     int                 _tilingStep        { 2 };
     double              _tilingSpace       { 0.25L };
     QStringList         _fileNameList      { };
+    bool                _initialized       { };
 };
 
 #endif // ORDERMANIFESTMANAGER_H
