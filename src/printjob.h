@@ -4,55 +4,86 @@
 #include "coordinate.h"
 #include "printprofile.h"
 
+class SliceInformation {
+
+public:
+
+    QString sliceDirectory;
+
+    bool    isPreSliced      { };
+
+    int     layerCount       { };
+    int     layerThickness   { }; // unit: µm
+    int     firstLayerOffset { }; // unit: µm
+
+    int     startLayer       { -1 };
+    int     endLayer         { -1 };
+
+};
+
 class PrintJob {
 
 public:
 
-    PrintJob( ) {
-        /*empty*/
-    }
+    PrintJob( ) = default;
 
     PrintJob( PrintJob const* value ) {
-        vertexCount             = value->vertexCount;
-        x                       = value->x;
-        y                       = value->y;
-        z                       = value->z;
-        estimatedVolume         = value->estimatedVolume;
+        modelFileName   = value->modelFileName;
+        modelHash       = value->modelHash;
 
-        modelFileName           = value->modelFileName;
-        modelHash               = value->modelHash;
-        jobWorkingDirectory     = value->jobWorkingDirectory;
+        vertexCount     = value->vertexCount;
+        x               = value->x;
+        y               = value->y;
+        z               = value->z;
+        estimatedVolume = value->estimatedVolume;
 
-        layerCount              = value->layerCount;
-        layerThickness          = value->layerThickness;
-        exposureTime            = value->exposureTime;
-        exposureTimeScaleFactor = value->exposureTimeScaleFactor;
-        powerLevel              = value->powerLevel;
-        printSpeed              = value->printSpeed;
-        printProfile            = value->printProfile;
+        baseSlices      = value->baseSlices;
+        bodySlices      = value->bodySlices;
+
+        totalLayerCount = value->totalLayerCount;
+
+        printProfile    = value->printProfile;
     }
 
-    ~PrintJob( ) {
-        /*empty*/
+    QString          modelFileName;
+    QString          modelHash;
+
+    size_t           vertexCount     { };
+    Coordinate       x               { };
+    Coordinate       y               { };
+    Coordinate       z               { };
+    double           estimatedVolume { }; // unit: µL
+
+    SliceInformation baseSlices;
+    SliceInformation bodySlices;
+
+    int              totalLayerCount { };
+
+    PrintProfile*    printProfile    { };
+
+    bool isBaseLayer( int const layer ) const {
+        return ( baseSlices.startLayer != -1 ) && ( layer <= baseSlices.endLayer );
     }
 
-    size_t        vertexCount             {     };
-    Coordinate    x                       {     };
-    Coordinate    y                       {     };
-    Coordinate    z                       {     };
-    double        estimatedVolume         {     }; // unit: µL
+    QString getLayerDirectory( int const layer ) const {
+        if ( isBaseLayer( layer ) ) {
+            return baseSlices.sliceDirectory;
+        } else {
+            return bodySlices.sliceDirectory;
+        }
+    }
 
-    QString       modelFileName           {     };
-    QString       modelHash               {     };
-    QString       jobWorkingDirectory     {     };
+    QString getLayerFileName( int const layer ) const {
+        auto sliceDirectory { getLayerDirectory( layer ) };
+        auto adjustedLayer  { layer                      };
 
-    int           layerCount              {     };
-    int           layerThickness          { 100 }; // unit: µm
-    double        exposureTime            { 1.0 }; // unit: s
-    double        exposureTimeScaleFactor { 1.0 }; // for first two layers
-    int           powerLevel              { static_cast<int>( ProjectorMaxPowerLevel / 2.0 + 0.5 ) }; // range: 0..ProjectorMaxPowerLevel
-    double        printSpeed              { PrinterDefaultLowSpeed                                 }; // unit: mm/min; range: 50-200
-    PrintProfile* printProfile            {     };
+        if ( ( baseSlices.startLayer != -1 ) && !isBaseLayer( layer ) ) {
+            adjustedLayer -= ( baseSlices.endLayer - baseSlices.startLayer + 1 );
+            adjustedLayer += bodySlices.startLayer;
+        }
+
+        return QString { "%1/%2.png" }.arg( sliceDirectory ).arg( adjustedLayer, 6, 10, DigitZero );
+    }
 
 };
 
