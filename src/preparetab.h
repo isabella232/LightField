@@ -36,10 +36,6 @@ private:
     bool          _isPrinterOnline             { false };
     bool          _isPrinterAvailable          { true  };
 
-    QLabel*       _layerThicknessLabel         { new QLabel       };
-    QRadioButton* _layerThickness50Button      { new QRadioButton };
-    QRadioButton* _layerThickness100Button     { new QRadioButton };
-
     QLabel*       _sliceStatusLabel            { new QLabel       };
     QLabel*       _sliceStatus                 { new QLabel       };
     QLabel*       _imageGeneratorStatusLabel   { new QLabel       };
@@ -104,9 +100,6 @@ private slots:
     void printer_offline( );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
     void printManager_lampStatusChange( bool const on );
-
-    void layerThickness50Button_clicked( bool );
-    void layerThickness100Button_clicked( bool );
 
     void navigateFirst_clicked( bool );
     void navigatePrevious_clicked( bool );

@@ -18,20 +18,6 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     auto font22pt    = ModifyFont( origFont, LargeFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
-    _layerThicknessLabel->setEnabled( false );
-    _layerThicknessLabel->setText( "Layer height:" );
-
-    _layerThickness100Button->setEnabled( false );
-    _layerThickness100Button->setChecked( true );
-    _layerThickness100Button->setFont( font12pt );
-    _layerThickness100Button->setText( "Standard res (100 µm)" );
-    QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
-
-    _layerThickness50Button->setEnabled( false );
-    _layerThickness50Button->setText( "High res (50 µm)" );
-    _layerThickness50Button->setFont( font12pt );
-    QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
-
     _sliceStatusLabel->setText( "Slicer:" );
 
     _sliceStatus->setText( "idle" );
@@ -84,11 +70,6 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( WrapWidgetsInVBox(
-        _layerThicknessLabel,
-        WrapWidgetsInVBox(
-            _layerThickness100Button,
-            _layerThickness50Button
-        ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         WrapWidgetsInVBox(
@@ -280,20 +261,6 @@ bool PrepareTab::_checkJobDirectory( ) {
     return preSliced;
 }
 
-void PrepareTab::layerThickness50Button_clicked( bool ) {
-    debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->layerThickness = 50;
-
-    _checkJobDirectory( );
-}
-
-void PrepareTab::layerThickness100Button_clicked( bool ) {
-    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->layerThickness = 100;
-
-    _checkJobDirectory( );
-}
-
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
     _navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -317,9 +284,6 @@ void PrepareTab::_showLayerImage( int const layer ) {
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
-    _layerThicknessLabel->setEnabled( enabled );
-    _layerThickness100Button->setEnabled( enabled );
-    _layerThickness50Button->setEnabled( enabled );
 
     update( );
 }
