@@ -4,6 +4,7 @@
 #include "tabbase.h"
 
 class Hasher;
+class SliceInformation;
 class SvgRenderer;
 
 class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
@@ -15,16 +16,16 @@ public:
     PrepareTab( QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
-    bool             isPrepareButtonEnabled( ) const          { return _prepareButton->isEnabled( ); }
-    bool             isSliceButtonEnabled( )   const          { return _sliceButton->isEnabled( );   }
+    bool             isPrepareButtonEnabled( )        const          { return _prepareButton->isEnabled( ); }
+    bool             isSliceButtonEnabled( )          const          { return _sliceButton->isEnabled( );   }
 
-    virtual TabIndex tabIndex( )               const override { return TabIndex::Prepare;            }
+    virtual TabIndex tabIndex( )                      const override { return TabIndex::Prepare;            }
 
 protected:
 
-    virtual void _connectPrintManager( )                override;
-    virtual void _connectShepherd( )                    override;
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void     _connectPrintManager( )                override;
+    virtual void     _connectShepherd( )                    override;
+    virtual void     _initialShowEvent( QShowEvent* event ) override;
 
 private:
 
@@ -32,7 +33,6 @@ private:
     SvgRenderer*  _svgRenderer                 { };
     Hasher*       _hasher                      { };
     int           _visibleLayer                { };
-    int           _renderedLayers              { };
     bool          _isPrinterOnline             { false };
     bool          _isPrinterAvailable          { true  };
 
@@ -68,16 +68,18 @@ private:
 
     QGridLayout*  _layout                      { new QGridLayout  };
 
-    bool _checkPreSlicedFiles( );
-    bool _checkJobDirectory( );
+    bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
+    void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
+    bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
     void _updatePrepareButtonState( );
-
     void _handlePrepareFailed( );
+    void _startSlicer( SliceInformation const& sliceInfo );
 
 signals:
+    ;
 
     void slicingNeeded( bool const needed );
 
@@ -87,14 +89,17 @@ signals:
     void printerAvailabilityChanged( bool const available );
 
 public slots:
+    ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setPrinterAvailable( bool const value );
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void printer_online( );
     void printer_offline( );
@@ -110,13 +115,21 @@ private slots:
 
     void hasher_resultReady( QString const hash );
 
-    void slicerProcess_errorOccurred( QProcess::ProcessError error );
-    void slicerProcess_started( );
-    void slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void slicerProcess_base_errorOccurred( QProcess::ProcessError error );
+    void slicerProcess_base_started( );
+    void slicerProcess_base_finished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void svgRenderer_layerCount( int const totalLayers );
-    void svgRenderer_layerComplete( int const currentLayer );
-    void svgRenderer_done( bool const success );
+    void slicerProcess_body_errorOccurred( QProcess::ProcessError error );
+    void slicerProcess_body_started( );
+    void slicerProcess_body_finished( int exitCode, QProcess::ExitStatus exitStatus );
+
+    void svgRenderer_base_layerCount( int const totalLayers );
+    void svgRenderer_base_layerComplete( int const currentLayer );
+    void svgRenderer_base_done( bool const success );
+
+    void svgRenderer_body_layerCount( int const totalLayers );
+    void svgRenderer_body_layerComplete( int const currentLayer );
+    void svgRenderer_body_done( bool const success );
 
     void prepareButton_clicked( bool );
     void shepherd_homeComplete( bool const success );
