@@ -82,6 +82,12 @@ void TilingTab::setStepValue()
     }
     wCount--;
 
+    if( wCount < 1 ) {
+        _showWarningAndClose();
+        _space->setValueDouble( value - 0.25L );
+        return;
+    }
+
     //int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
 
     QPainter painter ( &area );
