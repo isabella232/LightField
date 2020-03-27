@@ -10,7 +10,6 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
 
     QGroupBox* all { new QGroupBox };
 
-
     QVBoxLayout* _currentLayerLayout;
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
@@ -70,8 +69,8 @@ void TilingTab::setStepValue()
 
     pixmap = pixmap.scaled( pixmap.width() * wRatio, pixmap.height() * hRatio);
 
-    int wCount =  floor( (_currentLayerImage->width( ) - pixmap.width() * value) / (pixmap.width() + pixmap.width() * value) );
-    int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
+    int wCount =  floor( (_currentLayerImage->width( ) - ( TilingMargin * wRatio * 2 ) ) / (pixmap.width() + pixmap.width() * value) );
+    //int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
 
     QPainter painter ( &area );
 
@@ -81,12 +80,12 @@ void TilingTab::setStepValue()
     painter.setFont( QFont("Arial") );
     painter.setPen(Qt::red);
 
-    for(int i=0,z=1; i<wCount; ++i) {
+    // multi row tilling
+    /*for(int i=0,z=1; i<wCount; ++i) {
         for(int j=0; j<hCount; ++j,++z)
         {
-
                             /*margin*/                /* image */                 /* space */
-            int x = ( pixmap.width( ) * value) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
+    /*      int x = ( pixmap.width( ) * value) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
             int y = ( pixmap.height( ) * value) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * value * j );
 
             int e = _minExposure->getValue() + ( ((wCount*hCount) - z) * _step->getValue() );
@@ -94,6 +93,17 @@ void TilingTab::setStepValue()
             painter.drawPixmap( x, y, pixmap );
             painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
         }
+    }*/
+
+    // single row tiling
+    int y = ( _currentLayerImage->height( ) - pixmap.height() ) / 2;
+    for(int i=0; i<wCount; ++i) {
+        int x = TilingMargin + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
+
+        int e = _minExposure->getValue() + ( ( wCount - ( i + 1 ) ) * _step->getValue() );
+
+        painter.drawPixmap( x, y, pixmap );
+        painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
     }
 
     _currentLayerImage->setPixmap( area );
@@ -123,7 +133,10 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::PrintCompleted:
             break;
         case UiState::TilingClicked:
-            _confirm->setEnabled( true );
+            this->_confirm->setEnabled( true );
+            this->_step->setEnabled( true );
+            this->_space->setEnabled( true );
+            this->_minExposure->setEnabled( true );
             break;
         case UiState::SelectedDirectory:
         case UiState::SelectCompleted:
@@ -134,6 +147,9 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
             this->_confirm->setEnabled( false );
+            this->_step->setEnabled( false );
+            this->_space->setEnabled( false );
+            this->_minExposure->setEnabled( false );
     }
 
     update( );

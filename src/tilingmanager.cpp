@@ -49,8 +49,13 @@ void TilingManager::tileImages ( )
     pixmap.load(_printJob->jobWorkingDirectory % Slash % _manifestMgr->getFirstElement());
 
     /* calculating tiled images count in rows and columns */
-    _wCount = floor( _width / (pixmap.width() + pixmap.width() * _space ) );
-    _hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
+    //_wCount = floor( _width / (pixmap.width() + pixmap.width() * _space ) );
+
+    _wCount =  floor( ( ProjectorWindowSize.width() - ( TilingMargin * 2 ) ) / ( pixmap.width() + ( pixmap.width() * _space ) ) );
+
+    //For now only 1 row
+    //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
+    _hCount = 1;
 
     debug( "+ TilingManager::renderTiles _width %d, _height %d, pixmap.width %d, pixmap.height %d, _space %f \n",
                                          _width,    _height,    pixmap.width(),  pixmap.height(),  _space);
@@ -114,8 +119,12 @@ void TilingManager::renderTiles ( QFileInfo info ) {
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
 
-    int x = ( pixmap.width( ) * _space) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * _space * i );
-    int y = ( pixmap.height( ) * _space) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * _space * j );
+    int x = TilingMargin + ( pixmap.width( ) * i ) + ( pixmap.width( ) * _space * i );
+
+    // For now only 1 row
+    // int y = ( pixmap.height( ) * _space) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * _space * j );
+
+    int y = ( ProjectorWindowSize.height() - pixmap.height() ) / 2;
 
     debug( "+ TilingManager::renderTiles x %d, y %d \n", x, y);
 

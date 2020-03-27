@@ -62,6 +62,7 @@ double             extern const  PrinterMaximumY;
 double constexpr          const  PrinterMaximumZ            =   50.00;   // mm
 double constexpr          const  PrinterRaiseToMaximumZ     =   60.00;   // mm
 double constexpr          const  PrinterHighSpeedThresholdZ =   10.00;   // mm
+int    constexpr          const  TilingMargin               =   25;      // px
 
 double constexpr          const  PrinterDefaultHighSpeed    =  200.00;   // mm/min
 double constexpr          const  PrinterDefaultLowSpeed     =   50.00;   // mm/min
