@@ -347,12 +347,27 @@ void Shepherd::start( ) {
 }
 
 void Shepherd::doMoveRelative( float const relativeDistance, float const speed ) {
+
+#if defined _DEBUG
+    if ( g_settings.pretendPrinterIsOnline ) {
+        debug( "+ Shepherd::doMoveRelative: Mocking relative move : %.2f with speed %.2f\nThis could happen only in debug!\n", relativeDistance,  speed);
+        emit action_moveRelativeComplete( true );
+        return;
+    }
+#endif // defined _DEBUG
     if ( getReady( "doMoveRelative", PendingCommand::moveRelative, 4 ) ) {
         _process->write( QString::asprintf( "moveRel %.2f %.2f\n", relativeDistance, speed ).toUtf8( ) );
     }
 }
 
 void Shepherd::doMoveAbsolute( float const absolutePosition, float const speed ) {
+#if defined _DEBUG
+    if ( g_settings.pretendPrinterIsOnline ) {
+        debug( "+ Shepherd::doMoveAbsolute: Mocking absolute move to: %.2f with speed %.2f\nThis could happen only in debug!\n", absolutePosition,  speed);
+        emit action_moveAbsoluteComplete( true );
+        return;
+    }
+#endif // defined _DEBUG
     if ( getReady( "doMoveAbsolute", PendingCommand::moveAbsolute, 4 ) ) {
         _process->write( QString::asprintf( "moveAbs %.2f %.2f\n", absolutePosition, speed ).toUtf8( ) );
     }
@@ -395,6 +410,13 @@ void Shepherd::launchShepherd( ) {
     QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );
     QObject::connect( _process, &QProcess::readyReadStandardOutput,                              this, &Shepherd::process_readyReadStandardOutput );
     QObject::connect( _process, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &Shepherd::process_finished                );
+    #if defined _DEBUG
+    //for purpose of printing emulation Shepherd could not start properly
+    if ( g_settings.pretendPrinterIsOnline ) {
+        QObject::disconnect( _process, &QProcess::errorOccurred, nullptr, nullptr);
+        QObject::connect( _process, &QProcess::errorOccurred,                                    this, &Shepherd::process_started                 );
+    }
+    #endif // defined _DEBUG
     _process->setWorkingDirectory( ShepherdPath );
     _process->start( "./stdio-shepherd.py" );
 }
