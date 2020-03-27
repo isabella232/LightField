@@ -10,25 +10,22 @@ class PrintProfile: public QObject {
 public:
 
     PrintProfile( QObject* parent = nullptr ): QObject( parent ) {
-
+        /*empty*/
     }
 
     virtual ~PrintProfile( ) override {
         /*empty*/
     }
 
-    PrintProfile* copy() {
-        PrintProfile* printProfile = new PrintProfile();
+    PrintProfile( PrintProfile const& profile ): QObject( profile.parent( ) ) {
+        _name                        = profile._name;
 
-        printProfile->_name = this->_name;
-        printProfile->_baseLayerCount = this->_baseLayerCount;
-        printProfile->_baseLayersPumpingEnabled = this->_baseLayersPumpingEnabled;
-        printProfile->_bodyLayersPumpingEnabled = this->_bodyLayersPumpingEnabled;
+        _baseLayerCount              = profile._baseLayerCount;
+        _baseLayersPumpingEnabled    = profile._baseLayersPumpingEnabled;
+        _baseLayersPumpingParameters = profile._baseLayersPumpingParameters;
 
-        printProfile->_baseLayersPumpingParameters = this->_baseLayersPumpingParameters;
-        printProfile->_bodyLayersPumpingParameters = this->_bodyLayersPumpingParameters;
-
-        return printProfile;
+        _bodyLayersPumpingEnabled    = profile._bodyLayersPumpingEnabled;
+        _bodyLayersPumpingParameters = profile._bodyLayersPumpingParameters;
     }
 
     //
@@ -43,20 +40,28 @@ public:
         return _baseLayerCount;
     }
 
+    bool baseLayersPumpingEnabled() const {
+        return _baseLayersPumpingEnabled;
+    }
+
     PrintPumpingParameters& baseLayersPumpingParameters( ) {
         return _baseLayersPumpingParameters;
+    }
+
+    PrintPumpingParameters const& baseLayersPumpingParameters( ) const {
+        return _baseLayersPumpingParameters;
+    }
+
+    bool bodyLayersPumpingEnabled() const {
+        return _bodyLayersPumpingEnabled;
     }
 
     PrintPumpingParameters& bodyLayersPumpingParameters( ) {
         return _bodyLayersPumpingParameters;
     }
 
-    bool baseLayersPumpingEnabled() {
-        return _baseLayersPumpingEnabled;
-    }
-
-    bool bodyLayersPumpingEnabled() {
-        return _bodyLayersPumpingEnabled;
+    PrintPumpingParameters const& bodyLayersPumpingParameters( ) const {
+        return _bodyLayersPumpingParameters;
     }
 
     //
@@ -64,7 +69,6 @@ public:
     //
 
     void setProfileName( QString const& newName ) {
-        emit profileNameChanged( newName );
         _name = newName;
     }
 
@@ -87,30 +91,19 @@ public:
     void setBodyLayersPumpingEnabled(bool value) {
         _bodyLayersPumpingEnabled = value;
     }
+
 protected:
 
 private:
 
     QString                _name;
-    int                    _baseLayerCount;
-    bool                   _baseLayersPumpingEnabled;
+
+    int                    _baseLayerCount              { };
+    bool                   _baseLayersPumpingEnabled    { };
     PrintPumpingParameters _baseLayersPumpingParameters;
-    bool                   _bodyLayersPumpingEnabled;
+
+    bool                   _bodyLayersPumpingEnabled    { };
     PrintPumpingParameters _bodyLayersPumpingParameters;
-
-signals:
-    ;
-
-    void profileNameChanged( QString const& newName );
-
-public slots:
-    ;
-
-protected slots:
-    ;
-
-private slots:
-    ;
 
 };
 
