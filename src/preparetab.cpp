@@ -350,7 +350,7 @@ bool PrepareTab::_checkJobDirectory( ) {
         _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
         _setupTiling->setEnabled(true);
-        _orderButton->setEnabled(true);
+        _orderButton->setEnabled(false);
         //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
