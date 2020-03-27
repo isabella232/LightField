@@ -26,6 +26,8 @@ private:
     OrderManifestManager*   _manifestManager          { };
 
     void _showLayerImage ( );
+    int _checkIfTilable ( );
+    void _showWarningAndClose ( );
 signals:
     ;
 
@@ -35,6 +37,17 @@ public slots:
 
         this->_printJob = printJob;
         this->_manifestManager = manifestManager;
+
+
+        if(!_checkIfTilable()) {
+                _showWarningAndClose();
+                return;
+        }
+
+        this->_confirm->setEnabled( true );
+        this->_step->setEnabled( true );
+        this->_space->setEnabled( true );
+        this->_minExposure->setEnabled( true );
 
         _showLayerImage();
     }

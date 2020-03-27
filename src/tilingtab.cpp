@@ -69,7 +69,19 @@ void TilingTab::setStepValue()
 
     pixmap = pixmap.scaled( pixmap.width() * wRatio, pixmap.height() * hRatio);
 
-    int wCount =  floor( (_currentLayerImage->width( ) - ( TilingMargin * wRatio * 2 ) ) / (pixmap.width() + pixmap.width() * value) );
+    int wCount=0;
+    for (
+         int i = ( TilingMargin * wRatio );
+         i < ( area.size().width( ) - ( TilingMargin * wRatio ) );
+         i += pixmap.width(), wCount++
+    ) {
+        if(wCount>0)
+            i+=pixmap.width()*value;
+
+        debug( " i: %d wCount: %d \n", i, wCount );
+    }
+    wCount--;
+
     //int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
 
     QPainter painter ( &area );
@@ -131,12 +143,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
-            break;
         case UiState::TilingClicked:
-            this->_confirm->setEnabled( true );
-            this->_step->setEnabled( true );
-            this->_space->setEnabled( true );
-            this->_minExposure->setEnabled( true );
             break;
         case UiState::SelectedDirectory:
         case UiState::SelectCompleted:
@@ -196,4 +203,52 @@ void TilingTab::confirmButton_clicked ( bool ) {
 
 
     emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
+}
+
+// @todo refactor dubbled code
+int TilingTab::_checkIfTilable ()
+{
+    if(_manifestManager->getFirstElement() == nullptr)
+        return 0;
+
+    auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getFirstElement());
+    double value = _space->getValueDouble();
+
+    double wRatio = ((double)area.size().width()) /  ProjectorWindowSize.width();
+    double hRatio = ((double)area.size().height()) /  ProjectorWindowSize.height();
+
+    pixmap = pixmap.scaled( pixmap.width() * wRatio, pixmap.height() * hRatio);
+
+    int wCount=0;
+    for (
+         int i = ( TilingMargin * wRatio );
+         i < ( area.size().width( ) - ( TilingMargin * wRatio ) );
+         i += pixmap.width(), wCount++
+    ) {
+        if(wCount>0)
+            i+=pixmap.width()*value;
+
+        debug( " i: %d wCount: %d \n", i, wCount );
+    }
+    wCount--;
+
+    return wCount;
+}
+
+void TilingTab::_showWarningAndClose ()
+{
+    auto origFont    = font( );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setFont(fontAwesome);
+    msgBox.setText( "Slices are too wide to be tiled." );
+    msgBox.show();
+    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
+    msgBox.exec();
 }

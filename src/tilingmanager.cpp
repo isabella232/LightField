@@ -51,7 +51,19 @@ void TilingManager::tileImages ( )
     /* calculating tiled images count in rows and columns */
     //_wCount = floor( _width / (pixmap.width() + pixmap.width() * _space ) );
 
-    _wCount =  floor( ( ProjectorWindowSize.width() - ( TilingMargin * 2 ) ) / ( pixmap.width() + ( pixmap.width() * _space ) ) );
+    _wCount=0;
+    for (
+         int i = TilingMargin;
+         i < ( ProjectorWindowSize.width() - TilingMargin );
+         i += pixmap.width(), _wCount++
+    ) {
+        if( _wCount > 0 )
+            i+=pixmap.width() * _space;
+
+        debug( " i: %d wCount: %d \n", i, _wCount );
+    }
+    _wCount--;
+
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
