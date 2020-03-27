@@ -94,6 +94,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _advancedTab->setPrintProfileManager( _printProfileManager );
     _profilesTab->setPrintProfileManager( _printProfileManager );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
@@ -153,14 +154,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _advancedTab->setContentsMargins( { } );
     _advancedTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab, &PrepareTab::setPrinterAvailable       );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,   &PrintTab::setPrinterAvailable         );
-    QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
-    QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
+    QObject::connect( _advancedTab,         &AdvancedTab::printerAvailabilityChanged,   _prepareTab,  &PrepareTab::setPrinterAvailable       );
+    QObject::connect( _advancedTab,         &AdvancedTab::printerAvailabilityChanged,   _printTab,    &PrintTab::setPrinterAvailable         );
+    QObject::connect( _advancedTab,         &AdvancedTab::projectorPowerLevelChanged,   _printTab,    &PrintTab::projectorPowerLevel_changed );
+    QObject::connect( _advancedTab,         &AdvancedTab::printerAvailabilityChanged,   _statusTab,   &StatusTab::setPrinterAvailable        );
+    QObject::connect( _advancedTab,         &AdvancedTab::printerAvailabilityChanged,   _systemTab,   &SystemTab::setPrinterAvailable        );
+    QObject::connect( _printProfileManager, &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile         );
 
-    _advancedTab->setPrintProfileManager( _printProfileManager );
     //
     // "Profiles" tab
     //
@@ -286,28 +286,121 @@ void Window::startPrinting( ) {
     _tabWidget->setCurrentIndex( +TabIndex::Status );
     update( );
 
+    auto const  printProfile                { _printJob->printProfile                      };
+    auto const& baseSlices                  { _printJob->baseSlices                        };
+    auto const& bodySlices                  { _printJob->bodySlices                        };
+    auto const& baseLayersPumpingParameters { printProfile->baseLayersPumpingParameters( ) };
+    auto const& bodyLayersPumpingParameters { printProfile->bodyLayersPumpingParameters( ) };
+
     debug(
         "+ Window::startPrinting: print job %p:\n"
-        "  + modelFileName:           '%s'\n"
-        "  + modelHash:               %s\n"
-        "  + layerCount:              %d\n"
-        "  + layerThickness:          %d\n"
-        "  + exposureTime:            %.2f\n"
-        "  + exposureTimeScaleFactor: %.2f\n"
-        "  + powerLevel:              %d\n"
-        "  + printSpeed:              %.2f\n"
-        "  + estimatedVolume:         %.2f\n"
+        "  + modelFileName:              '%s'\n"
+        "  + modelHash:                  %s\n"
+        "  + totalLayerCount:            %d\n"
+        "  + base slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
+        "    + layerCount:               %d\n"
+        "    + layerThickness:           %d\n"
+        "    + firstLayerOffset:         %d\n"
+        "    + startLayer:               %d\n"
+        "    + endLayer:                 %d\n"
+        "  + body slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
+        "    + layerCount:               %d\n"
+        "    + layerThickness:           %d\n"
+        "    + firstLayerOffset:         %d\n"
+        "    + startLayer:               %d\n"
+        "    + endLayer:                 %d\n"
+        "  + print profile: (calculated parameters are marked with *)\n"
+        "    + profileName:              '%s'\n"
+        "    + baseLayerCount:           %d\n"
+        "    + baseLayersPumpingEnabled: %s\n"
+        "    + base layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
+        "    + bodyLayersPumpingEnabled: %s\n"
+        "    + body layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
         "",
+
         _printJob,
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->modelHash.toUtf8( ).data( ),
-        _printJob->layerCount,
-        _printJob->layerThickness,
-        _printJob->exposureTime,
-        _printJob->exposureTimeScaleFactor,
-        _printJob->powerLevel,
-        _printJob->printSpeed,
-        _printJob->estimatedVolume
+        _printJob->totalLayerCount,
+
+        baseSlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( baseSlices.isPreSliced ),
+        baseSlices.layerCount,
+        baseSlices.layerThickness,
+        baseSlices.firstLayerOffset,
+        baseSlices.startLayer,
+        baseSlices.endLayer,
+
+        bodySlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( bodySlices.isPreSliced ),
+        bodySlices.layerCount,
+        bodySlices.layerThickness,
+        bodySlices.firstLayerOffset,
+        bodySlices.startLayer,
+        bodySlices.endLayer,
+
+        printProfile->profileName( ).toUtf8( ).data( ),
+        printProfile->baseLayerCount( ),
+
+        ToString( printProfile->baseLayersPumpingEnabled( ) ),
+        baseLayersPumpingParameters.pumpUpDistance( ),
+        baseLayersPumpingParameters.pumpUpTime( ),
+        baseLayersPumpingParameters.pumpUpVelocity_Effective( ),
+        baseLayersPumpingParameters.pumpUpPause( ),
+        baseLayersPumpingParameters.pumpDownDistance_Effective( ),
+        baseLayersPumpingParameters.pumpDownTime_Effective( ),
+        baseLayersPumpingParameters.pumpDownVelocity_Effective( ),
+        baseLayersPumpingParameters.pumpDownPause( ),
+        baseLayersPumpingParameters.noPumpUpVelocity( ),
+        baseLayersPumpingParameters.pumpEveryNthLayer( ),
+        baseLayersPumpingParameters.layerThickness( ),
+        baseLayersPumpingParameters.layerExposureTime( ),
+        baseLayersPumpingParameters.powerLevel( ),
+
+        ToString( printProfile->bodyLayersPumpingEnabled( ) ),
+        bodyLayersPumpingParameters.pumpUpDistance( ),
+        bodyLayersPumpingParameters.pumpUpTime( ),
+        bodyLayersPumpingParameters.pumpUpVelocity_Effective( ),
+        bodyLayersPumpingParameters.pumpUpPause( ),
+        bodyLayersPumpingParameters.pumpDownDistance_Effective( ),
+        bodyLayersPumpingParameters.pumpDownTime_Effective( ),
+        bodyLayersPumpingParameters.pumpDownVelocity_Effective( ),
+        bodyLayersPumpingParameters.pumpDownPause( ),
+        bodyLayersPumpingParameters.noPumpUpVelocity( ),
+        bodyLayersPumpingParameters.pumpEveryNthLayer( ),
+        bodyLayersPumpingParameters.layerThickness( ),
+        bodyLayersPumpingParameters.layerExposureTime( ),
+        bodyLayersPumpingParameters.powerLevel( )
     );
 
     PrintJob* job = _printJob;
