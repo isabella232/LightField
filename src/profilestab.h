@@ -15,14 +15,11 @@ public:
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Profiles; }
 
-    void setPrintProfileManager( PrintProfileManager* printProfileManager );
-
 protected:
 
+    virtual void _connectPrintProfileManager( ) override;
+
 private:
-
-    PrintProfileManager* _printProfileManager;
-
 
     QPushButton*        _importParams                    { new QPushButton("Import")              };
     QPushButton*        _exportParams                    { new QPushButton("Export")              };
@@ -39,6 +36,7 @@ private:
     bool _createNewProfile(QString profileName);
     bool _deletePrintProfile();
     bool _loadPrintProfile();
+
 signals:
     ;
 

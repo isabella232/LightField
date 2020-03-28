@@ -103,9 +103,7 @@ void ProfilesTab::_setupProfilesList(QFont font) {
 
 }
 
-void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManager ) {
-    _printProfileManager = printProfileManager;
-
+void ProfilesTab::_connectPrintProfileManager( ) {
     QStandardItem* item = nullptr;
     QStandardItem* firstItem = nullptr;
     QVector<PrintProfile*>* profiles = ProfilesJsonParser::loadProfiles();
@@ -294,8 +292,7 @@ void ProfilesTab::loadProfile_clicked(bool)
 
 bool ProfilesTab::_createNewProfile(QString profileName)
 {
-    PrintProfile* printProfile = (PrintProfile*)_printProfileManager->activeProfile();
-    PrintProfile* profileCopy = printProfile->copy();
+    PrintProfile* profileCopy = new PrintProfile { *_printProfileManager->activeProfile( ) };
 
     profileCopy->setProfileName(profileName);
     _printProfileManager->addProfile(profileCopy);
