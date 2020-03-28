@@ -383,8 +383,8 @@ void StatusTab::printManager_printResumed( ) {
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
-    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->layerCount ) );
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount );
+    _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount ) );
 
     _previousLayerStartTime = _currentLayerStartTime;
     _currentLayerStartTime  = GetBootTimeClock( );
@@ -405,16 +405,19 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     }
 
     if ( layer > 3 ) {
+        // TODO
+        // argh, the time estimate needs to be updated to deal with the base and
+        // body layers, because they could have completely different settings
         auto average = std::accumulate<std::vector<double>::iterator, double>( _layerElapsedTimes.begin( ), _layerElapsedTimes.end( ), 0 ) / _layerElapsedTimes.size( );
         debug( "  + average:    %.3f\n", average );
 
-        _estimatedPrintJobTime = average * _printJob->layerCount;
+        _estimatedPrintJobTime = average * _printJob->totalLayerCount;
         debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
-    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
+    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->totalLayerCount ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString { "/%2.png" }.arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap { _printJob->getLayerFileName( layer ) };
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
