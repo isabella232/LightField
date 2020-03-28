@@ -624,7 +624,7 @@ void AdvancedTab::updatePrintProfile() {
     profile->setBaseLayersPumpingEnabled(_addBasePumpCheckbox->isChecked());
     if(_addBasePumpCheckbox->isChecked())
     {
-        PrintPumpingParameters baseParams;
+        PrintParameters baseParams;
 
         baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
         baseParams.setPumpUpTime(_upTimeSlider->getValue());
@@ -636,13 +636,13 @@ void AdvancedTab::updatePrintProfile() {
         baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
         baseParams.setPowerLevel(_powerLevelSlider->value());
 
-        profile->setBaseLayersPumpingParameters(baseParams);
+        profile->setBaseLayersParameters(baseParams);
     }
 
     profile->setBaseLayersPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     if(_addBodyPumpCheckbox->isChecked())
     {
-        PrintPumpingParameters bodyParams;
+        PrintParameters bodyParams;
 
         bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
         bodyParams.setPumpUpTime(_bodyUpTimeSlider->getValue());
@@ -654,7 +654,7 @@ void AdvancedTab::updatePrintProfile() {
         bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
         bodyParams.setPowerLevel(_powerLevelSlider->value());
 
-        profile->setBodyLayersPumpingParameters(bodyParams);
+        profile->setBodyLayersParameters(bodyParams);
     }
 
     if(setActive)
@@ -669,7 +669,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
     if ( profile->baseLayersPumpingEnabled( ) ) {
-        PrintPumpingParameters const& baseParams = profile->baseLayersParameters( );
+        PrintParameters const& baseParams = profile->baseLayersParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
         _upTimeSlider->setValue( baseParams.pumpUpTime( ) );
@@ -682,7 +682,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     }
 
     if ( profile->bodyLayersPumpingEnabled( ) ) {
-        PrintPumpingParameters const& bodyParams = profile->bodyLayersParameters( );
+        PrintParameters const& bodyParams = profile->bodyLayersParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
         _bodyUpTimeSlider->setValue( bodyParams.pumpUpTime( ) );

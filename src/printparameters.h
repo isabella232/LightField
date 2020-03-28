@@ -1,15 +1,15 @@
-#ifndef __PRINTPUMPINGPARAMETERS_H__
-#define __PRINTPUMPINGPARAMETERS_H__
+#ifndef __PRINTPARAMETERS_H__
+#define __PRINTPARAMETERS_H__
 
-class PrintPumpingParameters {
+class PrintParameters {
 
 public:
 
-    PrintPumpingParameters( )                                          = default;
-    PrintPumpingParameters( PrintPumpingParameters const& )            = default;
-    PrintPumpingParameters( PrintPumpingParameters&& )                 = default;
-    PrintPumpingParameters& operator=( PrintPumpingParameters const& ) = default;
-    PrintPumpingParameters& operator=( PrintPumpingParameters&& )      = default;
+    PrintParameters( )                                   = default;
+    PrintParameters( PrintParameters const& )            = default;
+    PrintParameters( PrintParameters&& )                 = default;
+    PrintParameters& operator=( PrintParameters const& ) = default;
+    PrintParameters& operator=( PrintParameters&& )      = default;
 
     //
     // Accessors
@@ -148,4 +148,4 @@ private:
 
 };
 
-#endif //!__PRINTPUMPINGPARAMETERS_H__
+#endif //!__PRINTPARAMETERS_H__

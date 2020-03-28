@@ -1,7 +1,7 @@
 #ifndef __PRINTPROFILE_H__
 #define __PRINTPROFILE_H__
 
-#include "printpumpingparameters.h"
+#include "printparameters.h"
 
 class PrintProfile: public QObject {
 
@@ -44,11 +44,11 @@ public:
         return _baseLayersPumpingEnabled;
     }
 
-    PrintPumpingParameters& baseLayersParameters( ) {
+    PrintParameters& baseLayersParameters( ) {
         return _baseLayersParameters;
     }
 
-    PrintPumpingParameters const& baseLayersParameters( ) const {
+    PrintParameters const& baseLayersParameters( ) const {
         return _baseLayersParameters;
     }
 
@@ -56,11 +56,11 @@ public:
         return _bodyLayersPumpingEnabled;
     }
 
-    PrintPumpingParameters& bodyLayersParameters( ) {
+    PrintParameters& bodyLayersParameters( ) {
         return _bodyLayersParameters;
     }
 
-    PrintPumpingParameters const& bodyLayersParameters( ) const {
+    PrintParameters const& bodyLayersParameters( ) const {
         return _bodyLayersParameters;
     }
 
@@ -76,11 +76,11 @@ public:
         _baseLayerCount = newCount;
     }
 
-    void setBaseLayersPumpingParameters( PrintPumpingParameters const& newParameters ) {
+    void setBaseLayersParameters( PrintParameters const& newParameters ) {
         _baseLayersParameters = newParameters;
     }
 
-    void setBodyLayersPumpingParameters( PrintPumpingParameters const& newParameters ) {
+    void setBodyLayersParameters( PrintParameters const& newParameters ) {
         _bodyLayersParameters = newParameters;
     }
 
@@ -100,10 +100,10 @@ private:
 
     int                    _baseLayerCount              { };
     bool                   _baseLayersPumpingEnabled    { };
-    PrintPumpingParameters _baseLayersParameters;
+    PrintParameters _baseLayersParameters;
 
     bool                   _bodyLayersPumpingEnabled    { };
-    PrintPumpingParameters _bodyLayersParameters;
+    PrintParameters _bodyLayersParameters;
 
 };
 

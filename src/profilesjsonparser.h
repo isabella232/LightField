@@ -62,8 +62,8 @@ public:
 
                 if(!baseLayersParameters.isUndefined() && !baseLayersParameters.isNull())
                 {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersParameters.toObject());
-                    printProfile->setBaseLayersPumpingParameters(params);
+                    PrintParameters params = _parsePrintParameters(baseLayersParameters.toObject());
+                    printProfile->setBaseLayersParameters(params);
                     printProfile->setBaseLayersPumpingEnabled(true);
                 }
                 else
@@ -74,8 +74,8 @@ public:
 
                 if(!bodyLayersParameters.isUndefined() && !bodyLayersParameters.isNull())
                 {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersParameters.toObject());
-                    printProfile->setBodyLayersPumpingParameters(params);
+                    PrintParameters params = _parsePrintParameters(bodyLayersParameters.toObject());
+                    printProfile->setBodyLayersParameters(params);
                     printProfile->setBodyLayersPumpingEnabled(true);
                 }
                 else
@@ -124,13 +124,13 @@ public:
 
             if(profile->baseLayersPumpingEnabled())
             {
-                QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersParameters());
+                QJsonObject baseParameters = _serializePrintParameters(profile->baseLayersParameters());
                 json["baseLayersParameters"]= baseParameters;
             }
 
             if(profile->bodyLayersPumpingEnabled())
             {
-                QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersParameters());
+                QJsonObject bodyParameters = _serializePrintParameters(profile->bodyLayersParameters());
                 json["bodyLayersParameters"]= bodyParameters;
             }
 
@@ -144,9 +144,9 @@ public:
     }
 
 private:
-    static PrintPumpingParameters _parsePrintPumpingParameters(QJsonObject obj)
+    static PrintParameters _parsePrintParameters(QJsonObject obj)
     {
-        PrintPumpingParameters params;
+        PrintParameters params;
 
         params.setPumpUpDistance( _parseIntValue(obj, QString("pumpUpDistance")) );
         params.setPumpUpTime( _parseDoubleValue(obj, QString("pumpUpTime")) );
@@ -191,7 +191,7 @@ private:
         }
     }
 
-    static QJsonObject _serializePrintPumpingParameters(PrintPumpingParameters params)
+    static QJsonObject _serializePrintParameters(PrintParameters params)
     {
         QJsonObject result;
 

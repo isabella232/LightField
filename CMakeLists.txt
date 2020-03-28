@@ -100,7 +100,7 @@ src/printjob.h
 src/printmanager.h
 src/printprofile.h
 src/printprofilemanager.h
-src/printpumpingparameters.h
+src/printparameters.h
 src/printtab.h
 src/processrunner.h
 src/profilestab.h
