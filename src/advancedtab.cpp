@@ -237,8 +237,8 @@ void AdvancedTab::powerLevelSlider_sliderReleased( ) {
 }
 
 void AdvancedTab::powerLevelSlider_valueChanged( int percentage ) {
-    _printJob->printProfile->baseLayersPumpingParameters( ).setPowerLevel( percentage );
-    _printJob->printProfile->bodyLayersPumpingParameters( ).setPowerLevel( percentage );
+    _printJob->printProfile->baseLayersParameters( ).setPowerLevel( percentage );
+    _printJob->printProfile->bodyLayersParameters( ).setPowerLevel( percentage );
     _powerLevelValue->setText( QString { "%1%" }.arg( percentage ) );
 
     update( );
@@ -669,7 +669,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
     if ( profile->baseLayersPumpingEnabled( ) ) {
-        PrintPumpingParameters const& baseParams = profile->baseLayersPumpingParameters( );
+        PrintPumpingParameters const& baseParams = profile->baseLayersParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
         _upTimeSlider->setValue( baseParams.pumpUpTime( ) );
@@ -682,7 +682,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     }
 
     if ( profile->bodyLayersPumpingEnabled( ) ) {
-        PrintPumpingParameters const& bodyParams = profile->baseLayersPumpingParameters( );
+        PrintPumpingParameters const& bodyParams = profile->bodyLayersParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
         _bodyUpTimeSlider->setValue( bodyParams.pumpUpTime( ) );

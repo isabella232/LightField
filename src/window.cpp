@@ -286,11 +286,11 @@ void Window::startPrinting( ) {
     _tabWidget->setCurrentIndex( +TabIndex::Status );
     update( );
 
-    auto const  printProfile                { _printJob->printProfile                      };
-    auto const& baseSlices                  { _printJob->baseSlices                        };
-    auto const& bodySlices                  { _printJob->bodySlices                        };
-    auto const& baseLayersPumpingParameters { printProfile->baseLayersPumpingParameters( ) };
-    auto const& bodyLayersPumpingParameters { printProfile->bodyLayersPumpingParameters( ) };
+    auto const  printProfile         { _printJob->printProfile               };
+    auto const& baseSlices           { _printJob->baseSlices                 };
+    auto const& bodySlices           { _printJob->bodySlices                 };
+    auto const& baseLayersParameters { printProfile->baseLayersParameters( ) };
+    auto const& bodyLayersParameters { printProfile->bodyLayersParameters( ) };
 
     debug(
         "+ Window::startPrinting: print job %p:\n"
@@ -373,34 +373,34 @@ void Window::startPrinting( ) {
         printProfile->baseLayerCount( ),
 
         ToString( printProfile->baseLayersPumpingEnabled( ) ),
-        baseLayersPumpingParameters.pumpUpDistance( ),
-        baseLayersPumpingParameters.pumpUpTime( ),
-        baseLayersPumpingParameters.pumpUpVelocity_Effective( ),
-        baseLayersPumpingParameters.pumpUpPause( ),
-        baseLayersPumpingParameters.pumpDownDistance_Effective( ),
-        baseLayersPumpingParameters.pumpDownTime_Effective( ),
-        baseLayersPumpingParameters.pumpDownVelocity_Effective( ),
-        baseLayersPumpingParameters.pumpDownPause( ),
-        baseLayersPumpingParameters.noPumpUpVelocity( ),
-        baseLayersPumpingParameters.pumpEveryNthLayer( ),
-        baseLayersPumpingParameters.layerThickness( ),
-        baseLayersPumpingParameters.layerExposureTime( ),
-        baseLayersPumpingParameters.powerLevel( ),
+        baseLayersParameters.pumpUpDistance( ),
+        baseLayersParameters.pumpUpTime( ),
+        baseLayersParameters.pumpUpVelocity_Effective( ),
+        baseLayersParameters.pumpUpPause( ),
+        baseLayersParameters.pumpDownDistance_Effective( ),
+        baseLayersParameters.pumpDownTime_Effective( ),
+        baseLayersParameters.pumpDownVelocity_Effective( ),
+        baseLayersParameters.pumpDownPause( ),
+        baseLayersParameters.noPumpUpVelocity( ),
+        baseLayersParameters.pumpEveryNthLayer( ),
+        baseLayersParameters.layerThickness( ),
+        baseLayersParameters.layerExposureTime( ),
+        baseLayersParameters.powerLevel( ),
 
         ToString( printProfile->bodyLayersPumpingEnabled( ) ),
-        bodyLayersPumpingParameters.pumpUpDistance( ),
-        bodyLayersPumpingParameters.pumpUpTime( ),
-        bodyLayersPumpingParameters.pumpUpVelocity_Effective( ),
-        bodyLayersPumpingParameters.pumpUpPause( ),
-        bodyLayersPumpingParameters.pumpDownDistance_Effective( ),
-        bodyLayersPumpingParameters.pumpDownTime_Effective( ),
-        bodyLayersPumpingParameters.pumpDownVelocity_Effective( ),
-        bodyLayersPumpingParameters.pumpDownPause( ),
-        bodyLayersPumpingParameters.noPumpUpVelocity( ),
-        bodyLayersPumpingParameters.pumpEveryNthLayer( ),
-        bodyLayersPumpingParameters.layerThickness( ),
-        bodyLayersPumpingParameters.layerExposureTime( ),
-        bodyLayersPumpingParameters.powerLevel( )
+        bodyLayersParameters.pumpUpDistance( ),
+        bodyLayersParameters.pumpUpTime( ),
+        bodyLayersParameters.pumpUpVelocity_Effective( ),
+        bodyLayersParameters.pumpUpPause( ),
+        bodyLayersParameters.pumpDownDistance_Effective( ),
+        bodyLayersParameters.pumpDownTime_Effective( ),
+        bodyLayersParameters.pumpDownVelocity_Effective( ),
+        bodyLayersParameters.pumpDownPause( ),
+        bodyLayersParameters.noPumpUpVelocity( ),
+        bodyLayersParameters.pumpEveryNthLayer( ),
+        bodyLayersParameters.layerThickness( ),
+        bodyLayersParameters.layerExposureTime( ),
+        bodyLayersParameters.powerLevel( )
     );
 
     PrintJob* job = _printJob;

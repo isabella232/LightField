@@ -57,24 +57,24 @@ public:
                     throw new QException();
                 }
 
-                debug( "  + get baseLayersPumpingParameters\n" );
-                auto baseLayersPumpingParameters = obj["baseLayersPumpingParameters"];
+                debug( "  + get baseLayersParameters\n" );
+                auto baseLayersParameters = obj["baseLayersParameters"];
 
-                if(!baseLayersPumpingParameters.isUndefined() && !baseLayersPumpingParameters.isNull())
+                if(!baseLayersParameters.isUndefined() && !baseLayersParameters.isNull())
                 {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
+                    PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersParameters.toObject());
                     printProfile->setBaseLayersPumpingParameters(params);
                     printProfile->setBaseLayersPumpingEnabled(true);
                 }
                 else
                     printProfile->setBaseLayersPumpingEnabled(false);
 
-                debug( "  + get bodyLayersPumpingParameters\n" );
-                auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
+                debug( "  + get bodyLayersParameters\n" );
+                auto bodyLayersParameters = obj["bodyLayersParameters"];
 
-                if(!bodyLayersPumpingParameters.isUndefined() && !bodyLayersPumpingParameters.isNull())
+                if(!bodyLayersParameters.isUndefined() && !bodyLayersParameters.isNull())
                 {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
+                    PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersParameters.toObject());
                     printProfile->setBodyLayersPumpingParameters(params);
                     printProfile->setBodyLayersPumpingEnabled(true);
                 }
@@ -124,14 +124,14 @@ public:
 
             if(profile->baseLayersPumpingEnabled())
             {
-                QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersPumpingParameters());
-                json["baseLayersPumpingParameters"]= baseParameters;
+                QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersParameters());
+                json["baseLayersParameters"]= baseParameters;
             }
 
             if(profile->bodyLayersPumpingEnabled())
             {
-                QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersPumpingParameters());
-                json["bodyLayersPumpingParameters"]= bodyParameters;
+                QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersParameters());
+                json["bodyLayersParameters"]= bodyParameters;
             }
 
             jsonArray.append(json);
