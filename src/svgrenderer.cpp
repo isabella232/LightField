@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include <sys/sysinfo.h>
-
 #include "svgrenderer.h"
 
 #include "processrunner.h"
@@ -16,9 +14,12 @@ namespace {
         return skeletonDoc;
     }
 
+    auto const _numberOfCpus { get_nprocs( ) };
+
 }
 
 SvgRenderer::SvgRenderer( ) {
+    /*empty*/
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -44,8 +45,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     }
     file.close( );
 
-    QDomDocument skeletonDoc = _CloneDocRoot( _doc );
-
     QDomElement svgElement = _doc.documentElement( );
     if ( !svgElement.hasAttributes( ) ) {
         debug( "  + SVG element has no attributes?\n" );
@@ -58,6 +57,8 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     _pxWidth  = mmWidth  * 20.0 + 0.5;
     _pxHeight = mmHeight * 20.0 + 0.5;
     debug( "  + dimensions: mm %.2f×%.2f; px %d×%d\n", mmWidth, mmHeight, _pxWidth, _pxHeight );
+
+    QDomDocument skeletonDoc = _CloneDocRoot( _doc );
 
     QDomNodeList childNodes = svgElement.childNodes( );
     int limit = childNodes.length( );
@@ -103,35 +104,82 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     }
 
     _totalLayers = layer;
-    _runningLayers .fill( -1,      get_nprocs( ) );
-    _processRunners.fill( nullptr, get_nprocs( ) );
+    _runningLayers .fill( -1,      _numberOfCpus );
+    _processRunners.fill( nullptr, _numberOfCpus );
     emit layerCount( _totalLayers );
 
     _renderLayer( );
 }
 
-void SvgRenderer::_renderLayer( ) {
+void SvgRenderer::renderLayerProcess_succeeded( int const slot ) {
+    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+
+    ++_completedLayers;
     debug(
-        "+ SvgRenderer::_renderLayer:\n"
-        "  + _currentLayer:     %d\n"
+        "+ SvgRenderer::renderLayerProcess_succeeded:\n"
+        "  + slot:              %d\n"
+        "  + layer:             %d\n"
+        "  + _completedLayers:  %d\n"
         "  + _totalLayers:      %d\n"
-        "  + _runningProcesses: %d\n"
         "",
-        _currentLayer,
+        slot,
+        _runningLayers[slot],
+        _completedLayers,
         _totalLayers
     );
 
-    for ( int slot = 0; ( slot < get_nprocs( ) ) && ( _currentLayer < _totalLayers ); ++slot ) {
+    emit layerComplete( _runningLayers[slot] );
+
+    _cleanUpOneProcessRunner( slot );
+
+    if ( _completedLayers == _totalLayers ) {
+        TimingLogger::stopTiming( TimingId::RenderingPngs );
+        debug( "+ SvgRenderer::renderLayerProcess_succeeded: layer rendering is complete\n" );
+        emit done( true );
+    } else {
+        _renderLayer( );
+    }
+}
+
+void SvgRenderer::renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error ) {
+    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+    debug(
+        "+ SvgRenderer::renderLayerProcess_failed:\n"
+        "  + slot:              %d\n"
+        "  + layer:             %d\n"
+        "  + exit code:         %d\n"
+        "  + error:             %s [%d]\n"
+        "",
+        slot,
+        _runningLayers[slot],
+        exitCode,
+        ToString( error ), static_cast<int>( error )
+    );
+
+    _cleanUpProcessRunners( );
+
+    TimingLogger::stopTiming( TimingId::RenderingPngs );
+
+    emit done( false );
+}
+
+void SvgRenderer::_renderLayer( ) {
+    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+    debug( "+ SvgRenderer::_renderLayer: _processesRunning: %d; tid: %d\n", _processesRunning, syscall( SYS_gettid ) );
+
+    for ( int slot = 0; ( slot < _numberOfCpus ) && ( _currentLayer < _totalLayers ); ++slot ) {
         if ( _processRunners[slot] ) {
             debug( "  + slot:              %d [busy]\n", slot );
             continue;
         }
         debug(
             "  + slot:              %d [free]\n"
+            "  + _currentLayer:     %d\n"
             "  + _totalLayers:      %d\n"
             "  + _completedLayers:  %d\n"
             "",
             slot,
+            _currentLayer,
             _totalLayers,
             _completedLayers
         );
@@ -139,64 +187,15 @@ void SvgRenderer::_renderLayer( ) {
         auto processRunner = new ProcessRunner;
         processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
 
-        QObject::connect( processRunner, &ProcessRunner::succeeded, [ this, slot ] ( ) {
-            ++_completedLayers;
-            --_processesRunning;
-            debug(
-                "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded:\n"
-                "  + slot:              %d\n"
-                "  + layer:             %d\n"
-                "  + _completedLayers:  %d\n"
-                "  + _totalLayers:      %d\n"
-                "",
-                slot,
-                _runningLayers[slot],
-                _completedLayers,
-                _totalLayers
-            );
-
-            emit layerComplete( _runningLayers[slot] );
-
-            _cleanUpOneProcessRunner( slot );
-
-            if ( _completedLayers == _totalLayers ) {
-                TimingLogger::stopTiming( TimingId::RenderingPngs );
-                debug( "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded: finished\n" );
-                emit done( true );
-            } else {
-                _renderLayer( );
-            }
-        } );
-
-        QObject::connect( processRunner, &ProcessRunner::failed, [ this, slot ] ( int const exitCode, QProcess::ProcessError const error ) {
-            debug(
-                "+ SvgRenderer::_renderLayer: ProcessRunner::failed:\n"
-                "  + slot:              %d\n"
-                "  + layer:             %d\n"
-                "  + exit code:         %d\n"
-                "  + error:             %s [%d]\n"
-                "",
-                slot,
-                _runningLayers[slot],
-                exitCode,
-                ToString( error ), static_cast<int>( error )
-            );
-
-            _processesRunning = 0;
-            _cleanUpProcessRunners( );
-
-            TimingLogger::stopTiming( TimingId::RenderingPngs );
-
-            emit done( false );
-        } );
+        QObject::connect( processRunner, &ProcessRunner::succeeded, std::function<void( )>                                         { std::bind( &SvgRenderer::renderLayerProcess_succeeded, this, slot                                               ) } );
+        QObject::connect( processRunner, &ProcessRunner::failed,    std::function<void( int const, QProcess::ProcessError const )> { std::bind( &SvgRenderer::renderLayerProcess_failed,    this, slot, std::placeholders::_1, std::placeholders::_2 ) } );
 
         debug( "  + new instance in slot %d for layer %d: %p\n", slot, _currentLayer, processRunner );
         _processRunners[slot] = processRunner;
         _runningLayers[slot]  = _currentLayer;
-
-        auto layer = _currentLayer++;
         ++_processesRunning;
 
+        auto layer = _currentLayer++;
         processRunner->start(
             { "gm" },
             {
@@ -213,6 +212,8 @@ void SvgRenderer::_renderLayer( ) {
 }
 
 void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
+    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+
     auto processRunner = _processRunners[slot];
     if ( !processRunner ) {
         debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: no instance, returning\n", slot );
@@ -222,6 +223,7 @@ void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
     debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: layer %d, instance %p\n", slot, _runningLayers[slot], _processRunners[slot] );
     _processRunners[slot] = nullptr;
     _runningLayers[slot]  = -1;
+    --_processesRunning;
 
     QObject::disconnect( processRunner );
     if ( processRunner->state( ) != QProcess::NotRunning ) {
@@ -232,9 +234,10 @@ void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
 }
 
 void SvgRenderer::_cleanUpProcessRunners( ) {
+    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
     debug( "+ SvgRenderer::_cleanUpProcessRunners\n" );
 
-    for ( int slot = 0; slot < get_nprocs( ); ++slot ) {
+    for ( int slot = 0; slot < _numberOfCpus; ++slot ) {
         _cleanUpOneProcessRunner( slot );
     }
 }
