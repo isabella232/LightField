@@ -60,6 +60,11 @@ public:
         return _noPumpUpVelocity;
     }
 
+    // unit: mm/min
+    double noPumpDownVelocity_Effective( ) const {
+        return _noPumpUpVelocity;
+    }
+
     // unit: none
     int pumpEveryNthLayer( ) const {
         return _pumpEveryNthLayer;
