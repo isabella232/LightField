@@ -42,9 +42,11 @@ constexpr auto const SA_RESTART     = 0x10000000;
 
 constexpr auto const MSG_DONTWAIT   = 0x40;
 
-constexpr auto const SIG_BLOCK   = 0;
-constexpr auto const SIG_UNBLOCK = 1;
-constexpr auto const SIG_SETMASK = 2;
+constexpr auto const SIG_BLOCK      = 0;
+constexpr auto const SIG_UNBLOCK    = 1;
+constexpr auto const SIG_SETMASK    = 2;
+
+constexpr auto const SYS_gettid     = 186;
 
 //================================================
 // Forward type declarations
@@ -130,7 +132,8 @@ extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec cons
 extern int     socketpair( int domain, int type, int protocol, int sv[2] );
 extern int     statvfs( char const* path, struct statvfs* buf );
 extern char*   strsignal( int sig );
-extern int     uname( utsname* buf )
+extern long    syscall( long __sysno, ... ) throw( );
+extern int     uname( utsname* buf );
 
 //================================================
 // GNU C Library function prototypes
