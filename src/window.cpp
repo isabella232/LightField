@@ -406,22 +406,22 @@ void Window::startPrinting( ) {
     PrintJob* job = _printJob;
     _printJob = new PrintJob( _printJob );
 
-    PrintManager* oldPrintManager = _printManager;
+    if ( _printManager ) {
+        QObject::disconnect( _printManager );
+        _printManager->deleteLater( );
+    }
 
     _printManager = new PrintManager( _shepherd, this );
     _printManager->setPngDisplayer( _pngDisplayer );
+
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );
+
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
     _printManager->print( job );
-
-    if ( oldPrintManager ) {
-        QObject::disconnect( oldPrintManager );
-        oldPrintManager->deleteLater( );
-    }
 }
 
 void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -478,22 +478,27 @@ void Window::shepherd_started( ) {
 
 void Window::shepherd_startFailed( ) {
     debug( "+ Window::shepherd_startFailed\n" );
+    // TODO
 }
 
 void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
     debug( "+ Window::shepherd_terminated: expected? %s; clean? %s\n", ToString( expected ), ToString( cleanExit ) );
+    // TODO
 }
 
 void Window::printManager_printStarting( ) {
     debug( "+ Window::printManager_printStarting\n" );
+    // TODO
 }
 
 void Window::printManager_printComplete( bool const success ) {
     debug( "+ Window::printManager_printComplete: success? %s; is model rendered? %s; is printer prepared? %s\n", ToString( success ), ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );
+    // TODO
 }
 
 void Window::printManager_printAborted( ) {
     debug( "+ Window::printManager_printAborted: forwarding to printManager_printComplete\n" );
+
     printManager_printComplete( false );
 
     update( );
@@ -570,6 +575,7 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
         sigqueue( info.si_pid, SIGUSR2, val );
         return;
     }
+
 #if defined _DEBUG
     if ( SIGUSR1 == info.si_signo ) {
         debug( "+ Window::signalHandler_signalReceived: object information dump:\n" );
@@ -583,8 +589,8 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
     close( );
 }
 
-void Window::showEvent( QShowEvent* aShowEvent )
-{
-    QMainWindow::showEvent(aShowEvent);
-    activateWindow();
+void Window::showEvent( QShowEvent* event ) {
+    QMainWindow::showEvent( event );
+
+    activateWindow( );
 }
