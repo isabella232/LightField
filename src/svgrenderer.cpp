@@ -25,7 +25,7 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
+void SvgRenderer::loadSlices( OrderManifestManager& manifestManager ) {
     int  layerNumber     { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
@@ -46,7 +46,7 @@ void SvgRenderer::loadSlices( OrderManifestManager manifestManager ) {
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager manifestManager ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager& manifestManager ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;

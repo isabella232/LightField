@@ -154,7 +154,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SelectedDirectory:
         case UiState::SelectCompleted:
             this->_step->setValue( 2 );
-            this->_space->setValueDouble( 0.25f );
+            //this->_space->setValueDouble( 0.25f );
             this->_minExposure->setValue( 2 );
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;

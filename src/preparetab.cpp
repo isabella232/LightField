@@ -397,6 +397,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
+    debug( "PrepareTab::_showLayerImage %d \n", layer );
     debug( "PrepareTab::_showLayerImage %s \n", QString( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) ).toUtf8().data() );
 
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) );
