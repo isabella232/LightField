@@ -43,6 +43,7 @@ public :
     QString text;
     QString iconFilename;
     bool pressed;
+    QTimer  *repetitionTimer;
 };
 
 #endif // KEY_H

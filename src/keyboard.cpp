@@ -139,6 +139,12 @@ void Keyboard::mouseMoveEvent(QMouseEvent * e)
     {
         tooltip->hide();
         currentKey->setPressed(false);
+        if(currentKey->repetitionTimer != nullptr){
+            QObject::disconnect( currentKey->repetitionTimer, nullptr, this, nullptr );
+            currentKey->repetitionTimer->stop( );
+            currentKey->repetitionTimer->deleteLater( );
+            currentKey->repetitionTimer = nullptr;
+        } //move to function and also use in mouseReleaseEvent
         this->repaint();
     }
     setKeyPressed( findKey(pos), pos );
@@ -242,6 +248,25 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
     tooltip->setGeometry(p.x(),p.y()-50,50, 50);
     tooltip->setText(k->text);
     tooltip->show(); // this line makes bug with first relase event
+
+
+
+        QTimer *timer = new QTimer( this );
+        QObject::connect( timer, &QTimer::timeout, this, [=]() {  this->checkKeyStillPressed(k); } );
+        timer->setInterval(100 ); //repetition rate
+        timer->setSingleShot( true );
+        timer->setTimerType( Qt::PreciseTimer );
+        timer->start( );
+        k->repetitionTimer = timer;
+
+}
+
+void Keyboard::checkKeyStillPressed(key *repetitionKey)
+{
+    if(repetitionKey->pressed){
+        emit keyPressed(repetitionKey->text); //sprawdź czy klawisz można powtarzać
+    }
+
 }
 
 void Keyboard::paintEvent(QPaintEvent*)

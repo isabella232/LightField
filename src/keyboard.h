@@ -16,17 +16,20 @@ class Keyboard : public QWidget
 
 public:
     Keyboard(QWidget *p);
+    void checkKeyStillPressed(key *repetitionKey);
 
     signals:
     void keyPressed( QString t);
     void backspacePressed(  );
     void returnPressed(  );
 
+
 private :
     void paintEvent(QPaintEvent*);
     void mousePressEvent(QMouseEvent * E);
     void mouseMoveEvent(QMouseEvent * e);
     void mouseReleaseEvent(QMouseEvent *);
+
 
     void initTooltip();
     void initKeys( int indexArraykeys,const char *keymap[]);
