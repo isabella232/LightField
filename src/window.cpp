@@ -75,6 +75,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
+    OrderManifestManager* manifestMgr = new OrderManifestManager( );
     for ( auto tabA : tabs ) {
         QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
         QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
@@ -86,6 +87,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         for ( auto tabB : tabs ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
         }
+
+        tabA->setManifestMgr( manifestMgr );
     }
 
     emit shepherdChanged( _shepherd );
@@ -312,7 +315,7 @@ void Window::startPrinting( ) {
 
     PrintManager* oldPrintManager = _printManager;
 
-    _printManager = new PrintManager( _shepherd, this );
+    _printManager = new PrintManager( _shepherd, _prepareTab->manifestMgr(), this );
     _printManager->setPngDisplayer( _pngDisplayer );
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );

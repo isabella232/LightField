@@ -25,12 +25,12 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( OrderManifestManager& manifestManager ) {
+void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     int  layerNumber     { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
 
-    OrderManifestManager::Iterator iter = manifestManager.iterator();
+    OrderManifestManager::Iterator iter = manifestManager->iterator();
     while ( iter.hasNext() ) {
         debug( "+ SvgRenderer::loadSlices next iter \n");
         QString fileName = *iter;
@@ -42,11 +42,11 @@ void SvgRenderer::loadSlices( OrderManifestManager& manifestManager ) {
     }
 
     debug( "  + Done\n" );
-    emit layerCount( manifestManager.getSize() );
+    emit layerCount( manifestManager->getSize() );
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager& manifestManager ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
@@ -124,16 +124,16 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
     }
 
-    manifestManager.restart();
-    manifestManager.setPath( _outputDirectory );
+    manifestManager->restart();
+    manifestManager->setPath( _outputDirectory );
 
     QStringList manifestFileList { };
     for( int i=0; i<layer; ++i) {
         manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
     }
 
-    manifestManager.setFileList( manifestFileList );
-    manifestManager.save();
+    manifestManager->setFileList( manifestFileList );
+    manifestManager->save();
 
     _totalLayers = layer;
     _runningLayers .fill( -1,      get_nprocs( ) );

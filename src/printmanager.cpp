@@ -2,6 +2,7 @@
 
 #include "printmanager.h"
 
+#include "ordermanifestmanager.h"
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "processrunner.h"
@@ -91,9 +92,10 @@ namespace {
 
 }
 
-PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
+PrintManager::PrintManager( Shepherd* shepherd, OrderManifestManager* _manifestMgr, QObject* parent ):
     QObject   ( parent   ),
-    _shepherd ( shepherd )
+    _shepherd ( shepherd ),
+    _manifestMgr ( _manifestMgr )
 {
     _setProjectorPowerProcess = new ProcessRunner( this );
 
@@ -296,7 +298,7 @@ void PrintManager::stepB1_start( ) {
 
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", _printJob->powerLevel );
 
-    QString pngFileName = _printJob->jobWorkingDirectory + QString( "/%1.png" ).arg( _currentLayer, 6, 10, DigitZero );
+    QString pngFileName = _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt( currentLayer() );
     if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
         debug( "+ PrintManager::stepB1_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
         this->abort( );

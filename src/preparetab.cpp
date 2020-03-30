@@ -245,11 +245,11 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
-    _manifestManager.setPath( _printJob->jobWorkingDirectory );
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
     QStringList errors;
     QStringList warnings;
 
-    switch(_manifestManager.parse(&errors, &warnings))
+    switch(_manifestManager->parse(&errors, &warnings))
     {
     case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
         QString warningsStr = warnings.join("<br>");
@@ -257,7 +257,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
         }
     case ManifestParseResult::POSITIVE:
-        if(_manifestManager.tiled())
+        if(_manifestManager->tiled())
 
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
@@ -268,16 +268,16 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             QString errorsStr = errors.join("<br>");
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
 
-            SlicesOrderPopup slicesOrderPopup { &_manifestManager };
+            SlicesOrderPopup slicesOrderPopup { _manifestManager };
             slicesOrderPopup.exec();
 
             break;
         }
     }
 
-    _printJob->layerCount = _manifestManager.getSize();
+    _printJob->layerCount = _manifestManager->getSize();
 
-    OrderManifestManager::Iterator iter = _manifestManager.iterator();
+    OrderManifestManager::Iterator iter = _manifestManager->iterator();
 
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
@@ -397,10 +397,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
-    debug( "PrepareTab::_showLayerImage %d \n", layer );
-    debug( "PrepareTab::_showLayerImage %s \n", QString( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) ).toUtf8().data() );
-
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager.getElementAt( layer ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -420,7 +417,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
         _orderButton->setEnabled( enabled );
     }
 
-    _setupTiling->setEnabled( enabled && !_manifestManager.tiled() );
+    _setupTiling->setEnabled( enabled && !_manifestManager->tiled() );
 
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
@@ -475,7 +472,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 }
 
 void PrepareTab::orderButton_clicked( bool ) {
-    SlicesOrderPopup popup { &_manifestManager };
+    SlicesOrderPopup popup { _manifestManager };
     popup.exec();
 
     if(_directoryMode)
@@ -485,7 +482,7 @@ void PrepareTab::orderButton_clicked( bool ) {
 }
 
 void PrepareTab::setupTiling_clicked( bool ) {
-    emit setupTiling( &_manifestManager, _printJob );
+    emit setupTiling( _manifestManager, _printJob );
     emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
 }
 
@@ -501,7 +498,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
-    _manifestManager.removeManifest();
+    _manifestManager->removeManifest();
 
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
@@ -619,13 +616,13 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
-    _manifestManager.setPath( _printJob->jobWorkingDirectory );
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
 
     if ( _directoryMode ) {
         QStringList errors;
         QStringList warnings;
 
-        switch(_manifestManager.parse(&errors, &warnings))
+        switch(_manifestManager->parse(&errors, &warnings))
         {
         case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
             QString warningsStr = warnings.join("<br>");
@@ -633,7 +630,7 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
                 _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
             }
         case ManifestParseResult::POSITIVE:
-            if(_manifestManager.tiled()) {
+            if(_manifestManager->tiled()) {
                 _setupTiling->setEnabled( false );
             }
             break;
@@ -642,17 +639,17 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
                 QString errorsStr = errors.join("<br>");
                 _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
 
-                SlicesOrderPopup slicesOrderPopup { &_manifestManager };
+                SlicesOrderPopup slicesOrderPopup { _manifestManager };
                 slicesOrderPopup.exec();
 
                 break;
             }
         }
 
-        _printJob->layerCount = _manifestManager.getSize();
+        _printJob->layerCount = _manifestManager->getSize();
         _orderButton->setEnabled( true );
         _setupTiling->setEnabled( true );
-        _svgRenderer->loadSlices(_manifestManager);
+        _svgRenderer->loadSlices( _manifestManager );
     } else {
         _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory, _manifestManager );
     }

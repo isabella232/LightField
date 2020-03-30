@@ -21,6 +21,7 @@ public:
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
+
 protected:
 
     virtual void     _connectPrintManager( )                      override;
@@ -38,7 +39,6 @@ private:
     bool              _isPrinterOnline             { false };
     bool              _isPrinterAvailable          { true  };
     bool              _directoryMode               { false };
-    OrderManifestManager _manifestManager          { };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };

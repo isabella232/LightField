@@ -7,6 +7,7 @@ class PrintJob;
 class PrintManager;
 class Shepherd;
 class UsbMountManager;
+class OrderManifestManager;
 
 class TabBase: public QWidget {
 
@@ -46,21 +47,23 @@ public:
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
 
-    PrintJob*        printJob( )        const { return _printJob;        }
-    PrintManager*    printManager( )    const { return _printManager;    }
-    Shepherd*        shepherd( )        const { return _shepherd;        }
-    UiState          uiState( )         const { return _uiState;         }
-    UsbMountManager* usbMountManager( ) const { return _usbMountManager; }
+    PrintJob*               printJob( )        const { return _printJob;            }
+    PrintManager*           printManager( )    const { return _printManager;        }
+    Shepherd*               shepherd( )        const { return _shepherd;            }
+    UiState                 uiState( )         const { return _uiState;             }
+    UsbMountManager*        usbMountManager( ) const { return _usbMountManager;     }
+    OrderManifestManager*   manifestMgr( )     const { return _manifestManager;     }
 
     virtual TabIndex tabIndex( )        const = 0;
 
 protected:
 
-    PrintJob*        _printJob        { };
-    PrintManager*    _printManager    { };
-    Shepherd*        _shepherd        { };
-    UiState          _uiState         { };
-    UsbMountManager* _usbMountManager { };
+    PrintJob*               _printJob                 { };
+    PrintManager*           _printManager             { };
+    Shepherd*               _shepherd                 { };
+    UiState                 _uiState                  { };
+    UsbMountManager*        _usbMountManager          { };
+    OrderManifestManager*   _manifestManager          { };
 
     virtual void _disconnectPrintJob( );
     virtual void _connectPrintJob( );
@@ -90,6 +93,7 @@ public slots:
     virtual void setShepherd( Shepherd* shepherd );
     virtual void setUsbMountManager( UsbMountManager* mountManager );
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) = 0;
+    virtual void setManifestMgr( OrderManifestManager* manifestMgr );
 
 protected slots:
     ;

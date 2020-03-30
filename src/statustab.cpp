@@ -4,6 +4,7 @@
 
 #include "statustab.h"
 
+#include "ordermanifestmanager.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
@@ -414,7 +415,7 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 
     _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString { "/%2.png" }.arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
