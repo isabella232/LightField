@@ -357,7 +357,7 @@ void PrintManager::stepB3_completed( ) {
     _lampOn = false;
     emit lampStatusChange( false );
 
-    if ( _printJob->printProfile->baseLayerParameters( ).pumpingEnabled( ) ) {
+    if ( _printJob->printProfile->baseLayerParameters( ).isPumpingEnabled( ) ) {
         stepB4a1_start( );
     } else {
         stepB4b1_start( );
@@ -571,7 +571,7 @@ void PrintManager::stepC3_completed( ) {
     _lampOn = false;
     emit lampStatusChange( false );
 
-    if ( _printJob->printProfile->bodyLayerParameters( ).pumpingEnabled( ) ) {
+    if ( _printJob->printProfile->bodyLayerParameters( ).isPumpingEnabled( ) ) {
         stepC4a1_start( );
     } else {
         stepC4b1_start( );

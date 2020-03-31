@@ -668,7 +668,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
 
     _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
-    if ( profile->baseLayerParameters( ).pumpingEnabled( ) ) {
+    if ( profile->baseLayerParameters( ).isPumpingEnabled( ) ) {
         PrintParameters const& baseParams = profile->baseLayerParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
@@ -681,7 +681,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         _powerLevelSlider->setValue( baseParams.powerLevel( ) );
     }
 
-    if ( profile->bodyLayerParameters( ).pumpingEnabled( ) ) {
+    if ( profile->bodyLayerParameters( ).isPumpingEnabled( ) ) {
         PrintParameters const& bodyParams = profile->bodyLayerParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );

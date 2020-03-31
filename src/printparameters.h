@@ -31,7 +31,7 @@ public:
     }
 
     // unit: boolean (true/false)
-    bool pumpingEnabled( ) const {
+    bool isPumpingEnabled( ) const {
         return _pumpingEnabled;
     }
 

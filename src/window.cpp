@@ -372,7 +372,7 @@ void Window::startPrinting( ) {
         printProfile->profileName( ).toUtf8( ).data( ),
         printProfile->baseLayerCount( ),
 
-        ToString( baseLayerParameters.pumpingEnabled( ) ),
+        ToString( baseLayerParameters.isPumpingEnabled( ) ),
         baseLayerParameters.pumpUpDistance( ),
         baseLayerParameters.pumpUpTime( ),
         baseLayerParameters.pumpUpVelocity_Effective( ),
@@ -387,7 +387,7 @@ void Window::startPrinting( ) {
         baseLayerParameters.layerExposureTime( ),
         baseLayerParameters.powerLevel( ),
 
-        ToString( bodyLayerParameters.pumpingEnabled( ) ),
+        ToString( bodyLayerParameters.isPumpingEnabled( ) ),
         bodyLayerParameters.pumpUpDistance( ),
         bodyLayerParameters.pumpUpTime( ),
         bodyLayerParameters.pumpUpVelocity_Effective( ),

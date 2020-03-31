@@ -178,7 +178,7 @@ private:
         result["layerThickness"]    = params.layerThickness( );
         result["layerExposureTime"] = params.layerExposureTime( );
         result["powerLevel"]        = params.powerLevel( );
-        result["pumpingEnabled"]    = params.pumpingEnabled( );
+        result["pumpingEnabled"]    = params.isPumpingEnabled( );
         result["pumpUpDistance"]    = params.pumpUpDistance( );
         result["pumpUpTime"]        = params.pumpUpTime( );
         result["pumpUpPause"]       = params.pumpUpPause( );
