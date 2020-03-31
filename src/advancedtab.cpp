@@ -237,8 +237,8 @@ void AdvancedTab::powerLevelSlider_sliderReleased( ) {
 }
 
 void AdvancedTab::powerLevelSlider_valueChanged( int percentage ) {
-    _printJob->printProfile->baseLayersParameters( ).setPowerLevel( percentage );
-    _printJob->printProfile->bodyLayersParameters( ).setPowerLevel( percentage );
+    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( percentage );
+    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( percentage );
     _powerLevelValue->setText( QString { "%1%" }.arg( percentage ) );
 
     update( );
@@ -621,7 +621,7 @@ void AdvancedTab::updatePrintProfile() {
 
     profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
 
-    profile->setBaseLayersPumpingEnabled(_addBasePumpCheckbox->isChecked());
+    profile->baseLayerParameters( ).setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     if(_addBasePumpCheckbox->isChecked())
     {
         PrintParameters baseParams;
@@ -636,10 +636,10 @@ void AdvancedTab::updatePrintProfile() {
         baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
         baseParams.setPowerLevel(_powerLevelSlider->value());
 
-        profile->setBaseLayersParameters(baseParams);
+        profile->setBaseLayerParameters(baseParams);
     }
 
-    profile->setBaseLayersPumpingEnabled(_addBodyPumpCheckbox->isChecked());
+    profile->bodyLayerParameters( ).setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     if(_addBodyPumpCheckbox->isChecked())
     {
         PrintParameters bodyParams;
@@ -654,7 +654,7 @@ void AdvancedTab::updatePrintProfile() {
         bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
         bodyParams.setPowerLevel(_powerLevelSlider->value());
 
-        profile->setBodyLayersParameters(bodyParams);
+        profile->setBodyLayerParameters(bodyParams);
     }
 
     if(setActive)
@@ -668,8 +668,8 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
 
     _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
-    if ( profile->baseLayersPumpingEnabled( ) ) {
-        PrintParameters const& baseParams = profile->baseLayersParameters( );
+    if ( profile->baseLayerParameters( ).pumpingEnabled( ) ) {
+        PrintParameters const& baseParams = profile->baseLayerParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
         _upTimeSlider->setValue( baseParams.pumpUpTime( ) );
@@ -681,8 +681,8 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         _powerLevelSlider->setValue( baseParams.powerLevel( ) );
     }
 
-    if ( profile->bodyLayersPumpingEnabled( ) ) {
-        PrintParameters const& bodyParams = profile->bodyLayersParameters( );
+    if ( profile->bodyLayerParameters( ).pumpingEnabled( ) ) {
+        PrintParameters const& bodyParams = profile->bodyLayerParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
         _bodyUpTimeSlider->setValue( bodyParams.pumpUpTime( ) );

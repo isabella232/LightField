@@ -15,6 +15,26 @@ public:
     // Accessors
     //
 
+    // unit: µm
+    int layerThickness( ) const {
+        return _layerThickness;
+    }
+
+    // unit: ms
+    int layerExposureTime( ) const {
+        return _layerExposureTime;
+    }
+
+    // unit: percent
+    double powerLevel( ) const {
+        return _powerLevel;
+    }
+
+    // unit: boolean (true/false)
+    bool pumpingEnabled( ) const {
+        return _pumpingEnabled;
+    }
+
     // unit: mm, multiples of 0.01
     double pumpUpDistance( ) const {
         return _pumpUpDistance;
@@ -65,29 +85,34 @@ public:
         return _noPumpUpVelocity;
     }
 
-    // unit: none
+    // unit: layers
     int pumpEveryNthLayer( ) const {
         return _pumpEveryNthLayer;
-    }
-
-    // unit: µm
-    int layerThickness( ) const {
-        return _layerThickness;
-    }
-
-    // unit: ms
-    int layerExposureTime( ) const {
-        return _layerExposureTime;
-    }
-
-    // unit: percent
-    double powerLevel( ) const {
-        return _powerLevel;
     }
 
     //
     // Mutators
     //
+
+    // unit: µm
+    void setLayerThickness( int const value ) {
+        _layerThickness = value;
+    }
+
+    // unit: ms
+    void setLayerExposureTime( int const value ) {
+        _layerExposureTime = value;
+    }
+
+    // unit: percent
+    void setPowerLevel( double const value ) {
+        _powerLevel = value;
+    }
+
+    // unit: boolean (true/false)
+    void setPumpingEnabled( bool const value ) {
+        _pumpingEnabled = value;
+    }
 
     // unit: mm, multiples of 0.01
     void setPumpUpDistance( double const value ) {
@@ -114,38 +139,24 @@ public:
         _noPumpUpVelocity = value;
     }
 
-    // unit: none
+    // unit: layer
     void setPumpEveryNthLayer( int const value ) {
         _pumpEveryNthLayer = value;
     }
 
-    // unit: µm
-    void setLayerThickness( int const value ) {
-        _layerThickness = value;
-    }
-
-    // unit: ms
-    void setLayerExposureTime( int const value ) {
-        _layerExposureTime = value;
-    }
-
-    // unit: percent
-    void setPowerLevel( double const value ) {
-        _powerLevel = value;
-    }
-
 private:
 
+    bool   _pumpingEnabled    { false   }; // boolean (true/false)
     double _pumpUpDistance    {    2.00 }; // mm
     int    _pumpUpTime        {  600    }; // ms
     int    _pumpUpPause       { 2000    }; // ms
     int    _pumpDownPause     { 4000    }; // ms
     int    _noPumpUpVelocity  {  200    }; // mm/min
-    int    _pumpEveryNthLayer {    1    };
+    int    _pumpEveryNthLayer {    1    }; // layer
     int    _layerThickness    {  100    }; // µm
     int    _layerExposureTime { 1000    }; // ms
     double _powerLevel        {   50.0  }; // percent
 
 };
 
-#endif //!__PRINTPARAMETERS_H__
+#endif // !__PRINTPARAMETERS_H__

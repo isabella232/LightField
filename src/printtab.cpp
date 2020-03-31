@@ -82,7 +82,7 @@ PrintTab::~PrintTab( ) {
 void PrintTab::_connectPrintJob( ) {
     debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
 
-    int powerLevelValue = _printJob->printProfile->baseLayersParameters( ).powerLevel( );
+    int powerLevelValue = _printJob->printProfile->baseLayerParameters( ).powerLevel( );
     _powerLevelSlider->setValue( powerLevelValue );
     _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 
@@ -124,15 +124,15 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 }
 
 void PrintTab::powerLevelSlider_sliderReleased( ) {
-    _printJob->printProfile->baseLayersParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-    _printJob->printProfile->bodyLayersParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
+    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
+    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
 
     emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
 
 void PrintTab::powerLevelSlider_valueChanged( int percentage ) {
-    _printJob->printProfile->baseLayersParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-    _printJob->printProfile->bodyLayersParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
+    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
+    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
     _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
 
     update( );
@@ -179,7 +179,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Lowering;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( std::max( 100, ( ( _printJob->printProfile->baseLayerCount( ) > 0 ) ? _printJob->printProfile->baseLayersParameters( ) : _printJob->printProfile->bodyLayersParameters( ) ).layerThickness( ) ) / 1000.0, PrinterDefaultHighSpeed );
+            _shepherd->doMoveAbsolute( std::max( 100, ( ( _printJob->printProfile->baseLayerCount( ) > 0 ) ? _printJob->printProfile->baseLayerParameters( ) : _printJob->printProfile->bodyLayerParameters( ) ).layerThickness( ) ) / 1000.0, PrinterDefaultHighSpeed );
             break;
     }
 

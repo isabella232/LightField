@@ -289,8 +289,8 @@ void Window::startPrinting( ) {
     auto const  printProfile         { _printJob->printProfile               };
     auto const& baseSlices           { _printJob->baseSlices                 };
     auto const& bodySlices           { _printJob->bodySlices                 };
-    auto const& baseLayersParameters { printProfile->baseLayersParameters( ) };
-    auto const& bodyLayersParameters { printProfile->bodyLayersParameters( ) };
+    auto const& baseLayerParameters { printProfile->baseLayerParameters( ) };
+    auto const& bodyLayerParameters { printProfile->bodyLayerParameters( ) };
 
     debug(
         "+ Window::startPrinting: print job %p:\n"
@@ -372,35 +372,35 @@ void Window::startPrinting( ) {
         printProfile->profileName( ).toUtf8( ).data( ),
         printProfile->baseLayerCount( ),
 
-        ToString( printProfile->baseLayersPumpingEnabled( ) ),
-        baseLayersParameters.pumpUpDistance( ),
-        baseLayersParameters.pumpUpTime( ),
-        baseLayersParameters.pumpUpVelocity_Effective( ),
-        baseLayersParameters.pumpUpPause( ),
-        baseLayersParameters.pumpDownDistance_Effective( ),
-        baseLayersParameters.pumpDownTime_Effective( ),
-        baseLayersParameters.pumpDownVelocity_Effective( ),
-        baseLayersParameters.pumpDownPause( ),
-        baseLayersParameters.noPumpUpVelocity( ),
-        baseLayersParameters.pumpEveryNthLayer( ),
-        baseLayersParameters.layerThickness( ),
-        baseLayersParameters.layerExposureTime( ),
-        baseLayersParameters.powerLevel( ),
+        ToString( baseLayerParameters.pumpingEnabled( ) ),
+        baseLayerParameters.pumpUpDistance( ),
+        baseLayerParameters.pumpUpTime( ),
+        baseLayerParameters.pumpUpVelocity_Effective( ),
+        baseLayerParameters.pumpUpPause( ),
+        baseLayerParameters.pumpDownDistance_Effective( ),
+        baseLayerParameters.pumpDownTime_Effective( ),
+        baseLayerParameters.pumpDownVelocity_Effective( ),
+        baseLayerParameters.pumpDownPause( ),
+        baseLayerParameters.noPumpUpVelocity( ),
+        baseLayerParameters.pumpEveryNthLayer( ),
+        baseLayerParameters.layerThickness( ),
+        baseLayerParameters.layerExposureTime( ),
+        baseLayerParameters.powerLevel( ),
 
-        ToString( printProfile->bodyLayersPumpingEnabled( ) ),
-        bodyLayersParameters.pumpUpDistance( ),
-        bodyLayersParameters.pumpUpTime( ),
-        bodyLayersParameters.pumpUpVelocity_Effective( ),
-        bodyLayersParameters.pumpUpPause( ),
-        bodyLayersParameters.pumpDownDistance_Effective( ),
-        bodyLayersParameters.pumpDownTime_Effective( ),
-        bodyLayersParameters.pumpDownVelocity_Effective( ),
-        bodyLayersParameters.pumpDownPause( ),
-        bodyLayersParameters.noPumpUpVelocity( ),
-        bodyLayersParameters.pumpEveryNthLayer( ),
-        bodyLayersParameters.layerThickness( ),
-        bodyLayersParameters.layerExposureTime( ),
-        bodyLayersParameters.powerLevel( )
+        ToString( bodyLayerParameters.pumpingEnabled( ) ),
+        bodyLayerParameters.pumpUpDistance( ),
+        bodyLayerParameters.pumpUpTime( ),
+        bodyLayerParameters.pumpUpVelocity_Effective( ),
+        bodyLayerParameters.pumpUpPause( ),
+        bodyLayerParameters.pumpDownDistance_Effective( ),
+        bodyLayerParameters.pumpDownTime_Effective( ),
+        bodyLayerParameters.pumpDownVelocity_Effective( ),
+        bodyLayerParameters.pumpDownPause( ),
+        bodyLayerParameters.noPumpUpVelocity( ),
+        bodyLayerParameters.pumpEveryNthLayer( ),
+        bodyLayerParameters.layerThickness( ),
+        bodyLayerParameters.layerExposureTime( ),
+        bodyLayerParameters.powerLevel( )
     );
 
     PrintJob* job = _printJob;

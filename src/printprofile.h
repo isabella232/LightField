@@ -18,14 +18,12 @@ public:
     }
 
     PrintProfile( PrintProfile const& profile ): QObject( profile.parent( ) ) {
-        _name                     = profile._name;
+        _name                 = profile._name;
 
-        _baseLayerCount           = profile._baseLayerCount;
-        _baseLayersPumpingEnabled = profile._baseLayersPumpingEnabled;
-        _baseLayersParameters     = profile._baseLayersParameters;
+        _baseLayerCount       = profile._baseLayerCount;
+        _baseLayerParameters = profile._baseLayerParameters;
 
-        _bodyLayersPumpingEnabled = profile._bodyLayersPumpingEnabled;
-        _bodyLayersParameters     = profile._bodyLayersParameters;
+        _bodyLayerParameters = profile._bodyLayerParameters;
     }
 
     //
@@ -40,28 +38,20 @@ public:
         return _baseLayerCount;
     }
 
-    bool baseLayersPumpingEnabled() const {
-        return _baseLayersPumpingEnabled;
+    PrintParameters& baseLayerParameters( ) {
+        return _baseLayerParameters;
     }
 
-    PrintParameters& baseLayersParameters( ) {
-        return _baseLayersParameters;
+    PrintParameters const& baseLayerParameters( ) const {
+        return _baseLayerParameters;
     }
 
-    PrintParameters const& baseLayersParameters( ) const {
-        return _baseLayersParameters;
+    PrintParameters& bodyLayerParameters( ) {
+        return _bodyLayerParameters;
     }
 
-    bool bodyLayersPumpingEnabled() const {
-        return _bodyLayersPumpingEnabled;
-    }
-
-    PrintParameters& bodyLayersParameters( ) {
-        return _bodyLayersParameters;
-    }
-
-    PrintParameters const& bodyLayersParameters( ) const {
-        return _bodyLayersParameters;
+    PrintParameters const& bodyLayerParameters( ) const {
+        return _bodyLayerParameters;
     }
 
     //
@@ -76,34 +66,24 @@ public:
         _baseLayerCount = newCount;
     }
 
-    void setBaseLayersParameters( PrintParameters const& newParameters ) {
-        _baseLayersParameters = newParameters;
+    void setBaseLayerParameters( PrintParameters const& newParameters ) {
+        _baseLayerParameters = newParameters;
     }
 
-    void setBodyLayersParameters( PrintParameters const& newParameters ) {
-        _bodyLayersParameters = newParameters;
-    }
-
-    void setBaseLayersPumpingEnabled(bool value) {
-        _baseLayersPumpingEnabled = value;
-    }
-
-    void setBodyLayersPumpingEnabled(bool value) {
-        _bodyLayersPumpingEnabled = value;
+    void setBodyLayerParameters( PrintParameters const& newParameters ) {
+        _bodyLayerParameters = newParameters;
     }
 
 protected:
 
 private:
 
-    QString                _name;
+    QString         _name;
 
-    int                    _baseLayerCount              { };
-    bool                   _baseLayersPumpingEnabled    { };
-    PrintParameters _baseLayersParameters;
+    int             _baseLayerCount       { };
+    PrintParameters _baseLayerParameters;
 
-    bool                   _bodyLayersPumpingEnabled    { };
-    PrintParameters _bodyLayersParameters;
+    PrintParameters _bodyLayerParameters;
 
 };
 
