@@ -137,6 +137,13 @@ public:
         return _fileNameList[position];
     };
 
+    inline int getTimeForElementAt(int position) {
+        return 1;
+        //TODO provide exposure time for particular element
+        // - calculate it in place OR
+        // - get from pre-populated array
+    };
+
     inline int getSize() { return _size; }
 
     ManifestParseResult parse(QStringList *errors, QStringList *warningList);

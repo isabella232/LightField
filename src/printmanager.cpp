@@ -336,7 +336,7 @@ void PrintManager::stepB1_failed( int const, QProcess::ProcessError const ) {
 void PrintManager::stepB2_start( ) {
     _step = PrintStep::B2;
 
-    int layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+    int layerProjectionTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
 
     _layerProjectionTimer = _makeAndStartTimer( layerProjectionTime, &PrintManager::stepB2_completed );
