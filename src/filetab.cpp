@@ -301,8 +301,18 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
         case UiState::SliceCompleted:
         case UiState::PrintStarted:
         case UiState::PrintCompleted:
+
+        break;
         case UiState::SelectedDirectory:
-            break;
+        if(sender == TabIndex::Tiling)
+        {
+            debug( "+ FileTab::tab_uiStateChanged: sender == TabIndex::Tiling \n" );
+
+            auto index = _libraryFsModel->index( _printJob->jobWorkingDirectory );
+            _availableFilesListView->setCurrentIndex( index );
+        }
+
+        break;
     }
 }
 

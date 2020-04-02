@@ -35,6 +35,7 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
            _minExposure,
            _step,
            _space,
+           _count,
            nullptr,
            _confirm
         )
@@ -43,12 +44,13 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
     QObject::connect( _minExposure, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
     QObject::connect( _step, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
     QObject::connect( _space, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
+    QObject::connect( _count, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
     QObject::connect( _confirm, &QPushButton::clicked, this, &TilingTab::confirmButton_clicked );
 
 
     all->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding );
 
-    setLayout( WrapWidgetsInHBox( all,_currentLayerImage ) );
+    setLayout( WrapWidgetsInHBox( all, _currentLayerImage ) );
 
     update( );
 }
@@ -61,31 +63,20 @@ void TilingTab::setStepValue()
         return;
 
     auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getFirstElement());
-    double value = _space->getValueDouble();
+    int maxCount = _getMaxCount( );
 
-    double wRatio = ((double)area.size().width()) /  ProjectorWindowSize.width();
-    double hRatio = ((double)area.size().height()) /  ProjectorWindowSize.height();
+    _count->setMaxValue( maxCount );
 
-    pixmap = pixmap.scaled( pixmap.width() * wRatio, pixmap.height() * hRatio);
+    int wCount = _count->getValue();
+    int spacePx = ( (double)_space->getValue() ) / ProjectorPixelSize * _wRatio;
 
-    int wCount=0;
-    for (
-         int i = ( TilingMargin * wRatio );
-         i < ( area.size().width( ) - ( TilingMargin * wRatio ) );
-         i += pixmap.width(), wCount++
-    ) {
-        if(wCount>0)
-            i+=pixmap.width()*value;
-
-        debug( " i: %d wCount: %d \n", i, wCount );
-    }
-    wCount--;
-
-    if( wCount < 1 ) {
+    if( maxCount < 1 ) {
         _showWarningAndClose();
-        _space->setValueDouble( value - 0.25L );
+        _space->setEnabled( false );
+
         return;
+    } else {
+        _space->setEnabled( true );
     }
 
     //int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
@@ -95,8 +86,8 @@ void TilingTab::setStepValue()
     painter.fillRect(0,0, _currentLayerImage->width( ), _currentLayerImage->height( ), QBrush("#000000"));
 
 
-    painter.setFont( QFont("Arial") );
-    painter.setPen(Qt::red);
+    painter.setFont( QFont( "Arial", 15 ) );
+    painter.setPen( Qt::red );
 
     // multi row tilling
     /*for(int i=0,z=1; i<wCount; ++i) {
@@ -113,14 +104,16 @@ void TilingTab::setStepValue()
         }
     }*/
 
+
     // single row tiling
-    int y = ( _currentLayerImage->height( ) - pixmap.height() ) / 2;
+    int y = ( _areaHeight - _pixmapHeight ) / 2;
+
     for(int i=0; i<wCount; ++i) {
-        int x = TilingMargin + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
+        int x = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
 
-        int e = _minExposure->getValue() + ( ( wCount - ( i + 1 ) ) * _step->getValue() );
+        int e = _minExposure->getValue() + ( ( wCount - ( i + 1 ) ) * _step->getValue( ) );
 
-        painter.drawPixmap( x, y, pixmap );
+        painter.drawPixmap( x, y, *_pixmap );
         painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
     }
 
@@ -163,6 +156,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_step->setEnabled( false );
             this->_space->setEnabled( false );
             this->_minExposure->setEnabled( false );
+            this->_count->setEnabled( false );
     }
 
     update( );
@@ -192,51 +186,42 @@ void TilingTab::confirmButton_clicked ( bool ) {
         [this, tilingMgr, dialog]
         {
             tilingMgr->processImages( ProjectorWindowSize.width(),
-                                     ProjectorWindowSize.height(),
+                                      ProjectorWindowSize.height(),
                                      _minExposure->getValue(),
                                      _step->getValue(),
-                                     _space->getValueDouble() );
+                                     _space->getValue(),
+                                     _count->getValue() );
 
             _printJob->jobWorkingDirectory = tilingMgr->getPath();
+
+            emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 
             dialog->done(0);
             delete dialog;
             delete tilingMgr;
+
         }
     );
     thread->start();
     dialog->exec();
-
-
-    emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 }
 
-// @todo refactor dubbled code
-int TilingTab::_checkIfTilable ()
+int TilingTab::_getMaxCount()
 {
-    if(_manifestManager->getFirstElement() == nullptr)
-        return 0;
-
-    auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getFirstElement());
-    double value = _space->getValueDouble();
-
-    double wRatio = ((double)area.size().width()) /  ProjectorWindowSize.width();
-    double hRatio = ((double)area.size().height()) /  ProjectorWindowSize.height();
-
-    pixmap = pixmap.scaled( pixmap.width() * wRatio, pixmap.height() * hRatio);
-
     int wCount=0;
+    int space = ((double)_space->getValue()) / ProjectorPixelSize * _wRatio;
+
     for (
-         int i = ( TilingMargin * wRatio );
-         i < ( area.size().width( ) - ( TilingMargin * wRatio ) );
-         i += pixmap.width(), wCount++
+         int i = ( TilingMargin * _wRatio );
+         i < ( _areaWidth - ( TilingMargin * _wRatio ) );
+         i += _pixmapWidth, wCount++
     ) {
         if(wCount>0)
-            i+=pixmap.width()*value;
+            i+=space;
 
         debug( " i: %d wCount: %d \n", i, wCount );
     }
+
     wCount--;
 
     return wCount;

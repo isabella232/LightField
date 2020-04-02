@@ -19,10 +19,11 @@ class ParamSlider: public QGroupBox {
         ParamSlider(QString name, int maxValue);
         ~ParamSlider();
 
-        int getValue();
-        void setValue(int value);
+        int    getValue();
+        void   setValue(int value);
         double getValueDouble();
-        void setValueDouble(double value);
+        void   setValueDouble(double value);
+        void   setMaxValue(int value);
 
     signals:
         void valuechanged();

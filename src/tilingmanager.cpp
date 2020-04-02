@@ -8,7 +8,7 @@ TilingManager::TilingManager( OrderManifestManager* manifestMgr, PrintJob* print
     _printJob = printJob;
 }
 
-void TilingManager::processImages( int width, int height, int expoTime, int step, double space )
+void TilingManager::processImages( int width, int height, int expoTime, int step, int space, int count )
 {
     debug( "+ TilingManager::processImages\n");
 
@@ -17,10 +17,13 @@ void TilingManager::processImages( int width, int height, int expoTime, int step
     _expoTime = expoTime;
     _step = step;
     _space = space;
+    _count = count;
+    _wCount = count;
+    _spacePx = ((double)space) / ProjectorPixelSize;
 
     QString jobWorkingDir = _printJob->jobWorkingDirectory;
 
-    QString dirName = QString("tiled-%1-%2-%3-").arg(_expoTime).arg(_step).arg(_space, 0, 'g', 3) % GetFileBaseName( jobWorkingDir );
+    QString dirName = QString("tiled-%1-%2-%3-").arg( _expoTime ).arg( _step ).arg( _space ) % GetFileBaseName( jobWorkingDir );
     _path = jobWorkingDir.mid( 0, jobWorkingDir.lastIndexOf( Slash ) ) % Slash % dirName;
 
     QDir dir ( JobWorkingDirectoryPath );
@@ -47,23 +50,6 @@ void TilingManager::tileImages ( )
 
     QPixmap pixmap;
     pixmap.load(_printJob->jobWorkingDirectory % Slash % _manifestMgr->getFirstElement());
-
-    /* calculating tiled images count in rows and columns */
-    //_wCount = floor( _width / (pixmap.width() + pixmap.width() * _space ) );
-
-    _wCount=0;
-    for (
-         int i = TilingMargin;
-         i < ( ProjectorWindowSize.width() - TilingMargin );
-         i += pixmap.width(), _wCount++
-    ) {
-        if( _wCount > 0 )
-            i+=pixmap.width() * _space;
-
-        debug( " i: %d wCount: %d \n", i, _wCount );
-    }
-    _wCount--;
-
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
@@ -131,8 +117,7 @@ void TilingManager::renderTiles ( QFileInfo info ) {
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
 
-    int x = TilingMargin + ( pixmap.width( ) * i ) + ( pixmap.width( ) * _space * i );
-
+    int x = TilingMargin + ( pixmap.width( ) * i ) + ( _spacePx * i );
     // For now only 1 row
     // int y = ( pixmap.height( ) * _space) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * _space * j );
 

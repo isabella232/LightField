@@ -19,15 +19,23 @@ protected:
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
     ParamSlider*            _minExposure              { new ParamSlider ("Minimum exposure", "sec", 2, 10, 2, 2) };
-    ParamSlider*            _step                     { new ParamSlider ("Step", "", 2, 8, 2, 2)};
-    ParamSlider*            _space                    { new ParamSlider ("Space", "", 1, 4, 1, 1, 4)};
+    ParamSlider*            _step                     { new ParamSlider ("Exposure step", "sec", 2, 8, 2, 2)};
+    ParamSlider*            _space                    { new ParamSlider ("Space", "mm", 1, 10, 1, 1)};
+    ParamSlider*            _count                    { new ParamSlider ("Count", "", 1, 8, 1, 1)};
     QPushButton*            _confirm                  { new QPushButton ("Confirm") };
     PrintJob*               _printJob                 { };
     OrderManifestManager*   _manifestManager          { };
+    int                     _pixmapWidth              { 0 };
+    int                     _pixmapHeight             { 0 };
+    int                     _areaWidth                { 0 };
+    int                     _areaHeight               { 0 };
+    double                  _wRatio                   { 1.0L };
+    double                  _hRatio                   { 1.0L };
+    QPixmap*                _pixmap                   { nullptr };
 
     void _showLayerImage ( );
-    int _checkIfTilable ( );
     void _showWarningAndClose ( );
+    int  _getMaxCount();
 signals:
     ;
 
@@ -38,8 +46,22 @@ public slots:
         this->_printJob = printJob;
         this->_manifestManager = manifestManager;
 
+        this->_areaWidth = _currentLayerImage->width( );
+        this->_areaHeight = _currentLayerImage->height( );
+        this->_wRatio = ((double)_areaWidth) /  ProjectorWindowSize.width();
+        this->_hRatio = ((double)_areaHeight) /  ProjectorWindowSize.height();
 
-        if(!_checkIfTilable()) {
+        QPixmap pixmap ( _printJob->jobWorkingDirectory % Slash % _manifestManager->getFirstElement() );
+
+        if( this->_pixmap )
+            delete this->_pixmap;
+
+        this->_pixmap = new QPixmap ( pixmap.scaled( pixmap.width( ) * _wRatio, pixmap.height( ) * _hRatio) );
+
+        this->_pixmapWidth = this->_pixmap->width( );
+        this->_pixmapHeight = this->_pixmap->height( );
+
+        if(_getMaxCount() < 1) {
                 _showWarningAndClose();
                 return;
         }
@@ -48,6 +70,7 @@ public slots:
         this->_step->setEnabled( true );
         this->_space->setEnabled( true );
         this->_minExposure->setEnabled( true );
+        this->_count->setEnabled( true );
 
         _showLayerImage();
     }
