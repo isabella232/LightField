@@ -306,10 +306,10 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
         case UiState::SelectedDirectory:
         if(sender == TabIndex::Tiling)
         {
-            debug( "+ FileTab::tab_uiStateChanged: sender == TabIndex::Tiling \n" );
-
             auto index = _libraryFsModel->index( _printJob->jobWorkingDirectory );
-            _availableFilesListView->setCurrentIndex( index );
+
+            //debug( "+ FileTab::tab_uiStateChanged: %s %d \n",  _printJob->jobWorkingDirectory .toUtf8().data(), index.row() );
+            _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
 
         break;

@@ -202,8 +202,11 @@ void TilingTab::confirmButton_clicked ( bool ) {
 
         }
     );
+
     thread->start();
     dialog->exec();
+
+    emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 }
 
 int TilingTab::_getMaxCount()
