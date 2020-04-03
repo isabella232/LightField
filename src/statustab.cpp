@@ -134,16 +134,23 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _currentLayerImage->setStyleSheet( "QWidget { background: black }" );
 
-    _fileNameLabel->setAlignment( Qt::AlignLeft );
-    _fileNameLabel->setContentsMargins( { } );
-    _fileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _fileNameLabel->setTextFormat( Qt::RichText );
-    _fileNameLabel->setWordWrap( true );
+    _modelFileNameLabel->setAlignment( Qt::AlignLeft );
+    _modelFileNameLabel->setContentsMargins( { } );
+    _modelFileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _modelFileNameLabel->setTextFormat( Qt::RichText );
+    _modelFileNameLabel->setWordWrap( true );
+
+    _imageFileNameLabel->setAlignment( Qt::AlignLeft );
+    _imageFileNameLabel->setContentsMargins( { } );
+    _imageFileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _imageFileNameLabel->setTextFormat( Qt::RichText );
+    _imageFileNameLabel->setWordWrap( true );
+
 
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
         nullptr,
-        _fileNameLabel
+        WrapWidgetsInHBox(_modelFileNameLabel, _imageFileNameLabel)
     );
     _currentLayerLayout->setAlignment( Qt::AlignHCenter | Qt::AlignTop );
 
@@ -416,6 +423,8 @@ void StatusTab::printManager_startingLayer( int const layer ) {
     _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
 
     auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
+    _imageFileNameLabel->setText("Layer image: " % ( _manifestManager->getElementAt( layer ) ));
+
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -545,13 +554,14 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
-            _fileNameLabel->clear( );
+            _modelFileNameLabel->clear( );
+            _imageFileNameLabel->clear();
             _stopButton->setVisible( false );
             _reprintButton->setVisible( true );
             break;
 
         case UiState::PrintStarted:
-            _fileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
+            _modelFileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
             _stopButton->setEnabled( true );
             _stopButton->setText( "STOP" );
             _stopButton->setVisible( true );

@@ -106,6 +106,11 @@ PrintManager::~PrintManager( ) {
     /*empty*/
 }
 
+QString& PrintManager::currentLayerImage()
+{
+    return _printJob->currentImageFile.remove(0,1);
+}
+
 QTimer* PrintManager::_makeAndStartTimer( int const interval, void ( PrintManager::*func )( ) ) {
     auto timer = new QTimer( this );
     QObject::connect( timer, &QTimer::timeout, this, func );
@@ -297,8 +302,8 @@ void PrintManager::stepB1_start( ) {
     }
 
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", _printJob->powerLevel );
-
     QString pngFileName = _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt( currentLayer() );
+
     if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
         debug( "+ PrintManager::stepB1_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
         this->abort( );
