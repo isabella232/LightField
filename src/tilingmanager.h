@@ -11,7 +11,7 @@ public:
   TilingManager( OrderManifestManager* manifestMgr, PrintJob* printJob );
   ~TilingManager() = default;
 
-  void processImages( int width, int height, int expoTime, int step, int space, int count );
+  void processImages( int width, int height, double expoTime, double step, int space, int count );
   inline QString getPath ( ) { return _path; };
 
 protected:
@@ -24,8 +24,8 @@ private:
         QString               _path;
         int                   _width;
         int                   _height;
-        int                   _expoTime;
-        int                   _step;
+        double                _expoTime;
+        double                _step;
         int                   _space;
         int                   _spacePx;
         int                   _count;

@@ -18,8 +18,8 @@ protected:
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
-    ParamSlider*            _minExposure              { new ParamSlider ("Minimum exposure", "sec", 2, 10, 2, 2) };
-    ParamSlider*            _step                     { new ParamSlider ("Exposure step", "sec", 2, 8, 2, 2)};
+    ParamSlider*            _minExposure              { new ParamSlider ("Minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
+    ParamSlider*            _step                     { new ParamSlider ("Exposure step", "sec", 1, 16, 2, 1, 4 )};
     ParamSlider*            _space                    { new ParamSlider ("Space", "mm", 1, 10, 1, 1)};
     ParamSlider*            _count                    { new ParamSlider ("Count", "", 1, 8, 1, 1)};
     QPushButton*            _confirm                  { new QPushButton ("Confirm") };

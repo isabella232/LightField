@@ -8,7 +8,7 @@ TilingManager::TilingManager( OrderManifestManager* manifestMgr, PrintJob* print
     _printJob = printJob;
 }
 
-void TilingManager::processImages( int width, int height, int expoTime, int step, int space, int count )
+void TilingManager::processImages( int width, int height, double expoTime, double step, int space, int count )
 {
     debug( "+ TilingManager::processImages\n");
 
@@ -23,7 +23,7 @@ void TilingManager::processImages( int width, int height, int expoTime, int step
 
     QString jobWorkingDir = _printJob->jobWorkingDirectory;
 
-    QString dirName = QString("tiled-%1-%2-%3-").arg( _expoTime ).arg( _step ).arg( _space ) % GetFileBaseName( jobWorkingDir );
+    QString dirName = QString("tiled-%1-%2-%3-%4").arg( _expoTime ).arg( _step ).arg( _space ).arg( _count ) % GetFileBaseName( jobWorkingDir );
     _path = jobWorkingDir.mid( 0, jobWorkingDir.lastIndexOf( Slash ) ) % Slash % dirName;
 
     QDir dir ( JobWorkingDirectoryPath );
@@ -40,6 +40,8 @@ void TilingManager::processImages( int width, int height, int expoTime, int step
     _manifestMgr->setTilingMinExpoTime( _expoTime );
     _manifestMgr->setTilingSpace( _space );
     _manifestMgr->setTilingStep( _step );
+    _manifestMgr->setTilingCount( _count );
+
 
     _manifestMgr->save();
 }

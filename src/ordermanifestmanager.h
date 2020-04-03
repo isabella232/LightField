@@ -18,10 +18,11 @@ public:
         MIN_EXPOSURE,
         STEP,
         SPACE,
+        COUNT,
         ENTITIES,
     };
 
-    static const QString strings[7];
+    static const QString strings[8];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -110,26 +111,31 @@ public:
         this->_size = list.size();
     }
 
-    void setTilingMinExpoTime(int minExoTm) {
+    void setTilingMinExpoTime(double minExoTm) {
         this->_tilingMinExposure = minExoTm;
     }
 
-    void setTilingStep (int step) {
+    void setTilingStep (double step) {
         this->_tilingStep = step;
     }
 
-    void setTilingSpace (double space) {
+    void setTilingSpace (int space) {
         this->_tilingSpace = space;
+    }
+
+    void setTilingCount (int count) {
+        this->_tilingCount = count;
     }
 
     void setTiled (bool tiled) {
         this->_tiled = tiled;
     }
 
-    inline bool tiled()             { return _tiled; }
-    inline int tilingMinExposure()  { return _tilingMinExposure; }
-    inline int tilingStep()         { return _tilingStep; }
-    inline double tilingSpace()     { return _tilingSpace; }
+    inline bool tiled()                { return _tiled; }
+    inline double tilingMinExposure()  { return _tilingMinExposure; }
+    inline double tilingStep()         { return _tilingStep; }
+    inline int tilingSpace()           { return _tilingSpace; }
+    inline int tilingCount()           { return _tilingCount; }
 
     inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
 
@@ -168,9 +174,10 @@ private:
     ManifestSortType    _type;
     int                 _size;
     bool                _tiled             { false };
-    int                 _tilingMinExposure { 2 };
-    int                 _tilingStep        { 2 };
-    double              _tilingSpace       { 0.25L };
+    double              _tilingMinExposure { 2L };
+    double              _tilingStep        { 2L };
+    int                 _tilingSpace       { 1 };
+    int                 _tilingCount       { 1 };
     QStringList         _fileNameList      { };
     bool                _initialized       { };
 };

@@ -57,9 +57,9 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
 
 void TilingTab::setStepValue()
 {
-    debug( "+ ProfilesTab::setStepValue\n");
+    debug( "+ TilingTab::setStepValue\n");
 
-    if(_manifestManager->getFirstElement() == nullptr)
+    if(!_manifestManager || _manifestManager->getFirstElement() == nullptr)
         return;
 
     auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
@@ -85,7 +85,6 @@ void TilingTab::setStepValue()
 
     painter.fillRect(0,0, _currentLayerImage->width( ), _currentLayerImage->height( ), QBrush("#000000"));
 
-
     painter.setFont( QFont( "Arial", 15 ) );
     painter.setPen( Qt::red );
 
@@ -104,14 +103,13 @@ void TilingTab::setStepValue()
         }
     }*/
 
-
     // single row tiling
     int y = ( _areaHeight - _pixmapHeight ) / 2;
 
     for(int i=0; i<wCount; ++i) {
         int x = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
 
-        int e = _minExposure->getValue() + ( ( wCount - ( i + 1 ) ) * _step->getValue( ) );
+        double e = _minExposure->getValueDouble() + ( ( wCount - ( i + 1 ) ) * _step->getValueDouble( ) );
 
         painter.drawPixmap( x, y, *_pixmap );
         painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
@@ -123,7 +121,7 @@ void TilingTab::setStepValue()
 }
 
 void TilingTab::_showLayerImage( ) {
-    debug( "+ ProfilesTab::_showLayerImage");
+    debug( "+ TilingTab::_showLayerImage");
 
     setStepValue ();
 
@@ -133,22 +131,14 @@ void TilingTab::_showLayerImage( ) {
 
 
 void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ ProfilesTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    debug( "+ TilingTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-        case UiState::TilingClicked:
-            break;
+    switch ( state ) {
         case UiState::SelectedDirectory:
-        case UiState::SelectCompleted:
-            this->_step->setValue( 2 );
-            //this->_space->setValueDouble( 0.25f );
-            this->_minExposure->setValue( 2 );
+            this->_step->setValueDouble( 2L );
+            this->_space->setValue( 1 );
+            this->_minExposure->setValueDouble( 2L );
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
@@ -157,6 +147,16 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_space->setEnabled( false );
             this->_minExposure->setEnabled( false );
             this->_count->setEnabled( false );
+
+            break;
+        case UiState::SelectStarted:
+        case UiState::SliceStarted:
+        case UiState::SliceCompleted:
+        case UiState::PrintStarted:
+        case UiState::PrintCompleted:
+        case UiState::TilingClicked:
+        case UiState::SelectCompleted:
+            break;
     }
 
     update( );
@@ -187,8 +187,8 @@ void TilingTab::confirmButton_clicked ( bool ) {
         {
             tilingMgr->processImages( ProjectorWindowSize.width(),
                                       ProjectorWindowSize.height(),
-                                     _minExposure->getValue(),
-                                     _step->getValue(),
+                                     _minExposure->getValueDouble(),
+                                     _step->getValueDouble(),
                                      _space->getValue(),
                                      _count->getValue() );
 
