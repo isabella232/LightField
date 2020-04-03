@@ -65,6 +65,10 @@ void TabBase::setShepherd( Shepherd* shepherd ) {
     _connectShepherd( );
 }
 
+void TabBase::setManifestMgr( OrderManifestManager* manifestMgr ) {
+    _manifestManager = manifestMgr;
+}
+
 void TabBase::setUsbMountManager( UsbMountManager* usbMountManager ) {
     _disconnectUsbMountManager( );
     _usbMountManager = usbMountManager;

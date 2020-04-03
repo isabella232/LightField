@@ -44,6 +44,7 @@ namespace {
     char const* TabIndexStrings[] {
         "File",
         "Prepare",
+        "Tiling",
         "Print",
         "Status",
         "Advanced",
@@ -74,6 +75,7 @@ namespace {
         "PrintStarted",
         "PrintCompleted",
         "SelectedDirectory",
+        "TilingClicked"
     };
 
     char const* BuildPlatformStateStrings[] {

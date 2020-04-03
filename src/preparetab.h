@@ -2,6 +2,7 @@
 #define __PREPARETAB_H__
 
 #include "tabbase.h"
+#include "ordermanifestmanager.h"
 
 class Hasher;
 class SvgRenderer;
@@ -19,6 +20,7 @@ public:
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
+
 
 protected:
 
@@ -67,6 +69,8 @@ private:
 
     QWidget*          _optionsContainer            { new QWidget          };
     QPushButton*      _sliceButton                 { new QPushButton      };
+    QPushButton*      _orderButton                 { new QPushButton      };
+    QPushButton*      _setupTiling                 { new QPushButton      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -87,7 +91,7 @@ private:
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
     void _updatePrepareButtonState( );
-
+    void _showWarning( QString content );
     void _handlePrepareFailed( );
 
 signals:
@@ -99,6 +103,8 @@ signals:
     void preparePrinterComplete( bool const success );
 
     void printerAvailabilityChanged( bool const available );
+
+    void setupTiling( OrderManifestManager* _manifestManager, PrintJob* _printJob );
 
 public slots:
     ;
@@ -133,6 +139,9 @@ private slots:
     void navigateLast_clicked( bool );
 
     void sliceButton_clicked( bool );
+
+    void orderButton_clicked( bool );
+    void setupTiling_clicked( bool );
 
     void hasher_resultReady( QString const hash );
 

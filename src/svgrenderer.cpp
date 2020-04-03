@@ -25,32 +25,32 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( QString const& workingDirectory ) {
+void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     int  layerNumber     { -1 };
-    int  prevLayerNumber { -1 };
 
-    debug( "+ SvgRenderer::loadSlices: examining files in directory '%s'\n", workingDirectory.toUtf8( ).data( ) );
-    for ( auto const& fileName : QDir { workingDirectory, "*.png", QDir::SortFlag::Name, QDir::Files }.entryList( ) ) {
-        layerNumber = RemoveFileExtension( fileName ).toInt( );
-        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
-            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
-            emit done( false );
-            return;
-        }
-        prevLayerNumber = layerNumber;
+    debug( "+ SvgRenderer::loadSlices \n");
+
+    OrderManifestManager::Iterator iter = manifestManager->iterator();
+    while ( iter.hasNext() ) {
+        debug( "+ SvgRenderer::loadSlices next iter \n");
+        QString fileName = *iter;
+        ++iter;
+
+        debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
+        layerNumber++;
         emit layerComplete( layerNumber );
     }
 
     debug( "  + Done\n" );
-    _totalLayers = layerNumber + 1;
-    emit layerCount( _totalLayers );
+    emit layerCount( manifestManager->getSize() );
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
+    _layerList.clear();
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
@@ -123,6 +123,17 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             return;
         }
     }
+
+    manifestManager->restart();
+    manifestManager->setPath( _outputDirectory );
+
+    QStringList manifestFileList { };
+    for( int i=0; i<layer; ++i) {
+        manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+    }
+
+    manifestManager->setFileList( manifestFileList );
+    manifestManager->save();
 
     _totalLayers = layer;
     _runningLayers .fill( -1,      get_nprocs( ) );

@@ -8,9 +8,11 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "slicesorderpopup.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
+#include "window.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -83,7 +85,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
     _prepareButton->setEnabled( false );
-    _prepareButton->setFixedSize( MainButtonSize );
+    _prepareButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _prepareButton->setFont( font22pt );
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare" );
@@ -119,11 +121,25 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     ) );
 
     _sliceButton->setEnabled( false );
-    _sliceButton->setFixedSize( MainButtonSize );
+    _sliceButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _sliceButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _sliceButton->setFont( font22pt );
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
+
+    _orderButton->setEnabled( false );
+    _orderButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _orderButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _orderButton->setFont( font22pt );
+    _orderButton->setText( "Order editor" );
+    QObject::connect( _orderButton, &QPushButton::clicked, this, &PrepareTab::orderButton_clicked );
+
+    _setupTiling->setEnabled( false );
+    _setupTiling->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _setupTiling->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _setupTiling->setFont( font22pt );
+    _setupTiling->setText( "Setup tiling" );
+    QObject::connect( _setupTiling, &QPushButton::clicked, this, &PrepareTab::setupTiling_clicked );
 
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
@@ -164,7 +180,9 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( _orderButton,       1, 0, 1, 1 );
+    _layout->addWidget( _setupTiling,      2, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -227,10 +245,48 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
+    QStringList errors;
+    QStringList warnings;
+
+    switch(_manifestManager->parse(&errors, &warnings))
+    {
+    case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+        QString warningsStr = warnings.join("<br>");
+
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+        }
+    case ManifestParseResult::POSITIVE:
+        if(_manifestManager->tiled())
+
+            debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
+
+            _setupTiling->setEnabled( false );
+        break;
+    case ManifestParseResult::FILE_CORRUPTED:
+    case ManifestParseResult::FILE_NOT_EXIST: {
+            QString errorsStr = errors.join("<br>");
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+            SlicesOrderPopup slicesOrderPopup { _manifestManager };
+            slicesOrderPopup.exec();
+
+            break;
+        }
+    }
+
+    _printJob->layerCount = _manifestManager->getSize();
+
+    OrderManifestManager::Iterator iter = _manifestManager->iterator();
+
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
-    for ( auto entry : QDir { _printJob->jobWorkingDirectory, "[0-9]?????.svg", QDir::Name, QDir::Files }.entryInfoList( ) ) {
+    while ( iter.hasNext() ) {
+
+        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % *iter);
+        ++iter;
+
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
             debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
@@ -293,10 +349,14 @@ bool PrepareTab::_checkJobDirectory( ) {
     if ( preSliced ) {
         _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
+        _setupTiling->setEnabled(true);
+        _orderButton->setEnabled(false);
         //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
+        _setupTiling->setEnabled(false);
+        _orderButton->setEnabled(false);
         //_copyToUSBButton->setEnabled( false );
     }
 
@@ -337,7 +397,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -350,6 +410,15 @@ void PrepareTab::_showLayerImage( int const layer ) {
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
+
+    if(!_directoryMode) {
+        _orderButton->setEnabled( false );
+    } else {
+        _orderButton->setEnabled( enabled );
+    }
+
+    _setupTiling->setEnabled( enabled && !_manifestManager->tiled() );
+
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
@@ -402,6 +471,21 @@ void PrepareTab::navigateLast_clicked( bool ) {
     update( );
 }
 
+void PrepareTab::orderButton_clicked( bool ) {
+    SlicesOrderPopup popup { _manifestManager };
+    popup.exec();
+
+    if(_directoryMode)
+        emit  uiStateChanged(TabIndex::File, UiState::SelectedDirectory);
+    else
+        emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
+}
+
+void PrepareTab::setupTiling_clicked( bool ) {
+    emit setupTiling( _manifestManager, _printJob );
+    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
+}
+
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
 
@@ -413,6 +497,9 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _imageGeneratorStatus->setText( "waiting" );
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
+
+    _manifestManager->removeManifest();
+
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
@@ -479,6 +566,22 @@ void PrepareTab::slicerProcess_started( ) {
     update( );
 }
 
+void PrepareTab::_showWarning(QString content) {
+    auto origFont    = font( );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setFont(fontAwesome);
+    msgBox.setText(content);
+    msgBox.show();
+    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
+    msgBox.exec();
+}
+
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     TimingLogger::stopTiming( TimingId::SlicingSvg );
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
@@ -513,10 +616,42 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
+
     if ( _directoryMode ) {
-        _svgRenderer->loadSlices( _printJob->jobWorkingDirectory );
+        QStringList errors;
+        QStringList warnings;
+
+        switch(_manifestManager->parse(&errors, &warnings))
+        {
+        case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+            QString warningsStr = warnings.join("<br>");
+
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+            }
+        case ManifestParseResult::POSITIVE:
+            if(_manifestManager->tiled()) {
+                _setupTiling->setEnabled( false );
+            }
+            break;
+        case ManifestParseResult::FILE_CORRUPTED:
+        case ManifestParseResult::FILE_NOT_EXIST: {
+                QString errorsStr = errors.join("<br>");
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+                SlicesOrderPopup slicesOrderPopup { _manifestManager };
+                slicesOrderPopup.exec();
+
+                break;
+            }
+        }
+
+        _printJob->layerCount = _manifestManager->getSize();
+        _orderButton->setEnabled( true );
+        _setupTiling->setEnabled( true );
+        _svgRenderer->loadSlices( _manifestManager );
     } else {
-        _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
+        _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory, _manifestManager );
     }
 }
 
@@ -531,7 +666,6 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
     _renderedLayers = currentLayer;
     _imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
-
     if ( ( 0 == currentLayer ) || ( 0 == ( ( currentLayer + 1 ) % 5 ) ) || ( ( _printJob->layerCount - 1 ) == currentLayer ) ) {
         _visibleLayer = currentLayer;
         _showLayerImage( _visibleLayer );
@@ -653,6 +787,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     _uiState = state;
 
     switch ( _uiState ) {
+        case UiState::TilingClicked:
+            break;
         case UiState::SelectStarted:
             _directoryMode = false;
             _setSliceControlsEnabled( false );

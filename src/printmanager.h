@@ -5,6 +5,7 @@ class PngDisplayer;
 class PrintJob;
 class ProcessRunner;
 class Shepherd;
+class OrderManifestManager;
 
 enum class PrintResult {
     Abort   = -2,
@@ -27,7 +28,7 @@ class PrintManager: public QObject {
 
 public:
 
-    PrintManager( Shepherd* shepherd, QObject* parent = 0 );
+    PrintManager( Shepherd* shepherd, OrderManifestManager* manifestMgr, QObject* parent = 0 );
     virtual ~PrintManager( ) override;
 
     int currentLayer( ) const { return _currentLayer; }
@@ -56,6 +57,8 @@ private:
     QTimer*        _preProjectionTimer       { };
     QTimer*        _layerProjectionTimer     { };
     QTimer*        _preLiftTimer             { };
+
+    OrderManifestManager* _manifestMgr;
 
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );
