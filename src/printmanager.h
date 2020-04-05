@@ -33,6 +33,8 @@ public:
 
     int currentLayer( ) const { return _currentLayer; }
 
+    QString& currentLayerImage();
+
 protected:
 
 private:

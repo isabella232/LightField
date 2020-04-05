@@ -11,7 +11,7 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
     this->_valueLabel->setText(valueLabel);
     this->_valueLabel->setFont(boldFont);
     this->_slider->setValue(startValue);
-    this->_valueLabel->setText(QString::number(_slider->value() / _factor) + " " + QString(_unit));
+    this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
     this->_slider->setMaximum(maxValue);
     this->_slider->setMinimum(minValue);
     this->_slider->setSingleStep(step);
@@ -50,11 +50,21 @@ void ParamSlider::setValueDouble(double value)
    _slider->setValue(value * _factor);
 }
 
+void ParamSlider::setMaxValue(int value)
+{
+   _slider->setMaximum( value );
+
+   if(_slider->value() > value)
+   {
+       _slider->setValue( value );
+   }
+}
+
 void ParamSlider::onvaluechanged(int)
 {
     debug( "+ ParamSlider::onvaluechanged %f\n", _slider->value() / _factor);
 
-    this->_valueLabel->setText(QString::number(_slider->value() / _factor) + " " + QString(_unit));
+    this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
     emit valuechanged();
 }
 

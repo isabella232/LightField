@@ -43,6 +43,7 @@ public:
     QString    modelFileName           {     };
     QString    modelHash               {     };
     QString    jobWorkingDirectory     {     };
+    QString    currentImageFile        {     };
 
     int        layerCount              {     };
     int        layerThickness          { 100 }; // unit: µm

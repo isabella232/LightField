@@ -75,6 +75,7 @@ namespace {
         "PrintStarted",
         "PrintCompleted",
         "SelectedDirectory",
+        "TilingClicked"
     };
 
     char const* BuildPlatformStateStrings[] {
