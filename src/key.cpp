@@ -11,6 +11,7 @@ key::key(QString t,QObject *parent) : QObject(parent)
   W =82;//t.length()*4 + 78;
   H =62;
   pressed = false;
+  repetionActive = false;
 }
 
 QRect key::getRect()
