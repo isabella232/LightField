@@ -17,10 +17,10 @@ QSize                     const  ProjectorWindowSize           { 1920, 1080 };
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
-QString                   const  MountmonCommand               { "/home/dawid/ceproj/LightField/mountmon/build/mountmon"                                               };
+QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
-QString                   const  ShepherdPath                  { "/home/dawid/ceproj/LightField/stdio-shepherd"           };
+QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };

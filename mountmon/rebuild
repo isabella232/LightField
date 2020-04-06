@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MAKEDIR="/home/dawid/ceproj/LightField/mountmon"
+MAKEDIR="/home/lumen/Volumetric/LightField/mountmon"
 BUILDDIR="${MAKEDIR}/build"
 PROJECTFILE="${MAKEDIR}/mountmon.pro"
 
