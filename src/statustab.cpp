@@ -392,8 +392,11 @@ void StatusTab::printManager_printResumed( ) {
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    if(0){ //TODO: isTiled
-        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( layer + 1 ).arg( _printJob->layerCount ).arg(1).arg(1) );
+    if(_manifestManager->tiled()){
+        int realLayer = (layer+_manifestManager->tilingCount())/_manifestManager->tilingCount();
+        int realLayersTotal = _printJob->layerCount/_manifestManager->tilingCount();
+        int currentElement = (layer % _manifestManager->tilingCount()) + 1;
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( _manifestManager->tilingCount() ) );
     }else{
         _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->layerCount ) );
     }
