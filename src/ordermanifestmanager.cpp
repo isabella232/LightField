@@ -128,3 +128,8 @@ bool OrderManifestManager::save() {
 
     return result;
 }
+
+double OrderManifestManager::getTimeForElementAt(int position){
+    if(!_tiled) return 0;
+    return _tilingMinExposure + ((position % _tilingCount) * _tilingStep);
+}

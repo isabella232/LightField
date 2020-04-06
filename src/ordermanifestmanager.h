@@ -169,6 +169,9 @@ public:
 
     inline bool contains( QString fileName ) { return this->_fileNameList.contains(fileName); }
     inline bool initialized ( ) { return this->_initialized; }
+
+    double getTimeForElementAt(int position);
+
 private:
     QString             _dirPath;
     ManifestSortType    _type;
