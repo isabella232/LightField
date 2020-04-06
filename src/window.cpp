@@ -323,7 +323,7 @@ void Window::startPrinting( ) {
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( job );
+    _printManager->print( job, _prepareTab->manifestMgr() );
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );
