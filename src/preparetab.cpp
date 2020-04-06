@@ -245,6 +245,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
+    _manifestManager->restart();
     _manifestManager->setPath( _printJob->jobWorkingDirectory );
     QStringList errors;
     QStringList warnings;
@@ -616,6 +617,7 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
 
+    _manifestManager->restart();
     _manifestManager->setPath( _printJob->jobWorkingDirectory );
 
     if ( _directoryMode ) {
