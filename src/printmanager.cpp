@@ -451,8 +451,6 @@ void PrintManager::stepB4_completed( ) {
 void PrintManager::stepB5_start( ) {
     _step = PrintStep::B5;
 
-    debug( "+ PrintManager::stepB5_AAAA: current layer = %0d, layerCount = %0d \n", _currentLayer, _printJob->layerCount);
-
     if ( ++_currentLayer == _printJob->layerCount ) {
         debug( "+ PrintManager::stepB5_start: print complete\n" );
 
@@ -730,7 +728,7 @@ void PrintManager::stepD4_completed( bool const success ) {
     }
 }
 
-void PrintManager::print( PrintJob* printJob ) {
+void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentManifestMgr) {
     if ( _printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
@@ -738,8 +736,8 @@ void PrintManager::print( PrintJob* printJob ) {
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
-    _isTiled = false;
-    _elementsOnLayer = 3;
+    _isTiled = currentManifestMgr->tiled();
+    _elementsOnLayer = currentManifestMgr->tilingCount();
 
     _pngDisplayer->clear( );
 
@@ -830,7 +828,6 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
 }
 
 bool PrintManager::_hasLayerMoreElements() {
-
     if (_currentLayer+1 == _printJob->layerCount) {
     return false;
     }
@@ -838,6 +835,6 @@ bool PrintManager::_hasLayerMoreElements() {
     if(_currentLayer == 0){
       return (_elementsOnLayer>1) ? true : false;
     }else{
-      return _currentLayer % _elementsOnLayer;
+      return (_currentLayer+1) % _elementsOnLayer;
     }
 }

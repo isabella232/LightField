@@ -85,7 +85,7 @@ public slots:
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
-    void print( PrintJob* printJob );
+    void print( PrintJob* printJob, OrderManifestManager* currentManifestMgr );
     void pause( );
     void resume( );
     void terminate( );
