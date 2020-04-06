@@ -62,12 +62,14 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 
     debug( "+ OrderManifestManager::parse: checking tiling... \n" );
     if( root.contains( ManifestKeys(ManifestKeys::TILING).toQString( ) ) ) {
+        QJsonObject tilingNested;
         debug( "+ OrderManifestManager::parse: checking tiled \n" );
         _tiled = true;
-        _tilingStep = root.value(ManifestKeys(ManifestKeys::STEP).toQString()).toDouble();
-        _tilingMinExposure = root.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
-        _tilingSpace = root.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
-        _tilingSpace = root.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
+        tilingNested = root.value(ManifestKeys(ManifestKeys::TILING).toQString()).toObject();
+        _tilingStep = tilingNested.value(ManifestKeys(ManifestKeys::STEP).toQString()).toDouble();
+        _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
+        _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
+        _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
     }
 
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
@@ -125,4 +127,9 @@ bool OrderManifestManager::save() {
     result = result && jsonFile.write(jsonDocument.toJson()) > 0;
 
     return result;
+}
+
+double OrderManifestManager::getTimeForElementAt(int position){
+    if(!_tiled) return 0;
+    return _tilingMinExposure + ((position % _tilingCount) * _tilingStep);
 }

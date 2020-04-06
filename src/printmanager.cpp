@@ -26,6 +26,9 @@
 // B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
 // --- pause is disabled
 // B2. Pause for layer projection time (first two layers: scaled by scale factor)
+//     -> if current job has multi-tiled elements
+//     B2a. change image - loop over tiled variants
+//     -> end if
 // B3. Stop projection: "set-projector-power 0".
 // B4. Pause before raise.
 // B5. Raise the build platform by LiftDistance at low speed.
@@ -341,7 +344,13 @@ void PrintManager::stepB1_failed( int const, QProcess::ProcessError const ) {
 void PrintManager::stepB2_start( ) {
     _step = PrintStep::B2;
 
-    int layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+    int layerProjectionTime;
+
+    if(_isTiled){
+        layerProjectionTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+    }else {
+        layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+    }
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
 
     _layerProjectionTimer = _makeAndStartTimer( layerProjectionTime, &PrintManager::stepB2_completed );
@@ -356,8 +365,37 @@ void PrintManager::stepB2_completed( ) {
         stepC1_start( );
         return;
     }
+    if(_isTiled) {
+     stepB2a_start();
+    }else{
+     stepB3_start( );
+    }
 
-    stepB3_start( );
+
+}
+
+void PrintManager::stepB2a_start( ){
+    _step = PrintStep::B2a;
+
+    // abort would be serviced during B2_completed
+
+    if(_hasLayerMoreElements()){
+        debug( "+ PrintManager::stepB2a_start: current layer has still more tiled elements to loop over'\n" );
+        _currentLayer++;
+        _pngDisplayer->clear( );
+        emit startingLayer( _currentLayer );
+        QString pngFileName = _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt( currentLayer() );
+        if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
+            debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+            this->abort( );
+            return;
+        }
+        stepB2_start( );
+    }else{
+        debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
+        stepB3_start( );
+    }
+
 }
 
 // B3. Stop projection: "set-projector-power 0".
@@ -696,7 +734,7 @@ void PrintManager::stepD4_completed( bool const success ) {
     }
 }
 
-void PrintManager::print( PrintJob* printJob ) {
+void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentManifestMgr) {
     if ( _printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
@@ -704,6 +742,8 @@ void PrintManager::print( PrintJob* printJob ) {
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
+    _isTiled = currentManifestMgr->tiled();
+    _elementsOnLayer = currentManifestMgr->tilingCount();
 
     _pngDisplayer->clear( );
 
@@ -791,4 +831,16 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
     _position  = px;
     _threshold = std::min( PrinterRaiseToMaximumZ, PrinterHighSpeedThresholdZ + _position );
     debug( "+ PrintManager::printer_positionReport: new position %.2f mm, new threshold %.2f mm\n", _position, _threshold );
+}
+
+bool PrintManager::_hasLayerMoreElements() {
+    if (_currentLayer+1 == _printJob->layerCount) {
+    return false;
+    }
+
+    if(_currentLayer == 0){
+      return (_elementsOnLayer>1) ? true : false;
+    }else{
+      return (_currentLayer+1) % _elementsOnLayer;
+    }
 }
