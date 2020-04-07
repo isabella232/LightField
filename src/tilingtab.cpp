@@ -112,12 +112,36 @@ void TilingTab::setStepValue()
         double e = _minExposure->getValueDouble() + ( ( wCount - ( i + 1 ) ) * _step->getValueDouble( ) );
 
         painter.drawPixmap( x, y, *_pixmap );
-        painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
+
+        _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
     }
 
     _currentLayerImage->setPixmap( area );
 
     update( );
+}
+
+void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expo)
+{
+    QFontMetrics fm( painter->font() );
+    QString text = QString( "Exposure %1 sec" ).arg( expo );
+
+    int textWidth=fm.horizontalAdvance(text);
+
+    if(textWidth > tileWidth)
+    {
+        int textHeight = fm.height();
+
+        text = QString( "Expo." );
+        QString text2 = QString( "%1 s" ).arg(expo);
+
+        painter->drawText( QPoint(pos.x(), pos.y() - textHeight - 2), text );
+        painter->drawText( pos, text2 );
+    }
+    else
+    {
+        painter->drawText( pos, text );
+    }
 }
 
 void TilingTab::_showLayerImage( ) {
