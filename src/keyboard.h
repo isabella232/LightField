@@ -16,11 +16,13 @@ class Keyboard : public QWidget
 
 public:
     Keyboard(QWidget *p);
+    void checkKeyStillPressed(key *repetitionKey);
 
     signals:
     void keyPressed( QString t);
     void backspacePressed(  );
     void returnPressed(  );
+
 
 private :
     void paintEvent(QPaintEvent*);
@@ -28,10 +30,13 @@ private :
     void mouseMoveEvent(QMouseEvent * e);
     void mouseReleaseEvent(QMouseEvent *);
 
+
     void initTooltip();
     void initKeys( int indexArraykeys,const char *keymap[]);
     key *findKey(QPoint p);
     void setKeyPressed( key *k,QPoint );
+    bool isKeyRepetable(key *keyCheck);
+    void disconnectKeyRepetition(key *activeKey);
 
     QVector<QVector< key * > > keys;
     QLabel *tooltip;

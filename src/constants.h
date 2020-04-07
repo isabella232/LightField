@@ -41,6 +41,7 @@ QChar              extern const  FA_FastBackward;
 QChar              extern const  FA_Backward;
 QChar              extern const  FA_Forward;
 QChar              extern const  FA_FastForward;
+int                extern const  KeyboardRepeatDelay;
 
 int                       const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
@@ -59,6 +60,8 @@ double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
 double constexpr          const  LargeFontSize              =   22.0; // pt
 double constexpr          const  NormalFontSize             =   12.0; // pt
+
+
 
 #   if defined DLP4710
 

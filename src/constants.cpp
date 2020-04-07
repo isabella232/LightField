@@ -14,6 +14,7 @@ QSize                            MaximalRightHandPaneSize      {  722,  530 };
 
 QSize                     const  ButtonPadding                 {   20,    4 };
 QSize                     const  ProjectorWindowSize           { 1920, 1080 };
+int                       const  KeyboardRepeatDelay           { 600        }; //miliseconds
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
