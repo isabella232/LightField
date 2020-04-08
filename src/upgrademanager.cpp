@@ -51,6 +51,11 @@ namespace {
         "Release-Train"
     };
 
+    QMap<QString, QString> const KernelArchToDebianArch {
+        { "x86_64", "amd64" },
+        { "armv7l", "armhf" },
+    };
+
     QStringList _EnsureMapContainsKeys( QMap<QString, QString> map, QStringList keyList ) {
         QStringList result;
         for ( auto const& key : keyList ) {
@@ -70,9 +75,13 @@ UpgradeManager::UpgradeManager( QObject* parent ): QObject( parent ) {
 
     {
         utsname u;
-
         uname( &u );
+
         _architecture = u.machine;
+        if ( KernelArchToDebianArch.contains( _architecture ) ) {
+            _architecture = KernelArchToDebianArch[_architecture];
+        }
+        debug( "UpgradeManager::`ctor: Kernel architecture: %s; Debian architecture: %s\n", u.machine, _architecture.toUtf8( ).data( ) );
     }
 
     QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  _stderrLogger, &StdioLogger::read );
@@ -654,21 +663,23 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
     _flushLoggers( );
     debug( "+ UpgradeManager::aptGetUpdate_succeeded: running `apt-get install`\n" );
 
-    QStringList processArgs { "apt-get", "-y", "install", };
-    QString versionNumberSuffix;
+    QString versionNumber { '=' % _kitToInstall->versionString                };
+    QString buildType     { '-' % BuildTypeToString[_kitToInstall->buildType] };
+    QString releaseTrain  { };
 
+    if ( _kitToInstall->releaseTrain != "base" ) {
+        releaseTrain = '-' % _kitToInstall->releaseTrain;
+    }
+
+    QStringList processArgs { "apt-get", "-y", "install", };
     if ( _kitToInstall->version < LIGHTFIELD_VERSION_CODE ) {
-        versionNumberSuffix = '=' % _kitToInstall->versionString;
         processArgs.append( "--allow-downgrades" );
     } else if ( _kitToInstall->version == LIGHTFIELD_VERSION_CODE ) {
         processArgs.append( "--reinstall" );
     }
 
-    if ( _kitToInstall->version <= LIGHTFIELD_VERSION_CODE ) {
-        processArgs.append( "lightfield-common" % versionNumberSuffix );
-    }
-
-    processArgs.append( QString { "lightfield-" % BuildTypeToString[_kitToInstall->buildType] % versionNumberSuffix } );
+    processArgs.append( "lightfield"        % releaseTrain % buildType % versionNumber );
+    processArgs.append( "lightfield-common" % releaseTrain             % versionNumber );
 
     _clearJournals( );
 
@@ -677,6 +688,7 @@ void UpgradeManager::aptGetUpdate_succeeded( ) {
     QObject::connect   ( _processRunner, &ProcessRunner::succeeded, this, &UpgradeManager::aptGetInstall_succeeded );
     QObject::connect   ( _processRunner, &ProcessRunner::failed,    this, &UpgradeManager::aptGetInstall_failed    );
 
+    debug( "UpgradeManager::aptGetUpdate_succeeded: starting command 'sudo %s'\n", processArgs.join( Space ).toUtf8( ).data( ) );
     _processRunner->start( { "sudo" }, processArgs );
 }
 

@@ -16,7 +16,7 @@ Package: lightfield@@RELEASE_TRAIN@@-@@BUILDTYPE@@
 Architecture: any
 Provides: lightfield-@@BUILDTYPE@@
 Breaks: lightfield-@@ANTIBUILDTYPE@@
-Conflicts: lightfield-@@ANTIBUILDTYPE@@
+Conflicts: lightfield-@@ANTIBUILDTYPE@@, modemmanager
 Replaces: lightfield-@@ANTIBUILDTYPE@@
 Depends:
  lightfield-common@@RELEASE_TRAIN@@ (= ${binary:Version}),
@@ -39,6 +39,7 @@ Package: lightfield-common@@RELEASE_TRAIN@@
 Architecture: all
 Multi-Arch: foreign
 Provides: lightfield-common
+Conflicts: modemmanager
 Depends:
  ${misc:Depends},
  python3 (>= 3.6),

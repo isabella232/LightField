@@ -5,6 +5,7 @@ class PngDisplayer;
 class PrintJob;
 class ProcessRunner;
 class Shepherd;
+class OrderManifestManager;
 
 enum class PrintResult {
     Abort   = -2,
@@ -16,7 +17,7 @@ enum class PrintResult {
 enum class PrintStep {
     none,
     A1, A2, A3, A4, A5,
-    B1, B2, B3, B4, B5, B6, B7,
+    B1, B2, B2a, B3, B4, B5, B6, B7,
     C1, C2,
     D1, D2, D3, D4,
 };
@@ -27,10 +28,12 @@ class PrintManager: public QObject {
 
 public:
 
-    PrintManager( Shepherd* shepherd, QObject* parent = 0 );
+    PrintManager( Shepherd* shepherd, OrderManifestManager* manifestMgr, QObject* parent = 0 );
     virtual ~PrintManager( ) override;
 
     int currentLayer( ) const { return _currentLayer; }
+
+    QString& currentLayerImage();
 
 protected:
 
@@ -46,6 +49,8 @@ private:
     PrintStep      _step                     { };
     PrintStep      _pausedStep               { };
     int            _currentLayer             { };
+    int            _elementsOnLayer          { };
+    bool           _isTiled                  { false };
     bool           _paused                   { false };
     double         _position                 { };
     double         _pausedPosition           { };
@@ -55,10 +60,13 @@ private:
     QTimer*        _layerProjectionTimer     { };
     QTimer*        _preLiftTimer             { };
 
+    OrderManifestManager* _manifestMgr;
+
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );
     void    _pausePrinting( );
     void    _cleanUp( );
+    bool    _hasLayerMoreElements();
 
 signals:
 
@@ -77,7 +85,7 @@ public slots:
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
-    void print( PrintJob* printJob );
+    void print( PrintJob* printJob, OrderManifestManager* currentManifestMgr );
     void pause( );
     void resume( );
     void terminate( );
@@ -112,6 +120,8 @@ private slots:
 
     void stepB2_start( );
     void stepB2_completed( );
+
+    void stepB2a_start( );
 
     void stepB3_start( );
     void stepB3_completed( );

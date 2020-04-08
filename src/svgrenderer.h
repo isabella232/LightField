@@ -1,6 +1,8 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
+#include "ordermanifestmanager.h"
+
 class ProcessRunner;
 
 class SvgRenderer: public QObject {
@@ -12,7 +14,8 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& _outputDirectory );
+    void startRender( QString const& svgFileName, QString const& _outputDirectory, OrderManifestManager* manifestManager );
+    void loadSlices ( OrderManifestManager* manifestManager );
 
 protected:
 
@@ -23,6 +26,7 @@ private:
 
     QVector<ProcessRunner*> _processRunners;
     QVector<int>            _runningLayers;
+    QStringList             _layerList;
     int                     _processesRunning { };
 
     int                     _currentLayer     { };

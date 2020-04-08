@@ -48,7 +48,8 @@ private:
 
 
     QLabel*             _currentLayerImage          { new QLabel      };
-    QLabel*             _fileNameLabel              { new QLabel      };
+    QLabel*             _modelFileNameLabel         { new QLabel      };
+    QLabel*             _imageFileNameLabel         { new QLabel      };
     QVBoxLayout*        _currentLayerLayout         {                 };
     QGroupBox*          _currentLayerGroup          { new QGroupBox   };
 

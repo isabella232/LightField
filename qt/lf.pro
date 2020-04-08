@@ -29,6 +29,7 @@ SOURCES +=                          \
     ../src/loader.cpp               \
     ../src/main.cpp                 \
     ../src/mesh.cpp                 \
+    ../src/ordermanifestmanager.cpp \
     ../src/paramslider.cpp          \
     ../src/pngdisplayer.cpp         \
     ../src/preparetab.cpp           \
@@ -40,6 +41,7 @@ SOURCES +=                          \
     ../src/profilestab.cpp          \
     ../src/shepherd.cpp             \
     ../src/signalhandler.cpp        \
+    ../src/slicesorderpopup.cpp	    \
     ../src/statustab.cpp            \
     ../src/stdiologger.cpp          \
     ../src/strings.cpp              \
@@ -47,6 +49,8 @@ SOURCES +=                          \
     ../src/systemtab.cpp            \
     ../src/tabbase.cpp              \
     ../src/timinglogger.cpp         \
+    ../src/tilingmanager.cpp        \
+    ../src/tilingtab.cpp            \
     ../src/upgradekitunpacker.cpp   \
     ../src/upgrademanager.cpp       \
     ../src/upgradeselector.cpp      \
@@ -78,6 +82,7 @@ HEADERS  +=                         \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
     ../src/mesh.h                   \
+    ../src/ordermanifestmanager.h   \
     ../src/paramslider.h            \
     ../src/pngdisplayer.h           \
     ../src/preparetab.h             \
@@ -92,6 +97,7 @@ HEADERS  +=                         \
     ../src/profilestab.h            \
     ../src/shepherd.h               \
     ../src/signalhandler.h          \
+    ../src/slicesorderpopup.h	    \
     ../src/statustab.h              \
     ../src/stdiologger.h            \
     ../src/strings.h                \
@@ -99,6 +105,8 @@ HEADERS  +=                         \
     ../src/systemtab.h              \
     ../src/tabbase.h                \
     ../src/timinglogger.h           \
+    ../src/tilingmanager.h          \
+    ../src/tilingtab.h              \
     ../src/upgradekitunpacker.h     \
     ../src/upgrademanager.h         \
     ../src/upgradeselector.h        \
@@ -131,6 +139,16 @@ debug {
 
 dlp4710 {
     DEFINES += DLP4710
+    message(Configuring for DLP4710.)
+}
+
+!dlp4710 {
+    message(Configuring for DLPC350.)
+}
+
+experimental {
+    DEFINES += EXPERIMENTAL
+    message(Configuring for EXPERIMENTAL.)
 }
 
 TARGET   = lf

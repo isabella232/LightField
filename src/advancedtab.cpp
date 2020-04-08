@@ -147,8 +147,8 @@ void AdvancedTab::printer_positionReport( double const px, int const cx ) {
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
-    _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
-    _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
+    _currentTemperature->setText( QString( "%1 �C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
+    _targetTemperature ->setText( QString( "%1 �C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _heatingElement    ->setText( bedPwm ? "ON" : "off"                                      );
 
     update( );
@@ -156,13 +156,13 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
 
 void AdvancedTab::offsetSlider_sliderReleased( ) {
     auto offset = _offsetSlider->value( ) * 25;
-    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", offset );
+    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d �m\n", offset );
     g_settings.buildPlatformOffset = offset;
 }
 
 void AdvancedTab::offsetSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value * 25 );
-    _offsetValue->setText( QString { "%1 µm" }.arg( value * 25 ) );
+    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d �m\n", value * 25 );
+    _offsetValue->setText( QString { "%1 �m" }.arg( value * 25 ) );
 
     update( );
 }
@@ -194,8 +194,8 @@ void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
 }
 
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
-    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
+    debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d �C\n", value );
+    _bedTemperatureValue->setText( QString { "%1 �C" }.arg( value ) );
 
     update( );
 }
@@ -340,7 +340,7 @@ void AdvancedTab::_setupGeneralForm(QFont boldFont, QFont fontAwesome) {
 
     _offsetValue->setAlignment( Qt::AlignRight );
     _offsetValue->setFont( boldFont );
-    _offsetValue->setText( QString { "%1 µm" }.arg( g_settings.buildPlatformOffset ) );
+    _offsetValue->setText( QString { "%1 �m" }.arg( g_settings.buildPlatformOffset ) );
 
     _offsetSlider->setMinimum( 0 );
     _offsetSlider->setMaximum( 40 );
@@ -378,7 +378,7 @@ void AdvancedTab::_setupGeneralForm(QFont boldFont, QFont fontAwesome) {
     _bedTemperatureValue->setAlignment( Qt::AlignRight );
     _bedTemperatureValue->setEnabled( false );
     _bedTemperatureValue->setFont( boldFont );
-    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
+    _bedTemperatureValue->setText( QString { "%1 �C" }.arg( DefaultPrintBedTemperature ) );
 
     _bedTemperatureValueLayout = WrapWidgetsInHBox( _bedTemperatureLabel, nullptr, _bedTemperatureValue );
     _bedTemperatureValueLayout->setEnabled( false );
@@ -610,29 +610,32 @@ void AdvancedTab::_setupBodyPumpForm(QFont boldFont)
 }
 
 void AdvancedTab::updatePrintProfile() {
+    debug( "+ AdvancedTab::updatePrintProfile 1" );
 
     if(_lockUpdate)
         return;
 
     PrintProfile* profile = (PrintProfile*)_printProfileManager->activeProfile();
+    debug( "+ AdvancedTab::updatePrintProfile 2" );
     QString tempProfileName = "temp";
     bool setActive = false;
     if(profile->profileName() != tempProfileName)
     {
+    debug( "+ AdvancedTab::updatePrintProfile 4" );
         QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
         auto iter = std::find_if( c->begin( ), c->end( ), [&tempProfileName] ( PrintProfile* p ) { return tempProfileName == p->profileName( ); } );
         profile = ( iter != c->end( ) ) ? *iter : nullptr;
-
+    debug( "+ AdvancedTab::updatePrintProfile 5" );
         if(!profile)
         {
             profile = new PrintProfile();
             profile->setProfileName(tempProfileName);
             _printProfileManager->addProfile(profile);
         }
-
+    debug( "+ AdvancedTab::updatePrintProfile 6" );
         setActive=true;
     }
-
+debug( "+ AdvancedTab::updatePrintProfile 2" );
 
     profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
 
@@ -653,7 +656,7 @@ void AdvancedTab::updatePrintProfile() {
 
         profile->setBaseLayersPumpingParameters(baseParams);
     }
-
+debug( "+ AdvancedTab::updatePrintProfile 3" );
     profile->setBaseLayersPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     if(_addBodyPumpCheckbox->isChecked())
     {
@@ -671,11 +674,12 @@ void AdvancedTab::updatePrintProfile() {
 
         profile->setBodyLayersPumpingParameters(bodyParams);
     }
-
+debug( "+ AdvancedTab::updatePrintProfile 4" );
     if(setActive)
     {
         _printProfileManager->setActiveProfile(tempProfileName);
     }
+debug( "+ AdvancedTab::updatePrintProfile 5" );
 }
 
 void AdvancedTab::loadPrintProfile(PrintProfile const* profilePtr) {

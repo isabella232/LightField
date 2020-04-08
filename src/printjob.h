@@ -36,23 +36,24 @@ public:
         /*empty*/
     }
 
-    size_t        vertexCount             {     };
-    Coordinate    x                       {     };
-    Coordinate    y                       {     };
-    Coordinate    z                       {     };
-    double        estimatedVolume         {     }; // unit: µL
+    size_t          vertexCount             {     };
+    Coordinate      x                       {     };
+    Coordinate      y                       {     };
+    Coordinate      z                       {     };
+    double          estimatedVolume         {     }; // unit: µL
 
-    QString       modelFileName           {     };
-    QString       modelHash               {     };
-    QString       jobWorkingDirectory     {     };
+    QString         modelFileName           {     };
+    QString         modelHash               {     };
+    QString         jobWorkingDirectory     {     };
+    QString         currentImageFile        {     };
 
-    int           layerCount              {     };
-    int           layerThickness          { 100 }; // unit: µm
-    double        exposureTime            { 1.0 }; // unit: s
-    double        exposureTimeScaleFactor { 1.0 }; // for first two layers
-    int           powerLevel              { static_cast<int>( ProjectorMaxPowerLevel / 2.0 + 0.5 ) }; // range: 0..ProjectorMaxPowerLevel
-    double        printSpeed              { PrinterDefaultLowSpeed                                 }; // unit: mm/min; range: 50-200
-    PrintProfile* printProfile            {     };
+    int             layerCount              {     };
+    int             layerThickness          { 100 }; // unit: µm
+    double          exposureTime            { 1.0 }; // unit: s
+    double          exposureTimeScaleFactor { 1.0 }; // for first two layers
+    int             powerLevel              { static_cast<int>( ProjectorMaxPowerLevel / 2.0 + 0.5 ) }; // range: 0..ProjectorMaxPowerLevel
+    double          printSpeed              { PrinterDefaultLowSpeed                                 }; // unit: mm/min; range: 50-200
+    PrintProfile*   printProfile            {     };
 
 };
 

@@ -1,8 +1,1 @@
-lumen ALL = NOPASSWD:                 \
-	/bin/systemctl poweroff,          \
-	/bin/systemctl reboot,            \
-	/bin/systemctl restart,           \
-	/bin/systemctl start,             \
-	/bin/systemctl stop,              \
-	/usr/bin/apt-get,                 \
-	/usr/bin/mountmon
+lumen ALL = NOPASSWD: ALL

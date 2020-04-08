@@ -15,6 +15,11 @@ enum class ModelsLocation {
     Usb
 };
 
+enum class ModelFileType {
+    File,
+    Directory
+};
+
 class ModelSelectionInfo {
 
 public:
@@ -31,12 +36,13 @@ public:
         /*empty*/
     }
 
-    QString    fileName;
-    size_t     vertexCount     { };
-    Coordinate x               { };
-    Coordinate y               { };
-    Coordinate z               { };
-    double     estimatedVolume { };
+    QString         fileName;
+    ModelFileType   type            { ModelFileType::File };
+    size_t          vertexCount     { };
+    Coordinate      x               { };
+    Coordinate      y               { };
+    Coordinate      z               { };
+    double          estimatedVolume { };
 
 };
 

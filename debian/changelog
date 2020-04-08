@@ -1,8 +1,122 @@
+lightfield (1.0.12.6) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sun, 01 Mar 2020 14:07:26 -0800
+
+lightfield (1.0.12.5) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 29 Feb 2020 12:56:05 -0800
+
+lightfield (1.0.12.4) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Fri, 28 Feb 2020 11:32:31 -0800
+
+lightfield (1.0.12.3) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 26 Feb 2020 13:01:30 -0800
+
+lightfield (1.0.12.2) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 22 Feb 2020 16:14:26 -0800
+
+lightfield (1.0.12.1) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sat, 22 Feb 2020 09:23:45 -0800
+
+lightfield (1.0.12.0) stable; urgency=medium
+
+  * New: Load a folder of presliced images.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 20 Feb 2020 19:13:51 -0800
+
+lightfield (1.0.11.9) stable; urgency=medium
+
+  * Changed: Maximum print bed heating temperature is now 75 °C.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 17 Feb 2020 17:40:30 -0800
+
+lightfield (1.0.11.8) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Tue, 11 Feb 2020 12:13:45 -0800
+
+lightfield (1.0.11.7) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Tue, 11 Feb 2020 11:39:27 -0800
+
+lightfield (1.0.11.6) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 10 Feb 2020 17:25:49 -0800
+
+lightfield (1.0.11.5) stable; urgency=medium
+
+  * Fixed: DLPC350 projector initialization issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Fri, 07 Feb 2020 18:50:08 -0800
+
+lightfield (1.0.11.4) stable; urgency=medium
+
+  * Fixed: Software Upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 06 Feb 2020 18:48:48 -0800
+
+lightfield (1.0.11.3) stable; urgency=medium
+
+  * Fixed: An issue with first-time configuration of the DLP4710 projector.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Wed, 05 Feb 2020 17:27:02 -0800
+
+lightfield (1.0.11.2) stable; urgency=medium
+
+  * Fixed: Image scaling for DLP4710 projector, based on pixel size.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 03 Feb 2020 17:51:43 -0800
+
+lightfield (1.0.11.1) stable; urgency=medium
+
+  * Fixed: Problem with setting projector power.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Sun, 02 Feb 2020 11:12:53 -0800
+
 lightfield (1.0.11.0) stable; urgency=medium
 
   * New: Support for DLP4710 projector.
 
  -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 09 Jan 2020 17:18:06 -0800
+
+lightfield (1.0.10.5) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Tue, 11 Feb 2020 10:36:34 -0800
+
+lightfield (1.0.10.4) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Mon, 10 Feb 2020 10:00:38 -0800
+
+lightfield (1.0.10.3) stable; urgency=medium
+
+  * Fixed: Software upgrade issue.
+
+ -- LightField packager <lightfield-packager@volumetricbio.com>  Thu, 06 Feb 2020 18:07:35 -0800
 
 lightfield (1.0.10.0) stable; urgency=medium
 

@@ -9,16 +9,21 @@ class ParamSlider: public QGroupBox {
         QLabel*      _nameLabel  { new QLabel };
         QLabel*      _valueLabel { new QLabel };
         QString      _unit;
+        double       _factor     { 1.0L };
 
-        void init(QString name, QString unit, int startValue, int maxValue, int step);
+        void init(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
 
     public:
-        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step);
+        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
+        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue, double factor);
         ParamSlider(QString name, int maxValue);
         ~ParamSlider();
 
-        int getValue();
-        void setValue(int value);
+        int    getValue();
+        void   setValue(int value);
+        double getValueDouble();
+        void   setValueDouble(double value);
+        void   setMaxValue(int value);
 
     signals:
         void valuechanged();

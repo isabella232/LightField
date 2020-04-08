@@ -3,6 +3,7 @@ calculate-ctm.txt
 class-template.txt
 cleaned.txt
 copy-to-usb-stick.sh
+deb-install.sh
 deps-junk-1.txt
 deps-junk-2.txt
 deps-junk-3.txt
@@ -25,8 +26,8 @@ listfilter.pl
 model-library
 mountmon/build
 mountmon/.gdbinit
-mountmon/Makefile
 mountmon/.qmake.stash
+mountmon/Makefile
 newConfigureUbuntuAndInstallLightField.sh
 out
 packaging

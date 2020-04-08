@@ -8,8 +8,11 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "slicesorderpopup.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
+#include "usbmountmanager.h"
+#include "window.h"
 
 PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
     auto origFont    = font( );
@@ -31,6 +34,13 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness50Button->setText( "High res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
+
+#if defined EXPERIMENTAL
+    _layerThickness20Button->setEnabled( false );
+    _layerThickness20Button->setText( "Super-high res (20 µm)" );
+    _layerThickness20Button->setFont( font12pt );
+    QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
+#endif
 
     _sliceStatusLabel->setText( "Slicer:" );
 
@@ -75,11 +85,18 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _warningUvLabel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
     _prepareButton->setEnabled( false );
-    _prepareButton->setFixedSize( MainButtonSize );
+    _prepareButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _prepareButton->setFont( font22pt );
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare" );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
+
+    //_copyToUSBButton->setEnabled( false );
+    //_copyToUSBButton->setFixedSize( MainButtonSize );
+    //_copyToUSBButton->setFont( font22pt );
+    //_copyToUSBButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    //_copyToUSBButton->setText( "Copy to USB" );
+    //QObject::connect( _copyToUSBButton, &QPushButton::clicked, this, &PrepareTab::copyToUSB_clicked );
 
     _optionsContainer->setFixedWidth( MainButtonSize.width( ) );
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
@@ -87,7 +104,12 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         _layerThicknessLabel,
         WrapWidgetsInVBox(
             _layerThickness100Button,
+#if defined EXPERIMENTAL
+            _layerThickness50Button,
+            _layerThickness20Button
+#else
             _layerThickness50Button
+#endif
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -99,11 +121,25 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     ) );
 
     _sliceButton->setEnabled( false );
-    _sliceButton->setFixedSize( MainButtonSize );
+    _sliceButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _sliceButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _sliceButton->setFont( font22pt );
     _sliceButton->setText( "Slice" );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
+
+    _orderButton->setEnabled( false );
+    _orderButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _orderButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _orderButton->setFont( font22pt );
+    _orderButton->setText( "Order editor" );
+    QObject::connect( _orderButton, &QPushButton::clicked, this, &PrepareTab::orderButton_clicked );
+
+    _setupTiling->setEnabled( false );
+    _setupTiling->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _setupTiling->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _setupTiling->setFont( font22pt );
+    _setupTiling->setText( "Setup tiling" );
+    QObject::connect( _setupTiling, &QPushButton::clicked, this, &PrepareTab::setupTiling_clicked );
 
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
@@ -144,7 +180,9 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       1, 0, 1, 1 );
+    _layout->addWidget( _orderButton,       1, 0, 1, 1 );
+    _layout->addWidget( _setupTiling,      2, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -177,16 +215,22 @@ void PrepareTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
+void PrepareTab::_connectUsbMountManager( ) {
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &PrepareTab::usbMountManager_filesystemMounted   );
+    QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &PrepareTab::usbMountManager_filesystemUnmounted );
+}
+
 bool PrepareTab::_checkPreSlicedFiles( ) {
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
-    auto modelFile     = QFileInfo { _printJob->modelFileName                                   };
-    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
+    auto modelFile = QFileInfo { _printJob->modelFileName };
     if ( !modelFile.exists( ) ) {
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
+
+    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -201,14 +245,49 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
-    auto jobDir = QDir { _printJob->jobWorkingDirectory };
-    jobDir.setSorting( QDir::Name );
-    jobDir.setNameFilters( { "[0-9]?????.svg" } );
+    _manifestManager->restart();
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
+    QStringList errors;
+    QStringList warnings;
+
+    switch(_manifestManager->parse(&errors, &warnings))
+    {
+    case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+        QString warningsStr = warnings.join("<br>");
+
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+        }
+    case ManifestParseResult::POSITIVE:
+        if(_manifestManager->tiled())
+
+            debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
+
+            _setupTiling->setEnabled( false );
+        break;
+    case ManifestParseResult::FILE_CORRUPTED:
+    case ManifestParseResult::FILE_NOT_EXIST: {
+            QString errorsStr = errors.join("<br>");
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+            SlicesOrderPopup slicesOrderPopup { _manifestManager };
+            slicesOrderPopup.exec();
+
+            break;
+        }
+    }
+
+    _printJob->layerCount = _manifestManager->getSize();
+
+    OrderManifestManager::Iterator iter = _manifestManager->iterator();
 
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
-    for ( auto entry : jobDir.entryInfoList( ) ) {
+    while ( iter.hasNext() ) {
+
+        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % *iter);
+        ++iter;
+
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
             debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
             return false;
@@ -271,13 +350,26 @@ bool PrepareTab::_checkJobDirectory( ) {
     if ( preSliced ) {
         _navigateCurrentLabel->setText( QString( "1/%1" ).arg( _printJob->layerCount ) );
         _sliceButton->setText( "Reslice" );
+        _setupTiling->setEnabled(true);
+        _orderButton->setEnabled(false);
+        //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
+        _setupTiling->setEnabled(false);
+        _orderButton->setEnabled(false);
+        //_copyToUSBButton->setEnabled( false );
     }
 
     update( );
     return preSliced;
+}
+
+void PrepareTab::layerThickness100Button_clicked( bool ) {
+    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
+    _printJob->layerThickness = 100;
+
+    _checkJobDirectory( );
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
@@ -287,12 +379,14 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _checkJobDirectory( );
 }
 
-void PrepareTab::layerThickness100Button_clicked( bool ) {
-    debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->layerThickness = 100;
+#if defined EXPERIMENTAL
+void PrepareTab::layerThickness20Button_clicked( bool ) {
+    debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
+    _printJob->layerThickness = 20;
 
     _checkJobDirectory( );
 }
+#endif
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -304,7 +398,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString( "/%2.png" ).arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -317,9 +411,21 @@ void PrepareTab::_showLayerImage( int const layer ) {
 
 void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _sliceButton->setEnabled( enabled );
+
+    if(!_directoryMode) {
+        _orderButton->setEnabled( false );
+    } else {
+        _orderButton->setEnabled( enabled );
+    }
+
+    _setupTiling->setEnabled( enabled && !_manifestManager->tiled() );
+
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
+#if defined EXPERIMENTAL
+    _layerThickness20Button->setEnabled( enabled );
+#endif
 
     update( );
 }
@@ -366,6 +472,21 @@ void PrepareTab::navigateLast_clicked( bool ) {
     update( );
 }
 
+void PrepareTab::orderButton_clicked( bool ) {
+    SlicesOrderPopup popup { _manifestManager };
+    popup.exec();
+
+    if(_directoryMode)
+        emit  uiStateChanged(TabIndex::File, UiState::SelectedDirectory);
+    else
+        emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
+}
+
+void PrepareTab::setupTiling_clicked( bool ) {
+    emit setupTiling( _manifestManager, _printJob );
+    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
+}
+
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
 
@@ -377,6 +498,9 @@ void PrepareTab::sliceButton_clicked( bool ) {
     _imageGeneratorStatus->setText( "waiting" );
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
+
+    _manifestManager->removeManifest();
+
     _slicerProcess = new QProcess( this );
     QObject::connect( _slicerProcess, &QProcess::errorOccurred,                                        this, &PrepareTab::slicerProcess_errorOccurred );
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_started       );
@@ -443,6 +567,22 @@ void PrepareTab::slicerProcess_started( ) {
     update( );
 }
 
+void PrepareTab::_showWarning(QString content) {
+    auto origFont    = font( );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+
+    Window* w = App::mainWindow();
+    QRect r = w->geometry();
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setFont(fontAwesome);
+    msgBox.setText(content);
+    msgBox.show();
+    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
+    msgBox.exec();
+}
+
 void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus ) {
     TimingLogger::stopTiming( TimingId::SlicingSvg );
     debug( "+ PrepareTab::slicerProcess_finished: exitCode: %d, exitStatus: %s [%d]\n", exitCode, ToString( exitStatus ), exitStatus );
@@ -468,13 +608,53 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
 
     _sliceStatus->setText( "finished" );
     _imageGeneratorStatus->setText( "starting" );
+    //_copyToUSBButton->setEnabled( true );
+
     update( );
 
     _svgRenderer = new SvgRenderer;
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_done          );
-    _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory );
+
+    _manifestManager->restart();
+    _manifestManager->setPath( _printJob->jobWorkingDirectory );
+
+    if ( _directoryMode ) {
+        QStringList errors;
+        QStringList warnings;
+
+        switch(_manifestManager->parse(&errors, &warnings))
+        {
+        case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
+            QString warningsStr = warnings.join("<br>");
+
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+            }
+        case ManifestParseResult::POSITIVE:
+            if(_manifestManager->tiled()) {
+                _setupTiling->setEnabled( false );
+            }
+            break;
+        case ManifestParseResult::FILE_CORRUPTED:
+        case ManifestParseResult::FILE_NOT_EXIST: {
+                QString errorsStr = errors.join("<br>");
+                _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+                SlicesOrderPopup slicesOrderPopup { _manifestManager };
+                slicesOrderPopup.exec();
+
+                break;
+            }
+        }
+
+        _printJob->layerCount = _manifestManager->getSize();
+        _orderButton->setEnabled( true );
+        _setupTiling->setEnabled( true );
+        _svgRenderer->loadSlices( _manifestManager );
+    } else {
+        _svgRenderer->startRender( _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName, _printJob->jobWorkingDirectory, _manifestManager );
+    }
 }
 
 void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
@@ -488,7 +668,6 @@ void PrepareTab::svgRenderer_layerCount( int const totalLayers ) {
 void PrepareTab::svgRenderer_layerComplete( int const currentLayer ) {
     _renderedLayers = currentLayer;
     _imageGeneratorStatus->setText( QString( "layer %1" ).arg( currentLayer + 1 ) );
-
     if ( ( 0 == currentLayer ) || ( 0 == ( ( currentLayer + 1 ) % 5 ) ) || ( ( _printJob->layerCount - 1 ) == currentLayer ) ) {
         _visibleLayer = currentLayer;
         _showLayerImage( _visibleLayer );
@@ -610,11 +789,15 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     _uiState = state;
 
     switch ( _uiState ) {
+        case UiState::TilingClicked:
+            break;
         case UiState::SelectStarted:
+            _directoryMode = false;
             _setSliceControlsEnabled( false );
             break;
 
         case UiState::SelectCompleted:
+            _directoryMode = false;
             _setSliceControlsEnabled( false );
 
             _sliceStatus->setText( "idle" );
@@ -636,7 +819,9 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             break;
 
         case UiState::SliceCompleted:
-            _setSliceControlsEnabled( true );
+            if ( !_directoryMode ) {
+                _setSliceControlsEnabled( true );
+            }
             break;
 
         case UiState::PrintStarted:
@@ -649,6 +834,32 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _setSliceControlsEnabled( true );
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
+            break;
+
+        case UiState::SelectedDirectory:
+            _directoryMode = true;
+            _setSliceControlsEnabled( false );
+
+#if defined EXPERIMENTAL
+            bool thickness20  = false;
+#endif // defined EXPERIMENTAL
+            bool thickness50  = false;
+            bool thickness100 = false;
+
+            switch ( _printJob->layerThickness ) {
+#if defined EXPERIMENTAL
+                case 20:  thickness20  = true; break;
+#endif // defined EXPERIMENTAL
+                case 50:  thickness50  = true; break;
+                case 100: thickness100 = true; break;
+            }
+#if defined EXPERIMENTAL
+            _layerThickness20Button->setChecked( thickness20 );
+#endif // defined EXPERIMENTAL
+            _layerThickness50Button->setChecked( thickness50 );
+            _layerThickness100Button->setChecked( thickness100 );
+
+            slicerProcess_finished( 0, QProcess::NormalExit );
             break;
     }
 
@@ -694,4 +905,65 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     debug( "+ PrepareTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updatePrepareButtonState( );
+}
+
+//void PrepareTab::copyToUSB_clicked( bool ) {
+//    debug( "+ PrepareTab::copyToUSB_clicked\n" );
+//
+//    QDir jobDir   { _printJob->jobWorkingDirectory };
+//    QDir mediaDir { _usbPath };
+//    mediaDir.mkdir( jobDir.dirName( ) );
+//
+//    QDirIterator it { _printJob->jobWorkingDirectory };
+//    while ( it.hasNext( ) ) {
+//        QString   fileName { it.next( ) };
+//        QFileInfo fileInfo { fileName   };
+//
+//        QString dest { _usbPath % Slash % jobDir.dirName( ) % Slash % fileInfo.fileName( ) };
+//
+//        debug( "  + copying %s\n", dest.toUtf8( ).data( ) );
+//        if ( !QFile::copy( fileName, dest ) ) {
+//            // TODO
+//        }
+//    }
+//
+//    update( );
+//}
+
+void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
+    debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( !_usbPath.isEmpty( ) ) {
+        debug( "  + We already have a USB storage device at '%s' mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    QFileInfo usbPathInfo { mountPoint };
+    if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
+        debug( "  + Unable to access mount point '%s' (uid: %u; gid: %u; mode: 0%03o)\n", _usbPath.toUtf8( ).data( ), usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
+        return;
+    }
+
+    _usbPath = mountPoint;
+
+    //if ( !_directoryMode && _checkPreSlicedFiles( ) ) {
+    //    _copyToUSBButton->setEnabled( true );
+    //}
+
+    update( );
+}
+
+void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint ) {
+    debug( "+ PrepareTab::usbMountManager_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+
+    if ( mountPoint != _usbPath ) {
+        debug( "  + not our filesystem; ignoring\n", _usbPath.toUtf8( ).data( ) );
+        return;
+    }
+
+    _usbPath.clear( );
+
+    //_copyToUSBButton->setEnabled( false );
+
+    update( );
 }

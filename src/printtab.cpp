@@ -347,6 +347,7 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
+        case UiState::TilingClicked:
             break;
 
         case UiState::PrintStarted:
@@ -357,6 +358,9 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::PrintCompleted:
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
+            break;
+
+        case UiState::SelectedDirectory:
             break;
     }
 

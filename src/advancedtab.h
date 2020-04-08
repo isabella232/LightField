@@ -83,38 +83,38 @@ private:
     QScrollArea*  _basePumpForm                    { new QScrollArea     };
     QCheckBox*    _addBasePumpCheckbox             { new QCheckBox("add base pump") };
 
-    ParamSlider*  _distanceSlider                  { new ParamSlider("Base Pump Distance", "µm", 1000, 8000, 250)     };
-    ParamSlider*  _upTimeSlider                    { new ParamSlider("Base Pump Up Time", "ms", 1000, 8000, 1)      };
-    ParamSlider*  _upPauseSlider                   { new ParamSlider("Base Pump Up Pause", "ms", 1000, 8000, 1)     };
-    ParamSlider*  _downTimeSlider                  { new ParamSlider("Base Pump Down Time", "ms", 1000, 8000, 1)    };
-    ParamSlider*  _downPauseSlider                 { new ParamSlider("Base Pump Down Pause", "ms", 1000, 8000, 1)   };
-    ParamSlider*  _upVelocitySlider                { new ParamSlider("Base Pump Up Velocity", "µm/ms", 1000, 8000, 1) };
+    ParamSlider*  _distanceSlider                  { new ParamSlider("Base Pump Distance", "µm", 1000, 8000, 250, 0)     };
+    ParamSlider*  _upTimeSlider                    { new ParamSlider("Base Pump Up Time", "ms", 1000, 8000, 1, 0)      };
+    ParamSlider*  _upPauseSlider                   { new ParamSlider("Base Pump Up Pause", "ms", 1000, 8000, 1, 0)     };
+    ParamSlider*  _downTimeSlider                  { new ParamSlider("Base Pump Down Time", "ms", 1000, 8000, 1, 0)    };
+    ParamSlider*  _downPauseSlider                 { new ParamSlider("Base Pump Down Pause", "ms", 1000, 8000, 1, 0)   };
+    ParamSlider*  _upVelocitySlider                { new ParamSlider("Base Pump Up Velocity", "µm/ms", 1000, 8000, 1, 0) };
 
 
     //Base Layer Form
     QWidget*      _baseLayerForm                   { new QWidget     };
 
-    ParamSlider*  _numberOfBaseLayersSlider        { new ParamSlider("Number of Base Layer", "", 1, 20, 1)          };
-    ParamSlider*  _baseThicknessSlider             { new ParamSlider("Base Layer Thickness", "µm", 100, 8000, 1)    };
-    ParamSlider*  _baseExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1)    };
+    ParamSlider*  _numberOfBaseLayersSlider        { new ParamSlider("Number of Base Layer", "", 1, 20, 1, 0)          };
+    ParamSlider*  _baseThicknessSlider             { new ParamSlider("Base Layer Thickness", "µm", 100, 8000, 1, 0)    };
+    ParamSlider*  _baseExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1, 0)    };
 
     //Body Layers Form
     QWidget*      _bodyLayersForm                  { new QWidget     };
 
-    ParamSlider*  _bodyThicknessSlider             { new ParamSlider("Body Layer Thickness", "µm", 20, 8000, 1)     };
-    ParamSlider*  _bodyExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1)    };
+    ParamSlider*  _bodyThicknessSlider             { new ParamSlider("Body Layer Thickness", "µm", 20, 8000, 1, 0)     };
+    ParamSlider*  _bodyExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1, 0)    };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                    { new QScrollArea     };
     QCheckBox*    _addBodyPumpCheckbox             { new QCheckBox("add body pump") };
 
-    ParamSlider*  _bodyPumpEveryNthLayer           { new ParamSlider("Body Pump Every Nth Layer:", "", 5, 20, 1)    };
-    ParamSlider*  _bodyDistanceSlider              { new ParamSlider("Body Pump Distance", "µm", 1000, 8000, 1)     };
-    ParamSlider*  _bodyUpTimeSlider                { new ParamSlider("Body Pump Up Time", "ms", 1000, 8000, 1)      };
-    ParamSlider*  _bodyUpPauseSlider               { new ParamSlider("Body Pump Up Pause", "ms", 1000, 8000, 1)     };
-    ParamSlider*  _bodyDownTimeSlider              { new ParamSlider("Body Pump Down Time", "ms", 1000, 8000, 1)    };
-    ParamSlider*  _bodyDownPauseSlider             { new ParamSlider("Body Pump Down Pause", "ms", 1000, 8000, 1)   };
-    ParamSlider*  _bodyUpVelocitySlider            { new ParamSlider("Body Pump Up Velocity", "µm/ms", 1000, 8000, 1) };
+    ParamSlider*  _bodyPumpEveryNthLayer           { new ParamSlider("Body Pump Every Nth Layer:", "", 5, 20, 1, 0)    };
+    ParamSlider*  _bodyDistanceSlider              { new ParamSlider("Body Pump Distance", "µm", 1000, 8000, 1, 0)     };
+    ParamSlider*  _bodyUpTimeSlider                { new ParamSlider("Body Pump Up Time", "ms", 1000, 8000, 1, 0)      };
+    ParamSlider*  _bodyUpPauseSlider               { new ParamSlider("Body Pump Up Pause", "ms", 1000, 8000, 1, 0)     };
+    ParamSlider*  _bodyDownTimeSlider              { new ParamSlider("Body Pump Down Time", "ms", 1000, 8000, 1, 0)    };
+    ParamSlider*  _bodyDownPauseSlider             { new ParamSlider("Body Pump Down Pause", "ms", 1000, 8000, 1, 0)   };
+    ParamSlider*  _bodyUpVelocitySlider            { new ParamSlider("Body Pump Up Velocity", "µm/ms", 1000, 8000, 1, 0) };
 
 
     static const int       FORMS_COUNT { 6 };

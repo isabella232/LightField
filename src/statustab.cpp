@@ -4,6 +4,7 @@
 
 #include "statustab.h"
 
+#include "ordermanifestmanager.h"
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
@@ -133,16 +134,23 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _currentLayerImage->setStyleSheet( "QWidget { background: black }" );
 
-    _fileNameLabel->setAlignment( Qt::AlignLeft );
-    _fileNameLabel->setContentsMargins( { } );
-    _fileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _fileNameLabel->setTextFormat( Qt::RichText );
-    _fileNameLabel->setWordWrap( true );
+    _modelFileNameLabel->setAlignment( Qt::AlignLeft );
+    _modelFileNameLabel->setContentsMargins( { } );
+    _modelFileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _modelFileNameLabel->setTextFormat( Qt::RichText );
+    _modelFileNameLabel->setWordWrap( true );
+
+    _imageFileNameLabel->setAlignment( Qt::AlignLeft );
+    _imageFileNameLabel->setContentsMargins( { } );
+    _imageFileNameLabel->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _imageFileNameLabel->setTextFormat( Qt::RichText );
+    _imageFileNameLabel->setWordWrap( true );
+
 
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
         nullptr,
-        _fileNameLabel
+        WrapWidgetsInHBox(_modelFileNameLabel, _imageFileNameLabel)
     );
     _currentLayerLayout->setAlignment( Qt::AlignHCenter | Qt::AlignTop );
 
@@ -384,11 +392,19 @@ void StatusTab::printManager_printResumed( ) {
 
 void StatusTab::printManager_startingLayer( int const layer ) {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
-    _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->layerCount ) );
+    if(_manifestManager->tiled()){
+        int realLayer = (layer+_manifestManager->tilingCount())/_manifestManager->tilingCount();
+        int realLayersTotal = _printJob->layerCount/_manifestManager->tilingCount();
+        int currentElement = (layer % _manifestManager->tilingCount()) + 1;
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( _manifestManager->tilingCount() ) );
+    }else{
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->layerCount ) );
+    }
 
     _previousLayerStartTime = _currentLayerStartTime;
     _currentLayerStartTime  = GetBootTimeClock( );
 
+    //TODO time estimation will be wrong in case of tiled
     if ( 0 == layer ) {
         _printerStateDisplay->setText( "Printing" );
         _estimatedTimeLeftDisplay->setFont( _italicFont );
@@ -414,7 +430,9 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 
     _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->layerCount ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory + QString { "/%2.png" }.arg( layer, 6, 10, DigitZero ) );
+    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
+    _imageFileNameLabel->setText("Layer image: " % ( _manifestManager->getElementAt( layer ) ));
+
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -544,13 +562,14 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
-            _fileNameLabel->clear( );
+            _modelFileNameLabel->clear( );
+            _imageFileNameLabel->clear();
             _stopButton->setVisible( false );
             _reprintButton->setVisible( true );
             break;
 
         case UiState::PrintStarted:
-            _fileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
+            _modelFileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
             _stopButton->setEnabled( true );
             _stopButton->setText( "STOP" );
             _stopButton->setVisible( true );
@@ -560,6 +579,10 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         case UiState::PrintCompleted:
             _stopButton->setVisible( false );
             _reprintButton->setVisible( true );
+            break;
+
+        case UiState::SelectedDirectory:
+        case UiState::TilingClicked:
             break;
     }
 

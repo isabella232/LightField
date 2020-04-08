@@ -25,10 +25,32 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory ) {
+void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
+    int  layerNumber     { -1 };
+
+    debug( "+ SvgRenderer::loadSlices \n");
+
+    OrderManifestManager::Iterator iter = manifestManager->iterator();
+    while ( iter.hasNext() ) {
+        debug( "+ SvgRenderer::loadSlices next iter \n");
+        QString fileName = *iter;
+        ++iter;
+
+        debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
+        layerNumber++;
+        emit layerComplete( layerNumber );
+    }
+
+    debug( "  + Done\n" );
+    emit layerCount( manifestManager->getSize() );
+    emit done( true );
+}
+
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
     TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
     _outputDirectory = outputDirectory;
+    _layerList.clear();
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
@@ -55,8 +77,8 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
     auto mmWidth  = svgElement.attribute( "width" ).toDouble( );
     auto mmHeight = svgElement.attribute( "height" ).toDouble( );
-    _pxWidth  = mmWidth  * 20.0 + 0.5;
-    _pxHeight = mmHeight * 20.0 + 0.5;
+    _pxWidth  = mmWidth  / ProjectorPixelSize + 0.5;
+    _pxHeight = mmHeight / ProjectorPixelSize + 0.5;
     debug( "  + dimensions: mm %.2f×%.2f; px %d×%d\n", mmWidth, mmHeight, _pxWidth, _pxHeight );
 
     QDomNodeList childNodes = svgElement.childNodes( );
@@ -101,6 +123,17 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             return;
         }
     }
+
+    manifestManager->restart();
+    manifestManager->setPath( _outputDirectory );
+
+    QStringList manifestFileList { };
+    for( int i=0; i<layer; ++i) {
+        manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+    }
+
+    manifestManager->setFileList( manifestFileList );
+    manifestManager->save();
 
     _totalLayers = layer;
     _runningLayers .fill( -1,      get_nprocs( ) );

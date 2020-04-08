@@ -130,7 +130,7 @@ extern int     sigtimedwait( sigset_t const* set, siginfo_t* info, timespec cons
 extern int     socketpair( int domain, int type, int protocol, int sv[2] );
 extern int     statvfs( char const* path, struct statvfs* buf );
 extern char*   strsignal( int sig );
-extern int     uname( utsname* buf )
+extern int     uname( utsname* buf );
 
 //================================================
 // GNU C Library function prototypes
