@@ -4,7 +4,9 @@
 #define ENABLE_TEMPERATURE_SETTING
 
 #include "tabbase.h"
-
+#include "paramslider.h"
+#include "printprofile.h"
+#include "printprofilemanager.h"
 class PngDisplayer;
 
 class AdvancedTab: public TabBase {
@@ -16,24 +18,14 @@ public:
     AdvancedTab( QWidget* parent = nullptr );
     virtual ~AdvancedTab( ) override;
 
-    virtual TabIndex tabIndex( ) const override { return TabIndex::Advanced; }
-
+    virtual TabIndex    tabIndex( ) const override { return TabIndex::Advanced; }
+    void setPrintProfileManager(PrintProfileManager* profileManager);
 protected:
 
     virtual void _connectShepherd( ) override;
 
 private:
-
-    QLabel*       _currentTemperatureLabel         { new QLabel      };
-    QLabel*       _targetTemperatureLabel          { new QLabel      };
-    QLabel*       _heatingElementLabel             { new QLabel      };
-    QLabel*       _zPositionLabel                  { new QLabel      };
-
-    QLabel*       _currentTemperature              { new QLabel      };
-    QLabel*       _targetTemperature               { new QLabel      };
-    QLabel*       _heatingElement                  { new QLabel      };
-    QLabel*       _zPosition                       { new QLabel      };
-
+    PrintProfileManager* _printProfileManager;
     QLabel*       _offsetLabel                     { new QLabel      };
     QLabel*       _offsetValue                     { new QLabel      };
     QSlider*      _offsetSlider                    { new QSlider     };
@@ -42,15 +34,6 @@ private:
 
     QPushButton*  _bedHeatingButton                { new QPushButton };
     QLabel*       _bedHeatingButtonLabel           { new QLabel      };
-
-#if defined ENABLE_TEMPERATURE_SETTING
-    QLabel*       _bedTemperatureLabel             { new QLabel      };
-    QLabel*       _bedTemperatureValue             { new QLabel      };
-    QHBoxLayout*  _bedTemperatureValueLayout       {                 };
-    QSlider*      _bedTemperatureSlider            { new QSlider     };
-#endif
-
-    QGroupBox*    _bedHeatingGroup                 { new QGroupBox   };
 
     QPushButton*  _projectBlankImageButton         { new QPushButton };
     QLabel*       _projectBlankImageButtonLabel    { new QLabel      };
@@ -66,17 +49,93 @@ private:
     QGroupBox*    _projectImageButtonsGroup        { new QGroupBox   };
 
     QWidget*      _leftColumn                      { new QWidget     };
-    QGroupBox*    _rightColumn                     { new QGroupBox   };
+    QWidget*      _rightColumn                     { new QWidget     };
+
+    //Left panel
+    QListView*    _leftMenu                        { new QListView   };
+
+    //General form
+    QGroupBox*    _generalForm                     { new QGroupBox   };
+
+    QGroupBox*    _bedHeatingGroup                 { new QGroupBox   };
+
+    //Temperature form
+    QWidget*      _temperatureForm                  { new QWidget     };
+
+    QLabel*       _currentTemperatureLabel         { new QLabel      };
+    QLabel*       _targetTemperatureLabel          { new QLabel      };
+    QLabel*       _heatingElementLabel             { new QLabel      };
+    QLabel*       _zPositionLabel                  { new QLabel      };
+
+    QLabel*       _currentTemperature              { new QLabel      };
+    QLabel*       _targetTemperature               { new QLabel      };
+    QLabel*       _heatingElement                  { new QLabel      };
+    QLabel*       _zPosition                       { new QLabel      };
+
+#if defined ENABLE_TEMPERATURE_SETTING
+    QLabel*       _bedTemperatureLabel             { new QLabel      };
+    QLabel*       _bedTemperatureValue             { new QLabel      };
+    QHBoxLayout*  _bedTemperatureValueLayout       {                 };
+    QSlider*      _bedTemperatureSlider            { new QSlider     };
+#endif
+
+    //Base Pump Form
+    QScrollArea*  _basePumpForm                    { new QScrollArea     };
+    QCheckBox*    _addBasePumpCheckbox             { new QCheckBox("add base pump") };
+
+    ParamSlider*  _distanceSlider                  { new ParamSlider("Base Pump Distance", "µm", 1000, 8000, 250, 0)     };
+    ParamSlider*  _upTimeSlider                    { new ParamSlider("Base Pump Up Time", "ms", 1000, 8000, 1, 0)      };
+    ParamSlider*  _upPauseSlider                   { new ParamSlider("Base Pump Up Pause", "ms", 1000, 8000, 1, 0)     };
+    ParamSlider*  _downTimeSlider                  { new ParamSlider("Base Pump Down Time", "ms", 1000, 8000, 1, 0)    };
+    ParamSlider*  _downPauseSlider                 { new ParamSlider("Base Pump Down Pause", "ms", 1000, 8000, 1, 0)   };
+    ParamSlider*  _upVelocitySlider                { new ParamSlider("Base Pump Up Velocity", "µm/ms", 1000, 8000, 1, 0) };
+
+
+    //Base Layer Form
+    QWidget*      _baseLayerForm                   { new QWidget     };
+
+    ParamSlider*  _numberOfBaseLayersSlider        { new ParamSlider("Number of Base Layer", "", 1, 20, 1, 0)          };
+    ParamSlider*  _baseThicknessSlider             { new ParamSlider("Base Layer Thickness", "µm", 100, 8000, 1, 0)    };
+    ParamSlider*  _baseExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1, 0)    };
+
+    //Body Layers Form
+    QWidget*      _bodyLayersForm                  { new QWidget     };
+
+    ParamSlider*  _bodyThicknessSlider             { new ParamSlider("Body Layer Thickness", "µm", 20, 8000, 1, 0)     };
+    ParamSlider*  _bodyExposureTimeSlider          { new ParamSlider("Base Pump Up Pause", "ms", 2000, 8000, 1, 0)    };
+
+    //Body Pump Form
+    QScrollArea*  _bodyPumpForm                    { new QScrollArea     };
+    QCheckBox*    _addBodyPumpCheckbox             { new QCheckBox("add body pump") };
+
+    ParamSlider*  _bodyPumpEveryNthLayer           { new ParamSlider("Body Pump Every Nth Layer:", "", 5, 20, 1, 0)    };
+    ParamSlider*  _bodyDistanceSlider              { new ParamSlider("Body Pump Distance", "µm", 1000, 8000, 1, 0)     };
+    ParamSlider*  _bodyUpTimeSlider                { new ParamSlider("Body Pump Up Time", "ms", 1000, 8000, 1, 0)      };
+    ParamSlider*  _bodyUpPauseSlider               { new ParamSlider("Body Pump Up Pause", "ms", 1000, 8000, 1, 0)     };
+    ParamSlider*  _bodyDownTimeSlider              { new ParamSlider("Body Pump Down Time", "ms", 1000, 8000, 1, 0)    };
+    ParamSlider*  _bodyDownPauseSlider             { new ParamSlider("Body Pump Down Pause", "ms", 1000, 8000, 1, 0)   };
+    ParamSlider*  _bodyUpVelocitySlider            { new ParamSlider("Body Pump Up Velocity", "µm/ms", 1000, 8000, 1, 0) };
+
+
+    static const int       FORMS_COUNT { 6 };
+    QWidget*        _forms[FORMS_COUNT];
 
     PngDisplayer* _pngDisplayer                    { };
 
     bool          _isPrinterOnline                 { false };
     bool          _isPrinterAvailable              { true  };
     bool          _isProjectorOn                   { false };
+    bool          _lockUpdate                      { false };
 
     void          _updateControlGroups( );
     void          _projectImage( char const* fileName );
-
+    void          _setupLeftMenu(QFont fontAwesome);
+    void          _setupGeneralForm(QFont fontBold, QFont fontAwesome);
+    void          _setupTemperaturelForm(QFont fontBold);
+    void          _setupBasePumpForm(QFont fontBold);
+    void          _setupBaseLayerForm();
+    void          _setupBodyLayersForm();
+    void          _setupBodyPumpForm(QFont fontBold);
 signals:
     ;
 
@@ -92,7 +151,8 @@ public slots:
     void setPrinterAvailable( bool const value );
 
     void projectorPowerLevel_changed( int const percentage );
-
+    void loadPrintProfile (PrintProfile const* profile);
+    void updatePrintProfile();
 protected slots:
     ;
 
@@ -121,6 +181,10 @@ private slots:
     void powerLevelSlider_valueChanged( int percentage );
 
     void shepherd_sendComplete( bool const success );
+
+    void chbox_addBodyPumpChanged(int);
+
+    void chbox_addBasePumpCheckChanged(int state);
 
 };
 

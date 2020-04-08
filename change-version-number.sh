@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2164
 
-LIGHTFIELD_ROOT="/home/lumen/Volumetric/LightField"
+LIGHTFIELD_ROOT="${PWD}"
 
 #########################################################
 ##                                                     ##

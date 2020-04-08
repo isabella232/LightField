@@ -5,6 +5,7 @@
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
+#include "printprofilemanager.h"
 #include "shepherd.h"
 #include "signalhandler.h"
 #include "upgrademanager.h"
@@ -16,6 +17,7 @@
 #include "printtab.h"
 #include "statustab.h"
 #include "advancedtab.h"
+#include "profilestab.h"
 #include "systemtab.h"
 
 namespace {
@@ -37,7 +39,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
-
     setWindowFlags( windowFlags( ) | ( g_settings.frameless ? Qt::FramelessWindowHint : Qt::BypassWindowManagerHint ) );
     setFixedSize( MainWindowSize );
     move( g_settings.mainWindowPosition );
@@ -57,8 +58,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printJob = new PrintJob;
 
-    _upgradeManager  = new UpgradeManager;
-    _usbMountManager = new UsbMountManager;
+    _printProfileManager = new PrintProfileManager;
+    _upgradeManager      = new UpgradeManager;
+    _usbMountManager     = new UsbMountManager;
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -72,6 +74,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _printTab    = new PrintTab,
         _statusTab   = new StatusTab,
         _advancedTab = new AdvancedTab,
+        _profilesTab = new ProfilesTab,
         _systemTab   = new SystemTab,
     };
 
@@ -94,11 +97,12 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
 
-    _fileTab    ->setUsbMountManager( _usbMountManager );
-    _prepareTab ->setUsbMountManager( _usbMountManager );
-    _advancedTab->setPngDisplayer   ( _pngDisplayer    );
-    _systemTab  ->setUpgradeManager ( _upgradeManager  );
-    _systemTab  ->setUsbMountManager( _usbMountManager );
+    _fileTab    ->setUsbMountManager    ( _usbMountManager     );
+    _prepareTab ->setUsbMountManager    ( _usbMountManager );
+    _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _profilesTab->setPrintProfileManager( _printProfileManager );
+    _systemTab  ->setUpgradeManager     ( _upgradeManager      );
+    _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 
     _shepherd->start( );
 
@@ -166,6 +170,15 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
+    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
+
+    _advancedTab->setPrintProfileManager( _printProfileManager );
+    //
+    // "Profiles" tab
+    //
+
+    _profilesTab->setContentsMargins( { } );
+    _profilesTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //
     // "System" tab
@@ -502,4 +515,10 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
 #endif // defined _DEBUG
 
     close( );
+}
+
+void Window::showEvent( QShowEvent* aShowEvent )
+{
+    QMainWindow::showEvent(aShowEvent);
+    activateWindow();
 }

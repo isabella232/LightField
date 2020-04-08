@@ -25,6 +25,8 @@ QSize constexpr           const  ProjectorWindowSize           {   1280,  800 };
 
 #endif // defined DLP4710
 
+int                       const  KeyboardRepeatDelay           { 600        }; //miliseconds
+
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
 QString                   const  MountmonCommand               { "mountmon"                                               };
@@ -35,6 +37,10 @@ QString                   const  SlicedSvgFileName             { "sliced.svg"   
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };
+QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
+//QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"};
+
+//QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };

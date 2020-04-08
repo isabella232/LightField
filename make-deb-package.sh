@@ -3,7 +3,7 @@
 # shellcheck disable=SC2164
 
 BUILDTYPE=
-LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+LIGHTFIELD_ROOT="${PWD}"
 PACKAGE_BUILD_ROOT=${LIGHTFIELD_ROOT}/packaging
 
 #########################################################

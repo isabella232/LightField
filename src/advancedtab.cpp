@@ -6,10 +6,13 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "advancedtabselectionmodel.h"
+#include "paramslider.h"
+#include <iostream>
 
 namespace {
 
-    auto DefaultPrintBedTemperature = 65;
+    auto DefaultPrintBedTemperature = 60;
 
 }
 
@@ -18,184 +21,90 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
+    _forms[0] = _generalForm;
+    _forms[1] = _temperatureForm;
+    _forms[2] = _basePumpForm;
+    _forms[3] = _baseLayerForm;
+    _forms[4] = _bodyLayersForm;
+    _forms[5] = _bodyPumpForm;
 
-    _currentTemperatureLabel->setText( "Current temperature:" );
-    _targetTemperatureLabel ->setText( "Target temperature:"  );
-    _heatingElementLabel    ->setText( "Heating element:"     );
-    _zPositionLabel         ->setText( "Z position:"          );
+    QWidget::connect(_distanceSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upPauseSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_downTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_downPauseSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_numberOfBaseLayersSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseThicknessSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseExposureTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyThicknessSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyExposureTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpEveryNthLayer, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDistanceSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpPauseSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDownTimeSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDownPauseSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
 
+    //menu
+    this->_setupLeftMenu(fontAwesome);
 
-    _currentTemperature->setAlignment( Qt::AlignRight );
-    _currentTemperature->setFont( boldFont );
-    _currentTemperature->setText( EmDash );
+    // General form
+    this->_setupGeneralForm(boldFont, fontAwesome);
 
-    _targetTemperature ->setAlignment( Qt::AlignRight );
-    _targetTemperature ->setFont( boldFont );
-    _targetTemperature ->setText( EmDash );
+    // Temperature form
+    this->_setupTemperaturelForm(boldFont);
 
-    _heatingElement    ->setAlignment( Qt::AlignRight );
-    _heatingElement    ->setFont( boldFont );
-    _heatingElement    ->setText( EmDash );
+    //Base Pump Form
+    this->_setupBasePumpForm(boldFont);
 
-    _zPosition         ->setAlignment( Qt::AlignRight );
-    _zPosition         ->setFont( boldFont );
-    _zPosition         ->setText( EmDash );
+    //Base Layer Form
+    this->_setupBaseLayerForm();
 
+    //Body Layers Form
+    this->_setupBodyLayersForm();
 
-    _leftColumn->setContentsMargins( { } );
-    _leftColumn->setFixedWidth( MainButtonSize.width( ) );
-    _leftColumn->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
-    _leftColumn->setLayout( WrapWidgetsInVBox(
-        WrapWidgetsInHBox( _currentTemperatureLabel, nullptr, _currentTemperature ),
-        WrapWidgetsInHBox( _targetTemperatureLabel,  nullptr, _targetTemperature  ),
-        WrapWidgetsInHBox( _heatingElementLabel,     nullptr, _heatingElement     ),
-        WrapWidgetsInHBox( _zPositionLabel,          nullptr, _zPosition          ),
-        nullptr
-    ) );
+    //Body Pump Form
+    this->_setupBodyPumpForm(boldFont);
 
-
-    _offsetLabel->setText( "Build platform offset:" );
-
-    _offsetValue->setAlignment( Qt::AlignRight );
-    _offsetValue->setFont( boldFont );
-    _offsetValue->setText( QString { "%1 µm" }.arg( g_settings.buildPlatformOffset ) );
-
-    _offsetSlider->setMinimum( 0 );
-    _offsetSlider->setMaximum( 40 );
-    _offsetSlider->setOrientation( Qt::Horizontal );
-    _offsetSlider->setPageStep( 4 );
-    _offsetSlider->setSingleStep( 1 );
-    _offsetSlider->setTickInterval( 4 );
-    _offsetSlider->setTickPosition( QSlider::TicksBothSides );
-    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
-    QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
-    QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
+    for(int i=1; i<FORMS_COUNT; ++i)
+        _forms[i]->setVisible(false);
 
 
-    _buildPlatformOffsetGroup->setContentsMargins( { } );
-    _buildPlatformOffsetGroup->setLayout( WrapWidgetsInVBoxDM(
-        WrapWidgetsInHBox( _offsetLabel, nullptr, _offsetValue ),
-        _offsetSlider
-    ) );
+    _rightColumn->setLayout(WrapWidgetsInVBox(_generalForm, _temperatureForm, _basePumpForm, _baseLayerForm,
+                                              _bodyLayersForm, _bodyPumpForm, nullptr));
 
-
-    _bedHeatingButton->setCheckable( true );
-    _bedHeatingButton->setChecked( false );
-    _bedHeatingButton->setFont( fontAwesome );
-    _bedHeatingButton->setFixedSize( 37, 38 );
-    _bedHeatingButton->setText( FA_Times );
-    QObject::connect( _bedHeatingButton, &QPushButton::clicked, this, &AdvancedTab::printBedHeatingButton_clicked );
-
-    _bedHeatingButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _bedHeatingButtonLabel->setText( "Print bed heating" );
-
-#if defined ENABLE_TEMPERATURE_SETTING
-    _bedTemperatureLabel->setEnabled( false );
-    _bedTemperatureLabel->setText( "Print bed temperature:" );
-
-    _bedTemperatureValue->setAlignment( Qt::AlignRight );
-    _bedTemperatureValue->setEnabled( false );
-    _bedTemperatureValue->setFont( boldFont );
-    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( DefaultPrintBedTemperature ) );
-
-    _bedTemperatureValueLayout = WrapWidgetsInHBox( _bedTemperatureLabel, nullptr, _bedTemperatureValue );
-    _bedTemperatureValueLayout->setEnabled( false );
-
-    _bedTemperatureSlider->setEnabled( false );
-    _bedTemperatureSlider->setMinimum( 30 );
-    _bedTemperatureSlider->setMaximum( 75 );
-    _bedTemperatureSlider->setOrientation( Qt::Horizontal );
-    _bedTemperatureSlider->setPageStep( 1 );
-    _bedTemperatureSlider->setSingleStep( 1 );
-    _bedTemperatureSlider->setTickInterval( 5 );
-    _bedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
-    _bedTemperatureSlider->setValue( DefaultPrintBedTemperature );
-    QObject::connect( _bedTemperatureSlider, &QSlider::sliderReleased, this, &AdvancedTab::printBedTemperatureSlider_sliderReleased );
-    QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged,   this, &AdvancedTab::printBedTemperatureSlider_valueChanged   );
-#endif
-
-    auto bedTemperatureLayout = WrapWidgetsInVBoxDM(
-        WrapWidgetsInHBox( _bedHeatingButton, _bedHeatingButtonLabel, nullptr )
+    setLayout( WrapWidgetsInHBox(
+        WrapWidgetsInVBox( _leftMenu ),
+        _rightColumn, nullptr
+        )
     );
-#if defined ENABLE_TEMPERATURE_SETTING
-    bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
-    bedTemperatureLayout->addWidget( _bedTemperatureSlider );
-#endif
-
-    _bedHeatingGroup->setContentsMargins( { } );
-    _bedHeatingGroup->setLayout( bedTemperatureLayout );
-
-
-    _projectBlankImageButton->setCheckable( true );
-    _projectBlankImageButton->setChecked( false );
-    _projectBlankImageButton->setFont( fontAwesome );
-    _projectBlankImageButton->setFixedSize( 37, 38 );
-    _projectBlankImageButton->setText( FA_Times );
-    QObject::connect( _projectBlankImageButton, &QPushButton::clicked, this, &AdvancedTab::projectBlankImageButton_clicked );
-
-    _projectBlankImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _projectBlankImageButtonLabel->setText( "Project blank image" );
-
-    _projectFocusImageButton->setCheckable( true );
-    _projectFocusImageButton->setChecked( false );
-    _projectFocusImageButton->setFont( fontAwesome );
-    _projectFocusImageButton->setFixedSize( 37, 38 );
-    _projectFocusImageButton->setText( FA_Times );
-    QObject::connect( _projectFocusImageButton, &QPushButton::clicked, this, &AdvancedTab::projectFocusImageButton_clicked );
-
-    _projectFocusImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
-    _projectFocusImageButtonLabel->setText( "Project focus image" );
-
-    _powerLevelLabel->setText( "Projector power level:" );
-
-    _powerLevelValue->setAlignment( Qt::AlignRight );
-    _powerLevelValue->setFont( boldFont );
-    _powerLevelValue->setText( "50%" );
-
-    _powerLevelValueLayout = WrapWidgetsInHBox( _powerLevelLabel, nullptr, _powerLevelValue );
-
-    _powerLevelSlider->setEnabled( false );
-    _powerLevelSlider->setMinimum( ProjectorMinPercent );
-    _powerLevelSlider->setMaximum( ProjectorMaxPercent );
-    _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 5 );
-    _powerLevelSlider->setSingleStep( 1 );
-    _powerLevelSlider->setTickInterval( 5 );
-    _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
-    _powerLevelSlider->setValue( 50 );
-    QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
-    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged   );
-
-    _powerLevelLabel->setEnabled( false );
-    _powerLevelSlider->setEnabled( false );
-    _powerLevelValue->setEnabled( false );
-    _powerLevelValueLayout->setEnabled( false );
-
-
-    _projectImageButtonsGroup->setContentsMargins( { } );
-    _projectImageButtonsGroup->setLayout( WrapWidgetsInVBoxDM(
-        WrapWidgetsInHBox( _projectBlankImageButton, _projectBlankImageButtonLabel, nullptr, _projectFocusImageButton, _projectFocusImageButtonLabel, nullptr ),
-        _powerLevelValueLayout,
-        _powerLevelSlider
-    ) );
-
-
-    _rightColumn->setContentsMargins( { } );
-    _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
-    _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _rightColumn->setLayout( WrapWidgetsInVBoxDM(
-        _buildPlatformOffsetGroup,
-        _bedHeatingGroup,
-        _projectImageButtonsGroup,
-        nullptr
-    ) );
-
-
-    setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 }
 
 AdvancedTab::~AdvancedTab( ) {
     /*empty*/
+}
+
+void AdvancedTab::chbox_addBodyPumpChanged(int state)
+{
+    _bodyPumpEveryNthLayer->setEnabled(state);
+    _bodyDistanceSlider->setEnabled(state);
+    _bodyUpTimeSlider->setEnabled(state);
+    _bodyUpPauseSlider->setEnabled(state);
+    _bodyDownTimeSlider->setEnabled(state);
+    _bodyDownPauseSlider->setEnabled(state);
+    _bodyUpVelocitySlider->setEnabled(state);
+}
+
+void AdvancedTab::chbox_addBasePumpCheckChanged(int state)
+{
+    _distanceSlider->setEnabled(state);
+    _upTimeSlider->setEnabled(state);
+    _upPauseSlider->setEnabled(state);
+    _downTimeSlider->setEnabled(state);
+    _downPauseSlider->setEnabled(state);
+    _upVelocitySlider->setEnabled(state);
 }
 
 void AdvancedTab::_connectShepherd( ) {
@@ -212,7 +121,6 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     _uiState = state;
 
     switch ( _uiState ) {
-        case UiState::TilingClicked:
         case UiState::SelectStarted:
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
@@ -228,9 +136,6 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
             break;
-
-        case UiState::SelectedDirectory:
-            break;
     }
 }
 
@@ -242,8 +147,8 @@ void AdvancedTab::printer_positionReport( double const px, int const cx ) {
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
-    _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
-    _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
+    _currentTemperature->setText( QString( "%1 �C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
+    _targetTemperature ->setText( QString( "%1 �C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
     _heatingElement    ->setText( bedPwm ? "ON" : "off"                                      );
 
     update( );
@@ -251,13 +156,13 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
 
 void AdvancedTab::offsetSlider_sliderReleased( ) {
     auto offset = _offsetSlider->value( ) * 25;
-    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", offset );
+    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d �m\n", offset );
     g_settings.buildPlatformOffset = offset;
 }
 
 void AdvancedTab::offsetSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value * 25 );
-    _offsetValue->setText( QString { "%1 µm" }.arg( value * 25 ) );
+    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d �m\n", value * 25 );
+    _offsetValue->setText( QString { "%1 �m" }.arg( value * 25 ) );
 
     update( );
 }
@@ -289,8 +194,8 @@ void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
 }
 
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
-    _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
+    debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d �C\n", value );
+    _bedTemperatureValue->setText( QString { "%1 �C" }.arg( value ) );
 
     update( );
 }
@@ -393,4 +298,429 @@ void AdvancedTab::setPrinterAvailable( bool const value ) {
     debug( "+ AdvancedTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updateControlGroups( );
+}
+
+void AdvancedTab::_setupLeftMenu(QFont fontAwesome) {
+    AdvancedTabSelectionModel* model = new AdvancedTabSelectionModel(5, 1, _forms, FORMS_COUNT);
+
+    QStandardItem* item = new QStandardItem(QString("General"));
+    QStandardItem* generalItem = item;
+    model->setItem(0, 0, item);
+
+    item = new QStandardItem(QString("Temperature"));
+    model->setItem(1, 0, item);
+
+    item = new QStandardItem(QString("Base Pump"));
+    model->setItem(2, 0, item);
+
+    item = new QStandardItem(QString("Base Layer"));
+    model->setItem(3, 0, item);
+
+    item = new QStandardItem(QString("Body Layers"));
+    model->setItem(4, 0, item);
+
+    item = new QStandardItem(QString("Body Pump"));
+    model->setItem(5, 0, item);
+
+    QItemSelectionModel* selectionModel = new QItemSelectionModel(model);
+    QObject::connect(
+        _leftMenu, &QTreeView::pressed, model, &AdvancedTabSelectionModel::onclick
+    );
+
+    _leftMenu->setModel( model );
+    _leftMenu->setSelectionModel( selectionModel );
+    _leftMenu->setFont( fontAwesome );
+    _leftMenu->setVisible( true );
+    _leftMenu->setSelectionBehavior(QAbstractItemView::SelectRows);
+    _leftMenu->setCurrentIndex(model->indexFromItem(generalItem));
+}
+
+void AdvancedTab::_setupGeneralForm(QFont boldFont, QFont fontAwesome) {
+    _offsetLabel->setText( "Build platform offset:" );
+
+    _offsetValue->setAlignment( Qt::AlignRight );
+    _offsetValue->setFont( boldFont );
+    _offsetValue->setText( QString { "%1 �m" }.arg( g_settings.buildPlatformOffset ) );
+
+    _offsetSlider->setMinimum( 0 );
+    _offsetSlider->setMaximum( 40 );
+    _offsetSlider->setOrientation( Qt::Horizontal );
+    _offsetSlider->setPageStep( 4 );
+    _offsetSlider->setSingleStep( 1 );
+    _offsetSlider->setTickInterval( 4 );
+    _offsetSlider->setTickPosition( QSlider::TicksBothSides );
+    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
+    QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
+    QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
+
+
+    _buildPlatformOffsetGroup->setContentsMargins( { } );
+    _buildPlatformOffsetGroup->setLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _offsetLabel, nullptr, _offsetValue ),
+        _offsetSlider
+    ) );
+
+
+    _bedHeatingButton->setCheckable( true );
+    _bedHeatingButton->setChecked( false );
+    _bedHeatingButton->setFont( fontAwesome );
+    _bedHeatingButton->setFixedSize( 37, 38 );
+    _bedHeatingButton->setText( FA_Times );
+    QObject::connect( _bedHeatingButton, &QPushButton::clicked, this, &AdvancedTab::printBedHeatingButton_clicked );
+
+    _bedHeatingButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _bedHeatingButtonLabel->setText( "Print bed heating" );
+
+#if defined ENABLE_TEMPERATURE_SETTING
+    _bedTemperatureLabel->setEnabled( false );
+    _bedTemperatureLabel->setText( "Print bed temperature:" );
+
+    _bedTemperatureValue->setAlignment( Qt::AlignRight );
+    _bedTemperatureValue->setEnabled( false );
+    _bedTemperatureValue->setFont( boldFont );
+    _bedTemperatureValue->setText( QString { "%1 �C" }.arg( DefaultPrintBedTemperature ) );
+
+    _bedTemperatureValueLayout = WrapWidgetsInHBox( _bedTemperatureLabel, nullptr, _bedTemperatureValue );
+    _bedTemperatureValueLayout->setEnabled( false );
+
+    _bedTemperatureSlider->setEnabled( false );
+    _bedTemperatureSlider->setMinimum( 30 );
+    _bedTemperatureSlider->setMaximum( 50 );
+    _bedTemperatureSlider->setOrientation( Qt::Horizontal );
+    _bedTemperatureSlider->setPageStep( 1 );
+    _bedTemperatureSlider->setSingleStep( 1 );
+    _bedTemperatureSlider->setTickInterval( 5 );
+    _bedTemperatureSlider->setTickPosition( QSlider::TicksBothSides );
+    _bedTemperatureSlider->setValue( DefaultPrintBedTemperature );
+    QObject::connect( _bedTemperatureSlider, &QSlider::sliderReleased, this, &AdvancedTab::printBedTemperatureSlider_sliderReleased );
+    QObject::connect( _bedTemperatureSlider, &QSlider::valueChanged,   this, &AdvancedTab::printBedTemperatureSlider_valueChanged   );
+#endif
+
+    auto bedTemperatureLayout = WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _bedHeatingButton, _bedHeatingButtonLabel, nullptr )
+    );
+#if defined ENABLE_TEMPERATURE_SETTING
+    bedTemperatureLayout->addLayout( _bedTemperatureValueLayout );
+    bedTemperatureLayout->addWidget( _bedTemperatureSlider );
+#endif
+
+    _bedHeatingGroup->setContentsMargins( { } );
+    _bedHeatingGroup->setLayout( bedTemperatureLayout );
+
+
+    _projectBlankImageButton->setCheckable( true );
+    _projectBlankImageButton->setChecked( false );
+    _projectBlankImageButton->setFont( fontAwesome );
+    _projectBlankImageButton->setFixedSize( 37, 38 );
+    _projectBlankImageButton->setText( FA_Times );
+    QObject::connect( _projectBlankImageButton, &QPushButton::clicked, this, &AdvancedTab::projectBlankImageButton_clicked );
+
+    _projectBlankImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _projectBlankImageButtonLabel->setText( "Project blank image" );
+
+    _projectFocusImageButton->setCheckable( true );
+    _projectFocusImageButton->setChecked( false );
+    _projectFocusImageButton->setFont( fontAwesome );
+    _projectFocusImageButton->setFixedSize( 37, 38 );
+    _projectFocusImageButton->setText( FA_Times );
+    QObject::connect( _projectFocusImageButton, &QPushButton::clicked, this, &AdvancedTab::projectFocusImageButton_clicked );
+
+    _projectFocusImageButtonLabel->setAlignment( Qt::AlignLeft | Qt::AlignVCenter );
+    _projectFocusImageButtonLabel->setText( "Project focus image" );
+
+    _powerLevelLabel->setText( "Projector power level:" );
+
+    _powerLevelValue->setAlignment( Qt::AlignRight );
+    _powerLevelValue->setFont( boldFont );
+    _powerLevelValue->setText( "50%" );
+
+    _powerLevelValueLayout = WrapWidgetsInHBox( _powerLevelLabel, nullptr, _powerLevelValue );
+
+    _powerLevelSlider->setEnabled( false );
+    _powerLevelSlider->setMinimum( ProjectorMinPercent );
+    _powerLevelSlider->setMaximum( ProjectorMaxPercent );
+    _powerLevelSlider->setOrientation( Qt::Horizontal );
+    _powerLevelSlider->setPageStep( 5 );
+    _powerLevelSlider->setSingleStep( 1 );
+    _powerLevelSlider->setTickInterval( 5 );
+    _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
+    _powerLevelSlider->setValue( 50 );
+    QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &AdvancedTab::powerLevelSlider_sliderReleased );
+    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &AdvancedTab::powerLevelSlider_valueChanged   );
+
+    _powerLevelLabel->setEnabled( false );
+    _powerLevelSlider->setEnabled( false );
+    _powerLevelValue->setEnabled( false );
+    _powerLevelValueLayout->setEnabled( false );
+
+
+    _projectImageButtonsGroup->setContentsMargins( { } );
+    _projectImageButtonsGroup->setLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _projectBlankImageButton, _projectBlankImageButtonLabel, nullptr, _projectFocusImageButton, _projectFocusImageButtonLabel, nullptr ),
+        _powerLevelValueLayout,
+        _powerLevelSlider
+    ) );
+
+
+    _generalForm->setContentsMargins( { } );
+    _generalForm->setMinimumSize( MaximalRightHandPaneSize );
+    _generalForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _generalForm->setLayout( WrapWidgetsInVBoxDM(
+        _buildPlatformOffsetGroup,
+        _bedHeatingGroup,
+        _projectImageButtonsGroup,
+        nullptr
+    ) );
+}
+
+void AdvancedTab::_setupTemperaturelForm(QFont boldFont) {
+    _currentTemperatureLabel->setText( "Current temperature:" );
+    _targetTemperatureLabel ->setText( "Target temperature:"  );
+    _heatingElementLabel    ->setText( "Heating element:"     );
+    _zPositionLabel         ->setText( "Z position:"          );
+
+
+    _currentTemperature->setAlignment( Qt::AlignRight );
+    _currentTemperature->setFont( boldFont );
+    _currentTemperature->setText( EmDash );
+
+    _targetTemperature ->setAlignment( Qt::AlignRight );
+    _targetTemperature ->setFont( boldFont );
+    _targetTemperature ->setText( EmDash );
+
+    _heatingElement    ->setAlignment( Qt::AlignRight );
+    _heatingElement    ->setFont( boldFont );
+    _heatingElement    ->setText( EmDash );
+
+    _zPosition         ->setAlignment( Qt::AlignRight );
+    _zPosition         ->setFont( boldFont );
+    _zPosition         ->setText( EmDash );
+
+    _temperatureForm->setContentsMargins( { } );
+    _temperatureForm->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _temperatureForm->setMinimumSize(MaximalRightHandPaneSize);
+    _temperatureForm->setLayout( WrapWidgetsInVBoxDM(
+        WrapWidgetsInHBox( _currentTemperatureLabel, nullptr, _currentTemperature ),
+        WrapWidgetsInHBox( _targetTemperatureLabel,  nullptr, _targetTemperature  ),
+        WrapWidgetsInHBox( _heatingElementLabel,     nullptr, _heatingElement     ),
+        WrapWidgetsInHBox( _zPositionLabel,          nullptr, _zPosition          ),
+        WrapWidgetsInHBox( _leftMenu ),
+        nullptr
+    ) );
+}
+
+void AdvancedTab::_setupBasePumpForm(QFont boldFont)
+{
+    _basePumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 35, MaximalRightHandPaneSize.height() + 25));
+    _basePumpForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    QWidget* container = new QWidget();
+    container->setMinimumSize(MaximalRightHandPaneSize);
+    container->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    QObject::connect( _addBasePumpCheckbox, &QCheckBox::stateChanged, this, &AdvancedTab::chbox_addBasePumpCheckChanged );
+
+    _addBasePumpCheckbox->setFont(boldFont);
+    _addBasePumpCheckbox->setChecked(true);
+
+    QObject::connect( _addBasePumpCheckbox, &QCheckBox::stateChanged, this, &AdvancedTab::chbox_addBodyPumpChanged );
+
+    QGroupBox* addBasePumpGroup = new QGroupBox();
+    addBasePumpGroup->setLayout(WrapWidgetsInVBox(_addBasePumpCheckbox, nullptr));
+    addBasePumpGroup->setContentsMargins( { } );
+
+
+    container->setLayout(
+        WrapWidgetsInVBox(
+           addBasePumpGroup,
+           _distanceSlider,
+           _upTimeSlider,
+           _upPauseSlider,
+           _downTimeSlider,
+           _downPauseSlider,
+           _upVelocitySlider,
+           nullptr
+        ));
+
+    _basePumpForm->setWidget(container);
+}
+
+void AdvancedTab::_setupBaseLayerForm()
+{
+    _baseLayerForm->setContentsMargins( { } );
+    _baseLayerForm->setMinimumSize( MaximalRightHandPaneSize );
+    _baseLayerForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _baseLayerForm->setLayout(
+         WrapWidgetsInVBoxDM(
+            _numberOfBaseLayersSlider,
+            _baseThicknessSlider,
+            _baseExposureTimeSlider,
+            nullptr
+         )
+    );
+}
+void AdvancedTab::_setupBodyLayersForm()
+{
+    _bodyLayersForm->setContentsMargins( { } );
+    _bodyLayersForm->setMinimumSize( MaximalRightHandPaneSize );
+    _bodyLayersForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _bodyLayersForm->setLayout(
+         WrapWidgetsInVBoxDM(
+            _bodyThicknessSlider,
+            _bodyExposureTimeSlider,
+            nullptr
+         )
+    );
+}
+void AdvancedTab::_setupBodyPumpForm(QFont boldFont)
+{
+    QWidget* container = new QWidget();
+
+    _bodyPumpForm->setMinimumSize(QSize(MaximalRightHandPaneSize.width() + 35, MaximalRightHandPaneSize.height() + 25));
+    _bodyPumpForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    container = new QWidget();
+    container->setMinimumSize(MaximalRightHandPaneSize);
+    container->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
+    _addBodyPumpCheckbox->setFont(boldFont);
+    _addBodyPumpCheckbox->setChecked(true);
+
+    QObject::connect( _addBodyPumpCheckbox, &QCheckBox::stateChanged, this, &AdvancedTab::chbox_addBodyPumpChanged );
+
+    QGroupBox* addBodyPumpGroup = new QGroupBox();
+    addBodyPumpGroup->setLayout(WrapWidgetsInVBox(_addBodyPumpCheckbox, nullptr));
+    addBodyPumpGroup->setContentsMargins( { } );
+
+    container->setLayout(
+         WrapWidgetsInVBox(
+            addBodyPumpGroup,
+            _bodyPumpEveryNthLayer,
+            _bodyDistanceSlider,
+            _bodyUpTimeSlider,
+            _bodyUpPauseSlider,
+            _bodyDownTimeSlider,
+            _bodyDownPauseSlider,
+            _bodyUpVelocitySlider,
+            nullptr
+         )
+    );
+
+    _bodyPumpForm->setWidget(container);
+}
+
+void AdvancedTab::updatePrintProfile() {
+    debug( "+ AdvancedTab::updatePrintProfile 1" );
+
+    if(_lockUpdate)
+        return;
+
+    PrintProfile* profile = (PrintProfile*)_printProfileManager->activeProfile();
+    debug( "+ AdvancedTab::updatePrintProfile 2" );
+    QString tempProfileName = "temp";
+    bool setActive = false;
+    if(profile->profileName() != tempProfileName)
+    {
+    debug( "+ AdvancedTab::updatePrintProfile 4" );
+        QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
+        auto iter = std::find_if( c->begin( ), c->end( ), [&tempProfileName] ( PrintProfile* p ) { return tempProfileName == p->profileName( ); } );
+        profile = ( iter != c->end( ) ) ? *iter : nullptr;
+    debug( "+ AdvancedTab::updatePrintProfile 5" );
+        if(!profile)
+        {
+            profile = new PrintProfile();
+            profile->setProfileName(tempProfileName);
+            _printProfileManager->addProfile(profile);
+        }
+    debug( "+ AdvancedTab::updatePrintProfile 6" );
+        setActive=true;
+    }
+debug( "+ AdvancedTab::updatePrintProfile 2" );
+
+    profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
+
+    profile->setBaseLayersPumpingEnabled(_addBasePumpCheckbox->isChecked());
+    if(_addBasePumpCheckbox->isChecked())
+    {
+        PrintPumpingParameters baseParams;
+
+        baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000 );
+        baseParams.setPumpUpTime(_upTimeSlider->getValue());
+        baseParams.setPumpUpPause(_upPauseSlider->getValue());
+        baseParams.setPumpDownPause(_downPauseSlider->getValue());
+        baseParams.setNoPumpUpVelocity( ((double)_upVelocitySlider->getValue()) / (1000/60));
+        baseParams.setPumpEveryNthLayer(0);
+        baseParams.setLayerThickness(_baseThicknessSlider->getValue());
+        baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
+        baseParams.setPowerLevel(_powerLevelSlider->value());
+
+        profile->setBaseLayersPumpingParameters(baseParams);
+    }
+debug( "+ AdvancedTab::updatePrintProfile 3" );
+    profile->setBaseLayersPumpingEnabled(_addBodyPumpCheckbox->isChecked());
+    if(_addBodyPumpCheckbox->isChecked())
+    {
+        PrintPumpingParameters bodyParams;
+
+        bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
+        bodyParams.setPumpUpTime(_bodyUpTimeSlider->getValue());
+        bodyParams.setPumpUpPause(_bodyUpPauseSlider->getValue());
+        bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
+        bodyParams.setNoPumpUpVelocity( ((double)_bodyUpVelocitySlider->getValue()) / (1000/60));
+        bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
+        bodyParams.setLayerThickness(_bodyThicknessSlider->getValue());
+        bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        bodyParams.setPowerLevel(_powerLevelSlider->value());
+
+        profile->setBodyLayersPumpingParameters(bodyParams);
+    }
+debug( "+ AdvancedTab::updatePrintProfile 4" );
+    if(setActive)
+    {
+        _printProfileManager->setActiveProfile(tempProfileName);
+    }
+debug( "+ AdvancedTab::updatePrintProfile 5" );
+}
+
+void AdvancedTab::loadPrintProfile(PrintProfile const* profilePtr) {
+    PrintProfile* profile = (PrintProfile*)profilePtr;
+    _lockUpdate=true;
+
+    _numberOfBaseLayersSlider->setValue(profile->baseLayerCount());
+
+    if(profile->baseLayersPumpingEnabled())
+    {
+        PrintPumpingParameters baseParams = profile->baseLayersPumpingParameters();
+
+        _distanceSlider->setValue(baseParams.pumpUpDistance() * 1000 );
+        _upTimeSlider->setValue(baseParams.pumpUpTime());
+        _upPauseSlider->setValue(baseParams.pumpUpPause());
+        _downPauseSlider->setValue(baseParams.pumpDownPause());
+        _upVelocitySlider->setValue(baseParams.noPumpUpVelocity() * (1000/60) );
+        _baseThicknessSlider->setValue(baseParams.layerThickness());
+        _baseExposureTimeSlider->setValue(baseParams.layerExposureTime());
+        _powerLevelSlider->setValue(baseParams.powerLevel());
+    }
+
+    if(profile->bodyLayersPumpingEnabled())
+    {
+        PrintPumpingParameters bodyParams = profile->baseLayersPumpingParameters();
+
+        _bodyDistanceSlider->setValue(bodyParams.pumpUpDistance() * 1000 );
+        _bodyUpTimeSlider->setValue(bodyParams.pumpUpTime());
+        _bodyUpPauseSlider->setValue(bodyParams.pumpUpPause());
+        _bodyDownPauseSlider->setValue(bodyParams.pumpDownPause());
+        _bodyUpVelocitySlider->setValue(bodyParams.noPumpUpVelocity() * (1000/60) );
+        _bodyThicknessSlider->setValue(bodyParams.layerThickness());
+        _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
+        _powerLevelSlider->setValue(bodyParams.powerLevel());
+        _bodyPumpEveryNthLayer->setValue(bodyParams.pumpEveryNthLayer());
+    }
+
+    _lockUpdate=false;
+}
+
+void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)
+{
+    _printProfileManager = profileManager;
 }

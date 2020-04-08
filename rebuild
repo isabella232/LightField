@@ -1,6 +1,12 @@
 #!/bin/bash
 
-LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+LIGHTFIELD_ROOT="${PWD}"
+
+#########################################################
+##                                                     ##
+##     No user-serviceable parts below this point.     ##
+##                                                     ##
+#########################################################
 
 #########################################################
 ##                                                     ##

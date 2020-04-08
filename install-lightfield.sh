@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LIGHTFIELD_ROOT=/home/lumen/Volumetric/LightField
+LIGHTFIELD_ROOT="${PWD}"
 
 #########################################################
 ##                                                     ##
@@ -89,24 +89,24 @@ fi
 
 blue-bar • Building debugging version of set-projector-power
 # shellcheck disable=SC2164
-cd ${PROJECTOR_SRC}
+cd "${PROJECTOR_SRC}"
 # shellcheck disable=SC2015
 [ "${FORCEREBUILD}" = "-x" ] && make BUILD=debug clean || true
 make BUILD=debug
 
 blue-bar • Building debugging version of Mountmon
 # shellcheck disable=SC2164
-cd ${MOUNTMON_SRC}
+cd "${MOUNTMON_SRC}"
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
 blue-bar • Building debugging version of LightField
 # shellcheck disable=SC2164
-cd ${LIGHTFIELD_ROOT}
+cd "${LIGHTFIELD_ROOT}"
 ./rebuild ${FORCEREBUILD} ${BUILDQUIETLY}
 
-chown ${CHXXXVERBOSE} -R lumen:lumen ${PROJECTOR_SRC}
-chown ${CHXXXVERBOSE} -R lumen:lumen ${MOUNTMON_SRC}/build
-chown ${CHXXXVERBOSE} -R lumen:lumen ${LIGHTFIELD_ROOT}/build
+chown ${CHXXXVERBOSE} -R lumen:lumen "${PROJECTOR_SRC}"
+chown ${CHXXXVERBOSE} -R lumen:lumen "${MOUNTMON_SRC}/build"
+chown ${CHXXXVERBOSE} -R lumen:lumen "${LIGHTFIELD_ROOT}/build"
 
 blue-bar • Creating any missing directories
 [ ! -d /var/cache/lightfield/print-jobs     ] && mkdir ${VERBOSE} -p /var/cache/lightfield/print-jobs

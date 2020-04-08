@@ -7,8 +7,9 @@
 
 class ModelSelectionInfo;
 class PngDisplayer;
-class PrintManager;
 class PrintJob;
+class PrintManager;
+class PrintProfileManager;
 class Shepherd;
 class SignalHandler;
 class UpgradeManager;
@@ -19,6 +20,7 @@ class PrepareTab;
 class PrintTab;
 class StatusTab;
 class AdvancedTab;
+class ProfilesTab;
 class SystemTab;
 
 class Window: public QMainWindow {
@@ -35,36 +37,39 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-
+    void showEvent( QShowEvent* aShowEvent ) override;
 private:
 
-    SignalHandler*      _signalHandler     { };
-    ModelSelectionInfo* _modelSelection    { };
-    PngDisplayer*       _pngDisplayer      { };
-    PrintJob*           _printJob          { };
-    PrintManager*       _printManager      { };
-    Shepherd*           _shepherd          { };
-    UiState             _uiState           { };
-    UpgradeManager*     _upgradeManager    { };
-    UsbMountManager*    _usbMountManager   { };
+    SignalHandler*       _signalHandler       { };
+    ModelSelectionInfo*  _modelSelection      { };
+    PngDisplayer*        _pngDisplayer        { };
+    PrintJob*            _printJob            { };
+    PrintManager*        _printManager        { };
+    PrintProfileManager* _printProfileManager { };
+    Shepherd*            _shepherd            { };
+    UiState              _uiState             { };
+    UpgradeManager*      _upgradeManager      { };
+    UsbMountManager*     _usbMountManager     { };
 
-    QTabWidget*         _tabWidget         { new QTabWidget  };
-    FileTab*            _fileTab;
-    PrepareTab*         _prepareTab;
-    TilingTab*          _tilingTab;
-    PrintTab*           _printTab;
-    StatusTab*          _statusTab;
-    AdvancedTab*        _advancedTab;
-    SystemTab*          _systemTab;
-    QPushButton*        _helpButton        { new QPushButton };
+    QTabWidget*          _tabWidget           { new QTabWidget  };
+    FileTab*             _fileTab;
+    PrepareTab*          _prepareTab;
+    TilingTab*           _tilingTab;
+    PrintTab*            _printTab;
+    StatusTab*           _statusTab;
+    AdvancedTab*         _advancedTab;
+    ProfilesTab*         _profilesTab;
+    SystemTab*           _systemTab;
+    QPushButton*         _helpButton          { new QPushButton };
 
-    bool                _isPrinterPrepared { };
-    bool                _isModelRendered   { };
+    bool                 _isPrinterPrepared   { };
+    bool                 _isModelRendered     { };
 
     void _setPrinterPrepared( bool const value );
     void _setModelRendered( bool const value );
 
 signals:
+    ;
 
     void printJobChanged( PrintJob* printJob );
     void printManagerChanged( PrintManager* printManager );
@@ -74,12 +79,14 @@ signals:
     void printerPrepared( bool const value );
 
     void terminationRequested( );
-
 public slots:
+    ;
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void startPrinting( );
 

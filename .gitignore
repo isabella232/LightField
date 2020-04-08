@@ -1,6 +1,3 @@
-.gdbinit
-.vs
-.vscode
 build
 calculate-ctm.txt
 class-template.txt
@@ -15,6 +12,7 @@ dlp4710/set-projector-power
 dlp4710/set-projector-power.o
 do-it.sh
 fresh-pkg-list.txt
+.gdbinit
 gpg/gpg-agent.conf
 gpg/openpgp-revocs.d
 gpg/private-keys-v1.d
@@ -26,9 +24,9 @@ install-overlap.txt
 listcomp.pl
 listfilter.pl
 model-library
+mountmon/build
 mountmon/.gdbinit
 mountmon/.qmake.stash
-mountmon/build
 mountmon/Makefile
 newConfigureUbuntuAndInstallLightField.sh
 out
@@ -42,3 +40,5 @@ usb-driver/dlpc350_api.o
 usb-driver/dlpc350_usb.o
 usb-driver/main.o
 usb-driver/set-projector-power
+.vs
+.vscode
