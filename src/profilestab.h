@@ -65,7 +65,6 @@ private slots:
     void updateProfile_clicked(bool);
     void deleteProfile_clicked(bool);
     void loadProfile_clicked(bool);
-    //void listChange_clicked(const QModelIndex &current, const QModelIndex &previous);
     void itemClicked(const QModelIndex &index);
 
 };

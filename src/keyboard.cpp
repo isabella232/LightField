@@ -28,11 +28,14 @@ const char *en_number_keymap[] = {
 };
 
 const char *en_punctuation_keymap[] = {
-    "[", "]", "{", "}", "#", "%", "^", "*", "+", "=",
+
     "_", "\\", "|", "~", "<", ">", "=","$", "@", "\"",
     "123", ".", ",", "?", "!", "'","/",":",";", "back\nspace",
     "ABC", ",", "space", "."
 };
+
+QStringList all_non_repetable_keys = {"123", "back\nspace", "ABC", "space"};
+
 
 // In witch row are the key... (there's 4 rows )
 const int row_keymap[] = {
@@ -90,6 +93,9 @@ void Keyboard::initKeys( int indexArraykeys, const char *keymap[])
                 xCoor = keys[indexArraykeys][n-1]->X + keys[indexArraykeys][n-1]->W;
             }
             yCoor = row_keymap[n] * DEFAULT_YSIZE_BUTTON;
+            //Special cases of icons
+            if (0 == strcasecmp( keymap[n], "back\nspace")) keys[indexArraykeys][n]->setIconFile(":/images/backspace-white.png");
+            if (0 == strcasecmp( keymap[n], "caps"))        keys[indexArraykeys][n]->setIconFile(":/images/shift-white.png");
         }
         else
         {
@@ -136,6 +142,7 @@ void Keyboard::mouseMoveEvent(QMouseEvent * e)
     {
         tooltip->hide();
         currentKey->setPressed(false);
+        disconnectKeyRepetition(currentKey);
         this->repaint();
     }
     setKeyPressed( findKey(pos), pos );
@@ -143,13 +150,14 @@ void Keyboard::mouseMoveEvent(QMouseEvent * e)
 
 void Keyboard::mouseReleaseEvent(QMouseEvent *e)
 {
-    //qDebug() <<  "Mouse release event";
+   // qDebug() <<  "Mouse release event";
     QPoint pos = e->pos();
     tooltip->hide();
 
     key *k= findKey( pos );
     if (k != 0x0 )
     {
+        disconnectKeyRepetition(k);
         if ( k->text == "ABC")
         {
             currentindexkeyboard = LOWERCASE;
@@ -202,7 +210,14 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e)
             }
             else
             {
+                if(uppercase == true){
+                    uppercase=false;
+                    currentindexkeyboard = LOWERCASE;
+                }
+                repaint();
                 emit keyPressed(k->text);
+
+
             }
         }
     }
@@ -232,6 +247,44 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
     tooltip->setGeometry(p.x(),p.y()-50,50, 50);
     tooltip->setText(k->text);
     tooltip->show(); // this line makes bug with first relase event
+
+    if(isKeyRepetable(k) && (k->repetionActive == false)){
+        QTimer *timer = new QTimer( this );
+        QObject::connect( timer, &QTimer::timeout, this, [=]() {  this->checkKeyStillPressed(k); } );
+        timer->setInterval(KeyboardRepeatDelay); //repetition rate
+        timer->setSingleShot( false );
+        timer->setTimerType( Qt::PreciseTimer );
+        timer->start( );
+        k->repetitionTimer = timer;
+        k->repetionActive = true;
+    }
+
+}
+
+void Keyboard::checkKeyStillPressed(key *repetitionKey)
+{
+    if(repetitionKey->pressed && isKeyRepetable(repetitionKey)){
+        emit keyPressed(repetitionKey->text);
+    }
+
+}
+
+bool Keyboard::isKeyRepetable(key *keyCheck){
+    if(keyCheck == nullptr) return 0;
+    return !(all_non_repetable_keys.contains(keyCheck->text));
+}
+
+void Keyboard::disconnectKeyRepetition(key *activeKey){
+
+    if(activeKey != nullptr){
+        if(activeKey->repetionActive){
+            //qDebug() <<  "Timer disconnection";
+            QObject::disconnect( activeKey->repetitionTimer, nullptr, this, nullptr );
+            activeKey->repetitionTimer->stop( );
+            activeKey->repetitionTimer->deleteLater( );
+            activeKey->repetionActive = false;
+        }
+    }
 }
 
 void Keyboard::paintEvent(QPaintEvent*)
