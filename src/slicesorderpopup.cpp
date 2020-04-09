@@ -115,8 +115,10 @@ void SlicesOrderPopup::fillModel( ) {
     while( iter.hasNext( ) )
     {
         QString fileName = iter.next( );
-        debug( "+ SlicesOrderPopup::fillModel %s\n",  fileName.toUtf8().data() );
+        debug( "+ SlicesOrderPopup::fillModel \"%s\"\n",  GetFileBaseName( fileName ).toUtf8().data() );
 
+        if( GetFileBaseName(fileName ) == GetFileBaseName( ManifestFilename ) )
+            continue;
 
         QStandardItem* fileNameCol = new QStandardItem { GetFileBaseName ( fileName ) };
         QStandardItem* checkBoxCol = new QStandardItem;
