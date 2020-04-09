@@ -62,6 +62,17 @@ void TilingManager::tileImages ( )
 
     _counter = 0;
 
+
+    for(int i=0; i<_wCount; ++i) {
+        _tileSlots.push_back(TilingMargin + ( pixmap.width() * i ) + ( ( _space / ProjectorPixelSize ) * i ));
+    }
+
+    //std::reverse(tileSlots.begin(), tileSlots.end());
+    std::rotate(_tileSlots.begin(),
+                _tileSlots.end()-1, // this will be the new first element
+                _tileSlots.end());
+
+
     OrderManifestManager::Iterator iter = _manifestMgr->iterator();
 
 
@@ -119,11 +130,14 @@ void TilingManager::renderTiles ( QFileInfo info ) {
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
 
-    int x = TilingMargin + ( pixmap.width( ) * i ) + ( _spacePx * i );
+    int x = _tileSlots[i];
     // For now only 1 row
     // int y = ( pixmap.height( ) * _space) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * _space * j );
 
     int y = ( ProjectorWindowSize.height() - pixmap.height() ) / 2;
+
+    if(i == 0)
+        y -= ( _space / ProjectorPixelSize ) / 5;
 
     debug( "+ TilingManager::renderTiles x %d, y %d \n", x, y);
 
