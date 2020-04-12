@@ -453,7 +453,14 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
-    _dispensePrintSolutionLabel->setText( QString { "Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." }.arg( std::max( 1.0, PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0 ), 0, 'f', 2 ) );
+    double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
+
+    QString dispenseText = QString("Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
+    if(solutionRequired > 10.0){
+     dispenseText.append(QString("<br>Total print solution needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
+    }
+    _dispensePrintSolutionLabel->setText(dispenseText);
+
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
@@ -551,6 +558,10 @@ void StatusTab::_connectShepherd( ) {
         QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &StatusTab::printer_offline           );
         QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &StatusTab::printer_temperatureReport );
     }
+}
+
+void  StatusTab::setManifestMgr( OrderManifestManager* manifestMgr ){
+    _manifestManager = manifestMgr;
 }
 
 void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
