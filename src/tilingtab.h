@@ -36,6 +36,7 @@ private:
     void _showLayerImage ( );
     void _showWarningAndClose ( );
     int  _getMaxCount();
+    void _renderText(QPainter* painter, int tileWidth, QPoint pos, double expo);
 signals:
     ;
 
