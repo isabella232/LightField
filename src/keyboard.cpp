@@ -34,7 +34,7 @@ const char *en_punctuation_keymap[] = {
     "ABC", ",", "space", "."
 };
 
-QStringList all_non_repetable_keys = {"123", "back\nspace", "ABC", "space"};
+QStringList all_non_repetable_keys = {"123", "ABC", "#+=", "space"};
 
 
 // In witch row are the key... (there's 4 rows )
@@ -264,7 +264,12 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
 void Keyboard::checkKeyStillPressed(key *repetitionKey)
 {
     if(repetitionKey->pressed && isKeyRepetable(repetitionKey)){
+        if ( repetitionKey->text =="back\nspace" )
+        {
+            emit backspacePressed();
+        }else{
         emit keyPressed(repetitionKey->text);
+        }
     }
 
 }
