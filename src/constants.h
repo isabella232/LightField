@@ -75,9 +75,6 @@ double constexpr          const  NormalFontSize             =   12.0;   // pt
 double constexpr          const  AspectRatio5to3            =    5.0 /  3.0;
 double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
-double constexpr          const  LargeFontSize              =   22.0; // pt
-double constexpr          const  NormalFontSize             =   12.0; // pt
-
 
 
 #   if defined DLP4710
