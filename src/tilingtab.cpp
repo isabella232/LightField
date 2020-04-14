@@ -52,6 +52,7 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
 
     setLayout( WrapWidgetsInHBox( all, _currentLayerImage ) );
 
+    _setEnabled( false );
     update( );
 }
 
@@ -166,21 +167,23 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
-            this->_confirm->setEnabled( false );
-            this->_step->setEnabled( false );
-            this->_space->setEnabled( false );
-            this->_minExposure->setEnabled( false );
-            this->_count->setEnabled( false );
-
-            break;
+            _setEnabled( false );
+        break;
+        case UiState::SelectCompleted:
+            _setEnabled( false );
         case UiState::SelectStarted:
+            _setEnabled( false );
+        break;
         case UiState::SliceStarted:
-        case UiState::SliceCompleted:
+            _setEnabled( false );
+        break;
         case UiState::PrintStarted:
+            _setEnabled( false );
+        break;
+        case UiState::SliceCompleted:
         case UiState::PrintCompleted:
         case UiState::TilingClicked:
-        case UiState::SelectCompleted:
-            break;
+        break;
     }
 
     update( );
@@ -269,4 +272,13 @@ void TilingTab::_showWarningAndClose ()
     msgBox.show();
     msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
     msgBox.exec();
+}
+
+void TilingTab::_setEnabled(bool enabled)
+{
+    this->_confirm->setEnabled( enabled );
+    this->_step->setEnabled( enabled );
+    this->_space->setEnabled( enabled );
+    this->_minExposure->setEnabled( enabled );
+    this->_count->setEnabled( enabled );
 }
