@@ -87,12 +87,10 @@ class InputDialog: public QDialog {
 
         void backspacePressed(  ) {
             int cursorPos = _input->cursorPosition();
-            int length = _input->text().length();
             QString text = _input->text();
             if(cursorPos == 0)
                 return;
-
-            _input->setText(text.left(cursorPos-1) +  (cursorPos < length ? text.right(cursorPos) : ""));
+            _input->setText(text.remove(cursorPos-1, 1));
             _input->setCursorPosition(cursorPos-1);
         }
 
