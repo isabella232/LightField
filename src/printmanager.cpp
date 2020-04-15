@@ -347,7 +347,8 @@ void PrintManager::stepB2_start( ) {
     int layerProjectionTime;
 
     if(_isTiled){
-        layerProjectionTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+        int realLayer = currentLayer()/_manifestMgr->tilingCount();
+        layerProjectionTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     }else {
         layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     }

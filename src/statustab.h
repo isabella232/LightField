@@ -81,6 +81,7 @@ private:
 
     std::vector<double> _layerElapsedTimes          { };
 
+
     void _updateReprintButtonState( );
 
 signals:

@@ -20,9 +20,10 @@ public:
         SPACE,
         COUNT,
         ENTITIES,
+        VOLUME
     };
 
-    static const QString strings[8];
+    static const QString strings[9];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -131,11 +132,16 @@ public:
         this->_tiled = tiled;
     }
 
+    void setVolume (double modelVolume){
+        this->_estimatedVolume = modelVolume;
+    }
+
     inline bool tiled()                { return _tiled; }
     inline double tilingMinExposure()  { return _tilingMinExposure; }
     inline double tilingStep()         { return _tilingStep; }
     inline int tilingSpace()           { return _tilingSpace; }
     inline int tilingCount()           { return _tilingCount; }
+    inline int tiledVolume()           { return _estimatedVolume; }
 
     inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
 
@@ -161,6 +167,7 @@ public:
         _fileNameList.clear();
         _type = ManifestSortType::NUMERIC;
         _dirPath = "";
+        _estimatedVolume = 0;
     }
 
     Iterator iterator() {
@@ -183,6 +190,7 @@ private:
     int                 _tilingCount       { 1 };
     QStringList         _fileNameList      { };
     bool                _initialized       { };
+    double              _estimatedVolume   { 0L }; // unit: µL
 };
 
 #endif // ORDERMANIFESTMANAGER_H

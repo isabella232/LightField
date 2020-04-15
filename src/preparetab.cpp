@@ -258,11 +258,13 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
         }
     case ManifestParseResult::POSITIVE:
-        if(_manifestManager->tiled())
+        if(_manifestManager->tiled()){
 
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
             _setupTiling->setEnabled( false );
+            _printJob->estimatedVolume = _manifestManager->tiledVolume();
+        }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
     case ManifestParseResult::FILE_NOT_EXIST: {
@@ -634,6 +636,8 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
         case ManifestParseResult::POSITIVE:
             if(_manifestManager->tiled()) {
                 _setupTiling->setEnabled( false );
+                // in case of tiled design volume comes from manifest file instead of model calculation
+                _printJob->estimatedVolume = _manifestManager->tiledVolume();
             }
             break;
         case ManifestParseResult::FILE_CORRUPTED:
