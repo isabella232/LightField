@@ -23,7 +23,6 @@ protected:
     virtual void _connectPrintManager( )                override;
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
-    virtual void setManifestMgr( OrderManifestManager* manifestMgr ) override;
 
 private:
 
@@ -82,7 +81,6 @@ private:
 
     std::vector<double> _layerElapsedTimes          { };
 
-   OrderManifestManager* _manifestManager          { };
 
     void _updateReprintButtonState( );
 

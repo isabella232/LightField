@@ -560,10 +560,6 @@ void StatusTab::_connectShepherd( ) {
     }
 }
 
-void  StatusTab::setManifestMgr( OrderManifestManager* manifestMgr ){
-    _manifestManager = manifestMgr;
-}
-
 void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     debug( "+ StatusTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
