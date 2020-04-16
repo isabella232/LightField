@@ -34,6 +34,7 @@ private:
         int                   _wCount;
         int                   _hCount;
         QStringList           _fileNameList;
+        QList<double>         _expoTimeList;
         std::vector<int>      _tileSlots;
 };
 
