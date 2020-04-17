@@ -104,12 +104,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         _layerThicknessLabel,
         WrapWidgetsInVBox(
             _layerThickness100Button,
-#if defined EXPERIMENTAL
-            _layerThickness50Button,
-            _layerThickness20Button
-#else
             _layerThickness50Button
-#endif
+#if defined EXPERIMENTAL
+            , _layerThickness20Button
+#endif // defined EXPERIMENTAL
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -388,7 +386,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
     _checkJobDirectory( );
 }
-#endif
+#endif // defined EXPERIMENTAL
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -427,7 +425,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThickness50Button->setEnabled( enabled );
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( enabled );
-#endif
+#endif // defined EXPERIMENTAL
 
     update( );
 }

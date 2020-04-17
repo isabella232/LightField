@@ -19,6 +19,7 @@ namespace {
 }
 
 SvgRenderer::SvgRenderer( ) {
+    /*empty*/
 }
 
 SvgRenderer::~SvgRenderer( ) {
@@ -29,7 +30,7 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     int  layerNumber     { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
-
+    TimingLogger::startTiming( TimingId::LoadingPngFolder );
     OrderManifestManager::Iterator iter = manifestManager->iterator();
     while ( iter.hasNext() ) {
         debug( "+ SvgRenderer::loadSlices next iter \n");
@@ -40,6 +41,7 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
         layerNumber++;
         emit layerComplete( layerNumber );
     }
+    TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 
     debug( "  + Done\n" );
     emit layerCount( manifestManager->getSize() );
@@ -47,8 +49,9 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
 }
 
 void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
-    TimingLogger::startTiming( TimingId::RenderingPngs );
     debug( "+ SvgRenderer::startRender\n" );
+    TimingLogger::startTiming( TimingId::RenderingPngs );
+
     _outputDirectory = outputDirectory;
     _layerList.clear();
 
