@@ -108,8 +108,11 @@ void TilingTab::setStepValue()
 
     std::vector<int> tileSlots;
 
+    int deltax = (_areaWidth - (wCount*_pixmapWidth) - (wCount -1)*spacePx)/2 - TilingMargin;
+
     for(int i=0; i<wCount; ++i) {
-        tileSlots.push_back(TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i ));
+        int x1 = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
+        tileSlots.push_back(x1 + deltax);
     }
 
     //std::reverse(tileSlots.begin(), tileSlots.end());

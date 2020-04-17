@@ -62,9 +62,12 @@ void TilingManager::tileImages ( )
 
     _counter = 0;
 
+    int deltax = ( ProjectorWindowSize.width() - ( _wCount*pixmap.width() ) - ( _wCount -1 ) * ( _space / ProjectorPixelSize ) ) / 2 - TilingMargin;
 
     for(int i=0; i<_wCount; ++i) {
-        _tileSlots.push_back(TilingMargin + ( pixmap.width() * i ) + ( ( _space / ProjectorPixelSize ) * i ));
+        int x=TilingMargin + ( pixmap.width() * i ) + ( ( _space / ProjectorPixelSize ) * i );
+
+        _tileSlots.push_back(x + deltax);
     }
 
     //std::reverse(tileSlots.begin(), tileSlots.end());
