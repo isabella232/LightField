@@ -25,7 +25,8 @@ QSize constexpr           const  ProjectorWindowSize           {   1280,  800 };
 
 #endif // defined DLP4710
 
-int                       const  KeyboardRepeatDelay           { 600        }; //miliseconds
+int                       const  KeyboardRepeatDelay           { 200        }; //miliseconds
+int                       const  KeyboardRepeatDelayStart      { 600        }; //miliseconds
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };

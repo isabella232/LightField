@@ -252,7 +252,7 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
     if(isKeyRepetable(k) && (k->repetionActive == false)){
         QTimer *timer = new QTimer( this );
         QObject::connect( timer, &QTimer::timeout, this, [=]() {  this->checkKeyStillPressed(k); } );
-        timer->setInterval(KeyboardRepeatDelay); //repetition rate
+        timer->setInterval(KeyboardRepeatDelayStart); //repetition start delay
         timer->setSingleShot( false );
         timer->setTimerType( Qt::PreciseTimer );
         timer->start( );
@@ -271,6 +271,8 @@ void Keyboard::checkKeyStillPressed(key *repetitionKey)
         }else{
         emit keyPressed(repetitionKey->text);
         }
+        //switch timer to repetition interval
+        repetitionKey->repetitionTimer->setInterval(KeyboardRepeatDelay);
     }
 
 }
