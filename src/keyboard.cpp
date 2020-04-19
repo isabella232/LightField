@@ -158,7 +158,12 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e)
     key *k= findKey( pos );
     if (k != 0x0 )
     {
-        disconnectKeyRepetition(k);
+        if(disconnectKeyRepetition(k))
+        {
+            // key repetition happened at least once
+            // do not emit key pressed
+            return;
+        }
         if ( k->text == "ABC")
         {
             currentindexkeyboard = LOWERCASE;
@@ -258,6 +263,7 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
         timer->start( );
         k->repetitionTimer = timer;
         k->repetionActive = true;
+        k->repetitionOccurences = 0;
     }
 
 }
@@ -273,6 +279,7 @@ void Keyboard::checkKeyStillPressed(key *repetitionKey)
         }
         //switch timer to repetition interval
         repetitionKey->repetitionTimer->setInterval(KeyboardRepeatDelay);
+        repetitionKey->repetitionOccurences++;
     }
 
 }
@@ -282,7 +289,8 @@ bool Keyboard::isKeyRepetable(key *keyCheck){
     return !(all_non_repetable_keys.contains(keyCheck->text));
 }
 
-void Keyboard::disconnectKeyRepetition(key *activeKey){
+bool Keyboard::disconnectKeyRepetition(key *activeKey){
+    bool keyRepeated = false;
 
     if(activeKey != nullptr){
         if(activeKey->repetionActive){
@@ -291,8 +299,11 @@ void Keyboard::disconnectKeyRepetition(key *activeKey){
             activeKey->repetitionTimer->stop( );
             activeKey->repetitionTimer->deleteLater( );
             activeKey->repetionActive = false;
+            keyRepeated = (activeKey->repetitionOccurences > 0 );
         }
+        activeKey->repetitionOccurences = 0;
     }
+    return keyRepeated;
 }
 
 void Keyboard::paintEvent(QPaintEvent*)
