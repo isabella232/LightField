@@ -123,8 +123,8 @@ void TilingManager::renderTiles ( QFileInfo info ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
-        double expoTime = _expoTime + _step * (_wCount - e + 1);
-        _expoTimeList.push_back( expoTime );
+        _expoTimeList.push_back( e == 1 ? _expoTime : _step );
+
         _fileNameList.push_back( GetFileBaseName( filename ) );
 
         _counter++;
