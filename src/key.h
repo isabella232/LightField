@@ -44,6 +44,7 @@ public :
     QString iconFilename;
     bool pressed;
     bool repetionActive;
+    int  repetitionOccurences;
     QTimer  *repetitionTimer;
 };
 

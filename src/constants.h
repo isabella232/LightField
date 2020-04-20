@@ -44,6 +44,7 @@ QChar              extern const  FA_FastBackward;
 QChar              extern const  FA_Backward;
 QChar              extern const  FA_Forward;
 QChar              extern const  FA_FastForward;
+int                extern const  KeyboardRepeatDelayStart;
 int                extern const  KeyboardRepeatDelay;
 
 int    constexpr          const  DebugLogPathCount          =    6;

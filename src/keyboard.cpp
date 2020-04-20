@@ -34,8 +34,9 @@ const char *en_punctuation_keymap[] = {
     "ABC", ",", "space", "."
 };
 
-QStringList all_non_repetable_keys = {"123", "back\nspace", "ABC", "space"};
+QStringList all_non_repetable_keys = {"123", "ABC", "#+=", "space"};
 
+int nbkey[KEYS_TYPE];
 
 // In witch row are the key... (there's 4 rows )
 const int row_keymap[] = {
@@ -46,8 +47,6 @@ const int row_keymap[] = {
 };
 
 
-const int nbkey = sizeof(en_lower_keymap)/sizeof(char *);
-
 Keyboard::Keyboard(QWidget *p) : QWidget(p)
 {
     currentKey = 0x0;
@@ -57,14 +56,13 @@ Keyboard::Keyboard(QWidget *p) : QWidget(p)
     initTooltip();
 
     keys = QVector<QVector< key * > >(KEYS_TYPE);
-    for (int n=0;n < KEYS_TYPE ; n++)
-    {
-      keys[n] = QVector< key * >(nbkey);
-    }
-
+    nbkey[LOWERCASE] = sizeof(en_lower_keymap)/sizeof(char *);
     initKeys(LOWERCASE,   en_lower_keymap);
+    nbkey[NUMBER] = sizeof(en_number_keymap)/sizeof(char *);
     initKeys(NUMBER,      en_number_keymap);
+    nbkey[UPPERCASE] = sizeof(en_upper_keymap)/sizeof(char *);
     initKeys(UPPERCASE,   en_upper_keymap);
+    nbkey[PUNCTUATION] = sizeof(en_punctuation_keymap)/sizeof(char *);
     initKeys(PUNCTUATION, en_punctuation_keymap);
 }
 
@@ -73,8 +71,11 @@ void Keyboard::initKeys( int indexArraykeys, const char *keymap[])
     int xCoor = 0;
     int yCoor = 0;
 
-    for(int n=0; n<nbkey; n++)
+    keys[indexArraykeys] = QVector< key * >(nbkey[indexArraykeys]);
+
+    for(int n=0; n<nbkey[indexArraykeys]; n++)
     {
+
         keys[indexArraykeys][n] = new key(keymap[n]);
        // qDebug() <<  "n="<< n;
 
@@ -157,7 +158,12 @@ void Keyboard::mouseReleaseEvent(QMouseEvent *e)
     key *k= findKey( pos );
     if (k != 0x0 )
     {
-        disconnectKeyRepetition(k);
+        if(disconnectKeyRepetition(k))
+        {
+            // key repetition happened at least once
+            // do not emit key pressed
+            return;
+        }
         if ( k->text == "ABC")
         {
             currentindexkeyboard = LOWERCASE;
@@ -251,12 +257,13 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
     if(isKeyRepetable(k) && (k->repetionActive == false)){
         QTimer *timer = new QTimer( this );
         QObject::connect( timer, &QTimer::timeout, this, [=]() {  this->checkKeyStillPressed(k); } );
-        timer->setInterval(KeyboardRepeatDelay); //repetition rate
+        timer->setInterval(KeyboardRepeatDelayStart); //repetition start delay
         timer->setSingleShot( false );
         timer->setTimerType( Qt::PreciseTimer );
         timer->start( );
         k->repetitionTimer = timer;
         k->repetionActive = true;
+        k->repetitionOccurences = 0;
     }
 
 }
@@ -264,7 +271,15 @@ void Keyboard::setKeyPressed( key *k, QPoint /*pos*/)
 void Keyboard::checkKeyStillPressed(key *repetitionKey)
 {
     if(repetitionKey->pressed && isKeyRepetable(repetitionKey)){
+        if ( repetitionKey->text =="back\nspace" )
+        {
+            emit backspacePressed();
+        }else{
         emit keyPressed(repetitionKey->text);
+        }
+        //switch timer to repetition interval
+        repetitionKey->repetitionTimer->setInterval(KeyboardRepeatDelay);
+        repetitionKey->repetitionOccurences++;
     }
 
 }
@@ -274,7 +289,8 @@ bool Keyboard::isKeyRepetable(key *keyCheck){
     return !(all_non_repetable_keys.contains(keyCheck->text));
 }
 
-void Keyboard::disconnectKeyRepetition(key *activeKey){
+bool Keyboard::disconnectKeyRepetition(key *activeKey){
+    bool keyRepeated = false;
 
     if(activeKey != nullptr){
         if(activeKey->repetionActive){
@@ -283,8 +299,11 @@ void Keyboard::disconnectKeyRepetition(key *activeKey){
             activeKey->repetitionTimer->stop( );
             activeKey->repetitionTimer->deleteLater( );
             activeKey->repetionActive = false;
+            keyRepeated = (activeKey->repetitionOccurences > 0 );
         }
+        activeKey->repetitionOccurences = 0;
     }
+    return keyRepeated;
 }
 
 void Keyboard::paintEvent(QPaintEvent*)
