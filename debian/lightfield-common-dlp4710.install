@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 files/etc/apt/apt.conf.d/99untrustworthy-clock                 etc/apt/apt.conf.d
->>>>>>> c07ac9d48f9ae2027c24cfa4d6e03517260fcf03
 files/etc/apt/trusted.gpg.d/volumetric-keyring.gpg             etc/apt/trusted.gpg.d
 files/etc/sudoers.d/lumen-lightfield                           etc/sudoers.d
 files/home/lumen/.bash_profile                                 home/lumen

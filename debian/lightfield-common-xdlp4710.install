@@ -1,17 +1,3 @@
-<<<<<<< HEAD:debian/lightfield-common-base.install
-files/etc/apt/trusted.gpg.d/volumetric-keyring.gpg           etc/apt/trusted.gpg.d
-files/etc/sudoers.d/lumen-lightfield                         etc/sudoers.d
-files/home/lumen/.bash_profile                               home/lumen
-files/home/lumen/.real_bash_profile                          home/lumen
-files/home/lumen/.gnupg/pubring.gpg                          home/lumen/.gnupg
-files/home/lumen/.gnupg/pubring.kbx                          home/lumen/.gnupg
-files/home/lumen/.gnupg/trustdb.gpg                          home/lumen/.gnupg
-files/lib/udev/rules.d/90-dlpc350.rules                      lib/udev/rules.d
-files/usr/share/lightfield/libexec/reset-lumen-arduino-port  usr/share/lightfield/libexec
-files/usr/share/lightfield/libexec/printrun/*                usr/share/lightfield/libexec/printrun
-files/usr/share/lightfield/libexec/stdio-shepherd/*          usr/share/lightfield/libexec/stdio-shepherd
-files/usr/share/X11/xorg.conf.d/99-waveshare.conf            usr/share/X11/xorg.conf.d
-=======
 files/etc/apt/apt.conf.d/99untrustworthy-clock                 etc/apt/apt.conf.d
 files/etc/apt/trusted.gpg.d/volumetric-keyring.gpg             etc/apt/trusted.gpg.d
 files/etc/sudoers.d/lumen-lightfield                           etc/sudoers.d
@@ -26,4 +12,3 @@ files/usr/share/lightfield/libexec/reset-lumen-projector-port  usr/share/lightfi
 files/usr/share/lightfield/libexec/printrun/*                  usr/share/lightfield/libexec/printrun
 files/usr/share/lightfield/libexec/stdio-shepherd/*            usr/share/lightfield/libexec/stdio-shepherd
 files/usr/share/X11/xorg.conf.d/99-waveshare.conf              usr/share/X11/xorg.conf.d
->>>>>>> c07ac9d48f9ae2027c24cfa4d6e03517260fcf03:debian/lightfield-common-xdlp4710.install
