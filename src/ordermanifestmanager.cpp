@@ -1,6 +1,6 @@
 #include "ordermanifestmanager.h"
 
-const QString ManifestKeys::strings[8] = {
+const QString ManifestKeys::strings[9] = {
         "size",
         "sort_type",
         "tiling",
@@ -8,7 +8,8 @@ const QString ManifestKeys::strings[8] = {
         "step",
         "space",
         "count",
-        "entities"
+        "entities",
+        "exposureTime"
 };
 
 const QString ManifestSortType::strings[3] = {
@@ -70,6 +71,12 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
         _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
         _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
+
+        QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
+
+        for(int i=0; i<expoTimes.count(); ++i) {
+            _tilingExpoTime.push_back(expoTimes[i].toDouble());
+        }
     }
 
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
@@ -108,6 +115,13 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::SPACE).toQString(),           QJsonValue { _tilingSpace } );
         tiling.insert( ManifestKeys(ManifestKeys::COUNT).toQString(),           QJsonValue { _tilingCount } );
 
+        QJsonArray expoArray;
+        for(int i=0; i<_tilingExpoTime.size(); ++i)
+        {
+            expoArray.append(_tilingExpoTime[i]);
+        }
+
+        tiling.insert( ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString(), expoArray );
 
         root.insert( ManifestKeys(ManifestKeys::TILING).toQString(), tiling );
     }
@@ -130,6 +144,8 @@ bool OrderManifestManager::save() {
 }
 
 double OrderManifestManager::getTimeForElementAt(int position){
-    if(!_tiled) return 0;
-    return _tilingMinExposure + ((position % _tilingCount) * _tilingStep);
+    if(!_tiled || _tilingExpoTime.count() < position)
+        return 0;
+    else
+        return _tilingExpoTime[position];
 }

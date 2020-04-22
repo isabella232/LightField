@@ -34,6 +34,7 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
     QFile::link( _path , StlModelLibraryPath % Slash % dirName );
 
     _manifestMgr->setFileList( _fileNameList );
+    _manifestMgr->setExpoTimeList( _expoTimeList );
     _manifestMgr->setPath( JobWorkingDirectoryPath % Slash % dirName );
 
     _manifestMgr->setTiled( true );
@@ -124,6 +125,8 @@ void TilingManager::renderTiles ( QFileInfo info ) {
         QFile file ( filename );
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
+
+        _expoTimeList.push_back( e == 1 ? _expoTime : _step );
 
         _fileNameList.push_back( GetFileBaseName( filename ) );
 
