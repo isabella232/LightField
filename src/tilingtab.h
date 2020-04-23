@@ -36,6 +36,8 @@ private:
     void _showLayerImage ( );
     void _showWarningAndClose ( );
     int  _getMaxCount();
+    void _renderText(QPainter* painter, int tileWidth, QPoint pos, double expo);
+    void _setEnabled(bool enabled);
 signals:
     ;
 
@@ -66,11 +68,7 @@ public slots:
                 return;
         }
 
-        this->_confirm->setEnabled( true );
-        this->_step->setEnabled( true );
-        this->_space->setEnabled( true );
-        this->_minExposure->setEnabled( true );
-        this->_count->setEnabled( true );
+        _setEnabled( true );
 
         _showLayerImage();
     }

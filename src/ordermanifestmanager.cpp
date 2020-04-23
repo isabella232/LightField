@@ -1,6 +1,6 @@
 #include "ordermanifestmanager.h"
 
-const QString ManifestKeys::strings[9] = {
+const QString ManifestKeys::strings[10]= {
         "size",
         "sort_type",
         "tiling",
@@ -9,7 +9,8 @@ const QString ManifestKeys::strings[9] = {
         "space",
         "count",
         "entities",
-        "exposureTime"
+        "exposureTime",
+        "estimatedVolume"
 };
 
 const QString ManifestSortType::strings[3] = {
@@ -71,7 +72,8 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
         _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
         _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
-
+        _estimatedVolume = tilingNested.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
+      
         QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
 
         for(int i=0; i<expoTimes.count(); ++i) {
@@ -114,6 +116,7 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::STEP).toQString(),            QJsonValue { _tilingStep } );
         tiling.insert( ManifestKeys(ManifestKeys::SPACE).toQString(),           QJsonValue { _tilingSpace } );
         tiling.insert( ManifestKeys(ManifestKeys::COUNT).toQString(),           QJsonValue { _tilingCount } );
+        tiling.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(),          QJsonValue { _estimatedVolume } );
 
         QJsonArray expoArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)

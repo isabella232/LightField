@@ -52,6 +52,7 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
 
     setLayout( WrapWidgetsInHBox( all, _currentLayerImage ) );
 
+    _setEnabled( false );
     update( );
 }
 
@@ -126,19 +127,43 @@ void TilingTab::setStepValue()
         double e = _minExposure->getValueDouble() + ( ( wCount - ( i + 1 ) ) * _step->getValueDouble( ) );
 
         if(i==0) {
-            painter.drawPixmap( x, y - (spacePx/2), *_pixmap );
-            painter.drawText( QPoint(x, y - (spacePx/2)), QString( "Exposure %1 sec" ).arg( e ) );
+            painter.drawPixmap( x, y - (spacePx/2), *_pixmap );          
+             _renderText( &painter, _pixmapWidth, QPoint(x, y - (spacePx/2) ), e );
         }
         else
         {
             painter.drawPixmap( x, y, *_pixmap );
-            painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
+             _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
         }
+        painter.drawPixmap( x, y, *_pixmap );
     }
 
     _currentLayerImage->setPixmap( area );
 
     update( );
+}
+
+void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expo)
+{
+    QFontMetrics fm( painter->font() );
+    QString text = QString( "Exposure %1 sec" ).arg( expo );
+
+    int textWidth=fm.horizontalAdvance(text);
+
+    if(textWidth > tileWidth)
+    {
+        int textHeight = fm.height();
+
+        text = QString( "Expo." );
+        QString text2 = QString( "%1 s" ).arg(expo);
+
+        painter->drawText( QPoint(pos.x(), pos.y() - textHeight - 2), text );
+        painter->drawText( pos, text2 );
+    }
+    else
+    {
+        painter->drawText( pos, text );
+    }
 }
 
 void TilingTab::_showLayerImage( ) {
@@ -163,21 +188,23 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
-            this->_confirm->setEnabled( false );
-            this->_step->setEnabled( false );
-            this->_space->setEnabled( false );
-            this->_minExposure->setEnabled( false );
-            this->_count->setEnabled( false );
-
-            break;
+            _setEnabled( false );
+        break;
+        case UiState::SelectCompleted:
+            _setEnabled( false );
         case UiState::SelectStarted:
+            _setEnabled( false );
+        break;
         case UiState::SliceStarted:
-        case UiState::SliceCompleted:
+            _setEnabled( false );
+        break;
         case UiState::PrintStarted:
+            _setEnabled( false );
+        break;
+        case UiState::SliceCompleted:
         case UiState::PrintCompleted:
         case UiState::TilingClicked:
-        case UiState::SelectCompleted:
-            break;
+        break;
     }
 
     update( );
@@ -266,4 +293,13 @@ void TilingTab::_showWarningAndClose ()
     msgBox.show();
     msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
     msgBox.exec();
+}
+
+void TilingTab::_setEnabled(bool enabled)
+{
+    this->_confirm->setEnabled( enabled );
+    this->_step->setEnabled( enabled );
+    this->_space->setEnabled( enabled );
+    this->_minExposure->setEnabled( enabled );
+    this->_count->setEnabled( enabled );
 }

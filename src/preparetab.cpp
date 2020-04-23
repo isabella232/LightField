@@ -104,12 +104,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         _layerThicknessLabel,
         WrapWidgetsInVBox(
             _layerThickness100Button,
-#if defined EXPERIMENTAL
-            _layerThickness50Button,
-            _layerThickness20Button
-#else
             _layerThickness50Button
-#endif
+#if defined EXPERIMENTAL
+            , _layerThickness20Button
+#endif // defined EXPERIMENTAL
         ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
@@ -258,11 +256,13 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
         }
     case ManifestParseResult::POSITIVE:
-        if(_manifestManager->tiled())
+        if(_manifestManager->tiled()){
 
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
             _setupTiling->setEnabled( false );
+            _printJob->estimatedVolume = _manifestManager->tiledVolume();
+        }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
     case ManifestParseResult::FILE_NOT_EXIST: {
@@ -386,7 +386,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
     _checkJobDirectory( );
 }
-#endif
+#endif // defined EXPERIMENTAL
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -425,7 +425,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThickness50Button->setEnabled( enabled );
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( enabled );
-#endif
+#endif // defined EXPERIMENTAL
 
     update( );
 }
@@ -634,6 +634,8 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
         case ManifestParseResult::POSITIVE:
             if(_manifestManager->tiled()) {
                 _setupTiling->setEnabled( false );
+                // in case of tiled design volume comes from manifest file instead of model calculation
+                _printJob->estimatedVolume = _manifestManager->tiledVolume();
             }
             break;
         case ManifestParseResult::FILE_CORRUPTED:

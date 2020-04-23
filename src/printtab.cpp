@@ -5,6 +5,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "shepherd.h"
+#include "ordermanifestmanager.h"
 
 namespace {
 
@@ -347,6 +348,16 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
+            if(manifestMgr()->tiled()) {
+                _exposureTimeValue->setText("Defined by tiling");
+            }
+            else
+            {
+                _exposureTimeSlider->valueChanged(_exposureTimeSlider->value());
+            }
+
+            _exposureTimeSlider->setEnabled( !manifestMgr()->tiled() );
+            break;
         case UiState::TilingClicked:
             break;
 

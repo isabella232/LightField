@@ -6,6 +6,7 @@ enum class TimingId {
     VolumeCalculation,
     SlicingSvg,
     RenderingPngs,
+    LoadingPngFolder,
     Printing,
     UpgradeCheck,
     UpgradeInstallation,

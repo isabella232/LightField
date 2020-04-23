@@ -42,6 +42,7 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
     _manifestMgr->setTilingSpace( _space );
     _manifestMgr->setTilingStep( _step );
     _manifestMgr->setTilingCount( _count );
+    _manifestMgr->setVolume( _count * _printJob->estimatedVolume );
 
 
     _manifestMgr->save();

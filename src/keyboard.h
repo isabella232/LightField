@@ -36,7 +36,7 @@ private :
     key *findKey(QPoint p);
     void setKeyPressed( key *k,QPoint );
     bool isKeyRepetable(key *keyCheck);
-    void disconnectKeyRepetition(key *activeKey);
+    bool disconnectKeyRepetition(key *activeKey);
 
     QVector<QVector< key * > > keys;
     QLabel *tooltip;
