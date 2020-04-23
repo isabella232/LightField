@@ -24,7 +24,7 @@ public:
         VOLUME
     };
 
-    static const QString strings[9];
+    static const QString strings[10];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -142,12 +142,22 @@ public:
         this->_estimatedVolume = modelVolume;
     }
 
+    void requireAreaCalculation(){
+        this->_calculateArea = true;
+    }
+
+    void setLayerThickness(int thickness){
+        _layerThickness = thickness;
+    }
+
+
+
     inline bool tiled()                { return _tiled; }
     inline double tilingMinExposure()  { return _tilingMinExposure; }
     inline double tilingStep()         { return _tilingStep; }
     inline int tilingSpace()           { return _tilingSpace; }
     inline int tilingCount()           { return _tilingCount; }
-    inline int tiledVolume()           { return _estimatedVolume; }
+    inline int manifestVolume()        { return _estimatedVolume; }
 
     inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
 
@@ -175,6 +185,8 @@ public:
         _type = ManifestSortType::NUMERIC;
         _dirPath = "";
         _estimatedVolume = 0;
+        _calculateArea = false;
+        _layerThickness = 0;
     }
 
     Iterator iterator() {
@@ -199,6 +211,8 @@ private:
     QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
+    bool                _calculateArea     {false};
+    int                 _layerThickness    {0}; //unit: µm used for reconcstructing volume from slices only
 };
 
 #endif // ORDERMANIFESTMANAGER_H

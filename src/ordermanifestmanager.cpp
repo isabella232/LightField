@@ -72,13 +72,16 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
         _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
         _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
-        _estimatedVolume = tilingNested.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
       
         QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
 
         for(int i=0; i<expoTimes.count(); ++i) {
             _tilingExpoTime.push_back(expoTimes[i].toDouble());
         }
+    }
+
+    if(root.contains( ManifestKeys(ManifestKeys::VOLUME).toQString( ) ) ) {
+      _estimatedVolume = root.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
     }
 
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
@@ -108,6 +111,8 @@ bool OrderManifestManager::save() {
     root.insert( ManifestKeys(ManifestKeys::SORT_TYPE).toQString(), QJsonValue { _type.toQString() } );
     root.insert( ManifestKeys(ManifestKeys::SIZE).toQString(),      QJsonValue { _size } );
 
+
+
     if(_tiled)
     {
         QJsonObject tiling;
@@ -116,7 +121,6 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::STEP).toQString(),            QJsonValue { _tilingStep } );
         tiling.insert( ManifestKeys(ManifestKeys::SPACE).toQString(),           QJsonValue { _tilingSpace } );
         tiling.insert( ManifestKeys(ManifestKeys::COUNT).toQString(),           QJsonValue { _tilingCount } );
-        tiling.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(),          QJsonValue { _estimatedVolume } );
 
         QJsonArray expoArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)
@@ -127,14 +131,39 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString(), expoArray );
 
         root.insert( ManifestKeys(ManifestKeys::TILING).toQString(), tiling );
+
     }
 
+
+
     QJsonArray jsonArray;
+    QImage calculationImage;
+    int activeTreshold = QColor("white").value() / 2;
 
     for(int i=0; i<_fileNameList.size(); ++i)
     {
+        unsigned int activePixels = 0;
         jsonArray.append(_fileNameList[i]);
+        if(_calculateArea) {
+            calculationImage.load(_dirPath % Slash % _fileNameList[i]);
+            for (int size_y=0;size_y<calculationImage.height();size_y++) {
+                for (int size_x=0;size_x<calculationImage.width();size_x++) {
+                    QColor tempColor = calculationImage.pixel(size_x, size_y);
+                    if(tempColor.value() >= activeTreshold) activePixels++;
+                }
+            }
+            double reconstructedVolume = ProjectorPixelSize * ProjectorPixelSize * activePixels * _layerThickness / 1000; //  units: mm * mm * µm / 1000 = µL
+            _estimatedVolume += reconstructedVolume;
+            //qDebug() << "layer thickness=" << _layerThickness << "projector pixel = " << ProjectorPixelSize << "active = "<<activePixels << "volume = " << _estimatedVolume;
+        }
     }
+
+    if(_tiled || _calculateArea) {
+        root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(),          QJsonValue { _estimatedVolume } );
+    }
+
+
+
 
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
     jsonDocument.setObject(root);

@@ -228,4 +228,3 @@ void SlicesOrderPopup::custom_clicked(bool) {
     debug( "+ SlicesOrderPopup::custom_clicked \n" );
 }
 
-

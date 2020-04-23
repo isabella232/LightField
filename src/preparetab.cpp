@@ -261,7 +261,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
             _setupTiling->setEnabled( false );
-            _printJob->estimatedVolume = _manifestManager->tiledVolume();
+            _printJob->estimatedVolume = _manifestManager->manifestVolume();
         }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
@@ -634,9 +634,9 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
         case ManifestParseResult::POSITIVE:
             if(_manifestManager->tiled()) {
                 _setupTiling->setEnabled( false );
-                // in case of tiled design volume comes from manifest file instead of model calculation
-                _printJob->estimatedVolume = _manifestManager->tiledVolume();
             }
+            // in case of tiled design or directory of slices volume comes from manifest file instead of model calculation
+            if(_manifestManager->manifestVolume() > 0) _printJob->estimatedVolume = _manifestManager->manifestVolume();
             break;
         case ManifestParseResult::FILE_CORRUPTED:
         case ManifestParseResult::FILE_NOT_EXIST: {
@@ -644,8 +644,10 @@ void PrepareTab::slicerProcess_finished( int exitCode, QProcess::ExitStatus exit
                 _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
 
                 SlicesOrderPopup slicesOrderPopup { _manifestManager };
+                _manifestManager->requireAreaCalculation();
+                _manifestManager->setLayerThickness(_printJob->layerThickness);
                 slicesOrderPopup.exec();
-
+                _printJob->estimatedVolume = _manifestManager->manifestVolume();
                 break;
             }
         }
