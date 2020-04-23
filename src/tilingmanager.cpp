@@ -34,6 +34,7 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
     QFile::link( _path , StlModelLibraryPath % Slash % dirName );
 
     _manifestMgr->setFileList( _fileNameList );
+    _manifestMgr->setExpoTimeList( _expoTimeList );
     _manifestMgr->setPath( JobWorkingDirectoryPath % Slash % dirName );
 
     _manifestMgr->setTiled( true );
@@ -62,6 +63,20 @@ void TilingManager::tileImages ( )
                                          _width,    _height,    pixmap.width(),  pixmap.height(),  _space);
 
     _counter = 0;
+
+    int deltax = ( ProjectorWindowSize.width() - ( _wCount*pixmap.width() ) - ( _wCount -1 ) * ( _space / ProjectorPixelSize ) ) / 2 - TilingMargin;
+
+    for(int i=0; i<_wCount; ++i) {
+        int x=TilingMargin + ( pixmap.width() * i ) + ( ( _space / ProjectorPixelSize ) * i );
+
+        _tileSlots.push_back(x + deltax);
+    }
+
+    //std::reverse(tileSlots.begin(), tileSlots.end());
+    std::rotate(_tileSlots.begin(),
+                _tileSlots.end()-1, // this will be the new first element
+                _tileSlots.end());
+
 
     OrderManifestManager::Iterator iter = _manifestMgr->iterator();
 
@@ -112,6 +127,8 @@ void TilingManager::renderTiles ( QFileInfo info ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
+        _expoTimeList.push_back( e == 1 ? _expoTime : _step );
+
         _fileNameList.push_back( GetFileBaseName( filename ) );
 
         _counter++;
@@ -120,11 +137,14 @@ void TilingManager::renderTiles ( QFileInfo info ) {
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
 
-    int x = TilingMargin + ( pixmap.width( ) * i ) + ( _spacePx * i );
+    int x = _tileSlots[i];
     // For now only 1 row
     // int y = ( pixmap.height( ) * _space) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * _space * j );
 
     int y = ( ProjectorWindowSize.height() - pixmap.height() ) / 2;
+
+    if(i == 0)
+        y -= ( _space / ProjectorPixelSize ) / 5;
 
     debug( "+ TilingManager::renderTiles x %d, y %d \n", x, y);
 

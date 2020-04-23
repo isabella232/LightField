@@ -107,14 +107,35 @@ void TilingTab::setStepValue()
     // single row tiling
     int y = ( _areaHeight - _pixmapHeight ) / 2;
 
+    std::vector<int> tileSlots;
+
+    int deltax = (_areaWidth - (wCount*_pixmapWidth) - (wCount -1)*spacePx)/2 - TilingMargin;
+
     for(int i=0; i<wCount; ++i) {
-        int x = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
+        int x1 = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
+        tileSlots.push_back(x1 + deltax);
+    }
+
+    //std::reverse(tileSlots.begin(), tileSlots.end());
+    std::rotate(tileSlots.begin(),
+                tileSlots.end()-1, // this will be the new first element
+                tileSlots.end());
+
+    for(int i=0; i<wCount; ++i) {
+        int x = tileSlots[i];
 
         double e = _minExposure->getValueDouble() + ( ( wCount - ( i + 1 ) ) * _step->getValueDouble( ) );
 
+        if(i==0) {
+            painter.drawPixmap( x, y - (spacePx/2), *_pixmap );          
+             _renderText( &painter, _pixmapWidth, QPoint(x, y - (spacePx/2) ), e );
+        }
+        else
+        {
+            painter.drawPixmap( x, y, *_pixmap );
+             _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
+        }
         painter.drawPixmap( x, y, *_pixmap );
-
-        _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
     }
 
     _currentLayerImage->setPixmap( area );

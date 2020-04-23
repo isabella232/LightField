@@ -20,6 +20,7 @@ public:
         SPACE,
         COUNT,
         ENTITIES,
+        EXPOSURE_TIME,
         VOLUME
     };
 
@@ -112,6 +113,11 @@ public:
         this->_size = list.size();
     }
 
+    void setExpoTimeList( QList<double> list ) {
+        this->_tilingExpoTime.clear();
+        this->_tilingExpoTime.append(list);
+    }
+
     void setTilingMinExpoTime(double minExoTm) {
         this->_tilingMinExposure = minExoTm;
     }
@@ -165,6 +171,7 @@ public:
         _size = 0;
         _initialized = true;
         _fileNameList.clear();
+        _tilingExpoTime.clear();
         _type = ManifestSortType::NUMERIC;
         _dirPath = "";
         _estimatedVolume = 0;
@@ -189,6 +196,7 @@ private:
     int                 _tilingSpace       { 1 };
     int                 _tilingCount       { 1 };
     QStringList         _fileNameList      { };
+    QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
 };
