@@ -33,6 +33,7 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
 
     QFile::link( _path , StlModelLibraryPath % Slash % dirName );
 
+    _manifestMgr->restart();
     _manifestMgr->setFileList( _fileNameList );
     _manifestMgr->setExpoTimeList( _expoTimeList );
     _manifestMgr->setPath( JobWorkingDirectoryPath % Slash % dirName );
