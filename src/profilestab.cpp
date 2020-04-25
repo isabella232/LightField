@@ -145,7 +145,7 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
     QStandardItem* firstItem = nullptr;
     QVector<PrintProfile*>* profiles = ProfilesJsonParser::loadProfiles();
     bool findDefaultProfile = false;
-    int listItemIndex;
+    int listItemIndex = 0;
 
     for(int i=0; i<profiles->count(); ++i)
     {
