@@ -1,6 +1,6 @@
 #include "ordermanifestmanager.h"
 
-const QString ManifestKeys::strings[10]= {
+const QString ManifestKeys::strings[10] = {
         "size",
         "sort_type",
         "tiling",

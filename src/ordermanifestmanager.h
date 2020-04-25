@@ -24,7 +24,7 @@ public:
         VOLUME
     };
 
-    static const QString strings[9];
+    static const QString strings[10];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }

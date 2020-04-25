@@ -65,7 +65,7 @@ void TilingTab::setStepValue()
 
     auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
     int maxCount = _getMaxCount( );
-
+    debug( "+ TilingTab::setCount %d\n", maxCount);
     _count->setMaxValue( maxCount );
 
     int wCount = _count->getValue();
@@ -135,7 +135,6 @@ void TilingTab::setStepValue()
             painter.drawPixmap( x, y, *_pixmap );
              _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
         }
-        painter.drawPixmap( x, y, *_pixmap );
     }
 
     _currentLayerImage->setPixmap( area );
