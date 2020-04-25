@@ -46,6 +46,7 @@ private:
     PrintResult    _printResult              { };
 
     bool           _lampOn                   { };
+    bool           _duringTiledLayer         {false};
     PrintStep      _step                     { };
     PrintStep      _pausedStep               { };
     int            _currentLayer             { };
