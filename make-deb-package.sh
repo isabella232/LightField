@@ -112,6 +112,7 @@ fi
 
 PRINTRUN_SRC=/home/lumen/Volumetric/printrun
 MOUNTMON_SRC="${LIGHTFIELD_ROOT}/mountmon"
+PRINTPROFILES_SRC="${LIGHTFIELD_ROOT}/print-profiles"
 if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
 then
     PROJECTOR_SRC=${LIGHTFIELD_ROOT}/usb-driver
@@ -137,6 +138,7 @@ LIGHTFIELD_FILES="${LIGHTFIELD_PACKAGE}/files"
 #ANTIBUILDTYPE:      ${ANTIBUILDTYPE}
 #PRINTRUN_SRC:       ${PRINTRUN_SRC}
 #MOUNTMON_SRC:       ${MOUNTMON_SRC}
+#PRINTPROFILES_SRC:  ${PRINTPROFILES_SRC}
 #PROJECTOR_SRC:      ${PROJECTOR_SRC}
 #PACKAGE_BUILD_DIR:  ${PACKAGE_BUILD_DIR}
 #DEB_BUILD_DIR:      ${DEB_BUILD_DIR}
@@ -253,6 +255,10 @@ install     ${VERBOSE} -DT -m  644 printrun/utils.py                            
 install     ${VERBOSE} -DT -m  644 printrun/plugins/__init__.py                     "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/printrun/plugins/__init__.py"
 install     ${VERBOSE} -DT -m  644 Util/constants.py                                "${LIGHTFIELD_FILES}/usr/share/lightfield/libexec/printrun/Util/constants.py"
 
+##################################################
+cd ${PRINTPROFILES_SRC}
+
+install     ${VERBOSE} -DT -m  644 print-profiles.json		    "${LIGHTFIELD_FILES}/var/lib/lightfield/print-profiles.json"
 ##################################################
 
 blue-bar "• Building Debian packages"

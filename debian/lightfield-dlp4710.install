@@ -5,3 +5,4 @@ files/usr/bin/lf                                             usr/bin
 files/usr/bin/mountmon                                       usr/bin
 files/usr/bin/set-projector-power                            usr/bin
 files/usr/bin/set-projector-power.real                       usr/bin
+files/var/lib/lightfield/print-profiles.json		     var/lib/lightfield/print-profiles.json

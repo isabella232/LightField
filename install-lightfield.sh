@@ -133,6 +133,7 @@ install ${VERBOSE} -DT -m 755                   mountmon/build/mountmon         
 install ${VERBOSE} -DT -m 644                   stdio-shepherd/printer.py                        /usr/share/lightfield/libexec/stdio-shepherd/printer.py
 install ${VERBOSE} -DT -m 755                   stdio-shepherd/stdio-shepherd.py                 /usr/share/lightfield/libexec/stdio-shepherd/stdio-shepherd.py
 install ${VERBOSE} -DT -m 755                   system-stuff/reset-lumen-arduino-port            /usr/share/lightfield/libexec/reset-lumen-arduino-port
+install ${VERBOSE} -DT -m 755                   print-profiles/print-profiles.json               /var/lib/lightfield/print-profiles.json
 
 if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
 then
