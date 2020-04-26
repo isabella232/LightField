@@ -16,13 +16,17 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
     this->_slider->setMinimum(minValue);
     this->_slider->setSingleStep(step);
     this->_slider->setOrientation(Qt::Orientation::Horizontal);
+    this->setStyleSheet( "padding: 0px 0px 0px 0px; " );
 
     QWidget::connect(this->_slider, &QSlider::valueChanged, this, &ParamSlider::onvaluechanged);
 
     this->setLayout(
         WrapWidgetsInVBoxDM(
+            nullptr,
             WrapWidgetsInHBox(_nameLabel, nullptr, _valueLabel),
-            _slider
+            nullptr,
+            _slider,
+            nullptr
         )
     );
 

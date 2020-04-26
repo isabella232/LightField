@@ -72,6 +72,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         nullptr
     ) );
 
+    _prepareGroup->setFixedHeight(110);
     _warningHotImage = new QPixmap { QString { ":images/warning-hot.png" } };
     _warningHotLabel->setAlignment( Qt::AlignCenter );
     _warningHotLabel->setContentsMargins( { } );
@@ -113,8 +114,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         WrapWidgetsInVBox(
             _prepareGroup,
-            WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr ),
-            _prepareButton
+            WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr )
         )
     ) );
 
@@ -178,9 +178,10 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _layout->setContentsMargins( { } );
     _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
-    _layout->addWidget( _orderButton,       1, 0, 1, 1 );
-    _layout->addWidget( _setupTiling,      2, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       3, 0, 1, 1 );
+    _layout->addWidget( _prepareButton, 1, 0, 1, 1 );
+    _layout->addWidget( _orderButton,       2, 0, 1, 1 );
+    _layout->addWidget( _setupTiling,      3, 0, 1, 1 );
+    _layout->addWidget( _sliceButton,       4, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
