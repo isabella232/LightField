@@ -10,8 +10,8 @@ SlicesOrderPopup::SlicesOrderPopup(OrderManifestManager* manifestManager)
 
     Window* win = App::mainWindow();
     QRect r = win->geometry();
-    move( r.x( )+100, r.y( )+100 );
-    resize( 824, 400 );
+    move( r.x( )+50, r.y( )+100 );
+    resize( 924, 400 );
 
     _okButton->setFont( fontAwesome );
     _okButton->setMinimumSize( QSize( 50, 50 ) );
