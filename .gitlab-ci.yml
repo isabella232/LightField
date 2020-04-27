@@ -8,7 +8,7 @@ stages:
   - build_base
   - build_xbase
   - build_dlp4710
-  - build_xdpl4710
+  - build_xdlp4710
 
 clean:
   stage: clean
@@ -50,7 +50,7 @@ build_dlp4710:
     paths:
       - packaging/latest
 
-build_dlp4710:
+build_xdlp4710:
   stage: build_xdlp4710
   script:
     - bash change-version-number.sh -t xdlp4710 $VERSION
