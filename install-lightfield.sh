@@ -21,7 +21,7 @@ EOF
 # shellcheck disable=SC1090
 source "${LIGHTFIELD_ROOT}/shared-stuff.sh"
 
-PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+PRINTRUN_SRC=${LIGHTFIELD_ROOT}/printrun
 MOUNTMON_SRC=${LIGHTFIELD_ROOT}/mountmon
 
 VERBOSE=-v

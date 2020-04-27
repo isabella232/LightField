@@ -27,7 +27,7 @@ $(TARGET): $(OBJECTS)
 	$(LD) $(LFLAGS) -o $@ $^
 
 clean:
-	-$(RM) $(TARGET) $(OBJECTS) 
+	$(RM) -f $(TARGET) $(OBJECTS)
 
 ## Dependencies
 

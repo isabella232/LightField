@@ -1,0 +1,62 @@
+variables:
+  GIT_STRATEGY: fetch
+  GIT_SUBMODULE_STRATEGY: recursive
+  VERSION: 1.0.12.7
+
+stages:
+  - clean
+  - build_base
+  - build_xbase
+  - build_dlp4710
+  - build_xdlp4710
+
+clean:
+  stage: clean
+  script:
+    - rm -rf packaging
+  tags:
+    - lightfield
+
+build_base:
+  stage: build_base
+  script:
+    - bash change-version-number.sh -t base $VERSION
+    - bash make-deb-package.sh release
+  tags:
+    - lightfield
+  artifacts:
+    paths:
+      - packaging/latest/
+
+build_xbase:
+  stage: build_xbase
+  script:
+    - bash change-version-number.sh -t xbase $VERSION
+    - bash make-deb-package.sh release
+  tags:
+    - lightfield
+  artifacts:
+    paths:
+      - packaging/latest/
+
+build_dlp4710:
+  stage: build_dlp4710
+  script:
+    - bash change-version-number.sh -t dlp4710 $VERSION
+    - bash make-deb-package.sh release
+  tags:
+    - lightfield
+  artifacts:
+    paths:
+      - packaging/latest/
+
+build_xdlp4710:
+  stage: build_xdlp4710
+  script:
+    - bash change-version-number.sh -t xdlp4710 $VERSION
+    - bash make-deb-package.sh release
+  tags:
+    - lightfield
+  artifacts:
+    paths:
+      - packaging/latest/
