@@ -349,6 +349,7 @@ void PrintManager::stepB2_start( ) {
     if(_isTiled){
         int realLayer = currentLayer()/_manifestMgr->tilingCount();
         layerProjectionTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+        _duringTiledLayer = true;
     }else {
         layerProjectionTime = 1000.0 * _printJob->exposureTime * ( ( _currentLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
     }
@@ -362,7 +363,7 @@ void PrintManager::stepB2_completed( ) {
 
     _stopAndCleanUpTimer( _layerProjectionTimer );
 
-    if ( _printResult == PrintResult::Abort ) {
+    if ( _printResult == PrintResult::Abort && !_duringTiledLayer) {
         stepC1_start( );
         return;
     }
@@ -378,7 +379,7 @@ void PrintManager::stepB2_completed( ) {
 void PrintManager::stepB2a_start( ){
     _step = PrintStep::B2a;
 
-    // abort would be serviced during B2_completed
+    // abort would be serviced during B3_completed
 
     if(_hasLayerMoreElements()){
         debug( "+ PrintManager::stepB2a_start: current layer has still more tiled elements to loop over'\n" );
@@ -394,6 +395,7 @@ void PrintManager::stepB2a_start( ){
         stepB2_start( );
     }else{
         debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
+        _duringTiledLayer = false;
         stepB3_start( );
     }
 
