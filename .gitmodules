@@ -1,3 +1,6 @@
 [submodule "montserrat"]
 	path = montserrat
 	url = https://github.com/JulietaUla/Montserrat.git
+[submodule "printrun"]
+	path = printrun
+	url = ../printrun.git
