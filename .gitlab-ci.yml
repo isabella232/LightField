@@ -1,0 +1,9 @@
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - sudo sh make-deb-package.sh release
+  tags:
+    - lightfield
