@@ -110,7 +110,7 @@ else
     ANTIBUILDTYPE=debug
 fi
 
-PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+PRINTRUN_SRC="${LIGHTFIELD_ROOT}/printrun"
 MOUNTMON_SRC="${LIGHTFIELD_ROOT}/mountmon"
 PRINTPROFILES_SRC="${LIGHTFIELD_ROOT}/print-profiles"
 if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
