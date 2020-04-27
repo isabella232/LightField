@@ -78,17 +78,15 @@ void TilingManager::tileImages ( )
                 _tileSlots.end());
 
 
-    OrderManifestManager::Iterator iter = _manifestMgr->iterator();
-
 
     /* iterating over slices in manifest */
-    while ( iter.hasNext() ) {
-        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % *iter);
-        ++iter;
+    for (int i=0;i<_manifestMgr->getSize();i++) {
+        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt(i));
 
         /* render tiles based on slice */
         renderTiles ( entry );
     }
+
 }
 
 void TilingManager::renderTiles ( QFileInfo info ) {
