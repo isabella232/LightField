@@ -110,7 +110,7 @@ else
     ANTIBUILDTYPE=debug
 fi
 
-PRINTRUN_SRC=/home/lumen/Volumetric/printrun
+PRINTRUN_SRC="${LIGHTFIELD_ROOT}/printrun"
 MOUNTMON_SRC="${LIGHTFIELD_ROOT}/mountmon"
 PRINTPROFILES_SRC="${LIGHTFIELD_ROOT}/print-profiles"
 if [ "${RELEASE_TRAIN}" = "base" ] || [ "${RELEASE_TRAIN}" = "xbase" ]
@@ -184,7 +184,6 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     ./rebuild ${FORCEREBUILD} -r
 fi
-chown ${CHXXXVERBOSE} -R lumen:lumen build
 
 install ${VERBOSE} -DT -m 755 build/mountmon "${LIGHTFIELD_FILES}/usr/bin/mountmon"
 
@@ -201,7 +200,6 @@ elif [ "${BUILDTYPE}" = "release" ]
 then
     ./rebuild ${FORCEREBUILD} -r
 fi
-chown ${CHXXXVERBOSE} -R lumen:lumen build
 
 install ${VERBOSE} -DT -m 755 build/lf "${LIGHTFIELD_FILES}/usr/bin/lf"
 
