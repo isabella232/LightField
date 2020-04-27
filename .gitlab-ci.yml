@@ -7,6 +7,10 @@ stages:
 build:
   stage: build
   script:
+    - bash rm -rf packaging
     - bash make-deb-package.sh release
   tags:
     - lightfield
+  artifacts:
+    paths:
+      - packaging
