@@ -6,6 +6,8 @@ stages:
 
 build:
   stage: build
+  before_script:
+    - sudo rm -rf build mountmon/build packaging
   script:
     - sudo bash make-deb-package.sh release
   tags:
