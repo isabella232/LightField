@@ -55,6 +55,7 @@ private:
     Backdrop* backdrop;
 
     QVector3D center;
+    QVector3D gravityCenter;
     float scale;
     float zoom;
     float tilt;
