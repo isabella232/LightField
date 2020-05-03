@@ -100,6 +100,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _advancedTab->setPrintProfileManager( _printProfileManager );
     _profilesTab->setPrintProfileManager( _printProfileManager );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
@@ -299,28 +300,121 @@ void Window::startPrinting( ) {
     _tabWidget->setCurrentIndex( +TabIndex::Status );
     update( );
 
+    auto const  printProfile         { _printJob->printProfile               };
+    auto const& baseSlices           { _printJob->baseSlices                 };
+    auto const& bodySlices           { _printJob->bodySlices                 };
+    auto const& baseLayerParameters { printProfile->baseLayerParameters( ) };
+    auto const& bodyLayerParameters { printProfile->bodyLayerParameters( ) };
+
     debug(
         "+ Window::startPrinting: print job %p:\n"
-        "  + modelFileName:           '%s'\n"
-        "  + modelHash:               %s\n"
-        "  + layerCount:              %d\n"
-        "  + layerThickness:          %d\n"
-        "  + exposureTime:            %.2f\n"
-        "  + exposureTimeScaleFactor: %.2f\n"
-        "  + powerLevel:              %d\n"
-        "  + printSpeed:              %.2f\n"
-        "  + estimatedVolume:         %.2f\n"
+        "  + modelFileName:              '%s'\n"
+        "  + modelHash:                  %s\n"
+        "  + totalLayerCount:            %d\n"
+        "  + base slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
+        "    + layerCount:               %d\n"
+        "    + layerThickness:           %d\n"
+        "    + firstLayerOffset:         %d\n"
+        "    + startLayer:               %d\n"
+        "    + endLayer:                 %d\n"
+        "  + body slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
+        "    + layerCount:               %d\n"
+        "    + layerThickness:           %d\n"
+        "    + firstLayerOffset:         %d\n"
+        "    + startLayer:               %d\n"
+        "    + endLayer:                 %d\n"
+        "  + print profile: (calculated parameters are marked with *)\n"
+        "    + profileName:              '%s'\n"
+        "    + baseLayerCount:           %d\n"
+        "    + baseLayersPumpingEnabled: %s\n"
+        "    + base layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
+        "    + bodyLayersPumpingEnabled: %s\n"
+        "    + body layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
         "",
+
         _printJob,
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->modelHash.toUtf8( ).data( ),
-        _printJob->layerCount,
-        _printJob->layerThickness,
-        _printJob->exposureTime,
-        _printJob->exposureTimeScaleFactor,
-        _printJob->powerLevel,
-        _printJob->printSpeed,
-        _printJob->estimatedVolume
+        _printJob->totalLayerCount,
+
+        baseSlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( baseSlices.isPreSliced ),
+        baseSlices.layerCount,
+        baseSlices.layerThickness,
+        baseSlices.firstLayerOffset,
+        baseSlices.startLayer,
+        baseSlices.endLayer,
+
+        bodySlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( bodySlices.isPreSliced ),
+        bodySlices.layerCount,
+        bodySlices.layerThickness,
+        bodySlices.firstLayerOffset,
+        bodySlices.startLayer,
+        bodySlices.endLayer,
+
+        printProfile->profileName( ).toUtf8( ).data( ),
+        printProfile->baseLayerCount( ),
+
+        ToString( baseLayerParameters.isPumpingEnabled( ) ),
+        baseLayerParameters.pumpUpDistance( ),
+        baseLayerParameters.pumpUpTime( ),
+        baseLayerParameters.pumpUpVelocity_Effective( ),
+        baseLayerParameters.pumpUpPause( ),
+        baseLayerParameters.pumpDownDistance_Effective( ),
+        baseLayerParameters.pumpDownTime_Effective( ),
+        baseLayerParameters.pumpDownVelocity_Effective( ),
+        baseLayerParameters.pumpDownPause( ),
+        baseLayerParameters.noPumpUpVelocity( ),
+        baseLayerParameters.pumpEveryNthLayer( ),
+        baseLayerParameters.layerThickness( ),
+        baseLayerParameters.layerExposureTime( ),
+        baseLayerParameters.powerLevel( ),
+
+        ToString( bodyLayerParameters.isPumpingEnabled( ) ),
+        bodyLayerParameters.pumpUpDistance( ),
+        bodyLayerParameters.pumpUpTime( ),
+        bodyLayerParameters.pumpUpVelocity_Effective( ),
+        bodyLayerParameters.pumpUpPause( ),
+        bodyLayerParameters.pumpDownDistance_Effective( ),
+        bodyLayerParameters.pumpDownTime_Effective( ),
+        bodyLayerParameters.pumpDownVelocity_Effective( ),
+        bodyLayerParameters.pumpDownPause( ),
+        bodyLayerParameters.noPumpUpVelocity( ),
+        bodyLayerParameters.pumpEveryNthLayer( ),
+        bodyLayerParameters.layerThickness( ),
+        bodyLayerParameters.layerExposureTime( ),
+        bodyLayerParameters.powerLevel( )
     );
 
     PrintJob* job = _printJob;
@@ -330,9 +424,11 @@ void Window::startPrinting( ) {
 
     _printManager = new PrintManager( _shepherd, _prepareTab->manifestMgr(), this );
     _printManager->setPngDisplayer( _pngDisplayer );
+
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );
+
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
@@ -412,22 +508,27 @@ void Window::shepherd_started( ) {
 
 void Window::shepherd_startFailed( ) {
     debug( "+ Window::shepherd_startFailed\n" );
+    // TODO
 }
 
 void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
     debug( "+ Window::shepherd_terminated: expected? %s; clean? %s\n", ToString( expected ), ToString( cleanExit ) );
+    // TODO
 }
 
 void Window::printManager_printStarting( ) {
     debug( "+ Window::printManager_printStarting\n" );
+    // TODO
 }
 
 void Window::printManager_printComplete( bool const success ) {
     debug( "+ Window::printManager_printComplete: success? %s; is model rendered? %s; is printer prepared? %s\n", ToString( success ), ToString( _isModelRendered ), ToString( _isPrinterPrepared ) );
+    // TODO
 }
 
 void Window::printManager_printAborted( ) {
     debug( "+ Window::printManager_printAborted: forwarding to printManager_printComplete\n" );
+
     printManager_printComplete( false );
 
     update( );
@@ -504,6 +605,7 @@ void Window::signalHandler_signalReceived( siginfo_t const& info ) {
         sigqueue( info.si_pid, SIGUSR2, val );
         return;
     }
+
 #if defined _DEBUG
     if ( SIGUSR1 == info.si_signo ) {
         debug( "+ Window::signalHandler_signalReceived: object information dump:\n" );

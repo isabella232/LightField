@@ -1,6 +1,8 @@
 #ifndef __PRINT_MANAGER_H__
 #define __PRINT_MANAGER_H__
 
+class MovementInfo;
+class MovementSequencer;
 class PngDisplayer;
 class PrintJob;
 class ProcessRunner;
@@ -16,10 +18,15 @@ enum class PrintResult {
 
 enum class PrintStep {
     none,
-    A1, A2, A3, A4, A5,
-    B1, B2, B2a, B3, B4, B5, B6, B7,
-    C1, C2,
-    D1, D2, D3, D4,
+    A1, A2, A3,
+    B1, B2, B2a, B3,
+        B4a1, B4a2,
+        B4b1,
+    C1, C2, C3,
+        C4a1, C4a2,
+        C4b1,
+    D1,
+    E1, E2,
 };
 
 class PrintManager: public QObject {
@@ -39,27 +46,32 @@ protected:
 
 private:
 
-    Shepherd*      _shepherd                 { };
-    PrintJob*      _printJob                 { };
-    PngDisplayer*  _pngDisplayer             { };
-    ProcessRunner* _setProjectorPowerProcess { };
-    PrintResult    _printResult              { };
+    Shepherd*           _shepherd                 { };
+    MovementSequencer*  _movementSequencer        { };
+    PrintJob*           _printJob                 { };
+    PngDisplayer*       _pngDisplayer             { };
+    ProcessRunner*      _setProjectorPowerProcess { };
+    PrintResult         _printResult              { };
 
-    bool           _lampOn                   { };
-    bool           _duringTiledLayer         {false};
-    PrintStep      _step                     { };
-    PrintStep      _pausedStep               { };
-    int            _currentLayer             { };
-    int            _elementsOnLayer          { };
-    bool           _isTiled                  { false };
-    bool           _paused                   { false };
-    double         _position                 { };
-    double         _pausedPosition           { };
-    double         _threshold                { PrinterHighSpeedThresholdZ };
+    bool                _lampOn                   { };
+    bool                _duringTiledLayer         {false};
+    PrintStep           _step                     { };
+    PrintStep           _pausedStep               { };
+    int                 _currentLayer             { };
+    int                 _currentBaseLayer         { };
+    int                 _elementsOnLayer          { };
+    bool                _isTiled                  { false };
+    bool                _paused                   { false };
+    double              _position                 { };
+    double              _pausedPosition           { };
+    double              _threshold                { PrinterHighSpeedThresholdZ };
 
-    QTimer*        _preProjectionTimer       { };
-    QTimer*        _layerProjectionTimer     { };
-    QTimer*        _preLiftTimer             { };
+    QTimer*             _preProjectionTimer       { };
+    QTimer*             _layerExposureTimer       { };
+    QTimer*             _preLiftTimer             { };
+
+    QList<MovementInfo> _stepA1_movements;
+    QList<MovementInfo> _stepA3_movements;
 
     OrderManifestManager* _manifestMgr;
 
@@ -70,6 +82,7 @@ private:
     bool    _hasLayerMoreElements();
 
 signals:
+    ;
 
     void requestDispensePrintSolution( );
 
@@ -83,6 +96,7 @@ signals:
     void lampStatusChange( bool const on );
 
 public slots:
+    ;
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
@@ -97,8 +111,10 @@ public slots:
     void printer_positionReport( double px, int cx );
 
 protected slots:
+    ;
 
 private slots:
+    ;
 
     void stepA1_start( );
     void stepA1_completed( bool const success );
@@ -109,11 +125,6 @@ private slots:
     void stepA3_start( );
     void stepA3_completed( bool const success );
 
-    void stepA4_start( );
-    void stepA4_completed( bool const success );
-
-    void stepA5_start( );
-    void stepA5_completed( );
 
     void stepB1_start( );
     void stepB1_completed( );
@@ -128,37 +139,46 @@ private slots:
     void stepB3_completed( );
     void stepB3_failed( int const exitCode, QProcess::ProcessError const error );
 
-    void stepB4_start( );
-    void stepB4_completed( );
+    void stepB4a1_start( );
+    void stepB4a1_completed( );
 
-    void stepB5_start( );
-    void stepB5_completed( bool const success );
+    void stepB4a2_start( );
+    void stepB4a2_completed( bool const success );
 
-    void stepB6_start( );
-    void stepB6_completed( bool const success );
-
-    void stepB7_start( );
-    void stepB7_completed( );
+    void stepB4b1_start( );
+    void stepB4b1_completed( );
 
 
     void stepC1_start( );
-    void stepC1_completed( bool const success );
+    void stepC1_completed( );
+    void stepC1_failed( int const exitCode, QProcess::ProcessError const error );
 
     void stepC2_start( );
-    void stepC2_completed( bool const success );
+    void stepC2_completed( );
+
+    void stepC3_start( );
+    void stepC3_completed( );
+    void stepC3_failed( int const exitCode, QProcess::ProcessError const error );
+
+    void stepC4a1_start( );
+    void stepC4a1_completed( );
+
+    void stepC4a2_start( );
+    void stepC4a2_completed( bool const success );
+
+    void stepC4b1_start( );
+    void stepC4b1_completed( );
 
 
     void stepD1_start( );
     void stepD1_completed( bool const success );
 
-    void stepD2_start( );
-    void stepD2_completed( bool const success );
 
-    void stepD3_start( );
-    void stepD3_completed( bool const success );
+    void stepE1_start( );
+    void stepE1_completed( bool const success );
 
-    void stepD4_start( );
-    void stepD4_completed( bool const success );
+    void stepE2_start( );
+    void stepE2_completed( bool const success );
 
 };
 

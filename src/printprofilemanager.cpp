@@ -6,6 +6,7 @@ PrintProfile* PrintProfileManager::_findProfile( QString const& profileName ) {
     return ( iter != _profiles->end( ) ) ? *iter : nullptr;
 }
 
+
 bool PrintProfileManager::addProfile( PrintProfile* newProfile ) {
     auto profile = _findProfile( newProfile->profileName( ) );
     if ( !profile ) {

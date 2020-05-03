@@ -33,6 +33,7 @@ QChar              extern const  LineFeed;
 QChar              extern const  CarriageReturn;
 QChar              extern const  Space;
 QChar              extern const  Comma;
+QChar              extern const  HyphenMinus;
 QChar              extern const  Slash;
 QChar              extern const  DigitZero;
 QChar              extern const  EmDash;

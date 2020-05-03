@@ -29,14 +29,17 @@ private:
     QStringList             _layerList;
     int                     _processesRunning { };
 
-    int                     _currentLayer     { };
-    int                     _completedLayers  { };
-    int                     _totalLayers      { };
-    int                     _digits           { };
-    int                     _pxWidth          { };
-    int                     _pxHeight         { };
 
-    bool                    _isRunning        { };
+    int                     _currentLayer        { };
+    int                     _completedLayers     { };
+    int                     _totalLayers         { };
+    int                     _digits              { };
+    int                     _pxWidth             { };
+    int                     _pxHeight            { };
+
+    bool                    _isRunning           { };
+
+    std::recursive_mutex    _layerRenderingLock;
 
     void _renderLayer( );
     void _cleanUpOneProcessRunner( int const slot );
@@ -57,6 +60,9 @@ protected slots:
 
 private slots:
     ;
+
+    void renderLayerProcess_succeeded( int const slot );
+    void renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error );
 
 };
 

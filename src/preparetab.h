@@ -5,6 +5,7 @@
 #include "ordermanifestmanager.h"
 
 class Hasher;
+class SliceInformation;
 class SvgRenderer;
 
 class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
@@ -83,16 +84,17 @@ private:
     QPushButton*      _navigateLast                { new QPushButton      };
     QHBoxLayout*      _navigationLayout            {                      };
 
-    QGridLayout*      _layout                      { new QGridLayout      };
 
-    bool _checkPreSlicedFiles( );
-    bool _checkJobDirectory( );
+    bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
+    void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
+    bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
     void _updatePrepareButtonState( );
     void _showWarning( QString content );
     void _handlePrepareFailed( );
+    void _startSlicer( SliceInformation const& sliceInfo );
 
 signals:
     ;
@@ -145,13 +147,21 @@ private slots:
 
     void hasher_resultReady( QString const hash );
 
-    void slicerProcess_errorOccurred( QProcess::ProcessError error );
-    void slicerProcess_started( );
-    void slicerProcess_finished( int exitCode, QProcess::ExitStatus exitStatus );
+    void slicerProcess_base_errorOccurred( QProcess::ProcessError error );
+    void slicerProcess_base_started( );
+    void slicerProcess_base_finished( int exitCode, QProcess::ExitStatus exitStatus );
 
-    void svgRenderer_layerCount( int const totalLayers );
-    void svgRenderer_layerComplete( int const currentLayer );
-    void svgRenderer_done( bool const success );
+    void slicerProcess_body_errorOccurred( QProcess::ProcessError error );
+    void slicerProcess_body_started( );
+    void slicerProcess_body_finished( int exitCode, QProcess::ExitStatus exitStatus );
+
+    void svgRenderer_base_layerCount( int const totalLayers );
+    void svgRenderer_base_layerComplete( int const currentLayer );
+    void svgRenderer_base_done( bool const success );
+
+    void svgRenderer_body_layerCount( int const totalLayers );
+    void svgRenderer_body_layerComplete( int const currentLayer );
+    void svgRenderer_body_done( bool const success );
 
     void prepareButton_clicked( bool );
     void shepherd_homeComplete( bool const success );

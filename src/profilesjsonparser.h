@@ -64,30 +64,27 @@ public:
                     throw new QException();
                 }
 
-                debug( "  + get baseLayersPumpingParameters\n" );
-                auto baseLayersPumpingParameters = obj["baseLayersPumpingParameters"];
+                debug( "  + get baseLayerParameters\n" );
+                auto baseLayerParameters = obj["baseLayerParameters"];
 
-                if(!baseLayersPumpingParameters.isUndefined() && !baseLayersPumpingParameters.isNull())
+                if(!baseLayerParameters.isUndefined() && !baseLayerParameters.isNull())
                 {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(baseLayersPumpingParameters.toObject());
-                    printProfile->setBaseLayersPumpingParameters(params);
-                    printProfile->setBaseLayersPumpingEnabled(true);
+                    PrintParameters params = _parsePrintParameters(baseLayerParameters.toObject());
+                    printProfile->setBaseLayerParameters(params);
+                }
+
+
+                debug( "  + get bodyLayerParameters\n" );
+                auto bodyLayerParameters = obj["bodyLayerParameters"];
+
+                if(!bodyLayerParameters.isUndefined() && !bodyLayerParameters.isNull())
+                {
+                    PrintParameters params = _parsePrintParameters(bodyLayerParameters.toObject());
+                    printProfile->setBodyLayerParameters(params);
+                    printProfile->setBodyLayersParametersEnabled(true);
                 }
                 else
-                    printProfile->setBaseLayersPumpingEnabled(false);
-
-                debug( "  + get bodyLayersPumpingParameters\n" );
-                auto bodyLayersPumpingParameters = obj["bodyLayersPumpingParameters"];
-
-                if(!bodyLayersPumpingParameters.isUndefined() && !bodyLayersPumpingParameters.isNull())
-                {
-                    PrintPumpingParameters params = _parsePrintPumpingParameters(bodyLayersPumpingParameters.toObject());
-                    printProfile->setBodyLayersPumpingParameters(params);
-                    printProfile->setBodyLayersPumpingEnabled(true);
-                }
-                else
-                    printProfile->setBodyLayersPumpingEnabled(false);
-
+                    printProfile->setBodyLayersParametersEnabled(false);
                 debug( "  + push back to list\n" );
                 profilesList->push_back(printProfile);
             }
@@ -106,111 +103,98 @@ public:
         return profilesList;
     }
 
-    static void saveProfiles(const QVector<PrintProfile*>* profiles)
-    {
+    static void saveProfiles( const QVector<PrintProfile*>* profiles ) {
+        QFile         jsonFile( PrintProfilesPath );
+        QJsonDocument jsonDocument;
+        QJsonArray    jsonArray;
+
         debug( "ProfilesJsonParser::saveProfiles:\n" );
-        QFile jsonFile(PrintProfilesPath);
-
-        QJsonDocument jsonDocument=QJsonDocument();
-
-        QJsonArray jsonArray;
-
         debug( "  + loop start: %d profiles\n", profiles->count( ) );
-        for(int i=0; i<profiles->count(); ++i)
-        {
-            auto profile = (*profiles)[i];
+        for ( int i = 0; i < profiles->count( ); ++i ) {
+            auto profile = ( *profiles )[i];
 
             debug( "  + serializing profile %s\n", profile->profileName( ).toUtf8( ).data( ) );
-            if(profile->profileName() == "temp")
+            if ( profile->profileName( ) == "temp" ) {
                 continue;
+            }
 
             QJsonObject json;
+            json["name"]                 = profile->profileName( );
+            json["baseLayerCount"]       = profile->baseLayerCount( );
+            json["baseLayerParameters"] = _serializePrintParameters( profile->baseLayerParameters( ) );
+            json["bodyLayerParameters"] = _serializePrintParameters( profile->bodyLayerParameters( ) );
 
-            json["name"] = profile->profileName();
-            json["baseLayerCount"] = profile->baseLayerCount();
-
-            if(profile->baseLayersPumpingEnabled())
-            {
-                QJsonObject baseParameters = _serializePrintPumpingParameters(profile->baseLayersPumpingParameters());
-                json["baseLayersPumpingParameters"]= baseParameters;
-            }
-
-            if(profile->bodyLayersPumpingEnabled())
-            {
-                QJsonObject bodyParameters = _serializePrintPumpingParameters(profile->bodyLayersPumpingParameters());
-                json["bodyLayersPumpingParameters"]= bodyParameters;
-            }
-
-            jsonArray.append(json);
+            jsonArray.append( json );
         }
 
-        jsonDocument.setArray(jsonArray);
+        jsonDocument.setArray( jsonArray );
 
-        jsonFile.open(QFile::WriteOnly);
-        jsonFile.write(jsonDocument.toJson());
+        jsonFile.open( QFile::WriteOnly );
+        jsonFile.write( jsonDocument.toJson( ) );
     }
 
 private:
-    static PrintPumpingParameters _parsePrintPumpingParameters(QJsonObject obj)
-    {
-        PrintPumpingParameters params;
 
-        params.setPumpUpDistance( _parseIntValue(obj, QString("pumpUpDistance")) );
-        params.setPumpUpTime( _parseDoubleValue(obj, QString("pumpUpTime")) );
-        params.setPumpUpPause( _parseDoubleValue(obj, QString("pumpUpPause")) );
-        params.setPumpDownPause( _parseDoubleValue(obj, QString("pumpDownPause")) );
-        params.setNoPumpUpVelocity( _parseDoubleValue(obj, QString("noPumpUpVelocity")) );
-        params.setPumpEveryNthLayer( _parseDoubleValue(obj, QString("pumpEveryNthLayer")) );
-        params.setLayerThickness( _parseDoubleValue(obj, QString("layerThickness")) );
-        params.setLayerExposureTime( _parseDoubleValue(obj, QString("layerExposureTime")) );
-        params.setPowerLevel( _parseIntValue(obj, QString("powerLevel")) );
+    static PrintParameters _parsePrintParameters( QJsonObject obj ) {
+        PrintParameters params;
+
+        params.setLayerThickness   ( _parseDoubleValue( obj, "layerThickness"    ) );
+        params.setLayerExposureTime( _parseDoubleValue( obj, "layerExposureTime" ) );
+        params.setPowerLevel       ( _parseIntValue   ( obj, "powerLevel"        ) );
+        params.setPumpingEnabled   ( _parseBoolValue  ( obj, "pumpingEnabled"    ) );
+        params.setPumpUpDistance   ( _parseIntValue   ( obj, "pumpUpDistance"    ) );
+        params.setPumpUpTime       ( _parseDoubleValue( obj, "pumpUpTime"        ) );
+        params.setPumpUpPause      ( _parseDoubleValue( obj, "pumpUpPause"       ) );
+        params.setPumpDownPause    ( _parseDoubleValue( obj, "pumpDownPause"     ) );
+        params.setNoPumpUpVelocity ( _parseDoubleValue( obj, "noPumpUpVelocity"  ) );
+        params.setPumpEveryNthLayer( _parseDoubleValue( obj, "pumpEveryNthLayer" ) );
 
         return params;
     }
 
-    static int _parseIntValue(QJsonObject obj, QString propertyName)
-    {
-        QJsonValue value;
+    static bool _parseBoolValue( QJsonObject const& obj, QString const& propertyName ) {
+        QJsonValue value { obj[propertyName] };
+        if ( value.isBool( ) )
+            return value.toBool( );
+        else {
+            debug( "ProfilesJsonParser::_parseBoolValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
+            throw new QException( );
+        }
+    }
 
-        value = obj[propertyName];
-
-        if(value.isDouble())
-           return value.toInt();
-        else
-        {
+    static int _parseIntValue( QJsonObject const& obj, QString const& propertyName ) {
+        QJsonValue value { obj[propertyName] };
+        if ( value.isDouble( ) )
+            return value.toInt( );
+        else {
             debug( "ProfilesJsonParser::_parseIntValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
-            throw new QException();
+            throw new QException( );
         }
     }
 
-    static double _parseDoubleValue(QJsonObject obj, QString propertyName)
-    {
-        QJsonValue value;
-
-        value = obj[propertyName];
-
-        if(value.isDouble())
-           return value.toDouble();
-        else
-        {
+    static double _parseDoubleValue( QJsonObject const& obj, QString const& propertyName ) {
+        QJsonValue value { obj[propertyName] };
+        if ( value.isDouble( ) )
+            return value.toDouble( );
+        else {
             debug( "ProfilesJsonParser::_parseDoubleValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
-            throw new QException();
+            throw new QException( );
         }
     }
 
-    static QJsonObject _serializePrintPumpingParameters(PrintPumpingParameters params)
-    {
+    static QJsonObject _serializePrintParameters( PrintParameters const& params ) {
         QJsonObject result;
 
-        result["pumpUpDistance"]=params.pumpUpDistance();
-        result["pumpUpTime"]=params.pumpUpTime();
-        result["pumpUpPause"]=params.pumpUpPause();
-        result["pumpDownPause"]=params.pumpDownPause();
-        result["noPumpUpVelocity"]=params.noPumpUpVelocity();
-        result["pumpEveryNthLayer"]=params.pumpEveryNthLayer();
-        result["layerThickness"]=params.layerThickness();
-        result["layerExposureTime"]=params.layerExposureTime();
-        result["powerLevel"]=params.powerLevel();
+        result["layerThickness"]    = params.layerThickness( );
+        result["layerExposureTime"] = params.layerExposureTime( );
+        result["powerLevel"]        = params.powerLevel( );
+        result["pumpingEnabled"]    = params.isPumpingEnabled( );
+        result["pumpUpDistance"]    = params.pumpUpDistance( );
+        result["pumpUpTime"]        = params.pumpUpTime( );
+        result["pumpUpPause"]       = params.pumpUpPause( );
+        result["pumpDownPause"]     = params.pumpDownPause( );
+        result["noPumpUpVelocity"]  = params.noPumpUpVelocity( );
+        result["pumpEveryNthLayer"] = params.pumpEveryNthLayer( );
 
         return result;
     }

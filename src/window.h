@@ -37,7 +37,8 @@ public:
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
-    void showEvent( QShowEvent* aShowEvent ) override;
+    virtual void showEvent( QShowEvent* aShowEvent ) override;
+
 private:
 
     SignalHandler*       _signalHandler       { };

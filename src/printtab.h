@@ -3,8 +3,6 @@
 
 #include "tabbase.h"
 
-#undef ENABLE_SPEED_SETTING
-
 enum class BuildPlatformState {
     Lowered,
     Raising,
@@ -44,29 +42,9 @@ private:
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
 
-    QLabel*            _exposureTimeLabel                  { new QLabel      };
-    QLabel*            _exposureTimeValue                  { new QLabel      };
-
-    QSlider*           _exposureTimeSlider                 { new QSlider     };
-
-
-    QLabel*            _exposureTimeScaleFactorLabel       { new QLabel      };
-    QLabel*            _exposureTimeScaleFactorValue       { new QLabel      };
-
-    QSlider*           _exposureTimeScaleFactorSlider      { new QSlider     };
-
-    QHBoxLayout*       _exposureLayout                     { new QHBoxLayout };
-
-
     QLabel*            _powerLevelLabel                    { new QLabel      };
     QLabel*            _powerLevelValue                    { new QLabel      };
     QSlider*           _powerLevelSlider                   { new QSlider     };
-
-#if defined ENABLE_SPEED_SETTING
-    QLabel*            _printSpeedLabel                    { new QLabel      };
-    QLabel*            _printSpeedValue                    { new QLabel      };
-    QSlider*           _printSpeedSlider                   { new QSlider     };
-#endif // defined ENABLE_SPEED_SETTING
 
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
@@ -110,13 +88,9 @@ private slots:
     void lowerBuildPlatform_moveAbsoluteComplete( bool const success );
     void home_homeComplete( bool const success );
 
-    void exposureTimeSlider_valueChanged( int value );
-    void exposureTimeScaleFactorSlider_valueChanged( int value );
     void powerLevelSlider_sliderReleased( );
     void powerLevelSlider_valueChanged( int percentage );
-#if defined ENABLE_SPEED_SETTING
-    void printSpeedSlider_valueChanged( int value );
-#endif // defined ENABLE_SPEED_SETTING
+
     void printButton_clicked( bool );
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );

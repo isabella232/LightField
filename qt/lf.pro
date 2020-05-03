@@ -30,6 +30,7 @@ SOURCES +=                          \
     ../src/main.cpp                 \
     ../src/mesh.cpp                 \
     ../src/ordermanifestmanager.cpp \
+    ../src/movementsequencer.cpp    \
     ../src/paramslider.cpp          \
     ../src/pngdisplayer.cpp         \
     ../src/preparetab.cpp           \
@@ -82,6 +83,7 @@ HEADERS  +=                         \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
     ../src/mesh.h                   \
+    ../src/movementsequencer.h      \    
     ../src/ordermanifestmanager.h   \
     ../src/paramslider.h            \
     ../src/pngdisplayer.h           \
