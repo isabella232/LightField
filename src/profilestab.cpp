@@ -442,11 +442,9 @@ bool ProfilesTab::_updateProfile()
     PrintProfile* activeProfile = (PrintProfile*)_printProfileManager->activeProfile();
 
     profile->setBaseLayerCount(activeProfile->baseLayerCount());
-    profile->setBaseLayersPumpingEnabled(activeProfile->baseLayersPumpingEnabled());
-    profile->setBodyLayersPumpingEnabled(activeProfile->bodyLayersPumpingEnabled());
 
-    PrintPumpingParameters baseParams = activeProfile->baseLayersPumpingParameters();
-    PrintPumpingParameters newBaseParams;
+    PrintParameters baseParams = activeProfile->baseLayerParameters();
+    PrintParameters newBaseParams;
 
     newBaseParams.setPumpUpDistance( baseParams.pumpUpDistance() );
     newBaseParams.setPumpUpTime( baseParams.pumpUpTime() );
@@ -457,11 +455,12 @@ bool ProfilesTab::_updateProfile()
     newBaseParams.setLayerThickness( baseParams.layerThickness() );
     newBaseParams.setLayerExposureTime( baseParams.layerExposureTime() );
     newBaseParams.setPowerLevel( baseParams.powerLevel() );
+    newBaseParams.setPumpingEnabled( baseParams.isPumpingEnabled() );
 
-    profile->setBaseLayersPumpingParameters( newBaseParams );
+    profile->setBaseLayerParameters( newBaseParams );
 
-    PrintPumpingParameters bodyParams = activeProfile->bodyLayersPumpingParameters();
-    PrintPumpingParameters newBodyParams;
+    PrintParameters bodyParams = activeProfile->bodyLayerParameters();
+    PrintParameters newBodyParams;
 
     newBodyParams.setPumpUpDistance( bodyParams.pumpUpDistance() );
     newBodyParams.setPumpUpTime( bodyParams.pumpUpTime() );
@@ -472,8 +471,9 @@ bool ProfilesTab::_updateProfile()
     newBodyParams.setLayerThickness( bodyParams.layerThickness() );
     newBodyParams.setLayerExposureTime( bodyParams.layerExposureTime() );
     newBodyParams.setPowerLevel( bodyParams.powerLevel() );
+    newBodyParams.setPumpingEnabled( bodyParams.isPumpingEnabled() );
 
-    profile->setBodyLayersPumpingParameters( newBodyParams );
+    profile->setBodyLayerParameters( newBodyParams );
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
     profile->debugPrint();

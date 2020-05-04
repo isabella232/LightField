@@ -327,7 +327,7 @@ void PrintManager::stepB2_start( ) {
     }else {
         layerExposureTime = _printJob->printProfile->baseLayerParameters( ).layerExposureTime( );
     }
-    debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerProjectionTime );
+    debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
     _layerExposureTimer = _makeAndStartTimer( layerExposureTime, &PrintManager::stepB2_completed );
 }
@@ -362,7 +362,8 @@ void PrintManager::stepB2a_start( ){
         _currentLayer++;
         _pngDisplayer->clear( );
         emit startingLayer( _currentLayer );
-        QString pngFileName = _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt( currentLayer() );
+        //MERGE_TODO needs alignment
+        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
             debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
@@ -978,7 +979,8 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
 }
 
 bool PrintManager::_hasLayerMoreElements() {
-    if (_currentLayer+1 == _printJob->layerCount) {
+    //MERGE_TODO check
+    if (_currentLayer+1 == _printJob->totalLayerCount) {
     return false;
     }
 

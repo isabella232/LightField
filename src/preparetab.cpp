@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include <sys/sysinfo.h>
+//#include <sys/sysinfo.h>
 
 #include "preparetab.h"
 
@@ -219,7 +219,7 @@ void PrepareTab::_connectUsbMountManager( ) {
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &PrepareTab::usbMountManager_filesystemUnmounted );
 }
 
-bool PrepareTab::_checkPreSlicedFiles( ) {
+bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo ) {
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
@@ -228,8 +228,9 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
-
-    auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
+    //MERGE_TODO further alignment may be needed
+    //auto slicedSvgFile = QFileInfo { _printJob->jobWorkingDirectory + Slash + SlicedSvgFileName };
+    auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -253,7 +254,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     int prevLayerNumber = -1;
 
     _manifestManager->restart();
-    _manifestManager->setPath( _printJob->jobWorkingDirectory );
+    _manifestManager->setPath( sliceInfo.sliceDirectory );
     QStringList errors;
     QStringList warnings;
 
@@ -285,7 +286,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
         }
     }
 
-    _printJob->layerCount = _manifestManager->getSize();
+    _printJob->totalLayerCount = _manifestManager->getSize();
 
     OrderManifestManager::Iterator iter = _manifestManager->iterator();
 
@@ -294,7 +295,7 @@ bool PrepareTab::_checkPreSlicedFiles( ) {
     //   and that there are no gaps in the numbering.
     while ( iter.hasNext() ) {
 
-        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % *iter);
+        QFileInfo entry ( sliceInfo.sliceDirectory % Slash % *iter);
         ++iter;
 
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
@@ -408,16 +409,18 @@ bool PrepareTab::_checkSliceDirectories( ) {
 
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->layerThickness = 100;
+    //MERGE_TODO not sure if that control will stay
+//    _printJob->layerThickness = 100;
 
-    _checkJobDirectory( );
+//    _checkJobDirectory( );
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->layerThickness = 50;
+    //MERGE_TODO not sure if that control will stay
+//    _printJob->layerThickness = 50;
 
-    _checkJobDirectory( );
+//    _checkJobDirectory( );
 }
 
 #if defined EXPERIMENTAL
@@ -565,10 +568,10 @@ void PrepareTab::setupTiling_clicked( bool ) {
 
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
-    
-    QDir jobDir { _printJob->jobWorkingDirectory };
-    jobDir.removeRecursively( );
-    jobDir.mkdir( _printJob->jobWorkingDirectory );
+ // MERGE_TODO further alignment required
+//    QDir jobDir { _printJob->jobWorkingDirectory };
+//    jobDir.removeRecursively( );
+//    jobDir.mkdir( _printJob->jobWorkingDirectory );
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
@@ -602,7 +605,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _sliceStatus->setText( "idle" );
     _hasher = nullptr;
 
-    bool goodJobDir = _checkJobDirectory( );
+    bool goodJobDir = _checkSliceDirectories( );
     emit slicingNeeded( !goodJobDir );
 
     update( );
@@ -746,8 +749,8 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_base_done          );
 
     _manifestManager->restart();
-    _manifestManager->setPath( _printJob->jobWorkingDirectory );
-
+    //MERGE_TODO align proper path
+     _manifestManager->setPath( "/fix/me");
     if ( _directoryMode ) {
         QStringList errors;
         QStringList warnings;
@@ -778,12 +781,12 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
             }
         }
 
-        _printJob->layerCount = _manifestManager->getSize();
+        _printJob->totalLayerCount = _manifestManager->getSize();
         _orderButton->setEnabled( true );
         _setupTiling->setEnabled( true );
         _svgRenderer->loadSlices( _manifestManager );
     } else {
-        _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory + Slash + SlicedSvgFileName, _manifestManager );
+        _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory, _manifestManager);
     }
     update();
 }
@@ -818,7 +821,7 @@ void PrepareTab::svgRenderer_base_done( bool const success ) {
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_body_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_body_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_body_done          );
-    _svgRenderer->startRender( _printJob->bodySlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->bodySlices.sliceDirectory );
+    _svgRenderer->startRender( _printJob->bodySlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->bodySlices.sliceDirectory, _manifestManager);
 
     update( );
 }
@@ -855,21 +858,6 @@ void PrepareTab::svgRenderer_body_done( bool const success ) {
     _sliceButton->setText( success ? "Reslice" : "Slice" );
 
     emit uiStateChanged( TabIndex::Prepare, success ? UiState::SliceCompleted : UiState::SelectCompleted );
-
-    update( );
-}
-
-void PrepareTab::_handlePrepareFailed( ) {
-    _prepareMessage->setText( "Preparation failed." );
-
-    QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
-
-    _prepareButton->setText( "Retry" );
-    _prepareButton->setEnabled( true );
-
-    setPrinterAvailable( true );
-    emit printerAvailabilityChanged( true );
-    emit preparePrinterComplete( false );
 
     update( );
 }
@@ -1016,20 +1004,21 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             bool thickness50  = false;
             bool thickness100 = false;
 
-            switch ( _printJob->layerThickness ) {
+            //switch ( _printJob->layerThickness ) {
 #if defined EXPERIMENTAL
                 case 20:  thickness20  = true; break;
 #endif // defined EXPERIMENTAL
-                case 50:  thickness50  = true; break;
-                case 100: thickness100 = true; break;
-            }
+           //     case 50:  thickness50  = true; break;
+           //     case 100: thickness100 = true; break;
+           // }
 #if defined EXPERIMENTAL
             _layerThickness20Button->setChecked( thickness20 );
 #endif // defined EXPERIMENTAL
             _layerThickness50Button->setChecked( thickness50 );
             _layerThickness100Button->setChecked( thickness100 );
 
-            slicerProcess_finished( 0, QProcess::NormalExit );
+            //MERGE_TODO alignment needed
+            slicerProcess_body_finished( 0, QProcess::NormalExit );
             break;
     }
 

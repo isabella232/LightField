@@ -391,12 +391,12 @@ void StatusTab::printManager_printResumed( ) {
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
-    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->layerCount );
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount);
     //debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount );
     // MERGE_TODO switch tiled to total layers
     if(_manifestManager->tiled()){
         int realLayer = (layer+_manifestManager->tilingCount())/_manifestManager->tilingCount();
-        int realLayersTotal = _printJob->layerCount/_manifestManager->tilingCount();
+        int realLayersTotal = _printJob->totalLayerCount/_manifestManager->tilingCount();
         int currentElement = (layer % _manifestManager->tilingCount()) + 1;
         _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( _manifestManager->tilingCount() ) );
     }else{
@@ -435,8 +435,8 @@ void StatusTab::printManager_startingLayer( int const layer ) {
 
     _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->totalLayerCount ) * 100.0 + 0.5 ) ) );
 
-
-    auto pixmap = QPixmap( _printJob->jobWorkingDirectory % Slash % _manifestManager->getElementAt( layer ) );
+    //MERGE_TODO possible aligment needed
+    auto pixmap = QPixmap( _printJob->getLayerDirectory( layer ) % Slash % _manifestManager->getElementAt( layer ) );
     // MERGE_TODO 
     // auto pixmap = QPixmap { _printJob->getLayerFileName( layer ) };
     _imageFileNameLabel->setText("Layer image: " % ( _manifestManager->getElementAt( layer ) ));

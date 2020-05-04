@@ -84,6 +84,8 @@ private:
     QPushButton*      _navigateLast                { new QPushButton      };
     QHBoxLayout*      _navigationLayout            {                      };
 
+    QGridLayout*      _layout                      { new QGridLayout      };
+
 
     bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
     void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
