@@ -1006,7 +1006,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
             //switch ( _printJob->layerThickness ) {
 #if defined EXPERIMENTAL
-                case 20:  thickness20  = true; break;
+           //     case 20:  thickness20  = true; break;
 #endif // defined EXPERIMENTAL
            //     case 50:  thickness50  = true; break;
            //     case 100: thickness100 = true; break;
