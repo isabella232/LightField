@@ -52,8 +52,8 @@ public slots:
         this->_areaHeight = _currentLayerImage->height( );
         this->_wRatio = ((double)_areaWidth) /  ProjectorWindowSize.width();
         this->_hRatio = ((double)_areaHeight) /  ProjectorWindowSize.height();
-
-        QPixmap pixmap ( _printJob->jobWorkingDirectory % Slash % _manifestManager->getFirstElement() );
+        //MERGE_TODO getLayerDirectory(0) to be aligned
+        QPixmap pixmap ( _printJob->getLayerDirectory(0) % Slash % _manifestManager->getFirstElement() );
 
         if( this->_pixmap )
             delete this->_pixmap;

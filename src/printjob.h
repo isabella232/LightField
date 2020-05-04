@@ -41,7 +41,6 @@ public:
         bodySlices      = value->bodySlices;
         exposureTime            = value->exposureTime;
         exposureTimeScaleFactor = value->exposureTimeScaleFactor;
-        powerLevel              = value->powerLevel;
         totalLayerCount = value->totalLayerCount;
 
         printProfile    = value->printProfile;
@@ -56,6 +55,7 @@ public:
     Coordinate       y               { };
     Coordinate       z               { };
     double           estimatedVolume { }; // unit: µL
+    //MERGE_TODO to be removed?
     double          exposureTime            { 1.0 }; // unit: s
     double          exposureTimeScaleFactor { 1.0 }; // for first two layers
     SliceInformation baseSlices;
