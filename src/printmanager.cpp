@@ -87,11 +87,11 @@ namespace {
         "E1", "E2",
     };
 
-    constexpr bool IsBadPrintResult( PrintResult const printResult ) {
+    bool IsBadPrintResult( PrintResult const printResult ) {
         return printResult < PrintResult::None;
     }
 
-    constexpr char const* ToString( PrintStep const value ) {
+    char const* ToString( PrintStep const value ) {
 #if defined _DEBUG
         if ( ( value >= PrintStep::none ) && ( value <= PrintStep::C1 ) ) {
 #endif
@@ -102,6 +102,7 @@ namespace {
         }
 #endif
     }
+
 
 }
 
