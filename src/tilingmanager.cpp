@@ -21,7 +21,8 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
     _wCount = count;
     _spacePx = ((double)space) / ProjectorPixelSize;
 
-    QString jobWorkingDir = _printJob->jobWorkingDirectory;
+    //MERGE_TODO align directory
+    QString jobWorkingDir = _printJob->getLayerDirectory(0);
 
     QString dirName = QString("tiled-%1-%2-%3-%4").arg( _expoTime ).arg( _step ).arg( _space ).arg( _count ) % GetFileBaseName( jobWorkingDir );
     _path = jobWorkingDir.mid( 0, jobWorkingDir.lastIndexOf( Slash ) ) % Slash % dirName;
@@ -53,7 +54,8 @@ void TilingManager::tileImages ( )
     debug( "+ TilingManager::tileImages\n");
 
     QPixmap pixmap;
-    pixmap.load(_printJob->jobWorkingDirectory % Slash % _manifestMgr->getFirstElement());
+    //MERGE_TODO align directory
+    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _manifestMgr->getFirstElement());
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
@@ -81,7 +83,8 @@ void TilingManager::tileImages ( )
 
     /* iterating over slices in manifest */
     for (int i=0;i<_manifestMgr->getSize();i++) {
-        QFileInfo entry ( _printJob->jobWorkingDirectory % Slash % _manifestMgr->getElementAt(i));
+        //MERGE_TODO align directory
+        QFileInfo entry ( _printJob->getLayerDirectory(i) % Slash % _manifestMgr->getElementAt(i));
 
         /* render tiles based on slice */
         renderTiles ( entry );

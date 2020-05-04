@@ -145,7 +145,57 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
     _renderLayer( );
 }
+//void SvgRenderer::renderLayerProcess_succeeded( int const slot ) {
+//    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
 
+//    ++_completedLayers;
+//    debug(
+//        "+ SvgRenderer::renderLayerProcess_succeeded:\n"
+//        "  + slot:              %d\n"
+//        "  + layer:             %d\n"
+//        "  + _completedLayers:  %d\n"
+//        "  + _totalLayers:      %d\n"
+//        "",
+//        slot,
+//        _runningLayers[slot],
+//        _completedLayers,
+//        _totalLayers
+//    );
+
+//    emit layerComplete( _runningLayers[slot] );
+
+//    _cleanUpOneProcessRunner( slot );
+
+//    if ( _completedLayers == _totalLayers ) {
+//        TimingLogger::stopTiming( TimingId::RenderingPngs );
+//        debug( "+ SvgRenderer::renderLayerProcess_succeeded: layer rendering is complete\n" );
+//        emit done( true );
+//    } else {
+//        _renderLayer( );
+//    }
+//}
+
+//void SvgRenderer::renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error ) {
+//    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+//    debug(
+//        "+ SvgRenderer::renderLayerProcess_failed:\n"
+//        "  + slot:              %d\n"
+//        "  + layer:             %d\n"
+//        "  + exit code:         %d\n"
+//        "  + error:             %s [%d]\n"
+//        "",
+//        slot,
+//        _runningLayers[slot],
+//        exitCode,
+//        ToString( error ), static_cast<int>( error )
+//    );
+
+//    _cleanUpProcessRunners( );
+
+//    TimingLogger::stopTiming( TimingId::RenderingPngs );
+
+//    emit done( false );
+//}
 void SvgRenderer::_renderLayer( ) {
     debug(
         "+ SvgRenderer::_renderLayer:\n"

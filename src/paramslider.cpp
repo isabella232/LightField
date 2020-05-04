@@ -83,6 +83,11 @@ ParamSlider::ParamSlider(QString name, QString unit, int startValue, int maxValu
     this->init(name, unit, startValue, maxValue, step, minValue);
 }
 
+ParamSlider::ParamSlider(QString name, QString unit, int startValue, int maxValue, int step)
+{
+    this->init(name, unit, startValue, maxValue, step, 0);
+}
+
 ParamSlider::ParamSlider(QString name, int maxValue)
 {
     this->init(name, "", 0, maxValue, 1, 0);

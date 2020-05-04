@@ -39,7 +39,8 @@ private:
 
     bool                    _isRunning           { };
 
-    std::recursive_mutex    _layerRenderingLock;
+    //MERGE_TODO check if has to be removed
+    //std::recursive_mutex    _layerRenderingLock;
 
     void _renderLayer( );
     void _cleanUpOneProcessRunner( int const slot );
@@ -61,8 +62,8 @@ protected slots:
 private slots:
     ;
 
-    void renderLayerProcess_succeeded( int const slot );
-    void renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error );
+//    void renderLayerProcess_succeeded( int const slot );
+//    void renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error );
 
 };
 
