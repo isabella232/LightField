@@ -14,6 +14,7 @@ class ParamSlider: public QGroupBox {
         void init(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
 
     public:
+        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step);
         ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
         ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue, double factor);
         ParamSlider(QString name, int maxValue);
