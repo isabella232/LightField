@@ -62,6 +62,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
+
+
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
         _upgradeManager->checkForUpgrades( _usbMountManager->mountPoint( ) );
@@ -78,6 +80,10 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
+    _advancedTab->setPrintJob(_printJob);
+    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
+
+
     OrderManifestManager* manifestMgr = new OrderManifestManager( );
     for ( auto tabA : tabs ) {
         QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
@@ -89,6 +95,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
         for ( auto tabB : tabs ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
+            tabA->setPrintProfileManager( _printProfileManager);
         }
 
         tabA->setManifestMgr( manifestMgr );
@@ -100,8 +107,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
-    _advancedTab->setPrintProfileManager( _printProfileManager );
-    _profilesTab->setPrintProfileManager( _printProfileManager );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 
@@ -171,9 +176,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
 
-    _advancedTab->setPrintProfileManager( _printProfileManager );
     //
     // "Profiles" tab
     //

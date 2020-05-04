@@ -84,6 +84,7 @@ void PrintTab::_connectPrintJob( ) {
     debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
 
     int powerLevelValue = _printJob->printProfile->baseLayerParameters( ).powerLevel( );
+
     _powerLevelSlider->setValue( powerLevelValue );
     _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
 

@@ -702,6 +702,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     }
 
     _loadingPrintProfile = false;
+    printJob()->printProfile = (PrintProfile*)profile;
 }
 
 void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)
