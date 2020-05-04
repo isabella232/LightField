@@ -81,10 +81,8 @@ public:
                 {
                     PrintParameters params = _parsePrintParameters(bodyLayerParameters.toObject());
                     printProfile->setBodyLayerParameters(params);
-                    printProfile->setBodyLayersParametersEnabled(true);
                 }
-                else
-                    printProfile->setBodyLayersParametersEnabled(false);
+
                 debug( "  + push back to list\n" );
                 profilesList->push_back(printProfile);
             }
