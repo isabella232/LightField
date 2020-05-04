@@ -306,7 +306,8 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
         case UiState::SelectedDirectory:
         if(sender == TabIndex::Tiling)
         {
-            auto index = _libraryFsModel->index( _printJob->jobWorkingDirectory );
+            //MERGE_TODO to align
+            auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
 
             //debug( "+ FileTab::tab_uiStateChanged: %s %d \n",  _printJob->jobWorkingDirectory .toUtf8().data(), index.row() );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
@@ -621,8 +622,9 @@ void FileTab::selectButton_clicked( bool ) {
         } else {
             auto match = SliceDirectoryNameRegex.match( _modelSelection.fileName );
             if ( match.hasMatch( ) ) {
-                _printJob->layerThickness = match.captured( 1 ).toInt( );
-                _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
+                //MERGE_TODO to align
+                //_printJob->layerThickness = match.captured( 1 ).toInt( );
+                //_printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
                 _printJob->modelFileName = GetFileBaseName( _modelSelection.fileName );
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
             }
@@ -688,7 +690,8 @@ void FileTab::selectButton_clicked( bool ) {
                 }
             }, Qt::QueuedConnection );
 
-            _printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % folderCpyName;
+            //MERGE_TODO to align
+            //_printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % folderCpyName;
 
             QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
             fileCopier->copy( pairList );
