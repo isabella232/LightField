@@ -1,6 +1,6 @@
 #include "ordermanifestmanager.h"
 
-const QString ManifestKeys::strings[10] = {
+const QString ManifestKeys::strings[14] = {
         "size",
         "sort_type",
         "tiling",
@@ -9,6 +9,10 @@ const QString ManifestKeys::strings[10] = {
         "space",
         "count",
         "entities",
+        "fileName",
+        "baseLayer",
+        "baseLayerThickness",
+        "firstLayerOffset",
         "exposureTime",
         "estimatedVolume"
 };
@@ -22,7 +26,7 @@ const QString ManifestSortType::strings[3] = {
 ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QStringList *warningList = nullptr) {
     debug( "+ OrderManifestManager::parse: parsing manifest file in directory '%s'\n", _dirPath.toUtf8( ).data( ) );
     _fileNameList.clear();
-
+    _isBaseLayer.clear();
 
     QFile jsonFile( _dirPath % Slash % ManifestFilename );
     if(!jsonFile.exists()) {
@@ -60,7 +64,8 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 
     _size = root.value(ManifestKeys(ManifestKeys::SIZE).toQString()).toInt();
     _type = ManifestSortType(root.value(ManifestKeys(ManifestKeys::SORT_TYPE).toQString()).toString());
-
+    _firstLayerOffset = root.value(ManifestKeys(ManifestKeys::FIRST_LAYER_OFFSET).toQString()).toInt();
+    _baseLayerThickNess = root.value(ManifestKeys(ManifestKeys::BASE_LAYER_THICKNESS).toQString()).toInt();
 
     debug( "+ OrderManifestManager::parse: checking tiling... \n" );
     if( root.contains( ManifestKeys(ManifestKeys::TILING).toQString( ) ) ) {
@@ -84,8 +89,18 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
 
     int i=0;
-    for(; i<entities.count(); ++i) {
-        _fileNameList.push_back(entities[i].toString());
+
+    try {
+        for(; i<entities.count(); ++i) {
+            QJsonObject entity = entities[i].toObject();
+            QString fileName = entity.value(ManifestKeys(ManifestKeys::FILE_NAME).toQString()).toString();
+            bool isBase = entity.value(ManifestKeys(ManifestKeys::FILE_NAME).toQString()).toBool();
+
+            _fileNameList.push_back(fileName);
+            _isBaseLayer.push_back(isBase);
+        }
+    } catch (...) {
+        return ManifestParseResult::FILE_CORRUPTED;
     }
 
     if(i != _size ) {
@@ -133,7 +148,11 @@ bool OrderManifestManager::save() {
 
     for(int i=0; i<_fileNameList.size(); ++i)
     {
-        jsonArray.append(_fileNameList[i]);
+        QJsonObject entity;
+        entity.insert( ManifestKeys(ManifestKeys::FILE_NAME).toQString(),      QJsonValue { _fileNameList[i] } );
+        entity.insert( ManifestKeys(ManifestKeys::BASE_LAYER).toQString(),     QJsonValue { _isBaseLayer[i] } );
+
+        jsonArray.append(entity);
     }
 
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
@@ -151,4 +170,11 @@ double OrderManifestManager::getTimeForElementAt(int position){
         return 0;
     else
         return _tilingExpoTime[position];
+}
+
+bool OrderManifestManager::isBaseLayer(int position) {
+    if(this->_isBaseLayer.count() < position)
+        return false;
+    else
+        return _isBaseLayer[position];
 }

@@ -20,11 +20,15 @@ public:
         SPACE,
         COUNT,
         ENTITIES,
+        FILE_NAME,
+        BASE_LAYER,
+        BASE_LAYER_THICKNESS,
+        FIRST_LAYER_OFFSET,
         EXPOSURE_TIME,
         VOLUME
     };
 
-    static const QString strings[10];
+    static const QString strings[14];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -142,6 +146,17 @@ public:
         this->_estimatedVolume = modelVolume;
     }
 
+    void setBaseLayerThickness(int thickness) {
+        this->_baseLayerThickNess = thickness;
+    }
+
+    void setFirstLayerOffset(int offset) {
+        this->_firstLayerOffset = offset;
+    }
+
+
+    inline int baseLayerThickness()    { return _baseLayerThickNess; }
+    inline int firstLayerOffset()      { return _firstLayerOffset;  }
     inline bool tiled()                { return _tiled; }
     inline double tilingMinExposure()  { return _tilingMinExposure; }
     inline double tilingStep()         { return _tilingStep; }
@@ -186,6 +201,9 @@ public:
 
     double getTimeForElementAt(int position);
 
+    bool   isBaseLayer(int position);
+
+
 private:
     QString             _dirPath;
     ManifestSortType    _type;
@@ -196,6 +214,9 @@ private:
     int                 _tilingSpace       { 1 };
     int                 _tilingCount       { 1 };
     QStringList         _fileNameList      { };
+    int                 _baseLayerThickNess{ };
+    int                 _firstLayerOffset  { };
+    QList<bool>         _isBaseLayer       { };
     QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
