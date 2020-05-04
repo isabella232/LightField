@@ -426,9 +426,9 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    _printJob->layerThickness = 20;
+    //_printJob->layerThickness = 20;
 
-    _checkJobDirectory( );
+   // _checkJobDirectory( );
 }
 #endif // defined EXPERIMENTAL
 
