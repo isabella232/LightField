@@ -34,7 +34,8 @@ QString                   const  MountmonCommand               { "mountmon"     
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
 QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
-QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
+QString                   const  SlicedBaseSvgFileName         { "base_sliced.svg"                                        };
+QString                   const  SlicedBodySvgFileName         { "body_sliced.svg"                                        };
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };

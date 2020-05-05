@@ -87,9 +87,8 @@ private:
     QGridLayout*      _layout                      { new QGridLayout      };
 
 
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
-    void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
-    bool _checkSliceDirectories( );
+    bool _checkPreSlicedFiles( );
+    bool _checkSliceDirectory( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );

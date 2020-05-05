@@ -7,11 +7,6 @@
 class SliceInformation {
 
 public:
-
-    QString sliceDirectory;
-
-    bool    isPreSliced      { };
-
     int     layerCount       { };
     int     layerThickness   { }; // unit: µm
     int     firstLayerOffset { }; // unit: µm
@@ -49,6 +44,7 @@ public:
     QString          modelFileName;
     QString          modelHash;
     QString          currentImageFile        {     };
+    QString          sliceDirectory;
     
     size_t           vertexCount     { };
     Coordinate       x               { };
@@ -62,6 +58,7 @@ public:
     SliceInformation bodySlices;
 
     int              totalLayerCount { };
+    bool             isPreSliced     { };
 
     PrintProfile*    printProfile    { };
 
@@ -70,11 +67,7 @@ public:
     }
 
     QString getLayerDirectory( int const layer ) const {
-        if ( isBaseLayer( layer ) ) {
-            return baseSlices.sliceDirectory;
-        } else {
-            return bodySlices.sliceDirectory;
-        }
+        return sliceDirectory;
     }
 
     QString getLayerFileName( int const layer ) const {

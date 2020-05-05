@@ -48,7 +48,7 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager, int inital_layer ) {
     debug( "+ SvgRenderer::startRender\n" );
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
@@ -88,7 +88,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     int limit = childNodes.length( );
     debug( "  + childNodes.length(): %d\n", childNodes.length( ) );
 
-    int layer = 0;
+    int layer = inital_layer;
     for ( int childIndex = 0; childIndex < limit; ++childIndex ) {
         QDomNode node = childNodes.item( childIndex );
         if ( !node.isElement( ) ) {

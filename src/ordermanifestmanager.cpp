@@ -152,7 +152,7 @@ bool OrderManifestManager::save() {
     {
         QJsonObject entity;
         entity.insert( ManifestKeys(ManifestKeys::FILE_NAME).toQString(),      QJsonValue { _fileNameList[i] } );
-        entity.insert( ManifestKeys(ManifestKeys::BASE_LAYER).toQString(),     QJsonValue { _isBaseLayer[i] } );
+        entity.insert( ManifestKeys(ManifestKeys::BASE_LAYER).toQString(),     QJsonValue { isBaseLayer(i) } );
 
         jsonArray.append(entity);
     }
