@@ -14,7 +14,7 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& _outputDirectory, OrderManifestManager* manifestManager, int initial_layer = 0 );
+    void startRender( QString const& svgFileName, QString const& _outputDirectory, OrderManifestManager* manifestManager );
     void loadSlices ( OrderManifestManager* manifestManager );
 
 protected:

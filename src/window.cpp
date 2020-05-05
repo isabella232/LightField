@@ -318,15 +318,17 @@ void Window::startPrinting( ) {
         "  + modelFileName:              '%s'\n"
         "  + modelHash:                  %s\n"
         "  + totalLayerCount:            %d\n"
-        "  + sliceDirectory:             '%s'\n"
-        "  + isPreSliced:                %s\n"
         "  + base slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
         "    + firstLayerOffset:         %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + body slices:\n"
+        "    + sliceDirectory:           '%s'\n"
+        "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
         "    + firstLayerOffset:         %d\n"
@@ -371,15 +373,17 @@ void Window::startPrinting( ) {
         _printJob->modelFileName.toUtf8( ).data( ),
         _printJob->modelHash.toUtf8( ).data( ),
         _printJob->totalLayerCount,
-        _printJob->sliceDirectory.toUtf8( ).data( ),
-        ToString( _printJob->isPreSliced ),
 
+        baseSlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( baseSlices.isPreSliced ),
         baseSlices.layerCount,
         baseSlices.layerThickness,
         baseSlices.firstLayerOffset,
         baseSlices.startLayer,
         baseSlices.endLayer,
 
+        bodySlices.sliceDirectory.toUtf8( ).data( ),
+        ToString( bodySlices.isPreSliced ),
         bodySlices.layerCount,
         bodySlices.layerThickness,
         bodySlices.firstLayerOffset,
