@@ -396,11 +396,11 @@ bool PrepareTab::_checkSliceDirectory(  ) {
             _printJob->baseSlices.startLayer       = 0;
             _printJob->baseSlices.endLayer         = _printJob->printProfile->baseLayerCount( ) - 1;
 
-            _printJob->bodySlices.firstLayerOffset = baseThickness;
-            _printJob->bodySlices.startLayer       = _printJob->baseSlices.endLayer + 1;
+            _printJob->bodySlices.firstLayerOffset = ( baseThickness % _printJob->bodySlices.layerThickness ) - _printJob->bodySlices.layerThickness;
+            _printJob->bodySlices.startLayer       = ( baseThickness / _printJob->bodySlices.layerThickness ) - 1;
             _printJob->bodySlices.endLayer         = _printJob->bodySlices.layerCount - 1;
 
-            _printJob->totalLayerCount             = _printJob->bodySlices.endLayer + 1;
+            _printJob->totalLayerCount             = _printJob->printProfile->baseLayerCount( ) + ( _printJob->bodySlices.endLayer - _printJob->bodySlices.startLayer + 1 );
         } else {
             _printJob->baseSlices.startLayer       = -1;
             _printJob->baseSlices.endLayer         = -1;
