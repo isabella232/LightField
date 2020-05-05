@@ -1,6 +1,6 @@
 #include "ordermanifestmanager.h"
 
-const QString ManifestKeys::strings[14] = {
+const QString ManifestKeys::strings[15] = {
         "size",
         "sort_type",
         "tiling",
@@ -13,6 +13,7 @@ const QString ManifestKeys::strings[14] = {
         "baseLayer",
         "baseLayerThickness",
         "firstLayerOffset",
+        "bodyLayerThickness",
         "exposureTime",
         "estimatedVolume"
 };
@@ -66,6 +67,7 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
     _type = ManifestSortType(root.value(ManifestKeys(ManifestKeys::SORT_TYPE).toQString()).toString());
     _firstLayerOffset = root.value(ManifestKeys(ManifestKeys::FIRST_LAYER_OFFSET).toQString()).toInt();
     _baseLayerThickNess = root.value(ManifestKeys(ManifestKeys::BASE_LAYER_THICKNESS).toQString()).toInt();
+    _bodyLayerThickNess = root.value(ManifestKeys(ManifestKeys::BODY_LAYER_THICKNESS).toQString()).toInt();
 
     debug( "+ OrderManifestManager::parse: checking tiling... \n" );
     if( root.contains( ManifestKeys(ManifestKeys::TILING).toQString( ) ) ) {
@@ -177,4 +179,15 @@ bool OrderManifestManager::isBaseLayer(int position) {
         return false;
     else
         return _isBaseLayer[position];
+}
+
+int OrderManifestManager::baseLayersCount() {
+    int sum=0;
+    for(int i=0; this->_isBaseLayer.count(); ++i)
+    {
+        if(_isBaseLayer[i])
+            sum++;
+    }
+
+    return sum;
 }

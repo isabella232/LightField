@@ -24,11 +24,12 @@ public:
         BASE_LAYER,
         BASE_LAYER_THICKNESS,
         FIRST_LAYER_OFFSET,
+        BODY_LAYER_THICKNESS,
         EXPOSURE_TIME,
         VOLUME
     };
 
-    static const QString strings[14];
+    static const QString strings[15];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -154,8 +155,13 @@ public:
         this->_firstLayerOffset = offset;
     }
 
+    void setBodyLayerOffset(int thickness) {
+        this->_bodyLayerThickNess = thickness;
+    }
+
 
     inline int baseLayerThickness()    { return _baseLayerThickNess; }
+    inline int bodyLayerThickness()    { return _bodyLayerThickNess; }
     inline int firstLayerOffset()      { return _firstLayerOffset;  }
     inline bool tiled()                { return _tiled; }
     inline double tilingMinExposure()  { return _tilingMinExposure; }
@@ -203,6 +209,8 @@ public:
 
     bool   isBaseLayer(int position);
 
+    int baseLayersCount();
+
 
 private:
     QString             _dirPath;
@@ -216,6 +224,7 @@ private:
     QStringList         _fileNameList      { };
     int                 _baseLayerThickNess{ };
     int                 _firstLayerOffset  { };
+    int                 _bodyLayerThickNess{ };
     QList<bool>         _isBaseLayer       { };
     QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };

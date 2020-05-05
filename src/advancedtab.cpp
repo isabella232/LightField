@@ -8,6 +8,8 @@
 #include "shepherd.h"
 #include "advancedtabselectionmodel.h"
 #include "paramslider.h"
+#include "ordermanifestmanager.h"
+
 #include <iostream>
 
 namespace {
@@ -122,6 +124,28 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
         case UiState::PrintCompleted:
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
+            break;
+        case UiState::SelectedDirectory:
+            if(sender == TabIndex::Tiling) {
+                setLayersSettingsEnabled(false);
+            } else if (sender == TabIndex::Prepare) {
+                OrderManifestManager* manifest =  this->manifestMgr();
+
+                if(manifest->tiled()) {
+                    setLayersSettingsEnabled(false);
+                }
+                else
+                {
+                    setLayersSettingsEnabled(true);
+
+                    _baseThicknessSlider->setValue( manifest->baseLayerThickness() );
+                    _bodyThicknessSlider->setValue( manifest->bodyLayerThickness() );
+
+                    _numberOfBaseLayersSlider->setValue( manifest->baseLayersCount() );
+                    _offsetSlider->setValue( manifest->firstLayerOffset() );
+                }
+
+            }
             break;
     }
 }
@@ -708,4 +732,13 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
 void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)
 {
     _printProfileManager = profileManager;
+}
+
+
+void AdvancedTab::setLayersSettingsEnabled(bool enabled) {
+    _numberOfBaseLayersSlider->setEnabled(enabled);
+    _baseThicknessSlider->setEnabled(enabled);
+    _baseExposureTimeSlider->setEnabled(enabled);
+    _bodyThicknessSlider->setEnabled(enabled);
+    _bodyExposureTimeSlider->setEnabled(enabled);
 }

@@ -186,6 +186,7 @@ private slots:
 
     void chbox_addBasePumpCheckChanged(int state);
 
+    void setLayersSettingsEnabled(bool enabled);
 };
 
 #endif // __ADVANCEDTAB_H__
