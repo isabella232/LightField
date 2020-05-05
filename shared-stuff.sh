@@ -59,7 +59,7 @@ then
 fi
 
 ARCHITECTURE=amd64
-RELEASE_TRAIN=base
+RELEASE_TRAIN=xdlp4710
 VERSION=1.0.12.7
 
 trap error-trap ERR

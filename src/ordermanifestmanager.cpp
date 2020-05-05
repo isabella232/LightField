@@ -175,10 +175,7 @@ double OrderManifestManager::getTimeForElementAt(int position){
 }
 
 bool OrderManifestManager::isBaseLayer(int position) {
-    if(this->_isBaseLayer.count() < position)
-        return false;
-    else
-        return _isBaseLayer[position];
+    return (this->_isBaseLayer.count() > position) ? _isBaseLayer[position] : false;
 }
 
 int OrderManifestManager::baseLayersCount() {

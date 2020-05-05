@@ -3,6 +3,7 @@
 
 #include "tabbase.h"
 #include "ordermanifestmanager.h"
+#include "printprofile.h"
 
 class Hasher;
 class SliceInformation;
@@ -19,6 +20,7 @@ public:
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
+    void             loadPrintProfile(PrintProfile const* profile);
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
@@ -47,6 +49,7 @@ private:
 #if defined EXPERIMENTAL
     QRadioButton*     _layerThickness20Button      { new QRadioButton     };
 #endif
+    QRadioButton*     _layerThicknessCustomButton  { new QRadioButton     };
 
     QLabel*           _sliceStatusLabel            { new QLabel           };
     QLabel*           _sliceStatus                 { new QLabel           };
@@ -92,6 +95,7 @@ private:
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
     void _setSliceControlsEnabled( bool const enabled );
+    void _updateSliceControls();
     void _updatePrepareButtonState( );
     void _showWarning( QString content );
     void _handlePrepareFailed( );
@@ -132,6 +136,7 @@ private slots:
 
     void layerThickness100Button_clicked( bool );
     void layerThickness50Button_clicked( bool );
+    void layerThicknessCustomButton_clicked( bool );
 #if defined EXPERIMENTAL
     void layerThickness20Button_clicked( bool );
 #endif

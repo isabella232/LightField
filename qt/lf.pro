@@ -57,7 +57,8 @@ SOURCES +=                          \
     ../src/upgradeselector.cpp      \
     ../src/usbmountmanager.cpp      \
     ../src/utils.cpp                \
-    ../src/window.cpp
+    ../src/window.cpp \
+    ../src/thicknesswindow.cpp
 
 HEADERS  +=                         \
     ../src/advancedtab.h            \
@@ -116,7 +117,8 @@ HEADERS  +=                         \
     ../src/utils.h                  \
     ../src/version.h                \
     ../src/vertex.h                 \
-    ../src/window.h
+    ../src/window.h \
+    ../src/thicknesswindow.h
 
 CONFIG += c++1z precompile_header
 PRECOMPILED_HEADER = ../src/pch.h

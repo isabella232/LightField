@@ -91,18 +91,11 @@ private:
     ParamSlider*  _upVelocitySlider                   { new ParamSlider( "Base Pump Up Velocity",     "µm/ms", 1000, 8000,   1 ) };
 
 
-    //Base Layer Form
-    QWidget*      _baseLayerForm                      { new QWidget                                                              };
+    //Layer Form
+    QWidget*      _layersForm                          { new QWidget                                                              };
 
-    ParamSlider*  _numberOfBaseLayersSlider           { new ParamSlider( "Number of Base Layers",     "",         1,   20,   1 ) };
-    ParamSlider*  _baseThicknessSlider                { new ParamSlider( "Base Layer Thickness",      "µm",     100, 8000,   1 ) };
     ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base Pump Up Pause",        "ms",    2000, 8000,   1 ) };
-
-    //Body Layers Form
-    QWidget*      _bodyLayersForm                     { new QWidget                                                              };
-
-    ParamSlider*  _bodyThicknessSlider                { new ParamSlider( "Body Layer Thickness",      "µm",      20, 8000,   1 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Base Pump Up Pause",        "ms",    2000, 8000,   1 ) };
+    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body Pump Up Pause",        "ms",    2000, 8000,   1 ) };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };
@@ -116,7 +109,7 @@ private:
     ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
     ParamSlider*  _bodyUpVelocitySlider               { new ParamSlider( "Body Pump Up Velocity",     "µm/ms", 1000, 8000,   1 ) };
 
-    static const int FORMS_COUNT                      { 6 };
+    static const int FORMS_COUNT                      { 5 };
     QWidget*         _forms[FORMS_COUNT];
 
     PngDisplayer*    _pngDisplayer                    { };
@@ -132,8 +125,7 @@ private:
     void _setUpGeneralForm( QFont fontBold, QFont fontAwesome );
     void _setUpTemperaturelForm( QFont fontBold );
     void _setUpBasePumpForm( QFont fontBold );
-    void _setUpBaseLayerForm( );
-    void _setUpBodyLayersForm( );
+    void _setUpLayersForm( );
     void _setUpBodyPumpForm( QFont fontBold );
 
 signals:

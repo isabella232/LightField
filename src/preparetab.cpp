@@ -7,8 +7,10 @@
 #include "hasher.h"
 #include "printjob.h"
 #include "printmanager.h"
+#include "printprofile.h"
 #include "shepherd.h"
 #include "slicesorderpopup.h"
+#include "thicknesswindow.h"
 #include "svgrenderer.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
@@ -34,6 +36,11 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness50Button->setText( "High res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
+
+    _layerThicknessCustomButton->setEnabled( false );
+    _layerThicknessCustomButton->setText( "Custom (advanced tiling)" );
+    _layerThicknessCustomButton->setFont( font12pt );
+    QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( false );
@@ -103,17 +110,23 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( WrapWidgetsInVBox(
         _layerThicknessLabel,
-        WrapWidgetsInVBox(
-            _layerThickness100Button,
-            _layerThickness50Button
 #if defined EXPERIMENTAL
-            , _layerThickness20Button
+         WrapWidgetsInVBox(
+             _layerThickness100Button,
+             _layerThickness50Button,
+             _layerThickness20Button,
+             _layerThicknessCustomButton
+         ),
+#else
+          WrapWidgetsInVBox(
+              _layerThickness100Button,
+              _layerThickness50Button,
+              _layerThicknessCustomButton
+          ),
 #endif // defined EXPERIMENTAL
-        ),
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         WrapWidgetsInVBox(
-            _prepareGroup,
             WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr )
         )
     ) );
@@ -177,11 +190,11 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _currentLayerGroup->setLayout( _currentLayerLayout );
 
     _layout->setContentsMargins( { } );
-    _layout->addWidget( _optionsContainer,  0, 0, 1, 1 );
+    _layout->addWidget( _optionsContainer, 0, 0, 1, 1 );
     _layout->addWidget( _prepareButton, 1, 0, 1, 1 );
-    _layout->addWidget( _orderButton,       2, 0, 1, 1 );
-    _layout->addWidget( _setupTiling,      3, 0, 1, 1 );
-    _layout->addWidget( _sliceButton,       4, 0, 1, 1 );
+    _layout->addWidget( _orderButton, 2, 0, 1, 1 );
+    _layout->addWidget( _setupTiling, 3, 0, 1, 1 );
+    _layout->addWidget( _sliceButton, 4, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -442,6 +455,15 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 }
 #endif // defined EXPERIMENTAL
 
+void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
+    switch (dialog->exec()) {
+    case QDialog::Rejected:
+        _layerThicknessCustomButton->setChecked(false);
+        _layerThickness100Button->setChecked(true);
+    }
+}
+
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
     _navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
@@ -477,6 +499,7 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
     _layerThickness50Button->setEnabled( enabled );
+    _layerThicknessCustomButton->setEnabled( enabled );
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( enabled );
 #endif // defined EXPERIMENTAL
@@ -967,6 +990,36 @@ void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success )
     update( );
 }
 
+void PrepareTab::_updateSliceControls() {
+    _layerThickness100Button->setChecked(false);
+    _layerThickness50Button->setChecked(false);
+    _layerThicknessCustomButton->setChecked(false);
+#if defined EXPERIMENTAL
+    _layerThickness20Button->setChecked(false);
+#endif
+
+    if (_printJob->baseSlices.layerThickness == _printJob->bodySlices.layerThickness &&
+        _printJob->baseSlices.layerCount == 2) {
+        switch (_printJob->baseSlices.layerThickness) {
+        case 100:
+            _layerThickness100Button->setChecked(true);
+            return;
+
+        case 50:
+            _layerThickness50Button->setChecked(true);
+            return;
+
+#if defined EXPERIMENTAL
+        case 20:
+            _layerThicknessCustomButton->setChecked(true);
+            return;
+#endif
+        }
+    }
+
+    _layerThicknessCustomButton->setChecked(true);
+}
+
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     debug( "+ PrepareTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
@@ -1022,27 +1075,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::SelectedDirectory:
             _directoryMode = true;
             _setSliceControlsEnabled( false );
-
-#if defined EXPERIMENTAL
-            bool thickness20  = false;
-#endif // defined EXPERIMENTAL
-            bool thickness50  = false;
-            bool thickness100 = false;
-
-            //switch ( _printJob->layerThickness ) {
-#if defined EXPERIMENTAL
-           //     case 20:  thickness20  = true; break;
-#endif // defined EXPERIMENTAL
-           //     case 50:  thickness50  = true; break;
-           //     case 100: thickness100 = true; break;
-           // }
-#if defined EXPERIMENTAL
-            _layerThickness20Button->setChecked( thickness20 );
-#endif // defined EXPERIMENTAL
-            _layerThickness50Button->setChecked( thickness50 );
-            _layerThickness100Button->setChecked( thickness100 );
-
-            //MERGE_TODO alignment needed
+            _updateSliceControls();
             slicerProcess_body_finished( 0, QProcess::NormalExit );
             break;
     }
@@ -1089,6 +1122,13 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     debug( "+ PrepareTab::setPrinterAvailable: PO? %s PA? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ) );
 
     _updatePrepareButtonState( );
+}
+
+void PrepareTab::loadPrintProfile(PrintProfile const* profile) {
+    _printJob->baseSlices.layerCount = profile->baseLayerCount();
+    _printJob->baseSlices.layerThickness = profile->baseLayerParameters().layerThickness();
+    _printJob->bodySlices.layerThickness = profile->bodyLayerParameters().layerThickness();
+    _updateSliceControls();
 }
 
 //void PrepareTab::copyToUSB_clicked( bool ) {

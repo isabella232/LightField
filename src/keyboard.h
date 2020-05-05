@@ -18,7 +18,7 @@ public:
     Keyboard(QWidget *p);
     void checkKeyStillPressed(key *repetitionKey);
 
-    signals:
+signals:
     void keyPressed( QString t);
     void backspacePressed(  );
     void returnPressed(  );

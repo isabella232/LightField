@@ -26,9 +26,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _forms[0] = _generalForm;
     _forms[1] = _temperatureForm;
     _forms[2] = _basePumpForm;
-    _forms[3] = _baseLayerForm;
-    _forms[4] = _bodyLayersForm;
-    _forms[5] = _bodyPumpForm;
+    _forms[3] = _layersForm;
+    _forms[4] = _bodyPumpForm;
 
     QWidget::connect(_distanceSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_upTimeSlider,             &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
@@ -36,10 +35,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QWidget::connect(_downTimeSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_downPauseSlider,          &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_upVelocitySlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_numberOfBaseLayersSlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_baseThicknessSlider,      &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_baseExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyThicknessSlider,      &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyPumpEveryNthLayer,    &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyDistanceSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
@@ -53,16 +49,20 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _setUpGeneralForm(boldFont, fontAwesome);
     _setUpTemperaturelForm(boldFont);
     _setUpBasePumpForm(boldFont);
-    _setUpBaseLayerForm();
-    _setUpBodyLayersForm();
+    _setUpLayersForm();
     _setUpBodyPumpForm(boldFont);
 
-    for(int i=1; i<FORMS_COUNT; ++i)
+    for(int i = 1; i < FORMS_COUNT; ++i)
         _forms[i]->setVisible(false);
 
-
-    _rightColumn->setLayout(WrapWidgetsInVBox(_generalForm, _temperatureForm, _basePumpForm, _baseLayerForm,
-                                              _bodyLayersForm, _bodyPumpForm, nullptr));
+    _rightColumn->setLayout(WrapWidgetsInVBox(
+        _generalForm,
+        _temperatureForm,
+        _basePumpForm,
+        _layersForm,
+        _bodyPumpForm,
+        nullptr
+    ));
 
     setLayout( WrapWidgetsInHBox(
         WrapWidgetsInVBox( _leftMenu ),
@@ -137,11 +137,6 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
                 else
                 {
                     setLayersSettingsEnabled(true);
-
-                    _baseThicknessSlider->setValue( manifest->baseLayerThickness() );
-                    _bodyThicknessSlider->setValue( manifest->bodyLayerThickness() );
-
-                    _numberOfBaseLayersSlider->setValue( manifest->baseLayersCount() );
                     _offsetSlider->setValue( manifest->firstLayerOffset() );
                 }
 
@@ -325,14 +320,11 @@ void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
     item = new QStandardItem(QString("Base Pump"));
     model->setItem(2, 0, item);
 
-    item = new QStandardItem(QString("Base Layer"));
+    item = new QStandardItem(QString("Layers"));
     model->setItem(3, 0, item);
 
-    item = new QStandardItem(QString("Body Layers"));
-    model->setItem(4, 0, item);
-
     item = new QStandardItem(QString("Body Pump"));
-    model->setItem(5, 0, item);
+    model->setItem(4, 0, item);
 
     QItemSelectionModel* selectionModel = new QItemSelectionModel(model);
     QObject::connect(
@@ -557,33 +549,20 @@ void AdvancedTab::_setUpBasePumpForm(QFont boldFont)
     _basePumpForm->setWidget(container);
 }
 
-void AdvancedTab::_setUpBaseLayerForm()
+void AdvancedTab::_setUpLayersForm()
 {
-    _baseLayerForm->setContentsMargins( { } );
-    _baseLayerForm->setMinimumSize( MaximalRightHandPaneSize );
-    _baseLayerForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _baseLayerForm->setLayout(
+    _layersForm->setContentsMargins( { } );
+    _layersForm->setMinimumSize( MaximalRightHandPaneSize );
+    _layersForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    _layersForm->setLayout(
          WrapWidgetsInVBoxDM(
-            _numberOfBaseLayersSlider,
-            _baseThicknessSlider,
             _baseExposureTimeSlider,
-            nullptr
-         )
-    );
-}
-void AdvancedTab::_setUpBodyLayersForm()
-{
-    _bodyLayersForm->setContentsMargins( { } );
-    _bodyLayersForm->setMinimumSize( MaximalRightHandPaneSize );
-    _bodyLayersForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _bodyLayersForm->setLayout(
-         WrapWidgetsInVBoxDM(
-            _bodyThicknessSlider,
             _bodyExposureTimeSlider,
             nullptr
          )
     );
 }
+
 void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
 {
     QWidget* container = new QWidget();
@@ -647,7 +626,7 @@ void AdvancedTab::updatePrintProfile() {
     }
 debug( "+ AdvancedTab::updatePrintProfile 2" );
 
-    profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
+    //profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
 
     profile->baseLayerParameters( ).setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     if(_addBasePumpCheckbox->isChecked())
@@ -660,7 +639,7 @@ debug( "+ AdvancedTab::updatePrintProfile 2" );
         baseParams.setPumpDownPause(_downPauseSlider->getValue());
         baseParams.setNoPumpUpVelocity( ((double)_upVelocitySlider->getValue()) / (1000/60));
         baseParams.setPumpEveryNthLayer(0);
-        baseParams.setLayerThickness(_baseThicknessSlider->getValue());
+        //baseParams.setLayerThickness(_baseThicknessSlider->getValue());
         baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
         baseParams.setPowerLevel(_powerLevelSlider->value());
 
@@ -678,7 +657,7 @@ debug( "+ AdvancedTab::updatePrintProfile 2" );
         bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
         bodyParams.setNoPumpUpVelocity( ((double)_bodyUpVelocitySlider->getValue()) / (1000/60));
         bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
-        bodyParams.setLayerThickness(_bodyThicknessSlider->getValue());
+        //bodyParams.setLayerThickness(_bodyThicknessSlider->getValue());
         bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
         bodyParams.setPowerLevel(_powerLevelSlider->value());
 
@@ -695,7 +674,7 @@ debug( "+ AdvancedTab::updatePrintProfile 5" );
 void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     _loadingPrintProfile = true;
 
-    _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
+   // _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
     if ( profile->baseLayerParameters( ).isPumpingEnabled( ) ) {
         PrintParameters const& baseParams = profile->baseLayerParameters( );
@@ -705,7 +684,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         _upPauseSlider->setValue( baseParams.pumpUpPause( ) );
         _downPauseSlider->setValue( baseParams.pumpDownPause( ) );
         _upVelocitySlider->setValue( baseParams.noPumpUpVelocity( ) * ( 1000.0 / 60.0 ) );
-        _baseThicknessSlider->setValue( baseParams.layerThickness( ) );
+        //_baseThicknessSlider->setValue( baseParams.layerThickness( ) );
         _baseExposureTimeSlider->setValue( baseParams.layerExposureTime( ) );
         _powerLevelSlider->setValue( baseParams.powerLevel( ) );
     }
@@ -718,7 +697,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         _bodyUpPauseSlider->setValue( bodyParams.pumpUpPause( ) );
         _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause( ) );
         _bodyUpVelocitySlider->setValue( bodyParams.noPumpUpVelocity( ) * ( 1000.0 / 60.0 ) );
-        _bodyThicknessSlider->setValue( bodyParams.layerThickness( ) );
+       // _bodyThicknessSlider->setValue( bodyParams.layerThickness( ) );
         _bodyExposureTimeSlider->setValue( bodyParams.layerExposureTime( ) );
         // assume body and base power level are the same for now
         //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
@@ -736,9 +715,6 @@ void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)
 
 
 void AdvancedTab::setLayersSettingsEnabled(bool enabled) {
-    _numberOfBaseLayersSlider->setEnabled(enabled);
-    _baseThicknessSlider->setEnabled(enabled);
     _baseExposureTimeSlider->setEnabled(enabled);
-    _bodyThicknessSlider->setEnabled(enabled);
     _bodyExposureTimeSlider->setEnabled(enabled);
 }

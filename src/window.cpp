@@ -57,6 +57,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
 
     _printJob = new PrintJob;
+    _printJob->baseSlices.layerCount = 2;
+    _printJob->baseSlices.layerThickness = 100;
+    _printJob->bodySlices.layerThickness = 100;
 
     _printProfileManager = new PrintProfileManager;
     _upgradeManager      = new UpgradeManager;
@@ -80,9 +83,10 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
+    _prepareTab->setPrintJob(_printJob);
     _advancedTab->setPrintJob(_printJob);
     QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
-
+    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _prepareTab, &PrepareTab::loadPrintProfile );
 
     OrderManifestManager* manifestMgr = new OrderManifestManager( );
     for ( auto tabA : tabs ) {
