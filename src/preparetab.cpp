@@ -417,6 +417,15 @@ bool PrepareTab::_checkSliceDirectory(  ) {
         _orderButton->setEnabled(false);
         //_copyToUSBButton->setEnabled( true );
     } else {
+        if ( _printJob->printProfile->baseLayerCount( ) > 0 ) {
+            _printJob->baseSlices.startLayer       = 0;
+            _printJob->baseSlices.endLayer         = _printJob->printProfile->baseLayerCount( ) - 1;
+
+            _printJob->bodySlices.startLayer       = _printJob->baseSlices.endLayer + 1;
+        } else {
+            _printJob->baseSlices.startLayer       = -1;
+            _printJob->baseSlices.endLayer         = -1;
+        }
         _printJob->totalLayerCount = 0;
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
@@ -431,7 +440,8 @@ bool PrepareTab::_checkSliceDirectory(  ) {
 
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->baseSlices.layerThickness = 0;
+
+    _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
 
     _checkSliceDirectory( );
@@ -439,7 +449,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->baseSlices.layerThickness = 0;
+    _printJob->baseSlices.layerThickness = 50;
     _printJob->bodySlices.layerThickness = 50;
 
     _checkSliceDirectory( );
@@ -448,7 +458,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    _printJob->baseSlices.layerThickness = 0;
+    _printJob->baseSlices.layerThickness = 20;
     _printJob->bodySlices.layerThickness = 20;
 
     _checkSliceDirectory( );
@@ -621,7 +631,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     _manifestManager->removeManifest();
 
-    if ( _printJob->baseSlices.startLayer == -1 ) {
+    if ( _printJob->baseSlices.layerCount == 0 ) {
         slicerProcess_base_finished(0, QProcess::ExitStatus::NormalExit);
         return;
     }
@@ -833,7 +843,7 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
         _setupTiling->setEnabled( true );
         _svgRenderer->loadSlices( _manifestManager );
     } else {
-        if ( _manifestManager->baseLayersCount() > 0 ) {
+        if ( _printJob->baseSlices.layerCount > 0 ) {
             _svgRenderer->startRender( _printJob->sliceDirectory + Slash + SlicedBaseSvgFileName, _printJob->sliceDirectory, _manifestManager);
         } else {
             svgRenderer_base_done(true);

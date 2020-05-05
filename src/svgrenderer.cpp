@@ -57,7 +57,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
-        debug( "  + couldn't open file '%s'", svgFileName.toUtf8( ).data( ) );
+        debug( "  + couldn't open file '%s'\n", svgFileName.toUtf8( ).data( ) );
         emit done( false );
         return;
     }
