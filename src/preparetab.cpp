@@ -452,6 +452,8 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
         _layerThicknessCustomButton->setChecked(false);
         _layerThickness100Button->setChecked(true);
     }
+
+    _checkSliceDirectories();
 }
 
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
@@ -525,16 +527,21 @@ void PrepareTab::_startSlicer( SliceInformation const& sliceInfo ) {
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
+    QStringList slicerArgs = {
+        _printJob->modelFileName,
+        "--export-svg",
+        "--threads",            QString { "%1" }.arg( get_nprocs( ) ),
+        "--first-layer-height", QString { "%1" }.arg( ( sliceInfo.layerThickness + sliceInfo.firstLayerOffset ) / 1000.0 ),
+        "--layer-height",       QString { "%1" }.arg(   sliceInfo.layerThickness                                / 1000.0 ),
+        "--output",             sliceInfo.sliceDirectory % Slash % SlicedSvgFileName
+    };
+
+    debug("slic3r arguments are: %s\n", slicerArgs.join(" ").toUtf8().constData());
+
+    _slicerProcess->setProcessChannelMode(QProcess::ForwardedChannels);
     _slicerProcess->start(
         { "slic3r" },
-        {
-            _printJob->modelFileName,
-            "--export-svg",
-            "--threads",            QString { "%1" }.arg( get_nprocs( ) ),
-            "--first-layer-height", QString { "%1" }.arg( ( sliceInfo.layerThickness + sliceInfo.firstLayerOffset ) / 1000.0 ),
-            "--layer-height",       QString { "%1" }.arg(   sliceInfo.layerThickness                                / 1000.0 ),
-            "--output",             sliceInfo.sliceDirectory % Slash % SlicedSvgFileName
-        }
+        slicerArgs
     );
 }
 
