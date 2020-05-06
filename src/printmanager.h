@@ -22,7 +22,7 @@ enum class PrintStep {
     B1, B2, B2a, B3,
         B4a1, B4a2,
         B4b1,
-    C1, C2, C3,
+    C1, C2, C2a, C3,
         C4a1, C4a2,
         C4b1,
     D1,
@@ -157,6 +157,8 @@ private slots:
 
     void stepC2_start( );
     void stepC2_completed( );
+
+    void stepC2a_start( );
 
     void stepC3_start( );
     void stepC3_completed( );
