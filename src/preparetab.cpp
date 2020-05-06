@@ -38,7 +38,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
     _layerThicknessCustomButton->setEnabled( false );
-    _layerThicknessCustomButton->setText( "Custom (advanced tiling)" );
+    _layerThicknessCustomButton->setText( "Custom (advanced slicing)" );
     _layerThicknessCustomButton->setFont( font12pt );
     QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 

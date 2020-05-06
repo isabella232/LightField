@@ -67,7 +67,8 @@ public:
 
     // unit: mm/min
     double pumpDownVelocity_Effective( ) const {
-        return pumpDownDistance_Effective( ) / ( pumpDownTime_Effective( ) / 1000.0 / 60.0 );
+        //TODO: temporary plug to enable app bring up
+        return pumpDownDistance_Effective( ) / ( _pumpUpTime / 1000.0 / 60.0 );
     }
 
     // unit: ms
