@@ -1,4 +1,7 @@
 #include "ordermanifestmanager.h"
+#include <exception>
+
+using namespace std;
 
 const QString ManifestKeys::strings[15] = {
         "size",
@@ -10,10 +13,7 @@ const QString ManifestKeys::strings[15] = {
         "count",
         "entities",
         "fileName",
-        "baseLayer",
-        "baseLayerThickness",
-        "firstLayerOffset",
-        "bodyLayerThickness",
+        "layerThickness",
         "exposureTime",
         "estimatedVolume"
 };
@@ -27,7 +27,8 @@ const QString ManifestSortType::strings[3] = {
 ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QStringList *warningList = nullptr) {
     debug( "+ OrderManifestManager::parse: parsing manifest file in directory '%s'\n", _dirPath.toUtf8( ).data( ) );
     _fileNameList.clear();
-    _isBaseLayer.clear();
+    _layerThickNess.clear();
+    _tilingExpoTime.clear();
 
     QFile jsonFile( _dirPath % Slash % ManifestFilename );
     if(!jsonFile.exists()) {
@@ -65,27 +66,34 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 
     _size = root.value(ManifestKeys(ManifestKeys::SIZE).toQString()).toInt();
     _type = ManifestSortType(root.value(ManifestKeys(ManifestKeys::SORT_TYPE).toQString()).toString());
-    _firstLayerOffset = root.value(ManifestKeys(ManifestKeys::FIRST_LAYER_OFFSET).toQString()).toInt();
-    _baseLayerThickNess = root.value(ManifestKeys(ManifestKeys::BASE_LAYER_THICKNESS).toQString()).toInt();
-    _bodyLayerThickNess = root.value(ManifestKeys(ManifestKeys::BODY_LAYER_THICKNESS).toQString()).toInt();
 
     debug( "+ OrderManifestManager::parse: checking tiling... \n" );
-    if( root.contains( ManifestKeys(ManifestKeys::TILING).toQString( ) ) ) {
-        QJsonObject tilingNested;
-        debug( "+ OrderManifestManager::parse: checking tiled \n" );
-        _tiled = true;
-        tilingNested = root.value(ManifestKeys(ManifestKeys::TILING).toQString()).toObject();
-        _tilingStep = tilingNested.value(ManifestKeys(ManifestKeys::STEP).toQString()).toDouble();
-        _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
-        _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
-        _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
-        _estimatedVolume = tilingNested.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
-      
-        QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
+    try {
+        if( root.contains( ManifestKeys(ManifestKeys::TILING).toQString( ) ) ) {
+            QJsonObject tilingNested;
+            debug( "+ OrderManifestManager::parse: checking tiled \n" );
+            _tiled = true;
+            tilingNested = root.value(ManifestKeys(ManifestKeys::TILING).toQString()).toObject();
+            _tilingStep = tilingNested.value(ManifestKeys(ManifestKeys::STEP).toQString()).toDouble();
+            _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
+            _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
+            _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
+            _estimatedVolume = tilingNested.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
 
-        for(int i=0; i<expoTimes.count(); ++i) {
-            _tilingExpoTime.push_back(expoTimes[i].toDouble());
-        }
+            QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
+
+            for(int i=0; i<expoTimes.count(); ++i) {
+                _tilingExpoTime.push_back(expoTimes[i].toDouble());
+            }
+
+            QJsonArray layerThicknessArray = tilingNested.value(ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString()).toArray();
+
+            for(int i=0; i<layerThicknessArray.count(); ++i) {
+                _layerThickNess.push_back(layerThicknessArray[i].toInt());
+            }
+    }
+    } catch (...) {
+        return ManifestParseResult::FILE_CORRUPTED;
     }
 
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
@@ -96,10 +104,8 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         for(; i<entities.count(); ++i) {
             QJsonObject entity = entities[i].toObject();
             QString fileName = entity.value(ManifestKeys(ManifestKeys::FILE_NAME).toQString()).toString();
-            bool isBase = entity.value(ManifestKeys(ManifestKeys::FILE_NAME).toQString()).toBool();
 
             _fileNameList.push_back(fileName);
-            _isBaseLayer.push_back(isBase);
         }
     } catch (...) {
         return ManifestParseResult::FILE_CORRUPTED;
@@ -143,6 +149,14 @@ bool OrderManifestManager::save() {
 
         tiling.insert( ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString(), expoArray );
 
+        QJsonArray layerThickNessArray;
+        for(int i=0; i<_tilingExpoTime.size(); ++i)
+        {
+            layerThickNessArray.append(layerThickNessAt(i));
+        }
+
+        tiling.insert( ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString(),  layerThickNessArray);
+
         root.insert( ManifestKeys(ManifestKeys::TILING).toQString(), tiling );
     }
 
@@ -152,7 +166,6 @@ bool OrderManifestManager::save() {
     {
         QJsonObject entity;
         entity.insert( ManifestKeys(ManifestKeys::FILE_NAME).toQString(),      QJsonValue { _fileNameList[i] } );
-        entity.insert( ManifestKeys(ManifestKeys::BASE_LAYER).toQString(),     QJsonValue { isBaseLayer(i) } );
 
         jsonArray.append(entity);
     }
@@ -174,17 +187,24 @@ double OrderManifestManager::getTimeForElementAt(int position){
         return _tilingExpoTime[position];
 }
 
-bool OrderManifestManager::isBaseLayer(int position) {
-    return (this->_isBaseLayer.count() > position) ? _isBaseLayer[position] : false;
-}
-
-int OrderManifestManager::baseLayersCount() {
-    int sum=0;
-    for(int i=0; this->_isBaseLayer.count(); ++i)
+/**
+ * If position out of range returns -1.
+ *
+ * @brief OrderManifestManager::layerThickNessAt
+ * @param position
+ * @return
+ */
+int OrderManifestManager::layerThickNessAt(int position) {
+    if(_layerThickNess.count() > 0 && _layerThickNess.count() < position )
     {
-        if(_isBaseLayer[i])
-            sum++;
+        return _layerThickNess[position];
+    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() >= position) {
+        return -1;
+    } else {
+        if( position < _baseLayerCount ) {
+            return _baseLayerThickNess;
+        } else {
+            return _bodyLayerThickNess;
+        }
     }
-
-    return sum;
 }

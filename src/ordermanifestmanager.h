@@ -21,10 +21,7 @@ public:
         COUNT,
         ENTITIES,
         FILE_NAME,
-        BASE_LAYER,
-        BASE_LAYER_THICKNESS,
-        FIRST_LAYER_OFFSET,
-        BODY_LAYER_THICKNESS,
+        LAYER_THICKNESS,
         EXPOSURE_TIME,
         VOLUME
     };
@@ -159,9 +156,14 @@ public:
         this->_bodyLayerThickNess = thickness;
     }
 
+    void setBaseLayerCount(int count) {
+        this->_baseLayerCount = count;
+    }
+
 
     inline int baseLayerThickness()    { return _baseLayerThickNess; }
     inline int bodyLayerThickness()    { return _bodyLayerThickNess; }
+    inline int baseLayerCount()        { return _baseLayerCount; }
     inline int firstLayerOffset()      { return _firstLayerOffset;  }
     inline bool tiled()                { return _tiled; }
     inline double tilingMinExposure()  { return _tilingMinExposure; }
@@ -207,10 +209,7 @@ public:
 
     double getTimeForElementAt(int position);
 
-    bool   isBaseLayer(int position);
-
-    int baseLayersCount();
-
+    int layerThickNessAt(int position);
 
 private:
     QString             _dirPath;
@@ -225,7 +224,8 @@ private:
     int                 _baseLayerThickNess{ };
     int                 _firstLayerOffset  { };
     int                 _bodyLayerThickNess{ };
-    QList<bool>         _isBaseLayer       { };
+    int                 _baseLayerCount    { };
+    QList<int>          _layerThickNess    { };
     QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
