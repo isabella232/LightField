@@ -23,6 +23,9 @@
 //
 // B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
 // B2. Pause for layer projection time.
+//     -> if current job has multi-tiled elements
+//     B2a. change image - loop over tiled variants
+//     -> end if
 // B3. Stop projection: "set-projector-power 0".
 // B4a1. Pause before "pumping" manoeuvre.
 // B4a2. Perform the "pumping" manoeuvre.
@@ -37,6 +40,9 @@
 //
 // C1. Start projection: "set-projector-power ${_printJob->powerLevel}".
 // C2. Pause for layer projection time.
+//     -> if current job has multi-tiled elements
+//     C2a. change image - loop over tiled variants
+//     -> end if
 // C3. Stop projection: "set-projector-power 0".
 // C4a1. Pause before "pumping" manoeuvre.
 // C4a2. Perform the "pumping" manoeuvre.
@@ -591,6 +597,33 @@ void PrintManager::stepC2_completed( ) {
     }
 
     stepC3_start( );
+}
+
+
+void PrintManager::stepC2a_start( ){
+    _step = PrintStep::C2a;
+
+    // abort would be serviced during C3_completed
+
+    if(_hasLayerMoreElements()){
+        debug( "+ PrintManager::stepC2a_start: current layer has still more tiled elements to loop over'\n" );
+        _currentLayer++;
+        _pngDisplayer->clear( );
+        emit startingLayer( _currentLayer );
+        //MERGE_TODO needs alignment
+        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
+        if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
+            debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+            this->abort( );
+            return;
+        }
+        stepC2_start( );
+    }else{
+        debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
+        _duringTiledLayer = false;
+        stepC3_start( );
+    }
+
 }
 
 // C3. Stop projection: "set-projector-power 0".
