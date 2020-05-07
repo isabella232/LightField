@@ -112,7 +112,7 @@ signals:
 
     void printerAvailabilityChanged( bool const available );
 
-    void setupTiling( OrderManifestManager* _manifestManager, PrintJob* _printJob );
+    void setupTiling( PrintJob* _printJob );
 
 public slots:
     ;

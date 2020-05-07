@@ -148,6 +148,10 @@ public:
         this->_baseLayerThickNess = thickness;
     }
 
+    void setBodyLayerThickness(int thickness) {
+        this->_bodyLayerThickNess = thickness;
+    }
+
     void setFirstLayerOffset(int offset) {
         this->_firstLayerOffset = offset;
     }

@@ -593,7 +593,7 @@ void PrepareTab::orderButton_clicked( bool ) {
 }
 
 void PrepareTab::setupTiling_clicked( bool ) {
-    emit setupTiling( _manifestManager, _printJob );
+    emit setupTiling( _printJob );
     emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
 }
 

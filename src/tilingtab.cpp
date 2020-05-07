@@ -2,11 +2,64 @@
 #include "tilingmanager.h"
 #include "window.h"
 
+
+TilingExpoTimePopup::TilingExpoTimePopup( ) {
+    auto origFont    = font( );
+    auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
+    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
+    auto font22pt    = ModifyFont( origFont, LargeFontSize );
+
+    this->setModal(true);
+    this->_okButton->setFont(font22pt);
+    this->_cancelButton->setFont(font22pt);
+
+    QGroupBox* baseLr = new QGroupBox("Base layer");
+    baseLr->setLayout(
+        WrapWidgetsInVBox(
+            _minExposureBase,
+            _stepBase
+        )
+    );
+
+    QGroupBox* bodyLr = new QGroupBox("Body layer");
+    bodyLr->setLayout(
+        WrapWidgetsInVBox(
+            _minExposureBody,
+            _stepBody
+        )
+    );
+
+    QObject::connect( _okButton, &QPushButton::clicked, this, &TilingExpoTimePopup::confirm );
+    QObject::connect( _cancelButton, &QPushButton::clicked, this, &TilingExpoTimePopup::cancel );
+
+    setLayout(
+        WrapWidgetsInVBox(
+            baseLr,
+            bodyLr,
+            nullptr,
+            WrapWidgetsInHBox( _okButton, _cancelButton )
+        )
+    );
+}
+
+void TilingExpoTimePopup::confirm( bool ) {
+    this->setResult( QDialog::Accepted );
+    this->accept( );
+    this->close( );
+}
+
+void TilingExpoTimePopup::cancel( bool ) {
+    this->setResult( QDialog::Rejected );
+    this->reject( );
+    this->close( );
+}
+
 TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
+    debug(" +TilingTab::TilingTab" );
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
-
+    auto font22pt    = ModifyFont( origFont, LargeFontSize );
 
     QGroupBox* all { new QGroupBox };
 
@@ -29,11 +82,36 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
     _confirm->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirm->setEnabled( false );
 
+    QGroupBox* lrInfo     = new QGroupBox();
+    QGroupBox* baseLrInfo = new QGroupBox("Base layer");
+    QGroupBox* bodyLrInfo = new QGroupBox("Body layer");
+
+    baseLrInfo->setLayout(
+        WrapWidgetsInVBox(
+            WrapWidgetsInHBox(_minExposureBaseLabel, nullptr, _minExposureBaseValue),
+            WrapWidgetsInHBox(_stepBaseLabel, nullptr, _stepBaseValue)
+        )
+    );
+
+    bodyLrInfo->setLayout(
+        WrapWidgetsInVBox(
+            WrapWidgetsInHBox(_minExposureBodyLabel, nullptr, _minExposureBodyValue),
+            WrapWidgetsInHBox(_stepBodyLabel, nullptr, _stepBodyValue)
+        )
+    );
+
+    lrInfo->setLayout(
+        WrapWidgetsInVBox( baseLrInfo, nullptr, bodyLrInfo )
+    );
+
+    _setupExpoTimeBt->setFont( font22pt );
+    _setupExpoTimeBt->setMinimumSize( MainButtonSize );
+
     all->setLayout(
         WrapWidgetsInVBox(
+           lrInfo,
            nullptr,
-           _minExposure,
-           _step,
+           _setupExpoTimeBt,
            _space,
            _count,
            nullptr,
@@ -41,10 +119,12 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
         )
     );
 
-    QObject::connect( _minExposure, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
-    QObject::connect( _step, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
     QObject::connect( _space, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
     QObject::connect( _count, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
+
+
+    QObject::connect( _setupExpoTimeBt, &QPushButton::clicked, this, &TilingTab::setupExpoTimeClicked);
+
     QObject::connect( _confirm, &QPushButton::clicked, this, &TilingTab::confirmButton_clicked );
 
 
@@ -123,8 +203,18 @@ void TilingTab::setStepValue()
 
     for(int i=0; i<wCount; ++i) {
         int x = tileSlots[i];
+        int minExposure = 0;
+        int step = 0;
 
-        double e = _minExposure->getValueDouble() + ( ( wCount - ( i + 1 ) ) * _step->getValueDouble( ) );
+        if(_printJob->baseSlices.layerCount < i) {
+            minExposure = _minExposureBase;
+            step = _stepBase;
+        } else {
+            minExposure = _minExposureBody;
+            step = _stepBody;
+        }
+
+        double e = minExposure + ( ( wCount - ( i + 1 ) ) * step );
 
         if(i==0) {
             painter.drawPixmap( x, y - (spacePx/2), *_pixmap );          
@@ -181,9 +271,11 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
     switch ( state ) {
         case UiState::SelectedDirectory:
-            this->_step->setValueDouble( 2L );
+            this->_stepBase = 2.0;
+            this->_stepBody = 2.0;
+            this->_minExposureBase = 10.0;
+            this->_minExposureBody = 20.0;
             this->_space->setValue( 1 );
-            this->_minExposure->setValueDouble( 2L );
             this->_printJob = nullptr;
             this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
@@ -211,7 +303,7 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
 
 void TilingTab::confirmButton_clicked ( bool ) {
-    TilingManager* tilingMgr = new  TilingManager( _manifestManager, _printJob );
+    TilingManager* tilingMgr = new  TilingManager( _printJob );
 
     QDialog* dialog = new QDialog();
     Window* w = App::mainWindow();
@@ -234,8 +326,10 @@ void TilingTab::confirmButton_clicked ( bool ) {
         {
             tilingMgr->processImages( ProjectorWindowSize.width(),
                                       ProjectorWindowSize.height(),
-                                     _minExposure->getValueDouble(),
-                                     _step->getValueDouble(),
+                                     _minExposureBase,
+                                     _stepBase,
+                                     _minExposureBody,
+                                     _stepBody,
                                      _space->getValue(),
                                      _count->getValue() );
             //MERGE_TODO align who will provide directory name
@@ -297,8 +391,27 @@ void TilingTab::_showWarningAndClose ()
 void TilingTab::_setEnabled(bool enabled)
 {
     this->_confirm->setEnabled( enabled );
-    this->_step->setEnabled( enabled );
     this->_space->setEnabled( enabled );
-    this->_minExposure->setEnabled( enabled );
+    this->_setupExpoTimeBt->setEnabled( enabled );
     this->_count->setEnabled( enabled );
+}
+
+void TilingTab::setupExpoTimeClicked(bool) {
+
+    _expoTimePopup.setMinExposureBase( _minExposureBase );
+    _expoTimePopup.setStepBase( _stepBase );
+    _expoTimePopup.setMinExposureBody( _minExposureBody );
+    _expoTimePopup.setStepBody( _stepBody );
+
+    if(_expoTimePopup.exec() == QDialog::Accepted) {
+        _minExposureBase = _expoTimePopup.minExposureBase();
+        _stepBase = _expoTimePopup.stepBase();
+        _minExposureBody = _expoTimePopup.minExposureBody();
+        _stepBody = _expoTimePopup.stepBody();
+
+        _minExposureBaseValue->setText ( QString("%1s").arg( _expoTimePopup.minExposureBase() ) );
+        _stepBaseValue->setText ( QString("%1s").arg( _expoTimePopup.stepBase() ) );
+        _minExposureBodyValue->setText ( QString("%1s").arg( _expoTimePopup.minExposureBody() ) );
+        _stepBodyValue->setText ( QString("%1s").arg( _expoTimePopup.stepBody() ) );
+    }
 }

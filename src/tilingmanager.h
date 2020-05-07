@@ -8,10 +8,10 @@
 class TilingManager {
 
 public:
-  TilingManager( OrderManifestManager* manifestMgr, PrintJob* printJob );
+  TilingManager( PrintJob* printJob );
   ~TilingManager() = default;
 
-  void processImages( int width, int height, double expoTime, double step, int space, int count );
+  void processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
   inline QString getPath ( ) { return _path; };
 
 protected:
@@ -19,13 +19,14 @@ protected:
   void renderTiles ( QFileInfo info );
   void putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j );
 private:
-        OrderManifestManager* _manifestMgr;
         PrintJob*             _printJob;
         QString               _path;
         int                   _width;
         int                   _height;
-        double                _expoTime;
-        double                _step;
+        double                _baseExpoTime;
+        double                _baseStep;
+        double                _bodyExpoTime;
+        double                _bodyStep;
         int                   _space;
         int                   _spacePx;
         int                   _count;

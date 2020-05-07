@@ -6,6 +6,34 @@
 #include "ordermanifestmanager.h"
 #include "paramslider.h"
 
+class TilingExpoTimePopup: public QDialog {
+    Q_OBJECT
+
+public:
+    TilingExpoTimePopup( );
+
+    inline void setMinExposureBase(double value) { _minExposureBase->setValueDouble(value); }
+    inline void setStepBase(double value)        { _stepBase->setValueDouble(value);        }
+    inline void setMinExposureBody(double value) { _minExposureBody->setValueDouble(value); }
+    inline void setStepBody(double value)        { _stepBody->setValueDouble(value);        }
+
+    inline double minExposureBase() { return _minExposureBase->getValueDouble(); }
+    inline double stepBase()        { return _stepBase->getValueDouble();        }
+    inline double minExposureBody() { return _minExposureBody->getValueDouble(); }
+    inline double stepBody()        { return _stepBody->getValueDouble();        }
+
+private:
+    ParamSlider*            _minExposureBase              { new ParamSlider ("Base layer minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
+    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 2, 1, 4 )};
+    ParamSlider*            _minExposureBody              { new ParamSlider ("Body layer minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
+    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 2, 1, 4 )};
+    QPushButton*            _okButton                     { new QPushButton ("Ok" )                };
+    QPushButton*            _cancelButton                 { new QPushButton ("Cancel" )            };
+
+    void confirm( bool );
+    void cancel( bool );
+};
+
 class TilingTab: public TabBase {
     Q_OBJECT
 
@@ -18,20 +46,33 @@ protected:
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
-    ParamSlider*            _minExposure              { new ParamSlider ("Minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
-    ParamSlider*            _step                     { new ParamSlider ("Exposure step", "sec", 1, 16, 2, 1, 4 )};
     ParamSlider*            _space                    { new ParamSlider ("Space", "mm", 1, 10, 1, 1)};
     ParamSlider*            _count                    { new ParamSlider ("Count", "", 1, 8, 1, 1)};
     QPushButton*            _confirm                  { new QPushButton ("Confirm") };
+    QLabel*                 _minExposureBaseLabel     { new QLabel("Minimum exposure time") };
+    QLabel*                 _stepBaseLabel            { new QLabel("Step") };
+    QLabel*                 _minExposureBodyLabel     { new QLabel("Minimum exposure time") };
+    QLabel*                 _stepBodyLabel            { new QLabel("Step") };
+
+    QLabel*                 _minExposureBaseValue     { new QLabel("10s") };
+    QLabel*                 _stepBaseValue            { new QLabel("2s") };
+    QLabel*                 _minExposureBodyValue     { new QLabel("10s") };
+    QLabel*                 _stepBodyValue            { new QLabel("2s") };
+
     PrintJob*               _printJob                 { };
-    OrderManifestManager*   _manifestManager          { };
     int                     _pixmapWidth              { 0 };
     int                     _pixmapHeight             { 0 };
     int                     _areaWidth                { 0 };
     int                     _areaHeight               { 0 };
     double                  _wRatio                   { 1.0L };
     double                  _hRatio                   { 1.0L };
+    double                  _minExposureBase          { 10 };
+    double                  _stepBase                 { 2 };
+    double                  _minExposureBody          { 10 };
+    double                  _stepBody                 { 2 };
     QPixmap*                _pixmap                   { nullptr };
+    TilingExpoTimePopup     _expoTimePopup            { };
+    QPushButton*            _setupExpoTimeBt          { new QPushButton( "Setup exposition time" ) };
 
     void _showLayerImage ( );
     void _showWarningAndClose ( );
@@ -42,11 +83,10 @@ signals:
     ;
 
 public slots:
-    void setupTilingClicked ( OrderManifestManager* manifestManager, PrintJob* printJob ) {
+    void setupTilingClicked ( PrintJob* printJob ) {
         debug( "+ TilingTab::setupTilingClicked\n" );
 
         this->_printJob = printJob;
-        this->_manifestManager = manifestManager;
 
         this->_areaWidth = _currentLayerImage->width( );
         this->_areaHeight = _currentLayerImage->height( );
@@ -75,6 +115,7 @@ public slots:
 
     void setStepValue();
 
+    void setupExpoTimeClicked(bool);
     ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;

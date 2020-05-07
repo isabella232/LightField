@@ -2,30 +2,36 @@
 #include "tilingmanager.h"
 
 
-TilingManager::TilingManager( OrderManifestManager* manifestMgr, PrintJob* printJob )
+TilingManager::TilingManager( PrintJob* printJob )
 {
-    _manifestMgr = manifestMgr;
     _printJob = printJob;
 }
 
-void TilingManager::processImages( int width, int height, double expoTime, double step, int space, int count )
+void TilingManager::processImages(
+        int width,
+        int height,
+        double baseExpoTime,
+        double baseStep,
+        double bodyExpoTime,
+        double bodyStep,
+        int space,
+        int count )
 {
     debug( "+ TilingManager::processImages\n");
 
     _width = width;
     _height = height;
-    _expoTime = expoTime;
-    _step = step;
+    _baseExpoTime = baseExpoTime;
+    _baseStep = baseStep;
+    _bodyExpoTime = bodyExpoTime;
+    _bodyStep = bodyStep;
     _space = space;
     _count = count;
     _wCount = count;
     _spacePx = ((double)space) / ProjectorPixelSize;
 
-    //MERGE_TODO align directory
-    QString jobWorkingDir = _printJob->getLayerDirectory(0);
-
-    QString dirName = QString("tiled-%1-%2-%3-%4").arg( _expoTime ).arg( _step ).arg( _space ).arg( _count ) % GetFileBaseName( jobWorkingDir );
-    _path = jobWorkingDir.mid( 0, jobWorkingDir.lastIndexOf( Slash ) ) % Slash % dirName;
+    QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6").arg( _baseExpoTime ).arg( _baseStep ).arg( _bodyExpoTime ).arg( _bodyStep ).arg( _count ) % _printJob->modelHash;
+    _path = JobWorkingDirectoryPath % Slash % dirName;
 
     QDir dir ( JobWorkingDirectoryPath );
     dir.mkdir( dirName );
@@ -34,19 +40,21 @@ void TilingManager::processImages( int width, int height, double expoTime, doubl
 
     QFile::link( _path , StlModelLibraryPath % Slash % dirName );
 
-    _manifestMgr->setFileList( _fileNameList );
-    _manifestMgr->setExpoTimeList( _expoTimeList );
-    _manifestMgr->setPath( JobWorkingDirectoryPath % Slash % dirName );
+    OrderManifestManager manifestMgr;
 
-    _manifestMgr->setTiled( true );
-    _manifestMgr->setTilingMinExpoTime( _expoTime );
-    _manifestMgr->setTilingSpace( _space );
-    _manifestMgr->setTilingStep( _step );
-    _manifestMgr->setTilingCount( _count );
-    _manifestMgr->setVolume( _count * _printJob->estimatedVolume );
+    manifestMgr.setFileList( _fileNameList );
+    manifestMgr.setExpoTimeList( _expoTimeList );
+    manifestMgr.setBaseLayerThickness( _printJob->baseSlices.layerThickness );
+    manifestMgr.setBodyLayerThickness( _printJob->bodySlices.layerThickness );
+    manifestMgr.setBaseLayerCount( _printJob->baseSlices.layerCount );
+    manifestMgr.setPath( JobWorkingDirectoryPath % Slash % dirName );
 
+    manifestMgr.setTiled( true );
+    manifestMgr.setTilingSpace( _space );
+    manifestMgr.setTilingCount( _count );
+    manifestMgr.setVolume( _count * _printJob->estimatedVolume );
 
-    _manifestMgr->save();
+    manifestMgr.save();
 }
 
 void TilingManager::tileImages ( )
@@ -54,8 +62,7 @@ void TilingManager::tileImages ( )
     debug( "+ TilingManager::tileImages\n");
 
     QPixmap pixmap;
-    //MERGE_TODO align directory
-    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _manifestMgr->getFirstElement());
+    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _printJob->getLayerFileName(0) );
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
@@ -74,7 +81,6 @@ void TilingManager::tileImages ( )
         _tileSlots.push_back(x + deltax);
     }
 
-    //std::reverse(tileSlots.begin(), tileSlots.end());
     std::rotate(_tileSlots.begin(),
                 _tileSlots.end()-1, // this will be the new first element
                 _tileSlots.end());
@@ -82,9 +88,8 @@ void TilingManager::tileImages ( )
 
 
     /* iterating over slices in manifest */
-    for (int i=0;i<_manifestMgr->getSize();i++) {
-        //MERGE_TODO align directory
-        QFileInfo entry ( _printJob->getLayerDirectory(i) % Slash % _manifestMgr->getElementAt(i));
+    for (int i=0;i<_printJob->totalLayerCount;i++) {
+        QFileInfo entry ( _printJob->getLayerDirectory(i) % Slash % _printJob->getLayerFileName(i) );
 
         /* render tiles based on slice */
         renderTiles ( entry );
@@ -128,7 +133,11 @@ void TilingManager::renderTiles ( QFileInfo info ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
-        _expoTimeList.push_back( e == 1 ? _expoTime : _step );
+        if(_printJob->baseSlices.layerCount < e) {
+            _expoTimeList.push_back( e == 1 ? _baseExpoTime : _baseStep );
+        } else {
+            _expoTimeList.push_back( e == _printJob->baseSlices.layerCount + 1 ? _bodyExpoTime : _bodyStep );
+        }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );
 
