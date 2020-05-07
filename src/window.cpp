@@ -336,37 +336,7 @@ void Window::startPrinting( ) {
         "    + endLayer:                 %d\n"
         "  + print profile: (calculated parameters are marked with *)\n"
         "    + profileName:              '%s'\n"
-        "    + baseLayerCount:           %d\n"
-        "    + baseLayersPumpingEnabled: %s\n"
-        "    + base layer parameters:\n"
-        "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpTime:             %d ms\n"
-        "      + pumpUpVelocity:        *%.2f mm/min\n"
-        "      + pumpUpPause:            %d ms\n"
-        "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownTime:          *%.2f mm\n"
-        "      + pumpDownVelocity:      *%.2f mm/min\n"
-        "      + pumpDownPause:          %d ms\n"
-        "      + noPumpUpVelocity:       %.2f mm/min\n"
-        "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
-        "      + powerLevel:             %.1f%%\n"
-        "    + bodyLayersPumpingEnabled: %s\n"
-        "    + body layer parameters:\n"
-        "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpTime:             %d ms\n"
-        "      + pumpUpVelocity:        *%.2f mm/min\n"
-        "      + pumpUpPause:            %d ms\n"
-        "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownTime:          *%.2f mm\n"
-        "      + pumpDownVelocity:      *%.2f mm/min\n"
-        "      + pumpDownPause:          %d ms\n"
-        "      + noPumpUpVelocity:       %.2f mm/min\n"
-        "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
-        "      + powerLevel:             %.1f%%\n"
+
         "",
 
         _printJob,
@@ -390,7 +360,30 @@ void Window::startPrinting( ) {
         bodySlices.startLayer,
         bodySlices.endLayer,
 
-        printProfile->profileName( ).toUtf8( ).data( ),
+        printProfile->profileName( ).toUtf8( ).data( )
+
+    );
+
+
+    debug(
+        "    + baseLayerCount:           %d\n"
+        "    + baseLayersPumpingEnabled: %s\n"
+        "    + base layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
+        "",
+
         printProfile->baseLayerCount( ),
 
         ToString( baseLayerParameters.isPumpingEnabled( ) ),
@@ -406,7 +399,30 @@ void Window::startPrinting( ) {
         baseLayerParameters.pumpEveryNthLayer( ),
         baseLayerParameters.layerThickness( ),
         baseLayerParameters.layerExposureTime( ),
-        baseLayerParameters.powerLevel( ),
+        baseLayerParameters.powerLevel( )
+
+
+    );
+
+
+    debug(
+        "    + bodyLayersPumpingEnabled: %s\n"
+        "    + body layer parameters:\n"
+        "      + pumpUpDistance:         %.2f mm\n"
+        "      + pumpUpTime:             %d ms\n"
+        "      + pumpUpVelocity:        *%.2f mm/min\n"
+        "      + pumpUpPause:            %d ms\n"
+        "      + pumpDownDistance:      *%.2f mm\n"
+        "      + pumpDownTime:          *%.2f mm\n"
+        "      + pumpDownVelocity:      *%.2f mm/min\n"
+        "      + pumpDownPause:          %d ms\n"
+        "      + noPumpUpVelocity:       %.2f mm/min\n"
+        "      + pumpEveryNthLayer:      %d\n"
+        "      + layerThickness:         %d µm\n"
+        "      + layerExposureTime:      %d ms\n"
+        "      + powerLevel:             %.1f%%\n"
+        "",
+
 
         ToString( bodyLayerParameters.isPumpingEnabled( ) ),
         bodyLayerParameters.pumpUpDistance( ),

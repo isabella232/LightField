@@ -94,8 +94,8 @@ private:
     //Layer Form
     QWidget*      _layersForm                          { new QWidget                                                              };
 
-    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base Pump Up Pause",        "ms",    2000, 8000,   1 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body Pump Up Pause",        "ms",    2000, 8000,   1 ) };
+    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,   1 ) };
+    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,   1 ) };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };
