@@ -4,17 +4,21 @@
 #include "coordinate.h"
 #include "printprofile.h"
 
+enum class SliceDirectoryType
+{
+    SLICE_BASE,
+    SLICE_BODY
+};
+
 class SliceInformation {
 
 public:
-
     QString sliceDirectory;
 
     bool    isPreSliced      { };
 
     int     layerCount       { };
     int     layerThickness   { }; // unit: µm
-    int     firstLayerOffset { }; // unit: µm
 
     int     startLayer       { -1 };
     int     endLayer         { -1 };

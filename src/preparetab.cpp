@@ -340,18 +340,18 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo ) {
     return true;
 }
 
-void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& slices ) {
-    if ( ::strcmp(type, "base") == 0 && slices.layerCount == 0 ) {
-        debug( "  + %s layer count is zero, skipping\n", type);
+void PrepareTab::_checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices ) {
+    if ( type == SliceDirectoryType::SLICE_BASE && slices.layerCount == 0 ) {
+        debug( "  + base layer count is zero, skipping\n");
         return;
     }
 
     if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
         slices.isPreSliced = false;
-        debug( "  + no pre-sliced %s layers\n", type );
+        debug( "  + no pre-sliced %s layers\n", type == SliceDirectoryType::SLICE_BASE ? "base" : "body" );
     } else {
         slices.isPreSliced = _checkPreSlicedFiles( slices );
-        debug( "  + pre-sliced %s layers are %sgood\n", type, slices.isPreSliced ? "" : "NOT " );
+        debug( "  + pre-sliced layers are %sgood\n", slices.isPreSliced ? "" : "NOT " );
         if ( !slices.isPreSliced ) {
             slicesDir.removeRecursively( );
         }
@@ -374,8 +374,8 @@ bool PrepareTab::_checkSliceDirectories( ) {
         _printJob->bodySlices.sliceDirectory.toUtf8( ).data( )
     );
 
-    _checkOneSliceDirectory( "base", _printJob->baseSlices );
-    _checkOneSliceDirectory( "body", _printJob->bodySlices );
+    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BASE, _printJob->baseSlices );
+    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BODY, _printJob->bodySlices );
 
     auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
     _setNavigationButtonsEnabled( preSliced );
@@ -386,8 +386,6 @@ bool PrepareTab::_checkSliceDirectories( ) {
 
             _printJob->baseSlices.startLayer       = 0;
             _printJob->baseSlices.endLayer         = _printJob->printProfile->baseLayerCount( ) - 1;
-
-            _printJob->bodySlices.firstLayerOffset = ( baseThickness % _printJob->bodySlices.layerThickness ) - _printJob->bodySlices.layerThickness;
             _printJob->bodySlices.startLayer       = ( baseThickness / _printJob->bodySlices.layerThickness ) - 1;
             _printJob->bodySlices.endLayer         = _printJob->bodySlices.layerCount - 1;
 

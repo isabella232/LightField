@@ -4,6 +4,7 @@
 #include "tabbase.h"
 #include "ordermanifestmanager.h"
 #include "printprofile.h"
+#include "printjob.h"
 
 class Hasher;
 class SliceInformation;
@@ -91,7 +92,7 @@ private:
 
 
     bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
-    void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
+    void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
