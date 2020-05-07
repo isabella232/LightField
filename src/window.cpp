@@ -323,7 +323,6 @@ void Window::startPrinting( ) {
         "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
-        "    + firstLayerOffset:         %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + body slices:\n"
@@ -331,7 +330,6 @@ void Window::startPrinting( ) {
         "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
-        "    + firstLayerOffset:         %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + print profile: (calculated parameters are marked with *)\n"
@@ -348,7 +346,6 @@ void Window::startPrinting( ) {
         ToString( baseSlices.isPreSliced ),
         baseSlices.layerCount,
         baseSlices.layerThickness,
-        baseSlices.firstLayerOffset,
         baseSlices.startLayer,
         baseSlices.endLayer,
 
@@ -356,7 +353,6 @@ void Window::startPrinting( ) {
         ToString( bodySlices.isPreSliced ),
         bodySlices.layerCount,
         bodySlices.layerThickness,
-        bodySlices.firstLayerOffset,
         bodySlices.startLayer,
         bodySlices.endLayer,
 
