@@ -30,20 +30,20 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _forms[4] = _bodyPumpForm;
 
     QWidget::connect(_distanceSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upTimeSlider,             &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_basePumpUpVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_basePumpDownVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_upPauseSlider,            &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_downTimeSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_downPauseSlider,          &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upVelocitySlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseNoPumpUpVelocitySlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_baseExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyPumpEveryNthLayer,    &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyDistanceSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpTimeSlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpUpVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpDownVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyUpPauseSlider,        &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDownTimeSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyDownPauseSlider,      &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpVelocitySlider,     &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyNoPumpUpVelocitySlider,     &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
 
     _setUpLeftMenu(fontAwesome);
     _setUpGeneralForm(boldFont, fontAwesome);
@@ -79,21 +79,21 @@ void AdvancedTab::chbox_addBodyPumpChanged(int state)
 {
     _bodyPumpEveryNthLayer->setEnabled(state);
     _bodyDistanceSlider->setEnabled(state);
-    _bodyUpTimeSlider->setEnabled(state);
+    _bodyPumpUpVelocitySlider->setEnabled(state);
+    _bodyPumpDownVelocitySlider->setEnabled(state);
     _bodyUpPauseSlider->setEnabled(state);
-    _bodyDownTimeSlider->setEnabled(state);
     _bodyDownPauseSlider->setEnabled(state);
-    _bodyUpVelocitySlider->setEnabled(state);
+    _bodyNoPumpUpVelocitySlider->setEnabled(state);
 }
 
 void AdvancedTab::chbox_addBasePumpCheckChanged(int state)
 {
     _distanceSlider->setEnabled(state);
-    _upTimeSlider->setEnabled(state);
+    _basePumpUpVelocitySlider->setEnabled(state);
+    _basePumpDownVelocitySlider->setEnabled(state);
     _upPauseSlider->setEnabled(state);
-    _downTimeSlider->setEnabled(state);
     _downPauseSlider->setEnabled(state);
-    _upVelocitySlider->setEnabled(state);
+    _baseNoPumpUpVelocitySlider->setEnabled(state);
 }
 
 void AdvancedTab::_connectShepherd( ) {
@@ -538,11 +538,11 @@ void AdvancedTab::_setUpBasePumpForm(QFont boldFont)
         WrapWidgetsInVBox(
            addBasePumpGroup,
            _distanceSlider,
-           _upTimeSlider,
+           _basePumpUpVelocitySlider,
            _upPauseSlider,
-           _downTimeSlider,
+           _basePumpDownVelocitySlider,
            _downPauseSlider,
-           _upVelocitySlider,
+           _baseNoPumpUpVelocitySlider,
            nullptr
         ));
 
@@ -588,11 +588,11 @@ void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
             addBodyPumpGroup,
             _bodyPumpEveryNthLayer,
             _bodyDistanceSlider,
-            _bodyUpTimeSlider,
+            _bodyPumpUpVelocitySlider,
             _bodyUpPauseSlider,
-            _bodyDownTimeSlider,
+            _bodyPumpDownVelocitySlider,
             _bodyDownPauseSlider,
-            _bodyUpVelocitySlider,
+            _bodyNoPumpUpVelocitySlider,
             nullptr
          )
     );
@@ -634,10 +634,11 @@ debug( "+ AdvancedTab::updatePrintProfile 2" );
         PrintParameters baseParams;
 
         baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
-        baseParams.setPumpUpTime(_upTimeSlider->getValue());
+        baseParams.setPumpUpVelocity(_basePumpUpVelocitySlider->getValue());
         baseParams.setPumpUpPause(_upPauseSlider->getValue());
+        baseParams.setPumpDownVelocity(_basePumpDownVelocitySlider->getValue());
         baseParams.setPumpDownPause(_downPauseSlider->getValue());
-        baseParams.setNoPumpUpVelocity( ((double)_upVelocitySlider->getValue()) / (1000/60));
+        baseParams.setNoPumpUpVelocity( ((double)_baseNoPumpUpVelocitySlider->getValue()));
         baseParams.setPumpEveryNthLayer(0);
         //baseParams.setLayerThickness(_baseThicknessSlider->getValue());
         baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
@@ -652,10 +653,11 @@ debug( "+ AdvancedTab::updatePrintProfile 2" );
         PrintParameters bodyParams;
 
         bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
-        bodyParams.setPumpUpTime(_bodyUpTimeSlider->getValue());
+        bodyParams.setPumpUpVelocity(_bodyPumpUpVelocitySlider->getValue());
         bodyParams.setPumpUpPause(_bodyUpPauseSlider->getValue());
+        bodyParams.setPumpDownVelocity(_bodyPumpDownVelocitySlider->getValue());
         bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
-        bodyParams.setNoPumpUpVelocity( ((double)_bodyUpVelocitySlider->getValue()) / (1000/60));
+        bodyParams.setNoPumpUpVelocity( ((double)_bodyNoPumpUpVelocitySlider->getValue()));
         bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
         //bodyParams.setLayerThickness(_bodyThicknessSlider->getValue());
         bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
@@ -680,10 +682,11 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         PrintParameters const& baseParams = profile->baseLayerParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
-        _upTimeSlider->setValue( baseParams.pumpUpTime( ) );
+        _basePumpUpVelocitySlider->setValue( baseParams.pumpUpVelocity_Effective() );
         _upPauseSlider->setValue( baseParams.pumpUpPause( ) );
+        _basePumpDownVelocitySlider->setValue( baseParams.pumpDownVelocity_Effective() );
         _downPauseSlider->setValue( baseParams.pumpDownPause( ) );
-        _upVelocitySlider->setValue( baseParams.noPumpUpVelocity( ) * ( 1000.0 / 60.0 ) );
+        _baseNoPumpUpVelocitySlider->setValue( baseParams.noPumpUpVelocity( ) );
         //_baseThicknessSlider->setValue( baseParams.layerThickness( ) );
         _baseExposureTimeSlider->setValue( baseParams.layerExposureTime( ) );
         _powerLevelSlider->setValue( baseParams.powerLevel( ) );
@@ -693,10 +696,11 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
         PrintParameters const& bodyParams = profile->bodyLayerParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
-        _bodyUpTimeSlider->setValue( bodyParams.pumpUpTime( ) );
+        _bodyPumpUpVelocitySlider->setValue( bodyParams.pumpUpVelocity_Effective() );
         _bodyUpPauseSlider->setValue( bodyParams.pumpUpPause( ) );
+        _bodyPumpDownVelocitySlider->setValue( bodyParams.pumpDownVelocity_Effective() );
         _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause( ) );
-        _bodyUpVelocitySlider->setValue( bodyParams.noPumpUpVelocity( ) * ( 1000.0 / 60.0 ) );
+        _bodyNoPumpUpVelocitySlider->setValue( bodyParams.noPumpUpVelocity( ) );
        // _bodyThicknessSlider->setValue( bodyParams.layerThickness( ) );
         _bodyExposureTimeSlider->setValue( bodyParams.layerExposureTime( ) );
         // assume body and base power level are the same for now

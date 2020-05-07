@@ -84,11 +84,11 @@ private:
     QCheckBox*    _addBasePumpCheckbox                { new QCheckBox( "Enable pumping for base layers" )                        };
 
     ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250 ) };
-    ParamSlider*  _upTimeSlider                       { new ParamSlider( "Base Pump Up Time",         "ms",    1000, 8000,   1 ) };
+    ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5 ) };
+    ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5 ) };
     ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _downTimeSlider                     { new ParamSlider( "Base Pump Down Time",       "ms",    1000, 8000,   1 ) };
     ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _upVelocitySlider                   { new ParamSlider( "Base Pump Up Velocity",     "µm/ms", 1000, 8000,   1 ) };
+    ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5 ) };
 
 
     //Layer Form
@@ -103,11 +103,11 @@ private:
 
     ParamSlider*  _bodyPumpEveryNthLayer              { new ParamSlider( "Body Pump Every Nth Layer", "",         5,   20,   1 ) };
     ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyUpTimeSlider                   { new ParamSlider( "Body Pump Up Time",         "ms",    1000, 8000,   1 ) };
+    ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5 ) };
+    ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5 ) };
     ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyDownTimeSlider                 { new ParamSlider( "Body Pump Down Time",       "ms",    1000, 8000,   1 ) };
     ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyUpVelocitySlider               { new ParamSlider( "Body Pump Up Velocity",     "µm/ms", 1000, 8000,   1 ) };
+    ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5 ) };
 
     static const int FORMS_COUNT                      { 5 };
     QWidget*         _forms[FORMS_COUNT];

@@ -447,8 +447,9 @@ bool ProfilesTab::_updateProfile()
     PrintParameters newBaseParams;
 
     newBaseParams.setPumpUpDistance( baseParams.pumpUpDistance() );
-    newBaseParams.setPumpUpTime( baseParams.pumpUpTime() );
+    newBaseParams.setPumpUpVelocity( baseParams.pumpUpVelocity_Effective() );
     newBaseParams.setPumpUpPause( baseParams.pumpUpPause() );
+    newBaseParams.setPumpDownVelocity( baseParams.pumpDownVelocity_Effective() );
     newBaseParams.setPumpDownPause( baseParams.pumpDownPause() );
     newBaseParams.setNoPumpUpVelocity( baseParams.noPumpUpVelocity() );
     newBaseParams.setPumpEveryNthLayer( baseParams.pumpEveryNthLayer() );
@@ -463,8 +464,9 @@ bool ProfilesTab::_updateProfile()
     PrintParameters newBodyParams;
 
     newBodyParams.setPumpUpDistance( bodyParams.pumpUpDistance() );
-    newBodyParams.setPumpUpTime( bodyParams.pumpUpTime() );
+    newBodyParams.setPumpUpVelocity( bodyParams.pumpUpVelocity_Effective() );
     newBodyParams.setPumpUpPause( bodyParams.pumpUpPause() );
+    newBodyParams.setPumpDownVelocity( bodyParams.pumpDownVelocity_Effective() );
     newBodyParams.setPumpDownPause( bodyParams.pumpDownPause() );
     newBodyParams.setNoPumpUpVelocity( bodyParams.noPumpUpVelocity() );
     newBodyParams.setPumpEveryNthLayer( bodyParams.pumpEveryNthLayer() );

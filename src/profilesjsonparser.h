@@ -141,8 +141,9 @@ private:
         params.setPowerLevel       ( _parseIntValue   ( obj, "powerLevel"        ) );
         params.setPumpingEnabled   ( _parseBoolValue  ( obj, "pumpingEnabled"    ) );
         params.setPumpUpDistance   ( _parseIntValue   ( obj, "pumpUpDistance"    ) );
-        params.setPumpUpTime       ( _parseDoubleValue( obj, "pumpUpTime"        ) );
+        params.setPumpUpVelocity   ( _parseDoubleValue( obj, "pumpUpVelocity"    ) );
         params.setPumpUpPause      ( _parseDoubleValue( obj, "pumpUpPause"       ) );
+        params.setPumpDownVelocity ( _parseDoubleValue( obj, "pumpDownVelocity"  ) );
         params.setPumpDownPause    ( _parseDoubleValue( obj, "pumpDownPause"     ) );
         params.setNoPumpUpVelocity ( _parseDoubleValue( obj, "noPumpUpVelocity"  ) );
         params.setPumpEveryNthLayer( _parseDoubleValue( obj, "pumpEveryNthLayer" ) );
@@ -188,8 +189,9 @@ private:
         result["powerLevel"]        = params.powerLevel( );
         result["pumpingEnabled"]    = params.isPumpingEnabled( );
         result["pumpUpDistance"]    = params.pumpUpDistance( );
-        result["pumpUpTime"]        = params.pumpUpTime( );
+        result["pumpUpVelocity"]    = params.pumpUpVelocity_Effective();
         result["pumpUpPause"]       = params.pumpUpPause( );
+        result["pumpDownVelocity"]  = params.pumpDownVelocity_Effective();
         result["pumpDownPause"]     = params.pumpDownPause( );
         result["noPumpUpVelocity"]  = params.noPumpUpVelocity( );
         result["pumpEveryNthLayer"] = params.pumpEveryNthLayer( );

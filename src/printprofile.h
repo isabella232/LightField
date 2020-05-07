@@ -51,8 +51,9 @@ public:
         debug("     baseLayersPumpingParameters:    \n");
         debug("     objectAddress:                  %d\n", &_baseLayerParameters);
         debug("         powerLevel:                 %d\n", _baseLayerParameters.powerLevel());
-        debug("         pumpUpTime:                 %d\n", _baseLayerParameters.pumpUpTime());
+        debug("         pumpUpVelocity:             %d\n", _baseLayerParameters.pumpUpVelocity_Effective());
         debug("         pumpUpPause:                %d\n", _baseLayerParameters.pumpUpPause());
+        debug("         pumpDownVelocity:           %d\n", _baseLayerParameters.pumpDownVelocity_Effective());
         debug("         pumpDownPause:              %d\n", _baseLayerParameters.pumpDownPause());
         debug("         layerThickness:             %d\n", _baseLayerParameters.layerThickness());
         debug("         pumpUpDistance:             %d\n", _baseLayerParameters.pumpUpDistance());
@@ -67,8 +68,9 @@ public:
         debug("     bodyLayersPumpingParameters:    \n");
         debug("     objectAddress:                  %d\n", &_bodyLayerParameters);
         debug("         powerLevel:                 %d\n", _bodyLayerParameters.powerLevel());
-        debug("         pumpUpTime:                 %d\n", _bodyLayerParameters.pumpUpTime());
+        debug("         pumpUpVelocity:             %d\n", _bodyLayerParameters.pumpUpVelocity_Effective());
         debug("         pumpUpPause:                %d\n", _bodyLayerParameters.pumpUpPause());
+        debug("         pumpDownVelocity:           %d\n", _bodyLayerParameters.pumpDownVelocity_Effective());
         debug("         pumpDownPause:              %d\n", _bodyLayerParameters.pumpDownPause());
         debug("         layerThickness:             %d\n", _bodyLayerParameters.layerThickness());
         debug("         pumpUpDistance:             %d\n", _bodyLayerParameters.pumpUpDistance());

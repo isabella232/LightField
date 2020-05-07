@@ -370,11 +370,9 @@ void Window::startPrinting( ) {
         "    + baseLayersPumpingEnabled: %s\n"
         "    + base layer parameters:\n"
         "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpTime:             %d ms\n"
         "      + pumpUpVelocity:        *%.2f mm/min\n"
         "      + pumpUpPause:            %d ms\n"
         "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownTime:          *%.2f mm\n"
         "      + pumpDownVelocity:      *%.2f mm/min\n"
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
@@ -388,11 +386,9 @@ void Window::startPrinting( ) {
 
         ToString( baseLayerParameters.isPumpingEnabled( ) ),
         baseLayerParameters.pumpUpDistance( ),
-        baseLayerParameters.pumpUpTime( ),
         baseLayerParameters.pumpUpVelocity_Effective( ),
         baseLayerParameters.pumpUpPause( ),
         baseLayerParameters.pumpDownDistance_Effective( ),
-        baseLayerParameters.pumpDownTime_Effective( ),
         baseLayerParameters.pumpDownVelocity_Effective( ),
         baseLayerParameters.pumpDownPause( ),
         baseLayerParameters.noPumpUpVelocity( ),
@@ -409,11 +405,9 @@ void Window::startPrinting( ) {
         "    + bodyLayersPumpingEnabled: %s\n"
         "    + body layer parameters:\n"
         "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpTime:             %d ms\n"
         "      + pumpUpVelocity:        *%.2f mm/min\n"
         "      + pumpUpPause:            %d ms\n"
         "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownTime:          *%.2f mm\n"
         "      + pumpDownVelocity:      *%.2f mm/min\n"
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
@@ -426,11 +420,9 @@ void Window::startPrinting( ) {
 
         ToString( bodyLayerParameters.isPumpingEnabled( ) ),
         bodyLayerParameters.pumpUpDistance( ),
-        bodyLayerParameters.pumpUpTime( ),
         bodyLayerParameters.pumpUpVelocity_Effective( ),
         bodyLayerParameters.pumpUpPause( ),
         bodyLayerParameters.pumpDownDistance_Effective( ),
-        bodyLayerParameters.pumpDownTime_Effective( ),
         bodyLayerParameters.pumpDownVelocity_Effective( ),
         bodyLayerParameters.pumpDownPause( ),
         bodyLayerParameters.noPumpUpVelocity( ),
