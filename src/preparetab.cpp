@@ -341,8 +341,10 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo ) {
 }
 
 void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& slices ) {
-    if ( slices.layerCount == 0 )
+    if ( ::strcmp(type, "base") == 0 && slices.layerCount == 0 ) {
+        debug( "  + %s layer count is zero, skipping\n", type);
         return;
+    }
 
     if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
         slices.isPreSliced = false;
