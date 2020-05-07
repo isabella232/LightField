@@ -532,8 +532,8 @@ void PrepareTab::_startSlicer( SliceInformation const& sliceInfo ) {
         _printJob->modelFileName,
         "--export-svg",
         "--threads",            QString { "%1" }.arg( get_nprocs( ) ),
-        "--first-layer-height", QString { "%1" }.arg( ( sliceInfo.layerThickness + sliceInfo.firstLayerOffset ) / 1000.0 ),
-        "--layer-height",       QString { "%1" }.arg(   sliceInfo.layerThickness                                / 1000.0 ),
+        "--first-layer-height", QString { "%1" }.arg( sliceInfo.layerThickness / 1000.0 ),
+        "--layer-height",       QString { "%1" }.arg( sliceInfo.layerThickness / 1000.0 ),
         "--output",             sliceInfo.sliceDirectory % Slash % SlicedSvgFileName
     };
 
