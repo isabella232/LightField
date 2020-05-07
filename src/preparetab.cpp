@@ -341,6 +341,9 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo ) {
 }
 
 void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& slices ) {
+    if ( slices.layerCount == 0 )
+        return;
+
     if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
         slices.isPreSliced = false;
         debug( "  + no pre-sliced %s layers\n", type );
@@ -376,7 +379,7 @@ bool PrepareTab::_checkSliceDirectories( ) {
     _setNavigationButtonsEnabled( preSliced );
     _setSliceControlsEnabled( true );
     if ( preSliced ) {
-        if ( _printJob->printProfile->baseLayerCount( ) > 0 ) {
+        if ( _printJob->baseSlices.layerCount > 0 ) {
             int baseThickness                      = _printJob->baseSlices.layerThickness * _printJob->printProfile->baseLayerCount( );
 
             _printJob->baseSlices.startLayer       = 0;
@@ -415,33 +418,29 @@ bool PrepareTab::_checkSliceDirectories( ) {
     return preSliced;
 }
 
-
-
-
-
-
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    //MERGE_TODO not sure if that control will stay
-//    _printJob->layerThickness = 100;
-
-//    _checkJobDirectory( );
+    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerThickness = 100;
+    _printJob->bodySlices.layerThickness = 100;
+    _checkSliceDirectories( );
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    //MERGE_TODO not sure if that control will stay
-//    _printJob->layerThickness = 50;
-
-//    _checkJobDirectory( );
+    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerThickness = 50;
+    _printJob->bodySlices.layerThickness = 50;
+    _checkSliceDirectories( );
 }
 
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    //_printJob->layerThickness = 20;
-
-   // _checkJobDirectory( );
+    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerThickness = 20;
+    _printJob->bodySlices.layerThickness = 20;
+    _checkSliceDirectories( );
 }
 #endif // defined EXPERIMENTAL
 
@@ -817,6 +816,7 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
         _svgRenderer->loadSlices( _manifestManager );
     } else {
         _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory, _manifestManager);
+        _printJob->totalLayerCount = _manifestManager->getSize();
     }
     update();
 }
