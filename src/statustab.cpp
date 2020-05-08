@@ -231,7 +231,7 @@ void StatusTab::_initialShowEvent( QShowEvent* event ) {
 
 void StatusTab::setModelRendered( bool const value ) {
     _isModelRendered = value;
-    debug( "+ StatusTab::setModelRendered: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
+    //debug( "+ StatusTab::setModelRendered: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _updateReprintButtonState( );
 }

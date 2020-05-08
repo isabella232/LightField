@@ -9,7 +9,7 @@ class SliceInformation {
 
 public:
 
-    QString sliceDirectory;
+
 
     bool    isPreSliced      { };
 
@@ -20,6 +20,16 @@ public:
     int     startLayer       { -1 };
     int     endLayer         { -1 };
 
+    void setSliceDirectory(QString sliceDirectory) {
+        this->_sliceDirectory = sliceDirectory;
+    }
+
+    QString sliceDirectory() const {
+        return _sliceDirectory;
+    }
+
+private:
+    QString _sliceDirectory;
 };
 
 class PrintJob {
@@ -79,9 +89,9 @@ public:
 
     QString getLayerDirectory( int const layer ) const {
         if ( isBaseLayer( layer ) ) {
-            return baseSlices.sliceDirectory;
+            return baseSlices.sliceDirectory();
         } else {
-            return bodySlices.sliceDirectory;
+            return bodySlices.sliceDirectory();
         }
     }
 
@@ -124,7 +134,7 @@ public:
         if(bodyManager != nullptr)
             delete bodyManager;
 
-        bodySlices.sliceDirectory = bodyManager->path();
+        bodySlices.setSliceDirectory( bodyManager->path() );
         bodySlices.isPreSliced = true;
         bodySlices.layerCount = bodyManager->getSize();
 
@@ -151,7 +161,7 @@ public:
             baseManager = nullptr;
 
         if(baseManager != nullptr) {
-            baseSlices.sliceDirectory = baseManager->path();
+            baseSlices.setSliceDirectory( baseManager->path() );
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = baseManager->getSize();
             baseSlices.layerThickness = baseManager->layerThickNessAt(0);
@@ -159,7 +169,7 @@ public:
             baseSlices.startLayer = 0;
             baseSlices.endLayer = baseManager->getSize() - 1;
         } else {
-            baseSlices.sliceDirectory = "";
+            baseSlices.setSliceDirectory( nullptr );
             baseSlices.isPreSliced = false;
             baseSlices.layerCount = 0;
             baseSlices.layerThickness = -1;

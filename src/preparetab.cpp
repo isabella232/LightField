@@ -245,7 +245,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         return false;
     }
     //MERGE_TODO further alignment may be needed
-    auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory + Slash + SlicedSvgFileName };
+    auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory() + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -270,7 +270,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     OrderManifestManager* manifestMgr = new OrderManifestManager();
 
-    manifestMgr->setPath( sliceInfo.sliceDirectory );
+    manifestMgr->setPath( sliceInfo.sliceDirectory() );
     QStringList errors;
     QStringList warnings;
 
@@ -311,7 +311,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     //   and that there are no gaps in the numbering.
     while ( iter.hasNext() ) {
 
-        QFileInfo entry ( sliceInfo.sliceDirectory % Slash % *iter);
+        QFileInfo entry ( sliceInfo.sliceDirectory() % Slash % *iter);
         ++iter;
 
         if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
@@ -349,16 +349,17 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 }
 
 void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& slices ) {
+    debug(" PrepareTab::_checkOneSliceDirectory %s %d\n", type, &slices );
     if ( ::strcmp(type, "base") == 0 && slices.layerCount == 0 ) {
         debug( "  + %s layer count is zero, skipping\n", type);
         return;
     }
 
-    if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
+    if ( QDir slicesDir { slices.sliceDirectory() }; !slicesDir.exists( ) ) {
         slices.isPreSliced = false;
         debug( "  + no pre-sliced %s layers\n", type );
     } else {
-        slices.isPreSliced = _checkPreSlicedFiles( slices, ::strcmp(type, "body") );
+        slices.isPreSliced = _checkPreSlicedFiles( slices, !::strcmp(type, "body") );
         debug( "  + pre-sliced %s layers are %sgood\n", type, slices.isPreSliced ? "" : "NOT " );
         if ( !slices.isPreSliced ) {
             slicesDir.removeRecursively( );
@@ -368,8 +369,8 @@ void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& sl
 
 bool PrepareTab::_checkSliceDirectories( ) {
     QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash % HyphenMinus };
-    _printJob->baseSlices.sliceDirectory = sliceDirectoryBase % QString { "%1" }.arg( _printJob->baseSlices.layerThickness );
-    _printJob->bodySlices.sliceDirectory = sliceDirectoryBase % QString { "%1" }.arg( _printJob->bodySlices.layerThickness );
+    _printJob->baseSlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->baseSlices.layerThickness ) );
+    _printJob->bodySlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->bodySlices.layerThickness ) );
 
     debug(
         "+ PrepareTab::_checkSliceDirectories:"
@@ -378,11 +379,14 @@ bool PrepareTab::_checkSliceDirectories( ) {
         "  + body slices directory: '%s'\n"
         "",
         _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->baseSlices.sliceDirectory.toUtf8( ).data( ),
-        _printJob->bodySlices.sliceDirectory.toUtf8( ).data( )
+        _printJob->baseSlices.sliceDirectory().toUtf8( ).data( ),
+        _printJob->bodySlices.sliceDirectory().toUtf8( ).data( )
     );
 
-    _checkOneSliceDirectory( "base", _printJob->baseSlices );
+    if(_layerThicknessCustomButton->isChecked()) {
+        _checkOneSliceDirectory( "base", _printJob->baseSlices );
+    }
+
     _checkOneSliceDirectory( "body", _printJob->bodySlices );
 
     auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
@@ -476,7 +480,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 
 void PrepareTab::_showLayerImage( int const layer ) {
     debug(" +PrepareTab::_showLayerImage %s", _printJob->getLayerFileName( layer ).toUtf8().data() );
-    QPixmap pixmap { _printJob->getLayerFileName( layer ) };
+    QPixmap pixmap { _printJob->getLayerPath( layer ) };
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
@@ -531,9 +535,9 @@ void PrepareTab::_handlePrepareFailed( ) {
 }
 
 void PrepareTab::_startSlicer( SliceInformation const& sliceInfo ) {
-    QDir jobDir { sliceInfo.sliceDirectory };
+    QDir jobDir { sliceInfo.sliceDirectory() };
     jobDir.removeRecursively( );
-    jobDir.mkdir( sliceInfo.sliceDirectory );
+    jobDir.mkdir( sliceInfo.sliceDirectory() );
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
@@ -543,7 +547,7 @@ void PrepareTab::_startSlicer( SliceInformation const& sliceInfo ) {
         "--threads",            QString { "%1" }.arg( get_nprocs( ) ),
         "--first-layer-height", QString { "%1" }.arg( sliceInfo.layerThickness / 1000.0 ),
         "--layer-height",       QString { "%1" }.arg( sliceInfo.layerThickness / 1000.0 ),
-        "--output",             sliceInfo.sliceDirectory % Slash % SlicedSvgFileName
+        "--output",             sliceInfo.sliceDirectory() % Slash % SlicedSvgFileName
     };
 
     debug("slic3r arguments are: %s\n", slicerArgs.join(" ").toUtf8().constData());
@@ -594,7 +598,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     OrderManifestManager manifestMgr;
 
-    manifestMgr.setPath(_printJob->bodySlices.sliceDirectory);
+    manifestMgr.setPath(_printJob->bodySlices.sliceDirectory());
 
     SlicesOrderPopup popup { &manifestMgr };
     popup.exec();
@@ -615,18 +619,18 @@ void PrepareTab::setupTiling_clicked( bool ) {
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
 
-    if( _printJob->bodySlices.sliceDirectory != nullptr) {
-        QDir jobDir { _printJob->bodySlices.sliceDirectory };
+    if( _printJob->bodySlices.sliceDirectory() != nullptr) {
+        QDir jobDir { _printJob->bodySlices.sliceDirectory() };
 
         jobDir.removeRecursively( );
-        jobDir.mkdir( _printJob->bodySlices.sliceDirectory );
+        jobDir.mkdir( _printJob->bodySlices.sliceDirectory() );
     }
 
-    if( _printJob->baseSlices.sliceDirectory != nullptr) {
-        QDir jobDir { _printJob->baseSlices.sliceDirectory };
+    if( _printJob->baseSlices.sliceDirectory() != nullptr) {
+        QDir jobDir { _printJob->baseSlices.sliceDirectory() };
 
         jobDir.removeRecursively( );
-        jobDir.mkdir( _printJob->baseSlices.sliceDirectory );
+        jobDir.mkdir( _printJob->baseSlices.sliceDirectory() );
     }
 
     _sliceStatus->setText( "starting base layers" );
@@ -803,7 +807,7 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_base_done          );
 
     OrderManifestManager* manifestMgr = new OrderManifestManager();
-    manifestMgr->setPath( _printJob->bodySlices.sliceDirectory );
+    manifestMgr->setPath( _printJob->bodySlices.sliceDirectory() );
     if ( _directoryMode ) {
         QStringList errors;
         QStringList warnings;
@@ -840,7 +844,7 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
         _svgRenderer->loadSlices( _printJob );
         //_svgRenderer->loadSlices( &manifestMgr );
     } else {
-        _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory, _printJob );
+        _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory() + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory(), _printJob );
     }
 
     update();
@@ -876,7 +880,7 @@ void PrepareTab::svgRenderer_base_done( bool const success ) {
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_body_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_body_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_body_done          );
-    _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory, _printJob );
+    _svgRenderer->startRender( _printJob->bodySlices.sliceDirectory() + Slash + SlicedSvgFileName, _printJob->bodySlices.sliceDirectory(), _printJob );
 
     update( );
 }
@@ -922,7 +926,7 @@ void PrepareTab::prepareButton_clicked( bool ) {
 
     QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
 
-    _prepareMessage->setText( "Moving the build platform to its home location…" );
+    _prepareMessage->setText( "Moving the build platform to its home location&" );
     _prepareProgress->show( );
 
     _prepareButton->setText( "Continue" );
@@ -964,7 +968,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( "Raising the build platform…" );
+    _prepareMessage->setText( "Raising the build platform&" );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );

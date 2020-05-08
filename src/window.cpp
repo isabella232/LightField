@@ -342,7 +342,7 @@ void Window::startPrinting( ) {
         _printJob->modelHash.toUtf8( ).data( ),
         _printJob->totalLayerCount,
 
-        baseSlices.sliceDirectory.toUtf8( ).data( ),
+        baseSlices.sliceDirectory().toUtf8( ).data( ),
         ToString( baseSlices.isPreSliced ),
         baseSlices.layerCount,
         baseSlices.layerThickness,
@@ -350,7 +350,7 @@ void Window::startPrinting( ) {
         baseSlices.startLayer,
         baseSlices.endLayer,
 
-        bodySlices.sliceDirectory.toUtf8( ).data( ),
+        bodySlices.sliceDirectory().toUtf8( ).data( ),
         ToString( bodySlices.isPreSliced ),
         bodySlices.layerCount,
         bodySlices.layerThickness,
@@ -513,7 +513,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 }
 
 void Window::tabs_currentChanged( int index ) {
-    debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
+    //debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
 
     update( );
 }

@@ -128,20 +128,33 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     }
 
     if(printJob->baseSlices.layerCount > 0) {
-        OrderManifestManager manifestManager;
-        manifestManager.setPath( _outputDirectory );
+        OrderManifestManager* manifestManager = new OrderManifestManager();
+        manifestManager->setPath( _outputDirectory );
 
         QStringList manifestFileList { };
         for( int i=0; i<printJob->baseSlices.layerCount; ++i) {
             manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
         }
 
-        manifestManager.setFileList( manifestFileList );
-        manifestManager.save();
+        manifestManager->setFileList( manifestFileList );
+        manifestManager->save();
+
+        printJob->setBaseManager(manifestManager);
     }
 
     if(printJob->bodySlices.layerCount > 0) {
+        OrderManifestManager* manifestManager = new OrderManifestManager();
+        manifestManager->setPath( _outputDirectory );
 
+        QStringList manifestFileList { };
+        for( int i=0; i<printJob->baseSlices.layerCount; ++i) {
+            manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+        }
+
+        manifestManager->setFileList( manifestFileList );
+        manifestManager->save();
+
+        printJob->setBodyManager(manifestManager);
     }
 
     _totalLayers = layer;
