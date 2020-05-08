@@ -140,9 +140,6 @@ void TilingTab::setStepValue()
 {
     debug( "+ TilingTab::setStepValue\n");
 
-    if(!_manifestManager || _manifestManager->getFirstElement() == nullptr)
-        return;
-
     auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
     int maxCount = _getMaxCount( );
     debug( "+ TilingTab::setCount %d\n", maxCount);
@@ -277,7 +274,6 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_minExposureBody = 20.0;
             this->_space->setValue( 1 );
             this->_printJob = nullptr;
-            this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
             _setEnabled( false );
         break;

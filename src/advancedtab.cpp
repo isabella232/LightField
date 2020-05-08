@@ -129,15 +129,13 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
             if(sender == TabIndex::Tiling) {
                 setLayersSettingsEnabled(false);
             } else if (sender == TabIndex::Prepare) {
-                OrderManifestManager* manifest =  this->manifestMgr();
-
-                if(manifest->tiled()) {
+                if(_printJob->isTiled()) {
                     setLayersSettingsEnabled(false);
                 }
                 else
                 {
                     setLayersSettingsEnabled(true);
-                    _offsetSlider->setValue( manifest->firstLayerOffset() );
+                    _offsetSlider->setValue( printJob()->firstLayerOffset );
                 }
 
             }

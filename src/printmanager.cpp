@@ -112,10 +112,9 @@ namespace {
 
 }
 
-PrintManager::PrintManager( Shepherd* shepherd, OrderManifestManager* _manifestMgr, QObject* parent ):
+PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
-    _shepherd ( shepherd ),
-    _manifestMgr ( _manifestMgr )
+    _shepherd ( shepherd )
 {
     _movementSequencer        = new MovementSequencer { shepherd, this };
     _setProjectorPowerProcess = new ProcessRunner     { this };
@@ -328,8 +327,8 @@ void PrintManager::stepB2_start( ) {
     int layerExposureTime;
 
     if(_isTiled){
-        int realLayer = currentLayer()/_manifestMgr->tilingCount();
-        layerExposureTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+        int realLayer = currentLayer()/_printJob->tilingCount();
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
         _duringTiledLayer = true;
     }else {
         layerExposureTime = _printJob->printProfile->baseLayerParameters( ).layerExposureTime( );
@@ -369,8 +368,7 @@ void PrintManager::stepB2a_start( ){
         _currentLayer++;
         _pngDisplayer->clear( );
         emit startingLayer( _currentLayer );
-        //MERGE_TODO needs alignment
-        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
+        QString pngFileName = _printJob->getLayerPath( _currentLayer );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
             debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
@@ -610,8 +608,7 @@ void PrintManager::stepC2a_start( ){
         _currentLayer++;
         _pngDisplayer->clear( );
         emit startingLayer( _currentLayer );
-        //MERGE_TODO needs alignment
-        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
+        QString pngFileName = _printJob->getLayerPath( _currentLayer );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
             debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
@@ -885,7 +882,7 @@ void PrintManager::stepE2_completed( bool const success ) {
     }
 }
 
-void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentManifestMgr) {
+void PrintManager::print( PrintJob* printJob ) {
     if ( _printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
@@ -893,8 +890,8 @@ void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentMani
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
-    _isTiled = currentManifestMgr->tiled();
-    _elementsOnLayer = currentManifestMgr->tilingCount();
+    _isTiled = printJob->isTiled();
+    _elementsOnLayer = printJob->tilingCount();
 
     _pngDisplayer->clear( );
 

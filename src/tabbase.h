@@ -56,7 +56,6 @@ public:
     Shepherd*            shepherd( )            const { return _shepherd;            }
     UiState              uiState( )             const { return _uiState;             }
     UsbMountManager*     usbMountManager( )     const { return _usbMountManager;     }
-    OrderManifestManager*   manifestMgr( )     const { return _manifestManager;     }
 
     virtual TabIndex tabIndex( )        const = 0;
 
@@ -68,7 +67,6 @@ protected:
     Shepherd*               _shepherd                 { };
     UiState                 _uiState                  { };
     UsbMountManager*        _usbMountManager          { };
-    OrderManifestManager*   _manifestManager          { };
 
     virtual void _disconnectPrintJob( );
     virtual void _connectPrintJob( );
@@ -102,7 +100,6 @@ public slots:
     virtual void setShepherd( Shepherd* shepherd );
     virtual void setUsbMountManager( UsbMountManager* mountManager );
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) = 0;
-    virtual void setManifestMgr( OrderManifestManager* manifestMgr );
 
 protected slots:
     ;

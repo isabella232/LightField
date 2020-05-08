@@ -6,6 +6,7 @@
 
 #include "processrunner.h"
 #include "timinglogger.h"
+#include "ordermanifestmanager.h"
 
 namespace {
 
@@ -26,16 +27,15 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
+void SvgRenderer::loadSlices( PrintJob* printJob ) {
     int  layerNumber     { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
     TimingLogger::startTiming( TimingId::LoadingPngFolder );
-    OrderManifestManager::Iterator iter = manifestManager->iterator();
-    while ( iter.hasNext() ) {
+
+    for (int i=0; i<printJob->totalLayerCount; ++i ) {
         debug( "+ SvgRenderer::loadSlices next iter \n");
-        QString fileName = *iter;
-        ++iter;
+        QString fileName = printJob->getLayerFileName( i );
 
         debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
         layerNumber++;
@@ -44,11 +44,11 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 
     debug( "  + Done\n" );
-    emit layerCount( manifestManager->getSize() );
+    emit layerCount( printJob->totalLayerCount );
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
+void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, PrintJob* printJob ) {
     debug( "+ SvgRenderer::startRender\n" );
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
@@ -127,16 +127,22 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         }
     }
 
-    manifestManager->restart();
-    manifestManager->setPath( _outputDirectory );
+    if(printJob->baseSlices.layerCount > 0) {
+        OrderManifestManager manifestManager;
+        manifestManager.setPath( _outputDirectory );
 
-    QStringList manifestFileList { };
-    for( int i=0; i<layer; ++i) {
-        manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+        QStringList manifestFileList { };
+        for( int i=0; i<printJob->baseSlices.layerCount; ++i) {
+            manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
+        }
+
+        manifestManager.setFileList( manifestFileList );
+        manifestManager.save();
     }
 
-    manifestManager->setFileList( manifestFileList );
-    manifestManager->save();
+    if(printJob->bodySlices.layerCount > 0) {
+
+    }
 
     _totalLayers = layer;
     _runningLayers .fill( -1,      get_nprocs( ) );

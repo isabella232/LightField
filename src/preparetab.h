@@ -90,7 +90,7 @@ private:
     QGridLayout*      _layout                      { new QGridLayout      };
 
 
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
+    bool _checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody );
     void _checkOneSliceDirectory( char const* type, SliceInformation& slices );
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );

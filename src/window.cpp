@@ -101,8 +101,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
             tabA->setPrintProfileManager( _printProfileManager);
         }
-
-        tabA->setManifestMgr( manifestMgr );
     }
 
     emit shepherdChanged( _shepherd );
@@ -445,7 +443,7 @@ void Window::startPrinting( ) {
 
     PrintManager* oldPrintManager = _printManager;
 
-    _printManager = new PrintManager( _shepherd, _prepareTab->manifestMgr(), this );
+    _printManager = new PrintManager( _shepherd, this );
     _printManager->setPngDisplayer( _pngDisplayer );
 
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
@@ -455,7 +453,7 @@ void Window::startPrinting( ) {
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( job, _prepareTab->manifestMgr() );
+    _printManager->print( job );
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );

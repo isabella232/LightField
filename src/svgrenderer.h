@@ -1,7 +1,7 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
-#include "ordermanifestmanager.h"
+#include "printjob.h"
 
 class ProcessRunner;
 
@@ -14,8 +14,8 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& _outputDirectory, OrderManifestManager* manifestManager );
-    void loadSlices ( OrderManifestManager* manifestManager );
+    void startRender( QString const& svgFileName, QString const& _outputDirectory, PrintJob* printJob );
+    void loadSlices ( PrintJob* printJob );
 
 protected:
 

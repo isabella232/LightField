@@ -35,7 +35,7 @@ class PrintManager: public QObject {
 
 public:
 
-    PrintManager( Shepherd* shepherd, OrderManifestManager* manifestMgr, QObject* parent = 0 );
+    PrintManager( Shepherd* shepherd, QObject* parent = 0 );
     virtual ~PrintManager( ) override;
 
     int currentLayer( ) const { return _currentLayer; }
@@ -75,8 +75,6 @@ private:
     QList<MovementInfo> _stepB4a2_movements;
     QList<MovementInfo> _stepC4a2_movements;
 
-    OrderManifestManager* _manifestMgr;
-
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );
     void    _pausePrinting( );
@@ -102,7 +100,7 @@ public slots:
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
-    void print( PrintJob* printJob, OrderManifestManager* currentManifestMgr );
+    void print( PrintJob* printJob );
     void pause( );
     void resume( );
     void terminate( );
