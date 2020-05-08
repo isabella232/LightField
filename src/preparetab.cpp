@@ -33,17 +33,20 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
     _layerThickness50Button->setEnabled( false );
+    _layerThickness50Button->setChecked( false );
     _layerThickness50Button->setText( "High res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
     _layerThicknessCustomButton->setEnabled( false );
+    _layerThicknessCustomButton->setChecked( false );
     _layerThicknessCustomButton->setText( "Custom (advanced slicing)" );
     _layerThicknessCustomButton->setFont( font12pt );
     QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( false );
+    _layerThickness20Button->setChecked( false );
     _layerThickness20Button->setText( "Super-high res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
@@ -299,6 +302,8 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         }
     }
 
+    debug( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
     // check that the layer SVG files are newer than the sliced SVG file,
@@ -470,6 +475,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
+    debug(" +PrepareTab::_showLayerImage %s", _printJob->getLayerFileName( layer ).toUtf8().data() );
     QPixmap pixmap { _printJob->getLayerFileName( layer ) };
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
@@ -1018,7 +1024,7 @@ void PrepareTab::_updateSliceControls() {
         }
     }
 
-    _layerThicknessCustomButton->setChecked(true);
+    //_layerThicknessCustomButton->setChecked(true);
 }
 
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {

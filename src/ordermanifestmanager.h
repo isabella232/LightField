@@ -94,7 +94,9 @@ public:
             QStringList _list;
     };
 
-    OrderManifestManager()      { }
+    OrderManifestManager()      {
+        restart();
+    }
     OrderManifestManager(OrderManifestManager* parent) {
         this->_dirPath = parent->_dirPath;
         this->_type = parent->_type;

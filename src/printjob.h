@@ -89,13 +89,23 @@ public:
         int baseCount = baseSlices.layerCount;
         int bodyCount = bodySlices.layerCount;
 
-        if( layer < baseCount ) {
-            return baseManager->getElementAt( layer );
-        } else if ( layer - baseCount < bodyCount ) {
-            return bodyManager->getElementAt( layer - baseCount );
-        }
+        if(bodyManager != nullptr) {
+            if( layer < baseCount ) {
+                return baseManager->getElementAt( layer );
+            } else if ( layer - baseCount < bodyCount ) {
+                return bodyManager->getElementAt( layer - baseCount );
+            }
+        } else {
+            auto sliceDirectory { getLayerDirectory( layer ) };
+            auto adjustedLayer  { layer                      };
 
-        return nullptr;
+            if ( ( baseSlices.startLayer != -1 ) && !isBaseLayer( layer ) ) {
+                adjustedLayer -= ( baseSlices.endLayer - baseSlices.startLayer + 1 );
+                adjustedLayer += bodySlices.startLayer;
+            }
+
+            return QString { "%1/%2.png" }.arg( sliceDirectory ).arg( adjustedLayer, 6, 10, DigitZero );
+        }
     }
 
     QString getLayerPath( int const layer ) const {
@@ -169,8 +179,8 @@ public:
 
 private:
 
-    OrderManifestManager* bodyManager;
-    OrderManifestManager* baseManager;
+    OrderManifestManager* bodyManager = nullptr;
+    OrderManifestManager* baseManager = nullptr;
 };
 
 #endif // __PRINTJOB_H__
