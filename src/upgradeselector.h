@@ -1,6 +1,9 @@
 #ifndef __UPGRADESELECTOR_H__
 #define __UPGRADESELECTOR_H__
 
+#include <QtCore>
+#include <QtWidgets>
+
 #include "gesturelistview.h"
 #include "initialshoweventmixin.h"
 #include "upgrademanager.h"

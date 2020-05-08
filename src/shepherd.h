@@ -1,6 +1,8 @@
 #ifndef __SHEPHERD_H__
 #define __SHEPHERD_H__
 
+#include <QtCore>
+
 enum class PendingCommand {
     none,
     moveRelative,

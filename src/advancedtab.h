@@ -3,6 +3,8 @@
 
 #define ENABLE_TEMPERATURE_SETTING
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 #include "paramslider.h"
 #include "printprofile.h"
@@ -129,14 +131,10 @@ private:
     void _setUpBodyPumpForm( QFont fontBold );
 
 signals:
-    ;
-
     void printerAvailabilityChanged( bool const available );
     void projectorPowerLevelChanged( int const value );
 
 public slots:
-    ;
-
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
@@ -145,11 +143,8 @@ public slots:
     void projectorPowerLevel_changed( int const percentage );
     void loadPrintProfile (PrintProfile const* profile);
     void updatePrintProfile();
-protected slots:
-    ;
 
 private slots:
-    ;
 
     void printer_online( );
     void printer_offline( );

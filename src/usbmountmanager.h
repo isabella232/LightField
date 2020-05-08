@@ -1,6 +1,8 @@
 #ifndef __USBMOUNTMANAGER_H__
 #define __USBMOUNTMANAGER_H__
 
+#include <QtCore>
+
 class ProcessRunner;
 class StdioLogger;
 

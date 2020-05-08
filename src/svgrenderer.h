@@ -1,6 +1,7 @@
 #ifndef __SVGRENDERER_H__
 #define __SVGRENDERER_H__
 
+#include <QtCore>
 #include "printjob.h"
 
 class ProcessRunner;

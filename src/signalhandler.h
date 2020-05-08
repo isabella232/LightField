@@ -1,6 +1,9 @@
 #ifndef __SIGNALHANDLER_H__
 #define __SIGNALHANDLER_H__
 
+#include <csignal>
+#include <QtCore>
+
 class SignalHandler: public QObject {
 
     Q_OBJECT

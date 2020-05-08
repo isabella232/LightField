@@ -1,6 +1,8 @@
 #ifndef __PREPARETAB_H__
 #define __PREPARETAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 #include "ordermanifestmanager.h"
 #include "printprofile.h"

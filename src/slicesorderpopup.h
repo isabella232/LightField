@@ -1,10 +1,8 @@
 #ifndef SLICESORDERPOPUP_H
 #define SLICESORDERPOPUP_H
 
-#include <QWidget>
-#include <QLabel>
-#include <QVector>
-#include <QString>
+#include <QtCore>
+#include <QtWidgets>
 
 #include "ordermanifestmanager.h"
 

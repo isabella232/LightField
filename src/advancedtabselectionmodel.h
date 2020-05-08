@@ -1,6 +1,8 @@
 #ifndef __ADVANCEDTABSELECTIONMODEL_H__
 #define __ADVANCEDTABSELECTIONMODEL_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 
 class AdvancedTabSelectionModel: public QStandardItemModel

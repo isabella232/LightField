@@ -1,6 +1,9 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
 
+#include <csignal>
+#include <QtCore>
+#include <QtWidgets>
 #include "coordinate.h"
 #include "tabbase.h"
 #include "tilingtab.h"

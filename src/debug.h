@@ -1,6 +1,9 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+#include <cstdlib>
+#include <cstdio>
+
 class DebugManager {
 
     DebugManager( DebugManager const& ) = delete;

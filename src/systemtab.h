@@ -1,6 +1,8 @@
 #ifndef __SYSTEMTAB_H__
 #define __SYSTEMTAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 
 class DebugLogCopier;

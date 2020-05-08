@@ -1,6 +1,9 @@
 #ifndef __GESTURELISTVIEW_H__
 #define __GESTURELISTVIEW_H__
 
+#include <QtCore>
+#include <QtWidgets>
+
 class GestureListView: public QListView {
 
     Q_OBJECT

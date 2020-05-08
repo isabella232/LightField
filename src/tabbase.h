@@ -1,6 +1,8 @@
 #ifndef __TABBASE_H__
 #define __TABBASE_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "initialshoweventmixin.h"
 
 class PrintJob;

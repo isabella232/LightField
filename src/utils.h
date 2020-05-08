@@ -1,6 +1,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <QtCore>
+
 double   GetBootTimeClock( );
 bool     GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize );
 QString  GetUserName( );

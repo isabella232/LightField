@@ -1,6 +1,8 @@
 #ifndef __LWSTRINGS_H__
 #define __LWSTRINGS_H__
 
+#include <QtCore>
+
 enum class BuildType;
 
 //

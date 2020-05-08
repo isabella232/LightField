@@ -1,6 +1,9 @@
 #ifndef __PROCESSRUNNER_H__
 #define __PROCESSRUNNER_H__
 
+#include <QtCore>
+#include <QtWidgets>
+
 class ProcessRunner: public QObject {
 
     Q_OBJECT

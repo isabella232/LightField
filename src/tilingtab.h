@@ -1,6 +1,8 @@
 #ifndef __TILINGTAB_H__
 #define __TILINGTAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 #include "printjob.h"
 #include "ordermanifestmanager.h"

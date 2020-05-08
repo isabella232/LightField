@@ -1,6 +1,8 @@
 #ifndef TILINGMANAGER_H
 #define TILINGMANAGER_H
 
+#include <QtCore>
+#include <QtWidgets>
 #include "ordermanifestmanager.h"
 #include "printjob.h"
 

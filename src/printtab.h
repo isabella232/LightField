@@ -1,6 +1,8 @@
 #ifndef __PRINTTAB_H__
 #define __PRINTTAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 
 enum class BuildPlatformState {

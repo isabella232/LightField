@@ -1,6 +1,8 @@
 #ifndef __STATUSTAB_H__
 #define __STATUSTAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 
 class StatusTab: public InitialShowEventMixin<StatusTab, TabBase> {

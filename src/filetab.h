@@ -1,6 +1,8 @@
 #ifndef __FILETAB_H__
 #define __FILETAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "coordinate.h"
 #include "gesturelistview.h"
 #include "tabbase.h"

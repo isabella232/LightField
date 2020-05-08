@@ -1,6 +1,7 @@
 #ifndef __PRINTPROFILEMANAGER_H__
 #define __PRINTPROFILEMANAGER_H__
 
+#include <QtCore>
 #include "printprofile.h"
 
 using PrintProfileCollection = QVector<PrintProfile*>;

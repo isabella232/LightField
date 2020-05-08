@@ -1,6 +1,10 @@
 #ifndef ORDERMANIFESTMANAGER_H
 #define ORDERMANIFESTMANAGER_H
 
+#include <QString>
+#include <QStringList>
+#include <QFile>
+
 enum class ManifestParseResult {
     FILE_NOT_EXIST,
     FILE_CORRUPTED,

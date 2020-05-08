@@ -1,6 +1,8 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
+#include <QtCore>
+
 QRegularExpression extern const  EndsWithWhitespaceRegex;
 QRegularExpression extern const  SliceDirectoryNameRegex;
 QRegularExpression extern const  NewLineRegex;
