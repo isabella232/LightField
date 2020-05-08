@@ -1,6 +1,8 @@
 #ifndef __PRINTJOB_H__
 #define __PRINTJOB_H__
 
+#include <QString>
+#include "constants.h"
 #include "coordinate.h"
 #include "printprofile.h"
 
