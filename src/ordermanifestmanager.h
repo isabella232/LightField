@@ -97,25 +97,6 @@ public:
     OrderManifestManager()      {
         restart();
     }
-    OrderManifestManager(OrderManifestManager* parent) {
-        this->_dirPath = parent->_dirPath;
-        this->_type = parent->_type;
-        this->_size = parent->_size;
-        this->_tiled = parent->_tiled;
-        this->_tilingMinExposure = parent->_tilingMinExposure;
-        this->_tilingStep = parent->_tilingStep;
-        this->_tilingSpace = parent->_tilingSpace;
-        this->_tilingCount = parent->_tilingCount;
-        this->_fileNameList = parent->_fileNameList;
-        this->_baseLayerThickNess = parent->_baseLayerThickNess;
-        this->_firstLayerOffset = parent->_firstLayerOffset;
-        this->_bodyLayerThickNess = parent->_bodyLayerThickNess;
-        this->_baseLayerCount = parent->_baseLayerCount;
-        this->_layerThickNess = parent->_layerThickNess;
-        this->_tilingExpoTime = parent->_tilingExpoTime;
-        this->_initialized = parent->_initialized;
-        this->_estimatedVolume = parent->_estimatedVolume;
-    }
 
     ~OrderManifestManager()     { }
 
