@@ -369,7 +369,11 @@ void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& sl
 
 bool PrepareTab::_checkSliceDirectories( ) {
     QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash % HyphenMinus };
-    _printJob->baseSlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->baseSlices.layerThickness ) );
+
+    if( _layerThicknessCustomButton->isChecked() ) {
+        _printJob->baseSlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->baseSlices.layerThickness ) );
+    }
+
     _printJob->bodySlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->bodySlices.layerThickness ) );
 
     debug(
@@ -643,7 +647,11 @@ void PrepareTab::sliceButton_clicked( bool ) {
     QObject::connect( _slicerProcess, &QProcess::started,                                              this, &PrepareTab::slicerProcess_base_started       );
     QObject::connect( _slicerProcess, QOverload<int, QProcess::ExitStatus>::of( &QProcess::finished ), this, &PrepareTab::slicerProcess_base_finished      );
 
-    _startSlicer( _printJob->baseSlices );
+    if(_layerThicknessCustomButton->isChecked())
+        _startSlicer( _printJob->baseSlices );
+    else
+        _startSlicer( _printJob->bodySlices );
+
     _setSliceControlsEnabled( false );
     emit uiStateChanged( TabIndex::Prepare, UiState::SliceStarted );
 

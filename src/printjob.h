@@ -21,6 +21,8 @@ public:
     int     endLayer         { -1 };
 
     void setSliceDirectory(QString sliceDirectory) {
+        debug(" +SliceInformation::setSliceDirectory %s\n", sliceDirectory.toUtf8().data() );
+
         this->_sliceDirectory = sliceDirectory;
     }
 
@@ -134,7 +136,6 @@ public:
         if(bodyManager != nullptr)
             delete bodyManager;
 
-        bodySlices.setSliceDirectory( bodyManager->path() );
         bodySlices.isPreSliced = true;
         bodySlices.layerCount = bodyManager->getSize();
 
@@ -161,7 +162,7 @@ public:
             baseManager = nullptr;
 
         if(baseManager != nullptr) {
-            baseSlices.setSliceDirectory( baseManager->path() );
+
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = baseManager->getSize();
             baseSlices.layerThickness = baseManager->layerThickNessAt(0);
