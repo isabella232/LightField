@@ -1,5 +1,7 @@
-#include "ordermanifestmanager.h"
 #include <exception>
+#include <QtCore>
+#include "constants.h"
+#include "ordermanifestmanager.h"
 
 using namespace std;
 

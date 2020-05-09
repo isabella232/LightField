@@ -1,3 +1,4 @@
+#include <magick/api.h>
 #include "pch.h"
 
 void _initializeOpenGL( ) {
@@ -10,5 +11,7 @@ void _initializeOpenGL( ) {
 
 int main( int argc, char* argv[] ) {
     _initializeOpenGL( );
+    InitializeMagick(argv[0]);
+
     return App( argc, argv ).exec( );
 }

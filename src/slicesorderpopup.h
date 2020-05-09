@@ -3,7 +3,6 @@
 
 #include <QtCore>
 #include <QtWidgets>
-
 #include "ordermanifestmanager.h"
 
 class SlicesOrderPopup: public QDialog {
@@ -17,12 +16,12 @@ private:
     QPushButton*            _arrowDown                       { new QPushButton ( "Down" )               };
     QTableView*             _list                            { new QTableView                           };
     QStandardItemModel*     _model                           { new QStandardItemModel                   };
-    OrderManifestManager*   _manifestManager;
+    QSharedPointer<OrderManifestManager> _manifestManager;
 
     void fillModel();
 public:
     SlicesOrderPopup() { }
-    SlicesOrderPopup(OrderManifestManager* manifestManager);
+    SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifestManager);
 
 public slots:
 

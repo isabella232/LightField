@@ -120,7 +120,8 @@ HEADERS  +=                         \
     ../src/window.h \
     ../src/thicknesswindow.h
 
-CONFIG += c++1z precompile_header
+CONFIG += c++1z precompile_header link_pkgconfig
+PKGCONFIG = GraphicsMagick++
 PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \

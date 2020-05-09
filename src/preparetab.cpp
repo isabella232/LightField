@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include <QtCore>
+#include <QtWidgets>
+
 //#include <sys/sysinfo.h>
 
 #include "preparetab.h"
@@ -268,7 +271,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     int layerNumber     = -1;
     int prevLayerNumber = -1;
 
-    OrderManifestManager* manifestMgr = new OrderManifestManager();
+    QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
     manifestMgr->setPath( sliceInfo.sliceDirectory() );
     QStringList errors;
@@ -349,7 +352,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 }
 
 void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& slices ) {
-    debug(" PrepareTab::_checkOneSliceDirectory %s %d\n", type, &slices );
+    debug(" PrepareTab::_checkOneSliceDirectory %s (%d)\n", type, slices.layerCount);
     if ( ::strcmp(type, "base") == 0 && slices.layerCount == 0 ) {
         debug( "  + %s layer count is zero, skipping\n", type);
         return;
@@ -368,13 +371,17 @@ void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& sl
 }
 
 bool PrepareTab::_checkSliceDirectories( ) {
-    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash % HyphenMinus };
+    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
 
     if( _layerThicknessCustomButton->isChecked() ) {
-        _printJob->baseSlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->baseSlices.layerThickness ) );
+        _printJob->baseSlices.setSliceDirectory( QString { "%1-%2" }
+            .arg( sliceDirectoryBase)
+            .arg(_printJob->baseSlices.layerThickness ));
     }
 
-    _printJob->bodySlices.setSliceDirectory( sliceDirectoryBase % QString { "%1" }.arg( _printJob->bodySlices.layerThickness ) );
+    _printJob->bodySlices.setSliceDirectory( QString { "%1-%2" }
+        .arg( sliceDirectoryBase)
+        .arg(_printJob->bodySlices.layerThickness ));
 
     debug(
         "+ PrepareTab::_checkSliceDirectories:"
@@ -600,11 +607,11 @@ void PrepareTab::navigateLast_clicked( bool ) {
 }
 
 void PrepareTab::orderButton_clicked( bool ) {
-    OrderManifestManager manifestMgr;
+    QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr.setPath(_printJob->bodySlices.sliceDirectory());
+    manifestMgr->setPath(_printJob->bodySlices.sliceDirectory());
 
-    SlicesOrderPopup popup { &manifestMgr };
+    SlicesOrderPopup popup { manifestMgr };
     popup.exec();
 
     if(_directoryMode)
@@ -809,12 +816,18 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
 
     update( );
 
+    if (_printJob->baseSlices.layerCount == 0) {
+        svgRenderer_base_layerCount(0);
+        svgRenderer_base_done(true);
+        return;
+    }
+
     _svgRenderer = new SvgRenderer;
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_base_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_base_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_base_done          );
 
-    OrderManifestManager* manifestMgr = new OrderManifestManager();
+    QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
     manifestMgr->setPath( _printJob->bodySlices.sliceDirectory() );
     if ( _directoryMode ) {
         QStringList errors;
@@ -852,7 +865,12 @@ void PrepareTab::slicerProcess_body_finished( int exitCode, QProcess::ExitStatus
         _svgRenderer->loadSlices( _printJob );
         //_svgRenderer->loadSlices( &manifestMgr );
     } else {
-        _svgRenderer->startRender( _printJob->baseSlices.sliceDirectory() + Slash + SlicedSvgFileName, _printJob->baseSlices.sliceDirectory(), _printJob );
+        _printJob->setBaseManager( manifestMgr );
+        _svgRenderer->startRender(
+            _printJob->baseSlices.sliceDirectory() + Slash + SlicedSvgFileName,
+            _printJob->baseSlices.sliceDirectory(),
+            _printJob,
+            manifestMgr);
     }
 
     update();
@@ -882,13 +900,20 @@ void PrepareTab::svgRenderer_base_layerComplete( int const currentLayer ) {
 void PrepareTab::svgRenderer_base_done( bool const success ) {
     _imageGeneratorStatus->setText( success ? "finished" : "failed" );
 
+    QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
     QObject::disconnect( _svgRenderer, nullptr, this, nullptr );
     _svgRenderer->deleteLater( );
     _svgRenderer = new SvgRenderer;
     QObject::connect( _svgRenderer, &SvgRenderer::layerCount,    this, &PrepareTab::svgRenderer_body_layerCount    );
     QObject::connect( _svgRenderer, &SvgRenderer::layerComplete, this, &PrepareTab::svgRenderer_body_layerComplete );
     QObject::connect( _svgRenderer, &SvgRenderer::done,          this, &PrepareTab::svgRenderer_body_done          );
-    _svgRenderer->startRender( _printJob->bodySlices.sliceDirectory() + Slash + SlicedSvgFileName, _printJob->bodySlices.sliceDirectory(), _printJob );
+
+    _printJob->setBodyManager( manifestMgr );
+    _svgRenderer->startRender(
+        _printJob->bodySlices.sliceDirectory() + Slash + SlicedSvgFileName,
+        _printJob->bodySlices.sliceDirectory(),
+        _printJob,
+        manifestMgr);
 
     update( );
 }

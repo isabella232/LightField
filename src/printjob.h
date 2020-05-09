@@ -1,6 +1,8 @@
 #ifndef __PRINTJOB_H__
 #define __PRINTJOB_H__
 
+#include <QtCore>
+#include "constants.h"
 #include "coordinate.h"
 #include "printprofile.h"
 #include "ordermanifestmanager.h"
@@ -20,18 +22,16 @@ public:
     int     startLayer       { -1 };
     int     endLayer         { -1 };
 
-    void setSliceDirectory(QString sliceDirectory) {
-        debug(" +SliceInformation::setSliceDirectory %s\n", sliceDirectory.toUtf8().data() );
-
+    void setSliceDirectory(const QString &sliceDirectory) {
         this->_sliceDirectory = sliceDirectory;
     }
 
-    QString sliceDirectory() const {
+    const QString& sliceDirectory() const {
         return _sliceDirectory;
     }
 
 private:
-    QString _sliceDirectory;
+   QString _sliceDirectory;
 };
 
 class PrintJob {
@@ -78,8 +78,8 @@ public:
     PrintProfile*    printProfile    { };
 
     bool isTiled() {
-        if(bodyManager) {
-            return bodyManager->tiled();
+        if(_bodyManager) {
+            return _bodyManager->tiled();
         }
 
         return false;
@@ -101,11 +101,11 @@ public:
         int baseCount = baseSlices.layerCount;
         int bodyCount = bodySlices.layerCount;
 
-        if(bodyManager != nullptr) {
+        if(!_bodyManager.isNull()) {
             if( layer < baseCount ) {
-                return baseManager->getElementAt( layer );
+                return _baseManager->getElementAt( layer );
             } else if ( layer - baseCount < bodyCount ) {
-                return bodyManager->getElementAt( layer - baseCount );
+                return _bodyManager->getElementAt( layer - baseCount );
             }
         } else {
             auto sliceDirectory { getLayerDirectory( layer ) };
@@ -125,50 +125,41 @@ public:
     }
 
     double getTimeForElementAt( int position ) {
-        if(bodyManager && isTiled()) {
-            return bodyManager->getTimeForElementAt( position );
+        if(_bodyManager && isTiled()) {
+            return _bodyManager->getTimeForElementAt( position );
         }
 
         else return -1.0;
     }
 
-    void setBodyManager(OrderManifestManager* bodyManager) {
-        if(bodyManager != nullptr)
-            delete bodyManager;
-
+    void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
+        _bodyManager.swap(manager);
         bodySlices.isPreSliced = true;
-        bodySlices.layerCount = bodyManager->getSize();
+        bodySlices.layerCount = _bodyManager->getSize();
 
-        bodySlices.startLayer = baseManager == nullptr ? 0 : baseManager->getSize();
-        bodySlices.endLayer = baseManager == nullptr ? bodyManager->getSize() : baseManager->getSize() + bodyManager->getSize();
+        bodySlices.startLayer = _baseManager.isNull() ? 0 : _baseManager->getSize();
+        bodySlices.endLayer = _baseManager.isNull() ? _bodyManager->getSize() : _baseManager->getSize() + _bodyManager->getSize();
 
 
-        if(bodyManager->tiled()) {
-            bodySlices.layerThickness = bodyManager->layerThickNessAt(0);
-            bodySlices.firstLayerOffset = bodyManager->firstLayerOffset();
+        if(_bodyManager->tiled()) {
+            bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
+            bodySlices.firstLayerOffset = _bodyManager->firstLayerOffset();
         }
 
-        this->bodyManager = bodyManager;
         totalLayerCount = bodySlices.layerCount + baseSlices.layerCount;
     }
 
-    void setBaseManager(OrderManifestManager* baseManager) {
-        if(baseManager)
-            delete bodyManager;
+    void setBaseManager(QSharedPointer<OrderManifestManager> manager) {
 
-        if(baseManager != nullptr)
-            this->baseManager = baseManager;
-        else
-            baseManager = nullptr;
+        _baseManager.swap(manager);
 
-        if(baseManager != nullptr) {
-
+        if(!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
-            baseSlices.layerCount = baseManager->getSize();
-            baseSlices.layerThickness = baseManager->layerThickNessAt(0);
-            baseSlices.firstLayerOffset = baseManager->firstLayerOffset();
+            baseSlices.layerCount = _baseManager->getSize();
+            baseSlices.layerThickness = _baseManager->layerThickNessAt(0);
+            baseSlices.firstLayerOffset = _baseManager->firstLayerOffset();
             baseSlices.startLayer = 0;
-            baseSlices.endLayer = baseManager->getSize() - 1;
+            baseSlices.endLayer = _baseManager->getSize() - 1;
         } else {
             baseSlices.setSliceDirectory( nullptr );
             baseSlices.isPreSliced = false;
@@ -181,17 +172,16 @@ public:
     }
 
     int tilingCount() {
-        if(bodyManager!=nullptr && isTiled()) {
-            return bodyManager->tilingCount();
+        if(!_bodyManager.isNull() && isTiled()) {
+            return _bodyManager->tilingCount();
         }
 
         return 0;
     }
 
 private:
-
-    OrderManifestManager* bodyManager = nullptr;
-    OrderManifestManager* baseManager = nullptr;
+    QSharedPointer<OrderManifestManager> _bodyManager {};
+    QSharedPointer<OrderManifestManager> _baseManager {};
 };
 
 #endif // __PRINTJOB_H__

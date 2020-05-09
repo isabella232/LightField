@@ -1,12 +1,16 @@
+#include <QtCore>
+#include <QtWidgets>
+#include "constants.h"
 #include "slicesorderpopup.h"
+#include "utils.h"
 #include "window.h"
 
-SlicesOrderPopup::SlicesOrderPopup(OrderManifestManager* manifestManager)
+SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifestManager):
+    _manifestManager(manifestManager)
 {
     auto origFont    = font( );
     auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
-    _manifestManager = manifestManager;
 
     Window* win = App::mainWindow();
     QRect r = win->geometry();
