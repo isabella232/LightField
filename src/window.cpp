@@ -321,7 +321,6 @@ void Window::startPrinting( ) {
         "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
-        "    + firstLayerOffset:         %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + body slices:\n"
@@ -329,7 +328,6 @@ void Window::startPrinting( ) {
         "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
-        "    + firstLayerOffset:         %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + print profile: (calculated parameters are marked with *)\n"
@@ -338,27 +336,25 @@ void Window::startPrinting( ) {
         "",
 
         _printJob,
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->modelHash.toUtf8( ).data( ),
-        _printJob->totalLayerCount,
+        _printJob->modelFileName.toUtf8().data(),
+        _printJob->modelHash.toUtf8().data(),
+        _printJob->totalLayerCount(),
 
-        baseSlices.sliceDirectory().toUtf8( ).data( ),
+        baseSlices.sliceDirectory.toUtf8().data(),
         ToString( baseSlices.isPreSliced ),
         baseSlices.layerCount,
         baseSlices.layerThickness,
-        baseSlices.firstLayerOffset,
-        baseSlices.startLayer,
-        baseSlices.endLayer,
+        _printJob->baseLayerStart(),
+        _printJob->baseLayerEnd(),
 
-        bodySlices.sliceDirectory().toUtf8( ).data( ),
+        bodySlices.sliceDirectory.toUtf8().data(),
         ToString( bodySlices.isPreSliced ),
         bodySlices.layerCount,
         bodySlices.layerThickness,
-        bodySlices.firstLayerOffset,
-        bodySlices.startLayer,
-        bodySlices.endLayer,
+        _printJob->bodyLayerStart(),
+        _printJob->bodyLayerEnd(),
 
-        printProfile->profileName( ).toUtf8( ).data( )
+        printProfile->profileName().toUtf8().data()
 
     );
 
@@ -439,7 +435,7 @@ void Window::startPrinting( ) {
     );
 
     PrintJob* job = _printJob;
-    _printJob = new PrintJob( _printJob );
+    _printJob = new PrintJob(*_printJob);
 
     PrintManager* oldPrintManager = _printManager;
 

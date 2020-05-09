@@ -391,16 +391,16 @@ void StatusTab::printManager_printResumed( ) {
 }
 
 void StatusTab::printManager_startingLayer( int const layer ) {
-    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount);
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount());
     //debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount );
     // MERGE_TODO switch tiled to total layers
     if(_printJob->isTiled()){
         int realLayer = (layer+_printJob->tilingCount())/_printJob->tilingCount();
-        int realLayersTotal = _printJob->totalLayerCount/_printJob->tilingCount();
+        int realLayersTotal = _printJob->totalLayerCount()/_printJob->tilingCount();
         int currentElement = (layer % _printJob->tilingCount()) + 1;
         _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( _printJob->tilingCount() ) );
     }else{
- _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount ) );
+ _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount() ) );
     }
 
     _previousLayerStartTime = _currentLayerStartTime;
@@ -429,11 +429,11 @@ void StatusTab::printManager_startingLayer( int const layer ) {
         auto average = std::accumulate<std::vector<double>::iterator, double>( _layerElapsedTimes.begin( ), _layerElapsedTimes.end( ), 0 ) / _layerElapsedTimes.size( );
         debug( "  + average:    %.3f\n", average );
 
-        _estimatedPrintJobTime = average * _printJob->totalLayerCount;
+        _estimatedPrintJobTime = average * _printJob->totalLayerCount();
         debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
-    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->totalLayerCount ) * 100.0 + 0.5 ) ) );
+    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->totalLayerCount() ) * 100.0 + 0.5 ) ) );
 
     //MERGE_TODO possible aligment needed
     auto pixmap = QPixmap( _printJob->getLayerPath( layer ) );

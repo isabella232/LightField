@@ -18,7 +18,8 @@ public:
     SvgRenderer( );
     ~SvgRenderer( );
 
-    void startRender( QString const& svgFileName, QString const& _outputDirectory, PrintJob* printJob, QSharedPointer<OrderManifestManager> orderManager);
+    void render(QString const& svgFileName, QString const& _outputDirectory,
+        PrintJob* printJob, QSharedPointer<OrderManifestManager> orderManager);
     void loadSlices ( PrintJob* printJob );
 
 protected:
@@ -58,7 +59,8 @@ signals:
 class LayerRenderTask: public QRunnable
 {
 public:
-    LayerRenderTask(SvgRenderer &renderer, int num, const QString input, const QString output):
+    LayerRenderTask(SvgRenderer &renderer, int num, const QString input,
+        const QString output):
         _renderer(renderer),
         _layerNumber(num),
         _inputPath(input),

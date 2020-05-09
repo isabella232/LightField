@@ -259,9 +259,9 @@ void PrintManager::stepA3_completed( bool const success ) {
         return;
     }
 
-    if ( _printJob->baseSlices.startLayer > -1 ) {
+    if ( _printJob->baseLayerStart() > -1 ) {
         stepB1_start( );
-    } else if ( _printJob->bodySlices.startLayer > -1 ) {
+    } else if ( _printJob->bodyLayerStart() > -1 ) {
         stepC1_start( );
     } else {
         // this should never happen
@@ -448,7 +448,7 @@ void PrintManager::stepB4a2_start( ) {
 
     ++_currentLayer;
     ++_currentBaseLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepB4a2_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -478,7 +478,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseSlices.endLayer ) {
+    if ( _currentBaseLayer == _printJob->baseLayerEnd() ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -495,7 +495,7 @@ void PrintManager::stepB4b1_start( ) {
 
     ++_currentLayer;
     ++_currentBaseLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepB4b1_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -517,7 +517,7 @@ void PrintManager::stepB4b1_completed( ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseSlices.endLayer ) {
+    if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -687,7 +687,7 @@ void PrintManager::stepC4a2_start( ) {
     _step = PrintStep::C4a2;
 
     ++_currentLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4a2_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -729,7 +729,7 @@ void PrintManager::stepC4b1_start( ) {
     }
 
     ++_currentLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4b1_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -922,7 +922,7 @@ void PrintManager::print( PrintJob* printJob ) {
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
-    _currentBaseLayer = _printJob->baseSlices.startLayer;
+    _currentBaseLayer = _printJob->baseLayerStart();
     emit printStarting( );
     stepA1_start( );
 }
@@ -1011,7 +1011,7 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
 
 bool PrintManager::_hasLayerMoreElements() {
     //MERGE_TODO check
-    if (_currentLayer+1 == _printJob->totalLayerCount) {
+    if (_currentLayer+1 == _printJob->totalLayerCount()) {
     return false;
     }
 

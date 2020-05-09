@@ -35,7 +35,7 @@ void SvgRenderer::loadSlices( PrintJob* printJob ) {
     debug( "+ SvgRenderer::loadSlices \n");
     TimingLogger::startTiming( TimingId::LoadingPngFolder );
 
-    for (int i=0; i<printJob->totalLayerCount; ++i ) {
+    for (int i=0; i<printJob->totalLayerCount(); ++i ) {
         debug( "+ SvgRenderer::loadSlices next iter \n");
         QString fileName = printJob->getLayerFileName( i );
 
@@ -46,11 +46,14 @@ void SvgRenderer::loadSlices( PrintJob* printJob ) {
     TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 
     debug( "  + Done\n" );
-    emit layerCount( printJob->totalLayerCount );
+    emit layerCount( printJob->totalLayerCount() );
     emit done( true );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, PrintJob* printJob, QSharedPointer<OrderManifestManager> orderManager) {
+void SvgRenderer::render(QString const& svgFileName,
+    QString const& outputDirectory, PrintJob* printJob,
+    QSharedPointer<OrderManifestManager> orderManager)
+{
     debug( "+ SvgRenderer::startRender\n" );
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
@@ -151,4 +154,6 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
         _threadPool.start(task);
         debug("+ submitted layer %d to thread pool\n", i);
     }
+
+    _threadPool.waitForDone();
 }
