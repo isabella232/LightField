@@ -249,7 +249,6 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
-    //MERGE_TODO further alignment may be needed
     auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
