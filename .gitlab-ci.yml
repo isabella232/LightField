@@ -22,6 +22,7 @@ build_base:
   script:
     - bash change-version-number.sh -t base $VERSION
     - bash make-deb-package.sh release
+    - bash make-deb-package.sh debug
   tags:
     - lightfield
   artifacts:
@@ -33,6 +34,7 @@ build_xbase:
   script:
     - bash change-version-number.sh -t xbase $VERSION
     - bash make-deb-package.sh release
+    - bash make-deb-package.sh debug
   tags:
     - lightfield
   artifacts:
@@ -44,6 +46,7 @@ build_dlp4710:
   script:
     - bash change-version-number.sh -t dlp4710 $VERSION
     - bash make-deb-package.sh release
+    - bash make-deb-package.sh debug
   tags:
     - lightfield
   artifacts:
@@ -55,6 +58,7 @@ build_xdlp4710:
   script:
     - bash change-version-number.sh -t xdlp4710 $VERSION
     - bash make-deb-package.sh release
+    - bash make-deb-package.sh debug
   tags:
     - lightfield
   artifacts:
