@@ -97,13 +97,13 @@ public:
     }
 
     int bodyLayerStart() const
-    {
-        return hasBaseLayers() ? baseSlices.layerCount : 0;
+    {   
+        return hasBaseLayers() ? baseThickness() / bodySlices.layerThickness : 0;
     }
 
     int bodyLayerEnd() const
     {
-        return baseSlices.layerCount + bodySlices.layerCount - 1;
+        return bodySlices.layerCount + bodyLayerStart() - 1;
     }
 
     bool isBaseLayer(int const layer) const
@@ -126,7 +126,7 @@ public:
     {
         return isBaseLayer(layer)
             ? _baseManager->getElementAt(layer)
-            : _bodyManager->getElementAt(layer - baseSlices.layerCount);
+            : _bodyManager->getElementAt(bodyLayerStart() + layer - baseSlices.layerCount);
     }
 
     QString getLayerPath( int const layer ) const {
@@ -143,7 +143,7 @@ public:
     void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
         _bodyManager.swap(manager);
         bodySlices.isPreSliced = true;
-        bodySlices.layerCount = _bodyManager->getSize() - baseSlices.layerCount;
+        bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
 
         if(_bodyManager->tiled())
             bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);

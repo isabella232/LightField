@@ -144,7 +144,7 @@ void SlicerTask::_baseLayerDone(int layer)
 
 void SlicerTask::_bodyLayerCount(int count)
 {
-    _printJob->bodySlices.layerCount = count - _printJob->baseSlices.layerCount;
+    _printJob->bodySlices.layerCount = count - _printJob->bodyLayerStart();
     emit layerCount(_printJob->totalLayerCount());
 }
 
