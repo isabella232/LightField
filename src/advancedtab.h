@@ -105,11 +105,11 @@ private:
 
     ParamSlider*  _bodyPumpEveryNthLayer              { new ParamSlider( "Body Pump Every Nth Layer", "",         5,   20,   1 ) };
     ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5 ) };
-    ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5 ) };
+    ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5,      5 ) };
+    ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
     ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5 ) };
+    ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5,      5 ) };
 
     static const int FORMS_COUNT                      { 5 };
     QWidget*         _forms[FORMS_COUNT];

@@ -10,6 +10,7 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
 
+    _unit = unit;
     this->_nameLabel->setText(name);
     this->_valueLabel->setText(valueLabel);
     this->_valueLabel->setFont(boldFont);
@@ -33,7 +34,7 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
         )
     );
 
-    _unit = unit;
+
 }
 
 
