@@ -1,35 +1,40 @@
 #ifndef __PARAMSLIDER_H__
 #define __PARAMSLIDER_H__
 
+#include <QtCore>
+#include <QtWidgets>
 
-class ParamSlider: public QGroupBox {
+class ParamSlider: public QGroupBox
+{
     Q_OBJECT
-    private:
-        QSlider*     _slider     { new QSlider };
-        QLabel*      _nameLabel  { new QLabel };
-        QLabel*      _valueLabel { new QLabel };
-        QString      _unit;
-        double       _factor     { 1.0L };
 
-        void init(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
+private:
+    QSlider*     _slider     { new QSlider };
+    QLabel*      _nameLabel  { new QLabel };
+    QLabel*      _valueLabel { new QLabel };
+    QString      _unit;
+    double       _factor     { 1.0L };
 
-    public:
-        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step);
-        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
-        ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue, double factor);
-        ParamSlider(QString name, int maxValue);
-        ~ParamSlider();
+    void init(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
 
-        int    getValue();
-        void   setValue(int value);
-        double getValueDouble();
-        void   setValueDouble(double value);
-        void   setMaxValue(int value);
+public:
+    ParamSlider(QString name, QString unit, int startValue, int maxValue, int step);
+    ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue);
+    ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue, double factor);
+    ParamSlider(QString name, int maxValue);
+    ~ParamSlider();
 
-    signals:
-        void valuechanged();
-    public slots:
-        void onvaluechanged(int value);
+    int    getValue();
+    void   setValue(int value);
+    double getValueDouble();
+    void   setValueDouble(double value);
+    void   setMaxValue(int value);
+
+signals:
+    void valueChanged();
+
+public slots:
+    void onValueChanged(int value);
 };
 
 #endif // __PARAMSLIDER_H__

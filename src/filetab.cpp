@@ -620,12 +620,13 @@ void FileTab::selectButton_clicked( bool ) {
             emit modelSelected( &_modelSelection );
             emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
         } else {
-            auto match = SliceDirectoryNameRegex.match( _modelSelection.fileName );
-            if ( match.hasMatch( ) ) {
-                //MERGE_TODO to align
-                //_printJob->layerThickness = match.captured( 1 ).toInt( );
-                //_printJob->jobWorkingDirectory = JobWorkingDirectoryPath % Slash % GetFileBaseName( _modelSelection.fileName );
-                _printJob->modelFileName = GetFileBaseName( _modelSelection.fileName );
+            auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
+            if (match.hasMatch()) {
+                _printJob->baseSlices.layerCount = 2;
+                _printJob->baseSlices.layerThickness = match.captured(1).toInt();
+                _printJob->bodySlices.layerThickness = match.captured(1).toInt();
+                _printJob->directoryMode = true;
+                _printJob->directoryPath = _modelSelection.fileName;
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
             }
         }

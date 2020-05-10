@@ -1,13 +1,8 @@
 #ifndef KEY_H
 #define KEY_H
 
-#include <QObject>
-#include <QString>
-#include <QIcon>
-#include <QPainter>
-#include <QStyleOptionButton>
-#include <QStyle>
-
+#include <QtCore>
+#include <QtWidgets>
 
 #define KEYS_TYPE 4
 

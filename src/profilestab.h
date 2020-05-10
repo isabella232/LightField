@@ -1,6 +1,8 @@
 #ifndef __PROFILESTAB_H__
 #define __PROFILESTAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 #include "printprofilemanager.h"
 

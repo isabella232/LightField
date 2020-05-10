@@ -1,6 +1,7 @@
 #ifndef PROFILESJSONPARSER_H
 #define PROFILESJSONPARSER_H
 
+#include <QtCore>
 #include "printprofile.h"
 
 #define DEBUG_LOGS

@@ -101,8 +101,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
             tabA->setPrintProfileManager( _printProfileManager);
         }
-
-        tabA->setManifestMgr( manifestMgr );
     }
 
     emit shepherdChanged( _shepherd );
@@ -338,25 +336,25 @@ void Window::startPrinting( ) {
         "",
 
         _printJob,
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->modelHash.toUtf8( ).data( ),
-        _printJob->totalLayerCount,
+        _printJob->modelFileName.toUtf8().data(),
+        _printJob->modelHash.toUtf8().data(),
+        _printJob->totalLayerCount(),
 
-        baseSlices.sliceDirectory.toUtf8( ).data( ),
+        baseSlices.sliceDirectory.toUtf8().data(),
         ToString( baseSlices.isPreSliced ),
         baseSlices.layerCount,
         baseSlices.layerThickness,
-        baseSlices.startLayer,
-        baseSlices.endLayer,
+        _printJob->baseLayerStart(),
+        _printJob->baseLayerEnd(),
 
-        bodySlices.sliceDirectory.toUtf8( ).data( ),
+        bodySlices.sliceDirectory.toUtf8().data(),
         ToString( bodySlices.isPreSliced ),
         bodySlices.layerCount,
         bodySlices.layerThickness,
-        bodySlices.startLayer,
-        bodySlices.endLayer,
+        _printJob->bodyLayerStart(),
+        _printJob->bodyLayerEnd(),
 
-        printProfile->profileName( ).toUtf8( ).data( )
+        printProfile->profileName().toUtf8().data()
 
     );
 
@@ -429,11 +427,11 @@ void Window::startPrinting( ) {
     );
 
     PrintJob* job = _printJob;
-    _printJob = new PrintJob( _printJob );
+    _printJob = new PrintJob(*_printJob);
 
     PrintManager* oldPrintManager = _printManager;
 
-    _printManager = new PrintManager( _shepherd, _prepareTab->manifestMgr(), this );
+    _printManager = new PrintManager( _shepherd, this );
     _printManager->setPngDisplayer( _pngDisplayer );
 
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
@@ -443,7 +441,7 @@ void Window::startPrinting( ) {
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( job, _prepareTab->manifestMgr() );
+    _printManager->print( job );
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );
@@ -503,7 +501,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 }
 
 void Window::tabs_currentChanged( int index ) {
-    debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
+    //debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
 
     update( );
 }
@@ -568,6 +566,7 @@ void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
         _modelSelection->estimatedVolume
     );
 
+    _printJob->directoryMode   = false;
     _printJob->vertexCount     = _modelSelection->vertexCount;
     _printJob->x               = _modelSelection->x;
     _printJob->y               = _modelSelection->y;

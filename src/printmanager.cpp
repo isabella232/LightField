@@ -112,10 +112,9 @@ namespace {
 
 }
 
-PrintManager::PrintManager( Shepherd* shepherd, OrderManifestManager* _manifestMgr, QObject* parent ):
+PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
     QObject   ( parent   ),
-    _shepherd ( shepherd ),
-    _manifestMgr ( _manifestMgr )
+    _shepherd ( shepherd )
 {
     _movementSequencer        = new MovementSequencer { shepherd, this };
     _setProjectorPowerProcess = new ProcessRunner     { this };
@@ -260,9 +259,9 @@ void PrintManager::stepA3_completed( bool const success ) {
         return;
     }
 
-    if ( _printJob->baseSlices.startLayer > -1 ) {
+    if ( _printJob->baseLayerStart() > -1 ) {
         stepB1_start( );
-    } else if ( _printJob->bodySlices.startLayer > -1 ) {
+    } else if ( _printJob->bodyLayerStart() > -1 ) {
         stepC1_start( );
     } else {
         // this should never happen
@@ -328,8 +327,8 @@ void PrintManager::stepB2_start( ) {
     int layerExposureTime;
 
     if(_isTiled){
-        int realLayer = currentLayer()/_manifestMgr->tilingCount();
-        layerExposureTime = 1000.0 * _manifestMgr->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+        int realLayer = currentLayer()/_printJob->tilingCount();
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
         _duringTiledLayer = true;
     }else {
         layerExposureTime = _printJob->printProfile->baseLayerParameters( ).layerExposureTime( );
@@ -369,8 +368,7 @@ void PrintManager::stepB2a_start( ){
         _currentLayer++;
         _pngDisplayer->clear( );
         emit startingLayer( _currentLayer );
-        //MERGE_TODO needs alignment
-        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
+        QString pngFileName = _printJob->getLayerPath( _currentLayer );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
             debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
@@ -450,7 +448,7 @@ void PrintManager::stepB4a2_start( ) {
 
     ++_currentLayer;
     ++_currentBaseLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepB4a2_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -480,7 +478,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseSlices.endLayer ) {
+    if ( _currentBaseLayer == _printJob->baseLayerEnd() ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -497,7 +495,7 @@ void PrintManager::stepB4b1_start( ) {
 
     ++_currentLayer;
     ++_currentBaseLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepB4b1_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -519,7 +517,7 @@ void PrintManager::stepB4b1_completed( ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseSlices.endLayer ) {
+    if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -610,8 +608,7 @@ void PrintManager::stepC2a_start( ){
         _currentLayer++;
         _pngDisplayer->clear( );
         emit startingLayer( _currentLayer );
-        //MERGE_TODO needs alignment
-        QString pngFileName = _printJob->getLayerDirectory( _currentLayer ) % Slash % _manifestMgr->getElementAt( currentLayer() );
+        QString pngFileName = _printJob->getLayerPath( _currentLayer );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
             debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
@@ -690,7 +687,7 @@ void PrintManager::stepC4a2_start( ) {
     _step = PrintStep::C4a2;
 
     ++_currentLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4a2_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -732,7 +729,7 @@ void PrintManager::stepC4b1_start( ) {
     }
 
     ++_currentLayer;
-    if ( _currentLayer == _printJob->totalLayerCount ) {
+    if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4b1_start: print complete\n" );
 
         _printResult = PrintResult::Success;
@@ -885,7 +882,7 @@ void PrintManager::stepE2_completed( bool const success ) {
     }
 }
 
-void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentManifestMgr) {
+void PrintManager::print( PrintJob* printJob ) {
     if ( _printJob ) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
@@ -893,8 +890,8 @@ void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentMani
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
-    _isTiled = currentManifestMgr->tiled();
-    _elementsOnLayer = currentManifestMgr->tilingCount();
+    _isTiled = printJob->isTiled();
+    _elementsOnLayer = printJob->tilingCount();
 
     _pngDisplayer->clear( );
 
@@ -925,7 +922,7 @@ void PrintManager::print( PrintJob* printJob,  OrderManifestManager* currentMani
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
-    _currentBaseLayer = _printJob->baseSlices.startLayer;
+    _currentBaseLayer = _printJob->baseLayerStart();
     emit printStarting( );
     stepA1_start( );
 }
@@ -1014,7 +1011,7 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
 
 bool PrintManager::_hasLayerMoreElements() {
     //MERGE_TODO check
-    if (_currentLayer+1 == _printJob->totalLayerCount) {
+    if (_currentLayer+1 == _printJob->totalLayerCount()) {
     return false;
     }
 

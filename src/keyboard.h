@@ -1,10 +1,8 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include <QWidget>
-#include <QLabel>
-#include <QVector>
-#include <QString>
+#include <QtCore>
+#include <QtWidgets>
 
 #define DEFAULT_YSIZE_BUTTON 62
 

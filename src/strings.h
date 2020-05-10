@@ -1,5 +1,7 @@
-#ifndef __STRINGS_H__
-#define __STRINGS_H__
+#ifndef __LWSTRINGS_H__
+#define __LWSTRINGS_H__
+
+#include <QtCore>
 
 enum class BuildType;
 
@@ -49,4 +51,4 @@ inline QString GroupDigits( QString const& input, char const groupSeparator ) {
 
 QString TimeDeltaToString( double delta );
 
-#endif // __STRINGS_H__
+#endif // __LWSTRINGS_H__

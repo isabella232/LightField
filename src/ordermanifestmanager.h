@@ -1,6 +1,10 @@
 #ifndef ORDERMANIFESTMANAGER_H
 #define ORDERMANIFESTMANAGER_H
 
+#include <QString>
+#include <QStringList>
+#include <QFile>
+
 enum class ManifestParseResult {
     FILE_NOT_EXIST,
     FILE_CORRUPTED,
@@ -94,19 +98,27 @@ public:
             QStringList _list;
     };
 
-    OrderManifestManager()      { }
+    OrderManifestManager()      {
+        restart();
+    }
+
     ~OrderManifestManager()     { }
 
-    void setPath ( QString path ) {
+    void setPath ( const QString &path ) {
         _dirPath = path;
         _initialized = false;
     }
 
-    QString path() { return _dirPath; }
+    const QString &path() const { return _dirPath; }
 
     ManifestSortType sortType() { return _type; }
 
     void setSortType( ManifestSortType sortType) { this->_type = sortType;  }
+
+    void addFile(const QString &filename) {
+        _fileNameList.append(filename);
+        _size++;
+    }
 
     void setFileList ( QStringList list ) {
         this->_fileNameList.clear();
@@ -180,7 +192,7 @@ public:
 
     inline QString getElementAt(int position) {
         return _fileNameList[position];
-    };
+    }
 
     inline int getSize() { return _size; }
 

@@ -1,6 +1,8 @@
 #ifndef __UPGRADEKITUNPACKER_H__
 #define __UPGRADEKITUNPACKER_H__
 
+#include <QtCore>
+
 class ProcessRunner;
 
 class UpgradeKitUnpacker: public QObject {

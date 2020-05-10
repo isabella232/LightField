@@ -1,6 +1,8 @@
 #ifndef __TIMINGLOGGER_H__
 #define __TIMINGLOGGER_H__
 
+#include <QtCore>
+
 enum class TimingId {
     unknown,
     VolumeCalculation,

@@ -1,8 +1,5 @@
-#include <QDialog>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QSlider>
+#include <QtCore>
+#include <QtWidgets>
 #include "thicknesswindow.h"
 #include "constants.h"
 #include "utils.h"
@@ -26,6 +23,16 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
     _baseLayerCount->setValue(job->baseSlices.layerCount);
     _baseLayerThickness->setValue(job->baseSlices.layerThickness);
     _bodyLayerThickness->setValue(job->bodySlices.layerThickness);
+
+    if (_printJob->directoryMode) {
+        QObject::connect(_baseLayerThickness, &ParamSlider::onValueChanged, [=]() {
+            _bodyLayerThickness->setValue(_baseLayerThickness->getValue());
+        });
+
+        QObject::connect(_bodyLayerThickness, &ParamSlider::onValueChanged, [=]() {
+            _baseLayerThickness->setValue(_bodyLayerThickness->getValue());
+        });
+    }
 
     buttons->addWidget(_ok);
     buttons->addWidget(_cancel);

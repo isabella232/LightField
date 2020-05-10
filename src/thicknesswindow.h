@@ -1,8 +1,8 @@
 #ifndef __THICKNESSWINDOW_H__
 #define __THICKNESSWINDOW_H__
 
-#include <QDialog>
-#include <QPushButton>
+#include <QtCore>
+#include <QtWidgets>
 #include "paramslider.h"
 #include "printjob.h"
 

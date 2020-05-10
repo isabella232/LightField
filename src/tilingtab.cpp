@@ -1,3 +1,6 @@
+#include <QtCore>
+#include <QtWidgets>
+#include "utils.h"
 #include "tilingtab.h"
 #include "tilingmanager.h"
 #include "window.h"
@@ -119,8 +122,8 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
         )
     );
 
-    QObject::connect( _space, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
-    QObject::connect( _count, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
+    QObject::connect( _space, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
+    QObject::connect( _count, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
 
 
     QObject::connect( _setupExpoTimeBt, &QPushButton::clicked, this, &TilingTab::setupExpoTimeClicked);
@@ -139,9 +142,6 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
 void TilingTab::setStepValue()
 {
     debug( "+ TilingTab::setStepValue\n");
-
-    if(!_manifestManager || _manifestManager->getFirstElement() == nullptr)
-        return;
 
     auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
     int maxCount = _getMaxCount( );
@@ -277,7 +277,6 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
             this->_minExposureBody = 20.0;
             this->_space->setValue( 1 );
             this->_printJob = nullptr;
-            this->_manifestManager = nullptr;
             this->_currentLayerImage->clear();
             _setEnabled( false );
         break;
@@ -332,9 +331,9 @@ void TilingTab::confirmButton_clicked ( bool ) {
                                      _stepBody,
                                      _space->getValue(),
                                      _count->getValue() );
-            //MERGE_TODO align who will provide directory name
-            //_printJob->jobWorkingDirectory = tilingMgr->getPath();
 
+            _printJob->directoryMode = true;
+            _printJob->directoryPath = tilingMgr->getPath();
             emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 
             dialog->done(0);

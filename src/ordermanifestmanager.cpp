@@ -1,5 +1,7 @@
-#include "ordermanifestmanager.h"
 #include <exception>
+#include <QtCore>
+#include "constants.h"
+#include "ordermanifestmanager.h"
 
 using namespace std;
 
@@ -48,7 +50,7 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         return ManifestParseResult::FILE_NOT_EXIST;
     }
 
-    debug( "OrderManifestManager::parse: building document\n" );
+    debug( "+ OrderManifestManager::parse: building document\n" );
     QJsonParseError parseError;
     QJsonDocument jsonDocument = QJsonDocument().fromJson(jsonFile.readAll(), &parseError);
 
@@ -111,7 +113,7 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
         return ManifestParseResult::FILE_CORRUPTED;
     }
 
-    if(i != _size ) {
+    if(i != _size) {
         if(warningList)
             warningList->push_back( "Declared size is divergent with the number of entries.");
 

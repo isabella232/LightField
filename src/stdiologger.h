@@ -1,6 +1,8 @@
 #ifndef __STDIOLOGGER_H__
 #define __STDIOLOGGER_H__
 
+#include <QtCore>
+
 class StdioLogger: public QObject {
 
     Q_OBJECT;

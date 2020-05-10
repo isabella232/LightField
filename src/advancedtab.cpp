@@ -29,21 +29,21 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _forms[3] = _layersForm;
     _forms[4] = _bodyPumpForm;
 
-    QWidget::connect(_distanceSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_basePumpUpVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_basePumpDownVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upPauseSlider,            &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_downPauseSlider,          &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_baseNoPumpUpVelocitySlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_baseExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyPumpEveryNthLayer,    &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDistanceSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyPumpUpVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyPumpDownVelocitySlider, &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpPauseSlider,        &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDownPauseSlider,      &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyNoPumpUpVelocitySlider,     &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_distanceSlider,                     &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_basePumpUpVelocitySlider,           &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_basePumpDownVelocitySlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upPauseSlider,                      &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_downPauseSlider,                    &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseNoPumpUpVelocitySlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseExposureTimeSlider,             &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyExposureTimeSlider,             &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpEveryNthLayer,              &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDistanceSlider,                 &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpUpVelocitySlider,           &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpDownVelocitySlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpPauseSlider,                  &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDownPauseSlider,                &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyNoPumpUpVelocitySlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
 
     _setUpLeftMenu(fontAwesome);
     _setUpGeneralForm(boldFont, fontAwesome);
@@ -129,15 +129,13 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
             if(sender == TabIndex::Tiling) {
                 setLayersSettingsEnabled(false);
             } else if (sender == TabIndex::Prepare) {
-                OrderManifestManager* manifest =  this->manifestMgr();
-
-                if(manifest->tiled()) {
+                if(_printJob->isTiled()) {
                     setLayersSettingsEnabled(false);
                 }
                 else
                 {
                     setLayersSettingsEnabled(true);
-                    _offsetSlider->setValue( manifest->firstLayerOffset() );
+                    _offsetSlider->setValue( printJob()->firstLayerOffset );
                 }
 
             }

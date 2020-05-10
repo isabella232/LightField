@@ -1,6 +1,9 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+#include <cstdlib>
+#include <cstdio>
+
 class DebugManager {
 
     DebugManager( DebugManager const& ) = delete;
@@ -14,6 +17,8 @@ public:
     ~DebugManager( );
 
 };
+
+#define DEBUG(fmt, ...) debug(" + " __PRETTY_FUNCTION __ ": " str "\n", __VA_ARGS__)
 
 void debug( char const* str );
 

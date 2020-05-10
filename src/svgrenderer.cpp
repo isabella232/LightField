@@ -1,11 +1,13 @@
 #include "pch.h"
 
 #include <sys/sysinfo.h>
+#include <QtCore>
+#include <QtXml>
 
 #include "svgrenderer.h"
-
-#include "processrunner.h"
 #include "timinglogger.h"
+#include "ordermanifestmanager.h"
+
 
 namespace {
 
@@ -18,7 +20,8 @@ namespace {
 
 }
 
-SvgRenderer::SvgRenderer( ) {
+SvgRenderer::SvgRenderer( )
+{
     /*empty*/
 }
 
@@ -26,16 +29,15 @@ SvgRenderer::~SvgRenderer( ) {
     /*empty*/
 }
 
-void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
+void SvgRenderer::loadSlices( PrintJob* printJob ) {
     int  layerNumber     { -1 };
 
     debug( "+ SvgRenderer::loadSlices \n");
     TimingLogger::startTiming( TimingId::LoadingPngFolder );
-    OrderManifestManager::Iterator iter = manifestManager->iterator();
-    while ( iter.hasNext() ) {
+
+    for (int i=0; i<printJob->totalLayerCount(); ++i ) {
         debug( "+ SvgRenderer::loadSlices next iter \n");
-        QString fileName = *iter;
-        ++iter;
+        QString fileName = printJob->getLayerFileName( i );
 
         debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
         layerNumber++;
@@ -44,28 +46,36 @@ void SvgRenderer::loadSlices( OrderManifestManager* manifestManager ) {
     TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 
     debug( "  + Done\n" );
-    emit layerCount( manifestManager->getSize() );
-    emit done( true );
+    emit layerCount( printJob->totalLayerCount() );
 }
 
-void SvgRenderer::startRender( QString const& svgFileName, QString const& outputDirectory, OrderManifestManager* manifestManager ) {
-    debug( "+ SvgRenderer::startRender\n" );
+void SvgRenderer::render(QString const& svgFileName,
+    QString const& outputDirectory, PrintJob* printJob,
+    QSharedPointer<OrderManifestManager> orderManager)
+{
+    Q_ASSERT(svgFileName.length() > 0);
+    Q_ASSERT(outputDirectory.length() > 0);
+    Q_ASSERT(printJob != nullptr);
+
+    debug("+ SvgRenderer::render\n");
+    debug("  + svgFileName: %s\n", svgFileName.toUtf8().data());
+    debug("  + outputDirectory: %s\n", outputDirectory.toUtf8().data());
+
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
+    _threadPool.setMaxThreadCount(get_nprocs());
     _outputDirectory = outputDirectory;
     _layerList.clear();
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
-        debug( "  + couldn't open file '%s'", svgFileName.toUtf8( ).data( ) );
-        emit done( false );
-        return;
+        debug( "  + couldn't open file '%s'\n", svgFileName.toUtf8( ).data( ) );
+        throw std::runtime_error("Couldn't open file");
     }
     if ( !_doc.setContent( &file ) ) {
         debug( "  + couldn't load file\n" );
         file.close( );
-        emit done( false );
-        return;
+        throw std::runtime_error("Couldn't load file");
     }
     file.close( );
 
@@ -74,8 +84,7 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
     QDomElement svgElement = _doc.documentElement( );
     if ( !svgElement.hasAttributes( ) ) {
         debug( "  + SVG element has no attributes?\n" );
-        emit done( false );
-        return;
+        throw std::runtime_error("SVG element has no attributes");
     }
 
     auto mmWidth  = svgElement.attribute( "width" ).toDouble( );
@@ -109,218 +118,46 @@ void SvgRenderer::startRender( QString const& svgFileName, QString const& output
             continue;
         }
 
+        QString layerFilename { QString( "%1/%2.svg" )
+            .arg( _outputDirectory )
+            .arg( layer, 6, 10, DigitZero ) };
+
+        if (!orderManager.isNull())
+            orderManager->addFile(QString("%1.png").arg(layer, 6, 10, DigitZero));
+
         QDomDocument layerDoc = _CloneDocRoot( skeletonDoc );
         auto docElt = layerDoc.documentElement( );
         docElt.appendChild( element->cloneNode( true ) );
         docElt.setAttribute( "width",  QString( "%1" ).arg( mmWidth,  0, 'f', 2 ) );
         docElt.setAttribute( "height", QString( "%1" ).arg( mmHeight, 0, 'f', 2 ) );
 
-        QFile data( QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( layer++, 6, 10, DigitZero ) );
+        QFile data( layerFilename );
         if ( data.open( QFile::WriteOnly | QFile::Truncate ) ) {
             QTextStream textStream( &data );
             layerDoc.save( textStream, 0 );
             data.close( );
         } else {
             debug( "+ SvgRenderer::startRender: save failed\n" );
-            emit done( false );
-            return;
+            throw std::runtime_error("SVG save failed");
         }
+
+        layer++;
     }
 
-    manifestManager->restart();
-    manifestManager->setPath( _outputDirectory );
-
-    QStringList manifestFileList { };
-    for( int i=0; i<layer; ++i) {
-        manifestFileList.push_back( QString( "%1.png" ).arg( i, 6, 10, DigitZero ) );
-    }
-
-    manifestManager->setFileList( manifestFileList );
-    manifestManager->save();
+    orderManager->setPath(_outputDirectory);
 
     _totalLayers = layer;
-    _runningLayers .fill( -1,      get_nprocs( ) );
-    _processRunners.fill( nullptr, get_nprocs( ) );
     emit layerCount( _totalLayers );
 
-    _renderLayer( );
-}
-//void SvgRenderer::renderLayerProcess_succeeded( int const slot ) {
-//    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
+    for (int i = 0; i < _totalLayers; i++) {
+        auto in { QString("%1/%2.svg").arg(_outputDirectory).arg(i, 6, 10, DigitZero) };
+        auto out { QString("%1/%2.png").arg(_outputDirectory).arg( i, 6, 10, DigitZero) };
+        LayerRenderTask *task { new LayerRenderTask { *this, i, in, out } };
 
-//    ++_completedLayers;
-//    debug(
-//        "+ SvgRenderer::renderLayerProcess_succeeded:\n"
-//        "  + slot:              %d\n"
-//        "  + layer:             %d\n"
-//        "  + _completedLayers:  %d\n"
-//        "  + _totalLayers:      %d\n"
-//        "",
-//        slot,
-//        _runningLayers[slot],
-//        _completedLayers,
-//        _totalLayers
-//    );
-
-//    emit layerComplete( _runningLayers[slot] );
-
-//    _cleanUpOneProcessRunner( slot );
-
-//    if ( _completedLayers == _totalLayers ) {
-//        TimingLogger::stopTiming( TimingId::RenderingPngs );
-//        debug( "+ SvgRenderer::renderLayerProcess_succeeded: layer rendering is complete\n" );
-//        emit done( true );
-//    } else {
-//        _renderLayer( );
-//    }
-//}
-
-//void SvgRenderer::renderLayerProcess_failed( int const slot, int const exitCode, QProcess::ProcessError const error ) {
-//    std::lock_guard<std::recursive_mutex> lock { _layerRenderingLock };
-//    debug(
-//        "+ SvgRenderer::renderLayerProcess_failed:\n"
-//        "  + slot:              %d\n"
-//        "  + layer:             %d\n"
-//        "  + exit code:         %d\n"
-//        "  + error:             %s [%d]\n"
-//        "",
-//        slot,
-//        _runningLayers[slot],
-//        exitCode,
-//        ToString( error ), static_cast<int>( error )
-//    );
-
-//    _cleanUpProcessRunners( );
-
-//    TimingLogger::stopTiming( TimingId::RenderingPngs );
-
-//    emit done( false );
-//}
-void SvgRenderer::_renderLayer( ) {
-    debug(
-        "+ SvgRenderer::_renderLayer:\n"
-        "  + _currentLayer:     %d\n"
-        "  + _totalLayers:      %d\n"
-        "  + _runningProcesses: %d\n"
-        "",
-        _currentLayer,
-        _totalLayers
-    );
-
-    for ( int slot = 0; ( slot < get_nprocs( ) ) && ( _currentLayer < _totalLayers ); ++slot ) {
-        if ( _processRunners[slot] ) {
-            debug( "  + slot:              %d [busy]\n", slot );
-            continue;
-        }
-        debug(
-            "  + slot:              %d [free]\n"
-            "  + _totalLayers:      %d\n"
-            "  + _completedLayers:  %d\n"
-            "",
-            slot,
-            _totalLayers,
-            _completedLayers
-        );
-
-        auto processRunner = new ProcessRunner;
-        processRunner->setProcessChannelMode( QProcess::ForwardedChannels );
-
-        QObject::connect( processRunner, &ProcessRunner::succeeded, [ this, slot ] ( ) {
-            ++_completedLayers;
-            --_processesRunning;
-            debug(
-                "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded:\n"
-                "  + slot:              %d\n"
-                "  + layer:             %d\n"
-                "  + _completedLayers:  %d\n"
-                "  + _totalLayers:      %d\n"
-                "",
-                slot,
-                _runningLayers[slot],
-                _completedLayers,
-                _totalLayers
-            );
-
-            emit layerComplete( _runningLayers[slot] );
-
-            _cleanUpOneProcessRunner( slot );
-
-            if ( _completedLayers == _totalLayers ) {
-                TimingLogger::stopTiming( TimingId::RenderingPngs );
-                debug( "+ SvgRenderer::_renderLayer: ProcessRunner::succeeded: finished\n" );
-                emit done( true );
-            } else {
-                _renderLayer( );
-            }
-        } );
-
-        QObject::connect( processRunner, &ProcessRunner::failed, [ this, slot ] ( int const exitCode, QProcess::ProcessError const error ) {
-            debug(
-                "+ SvgRenderer::_renderLayer: ProcessRunner::failed:\n"
-                "  + slot:              %d\n"
-                "  + layer:             %d\n"
-                "  + exit code:         %d\n"
-                "  + error:             %s [%d]\n"
-                "",
-                slot,
-                _runningLayers[slot],
-                exitCode,
-                ToString( error ), static_cast<int>( error )
-            );
-
-            _processesRunning = 0;
-            _cleanUpProcessRunners( );
-
-            TimingLogger::stopTiming( TimingId::RenderingPngs );
-
-            emit done( false );
-        } );
-
-        debug( "  + new instance in slot %d for layer %d: %p\n", slot, _currentLayer, processRunner );
-        _processRunners[slot] = processRunner;
-        _runningLayers[slot]  = _currentLayer;
-
-        auto layer = _currentLayer++;
-        ++_processesRunning;
-
-        processRunner->start(
-            { "gm" },
-            {
-                "convert",
-                "-antialias",
-                "-density",    "400",
-                "-background", "#000000",
-                "-size",       QString( "%1x%2" ).arg( _pxWidth ).arg( _pxHeight ),
-                QString( "%1/%2.svg" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero ),
-                QString( "%1/%2.png" ).arg( _outputDirectory ).arg( layer, 6, 10, DigitZero )
-            }
-        );
-    }
-}
-
-void SvgRenderer::_cleanUpOneProcessRunner( int const slot ) {
-    auto processRunner = _processRunners[slot];
-    if ( !processRunner ) {
-        debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: no instance, returning\n", slot );
-        return;
+        _threadPool.start(task);
+        debug("+ submitted layer %d to thread pool\n", i);
     }
 
-    debug( "+ SvgRenderer::_cleanUpOneProcessRunner: slot %d: layer %d, instance %p\n", slot, _runningLayers[slot], _processRunners[slot] );
-    _processRunners[slot] = nullptr;
-    _runningLayers[slot]  = -1;
-
-    QObject::disconnect( processRunner );
-    if ( processRunner->state( ) != QProcess::NotRunning ) {
-        debug( "  + Process is in state %s, terminating\n", ToString( processRunner->state( ) ) );
-        processRunner->terminate( );
-    }
-    processRunner->deleteLater( );
-}
-
-void SvgRenderer::_cleanUpProcessRunners( ) {
-    debug( "+ SvgRenderer::_cleanUpProcessRunners\n" );
-
-    for ( int slot = 0; slot < get_nprocs( ); ++slot ) {
-        _cleanUpOneProcessRunner( slot );
-    }
+    _threadPool.waitForDone();
+    orderManager->save();
 }

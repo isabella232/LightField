@@ -1,6 +1,8 @@
 #ifndef __PREPARETAB_H__
 #define __PREPARETAB_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "tabbase.h"
 #include "ordermanifestmanager.h"
 #include "printprofile.h"
@@ -35,7 +37,7 @@ protected:
 
 private:
 
-    QProcess*         _slicerProcess               { };
+    QThreadPool       _threadPool;
     SvgRenderer*      _svgRenderer                 { };
     Hasher*           _hasher                      { };
     int               _visibleLayer                { };
@@ -43,6 +45,7 @@ private:
     bool              _isPrinterOnline             { false };
     bool              _isPrinterAvailable          { true  };
     bool              _directoryMode               { false };
+    bool              _reslice                     { false };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };
@@ -91,7 +94,8 @@ private:
     QGridLayout*      _layout                      { new QGridLayout      };
 
 
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo );
+
+    bool _checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody );
     void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
@@ -101,7 +105,8 @@ private:
     void _updatePrepareButtonState( );
     void _showWarning( QString content );
     void _handlePrepareFailed( );
-    void _startSlicer( SliceInformation const& sliceInfo );
+    void _loadDirectoryManifest();
+    void _restartPreview();
 
 signals:
     ;
@@ -155,21 +160,11 @@ private slots:
 
     void hasher_resultReady( QString const hash );
 
-    void slicerProcess_base_errorOccurred( QProcess::ProcessError error );
-    void slicerProcess_base_started( );
-    void slicerProcess_base_finished( int exitCode, QProcess::ExitStatus exitStatus );
-
-    void slicerProcess_body_errorOccurred( QProcess::ProcessError error );
-    void slicerProcess_body_started( );
-    void slicerProcess_body_finished( int exitCode, QProcess::ExitStatus exitStatus );
-
-    void svgRenderer_base_layerCount( int const totalLayers );
-    void svgRenderer_base_layerComplete( int const currentLayer );
-    void svgRenderer_base_done( bool const success );
-
-    void svgRenderer_body_layerCount( int const totalLayers );
-    void svgRenderer_body_layerComplete( int const currentLayer );
-    void svgRenderer_body_done( bool const success );
+    void slicingStatusUpdate(const QString &status);
+    void renderingStatusUpdate(const QString &status);
+    void layerCountUpdate(int count);
+    void layerDoneUpdate(int layer);
+    void slicingDone(bool success);
 
     void prepareButton_clicked( bool );
     void shepherd_homeComplete( bool const success );

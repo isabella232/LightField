@@ -43,6 +43,7 @@ SOURCES +=                          \
     ../src/shepherd.cpp             \
     ../src/signalhandler.cpp        \
     ../src/slicesorderpopup.cpp	    \
+    ../src/slicertask.cpp           \
     ../src/statustab.cpp            \
     ../src/stdiologger.cpp          \
     ../src/strings.cpp              \
@@ -101,6 +102,7 @@ HEADERS  +=                         \
     ../src/shepherd.h               \
     ../src/signalhandler.h          \
     ../src/slicesorderpopup.h	    \
+    ../src/slicertask.h             \
     ../src/statustab.h              \
     ../src/stdiologger.h            \
     ../src/strings.h                \
@@ -120,7 +122,8 @@ HEADERS  +=                         \
     ../src/window.h \
     ../src/thicknesswindow.h
 
-CONFIG += c++1z precompile_header
+CONFIG += c++1z precompile_header link_pkgconfig
+PKGCONFIG = GraphicsMagick++
 PRECOMPILED_HEADER = ../src/pch.h
 
 RESOURCES += \
