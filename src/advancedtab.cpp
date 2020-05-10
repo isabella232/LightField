@@ -624,8 +624,6 @@ void AdvancedTab::updatePrintProfile() {
     }
 debug( "+ AdvancedTab::updatePrintProfile 2" );
 
-    //profile->setBaseLayerCount(_numberOfBaseLayersSlider->getValue());
-
     profile->baseLayerParameters( ).setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     if(_addBasePumpCheckbox->isChecked())
     {
@@ -674,8 +672,10 @@ debug( "+ AdvancedTab::updatePrintProfile 5" );
 void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
 {
     _loadingPrintProfile = true;
+    _addBasePumpCheckbox->setChecked(profile->baseLayerParameters().isPumpingEnabled());
+    _addBodyPumpCheckbox->setChecked(profile->bodyLayerParameters().isPumpingEnabled());
 
-    if ( profile->baseLayerParameters( ).isPumpingEnabled( ) ) {
+    if (_addBasePumpCheckbox->isChecked()) {
         PrintParameters const& baseParams = profile->baseLayerParameters( );
 
         _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
@@ -684,12 +684,11 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
         _basePumpDownVelocitySlider->setValue( baseParams.pumpDownVelocity_Effective() );
         _downPauseSlider->setValue( baseParams.pumpDownPause( ) );
         _baseNoPumpUpVelocitySlider->setValue( baseParams.noPumpUpVelocity( ) );
-        //_baseThicknessSlider->setValue( baseParams.layerThickness( ) );
         _baseExposureTimeSlider->setValue( baseParams.layerExposureTime( ) );
         _powerLevelSlider->setValue( baseParams.powerLevel( ) );
     }
 
-    if ( profile->bodyLayerParameters( ).isPumpingEnabled( ) ) {
+    if (_addBodyPumpCheckbox->isChecked()) {
         PrintParameters const& bodyParams = profile->bodyLayerParameters( );
 
         _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
@@ -698,7 +697,6 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
         _bodyPumpDownVelocitySlider->setValue( bodyParams.pumpDownVelocity_Effective() );
         _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause( ) );
         _bodyNoPumpUpVelocitySlider->setValue( bodyParams.noPumpUpVelocity( ) );
-       // _bodyThicknessSlider->setValue( bodyParams.layerThickness( ) );
         _bodyExposureTimeSlider->setValue( bodyParams.layerExposureTime( ) );
         // assume body and base power level are the same for now
         //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
