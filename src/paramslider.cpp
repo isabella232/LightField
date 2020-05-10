@@ -1,7 +1,10 @@
+#include <QtCore>
+#include <QtWidgets>
+#include "utils.h"
 #include "paramslider.h"
 
-
-void ParamSlider::init(QString name, QString unit, int startValue, int maxValue, int step, int minValue)
+void ParamSlider::init(QString name, QString unit, int startValue, int maxValue, int step,
+    int minValue)
 {
     QString valueLabel = QString::number(startValue) + QString(" ") + unit;
     auto origFont    = font( );
@@ -18,7 +21,7 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
     this->_slider->setOrientation(Qt::Orientation::Horizontal);
     this->setStyleSheet( "padding: 0px 0px 0px 0px; " );
 
-    QWidget::connect(this->_slider, &QSlider::valueChanged, this, &ParamSlider::onvaluechanged);
+    QWidget::connect(this->_slider, &QSlider::valueChanged, this, &ParamSlider::onValueChanged);
 
     this->setLayout(
         WrapWidgetsInVBoxDM(
@@ -64,12 +67,12 @@ void ParamSlider::setMaxValue(int value)
    }
 }
 
-void ParamSlider::onvaluechanged(int)
+void ParamSlider::onValueChanged(int)
 {
     debug( "+ ParamSlider::onvaluechanged %f\n", _slider->value() / _factor);
 
     this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
-    emit valuechanged();
+    emit valueChanged();
 }
 
 ParamSlider::ParamSlider(QString name, QString unit, int startValue, int maxValue, int step, int minValue, double factor)

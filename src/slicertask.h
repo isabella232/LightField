@@ -28,6 +28,7 @@ protected:
     int _numThreads();
     void _slice(const QString &input, const QString &output, int layerHeight);
     void _render(const SliceInformation &slices);
+    void _createDirectory(const SliceInformation &slices);
     void _baseLayerCount(int count);
     void _baseLayerDone(int layer);
     void _bodyLayerCount(int count);

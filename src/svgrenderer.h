@@ -53,7 +53,6 @@ private:
 signals:
     void layerCount( int const totalLayers );
     void layerComplete( int const layer );
-    void done( bool const success );
 };
 
 class LayerRenderTask: public QRunnable
@@ -89,20 +88,12 @@ public:
             image.write(_outputPath.toStdString());
         } catch (const std::exception &ex) {
             debug("+ layer error: %s\n", ex.what());
-            emit _renderer.done(false);
             return;
         }
 
         _renderer._completedLayers++;
 
         emit _renderer.layerComplete(_layerNumber);
-        if (_layerNumber == _renderer._totalLayers - 1) {
-            if (!_renderer._orderManager.isNull())
-                _renderer._orderManager->save();
-
-            emit _renderer.done(true);
-        }
-
         debug("+ completed layer %d\n", _layerNumber);
     }
 

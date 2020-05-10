@@ -307,8 +307,6 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         }
     }
 
-    debug( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
     // check that the layer SVG files are newer than the sliced SVG file,
@@ -410,12 +408,14 @@ bool PrepareTab::_checkSliceDirectories( ) {
         _sliceButton->setText( "Reslice" );
         _setupTiling->setEnabled(true);
         _orderButton->setEnabled(false);
+        _reslice = true;
         //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         _sliceButton->setText( "Slice" );
         _setupTiling->setEnabled(false);
         _orderButton->setEnabled(false);
+        _reslice = false;
         //_copyToUSBButton->setEnabled( false );
     }
 
@@ -584,7 +584,9 @@ void PrepareTab::setupTiling_clicked( bool ) {
 
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
-
+    debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
+    debug("  + base layer thickness: %d\n", _printJob->baseSlices.layerThickness);
+    debug("  + body layer thickness: %d\n", _printJob->bodySlices.layerThickness);
 #if 0
     if( _printJob->bodySlices.sliceDirectory() != nullptr) {
         QDir jobDir { _printJob->bodySlices.sliceDirectory() };
@@ -666,6 +668,7 @@ void PrepareTab::layerDoneUpdate(int layer)
 void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
+    _checkSliceDirectories();
 }
 
 #if 0

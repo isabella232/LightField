@@ -29,21 +29,21 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _forms[3] = _layersForm;
     _forms[4] = _bodyPumpForm;
 
-    QWidget::connect(_distanceSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upTimeSlider,             &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upPauseSlider,            &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_downTimeSlider,           &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_downPauseSlider,          &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_upVelocitySlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_baseExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyExposureTimeSlider,   &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyPumpEveryNthLayer,    &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDistanceSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpTimeSlider,         &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpPauseSlider,        &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDownTimeSlider,       &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyDownPauseSlider,      &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyUpVelocitySlider,     &ParamSlider::valuechanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_distanceSlider,           &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upTimeSlider,             &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upPauseSlider,            &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_downTimeSlider,           &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_downPauseSlider,          &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_upVelocitySlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_baseExposureTimeSlider,   &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyExposureTimeSlider,   &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyPumpEveryNthLayer,    &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDistanceSlider,       &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpTimeSlider,         &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpPauseSlider,        &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDownTimeSlider,       &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyDownPauseSlider,      &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
+    QWidget::connect(_bodyUpVelocitySlider,     &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
 
     _setUpLeftMenu(fontAwesome);
     _setUpGeneralForm(boldFont, fontAwesome);

@@ -47,14 +47,20 @@ void SvgRenderer::loadSlices( PrintJob* printJob ) {
 
     debug( "  + Done\n" );
     emit layerCount( printJob->totalLayerCount() );
-    emit done( true );
 }
 
 void SvgRenderer::render(QString const& svgFileName,
     QString const& outputDirectory, PrintJob* printJob,
     QSharedPointer<OrderManifestManager> orderManager)
 {
-    debug( "+ SvgRenderer::startRender\n" );
+    Q_ASSERT(svgFileName.length() > 0);
+    Q_ASSERT(outputDirectory.length() > 0);
+    Q_ASSERT(printJob != nullptr);
+
+    debug("+ SvgRenderer::render\n");
+    debug("  + svgFileName: %s\n", svgFileName.toUtf8().data());
+    debug("  + outputDirectory: %s\n", outputDirectory.toUtf8().data());
+
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
     _threadPool.setMaxThreadCount(get_nprocs());
@@ -64,14 +70,12 @@ void SvgRenderer::render(QString const& svgFileName,
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
         debug( "  + couldn't open file '%s'\n", svgFileName.toUtf8( ).data( ) );
-        emit done( false );
-        return;
+        throw std::runtime_error("Couldn't open file");
     }
     if ( !_doc.setContent( &file ) ) {
         debug( "  + couldn't load file\n" );
         file.close( );
-        emit done( false );
-        return;
+        throw std::runtime_error("Couldn't load file");
     }
     file.close( );
 
@@ -80,8 +84,7 @@ void SvgRenderer::render(QString const& svgFileName,
     QDomElement svgElement = _doc.documentElement( );
     if ( !svgElement.hasAttributes( ) ) {
         debug( "  + SVG element has no attributes?\n" );
-        emit done( false );
-        return;
+        throw std::runtime_error("SVG element has no attributes");
     }
 
     auto mmWidth  = svgElement.attribute( "width" ).toDouble( );
@@ -117,7 +120,7 @@ void SvgRenderer::render(QString const& svgFileName,
 
         QString layerFilename { QString( "%1/%2.svg" )
             .arg( _outputDirectory )
-            .arg( layer++, 6, 10, DigitZero ) };
+            .arg( layer, 6, 10, DigitZero ) };
 
         if (!orderManager.isNull())
             orderManager->addFile(QString("%1.png").arg(layer, 6, 10, DigitZero));
@@ -135,13 +138,13 @@ void SvgRenderer::render(QString const& svgFileName,
             data.close( );
         } else {
             debug( "+ SvgRenderer::startRender: save failed\n" );
-            emit done( false );
-            return;
+            throw std::runtime_error("SVG save failed");
         }
+
+        layer++;
     }
 
-    if (!orderManager.isNull())
-        orderManager->setPath(_outputDirectory);
+    orderManager->setPath(_outputDirectory);
 
     _totalLayers = layer;
     emit layerCount( _totalLayers );
@@ -156,4 +159,5 @@ void SvgRenderer::render(QString const& svgFileName,
     }
 
     _threadPool.waitForDone();
+    orderManager->save();
 }

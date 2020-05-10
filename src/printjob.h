@@ -16,6 +16,10 @@ enum class SliceType
 class SliceInformation
 {
 public:
+    SliceInformation(SliceType t): type(t)
+    {
+    }
+
     SliceType type;
     QString sliceDirectory;
     bool isPreSliced;
@@ -43,8 +47,8 @@ public:
     double          exposureTimeScaleFactor { 1.0 }; // for first two layers
     int             firstLayerOffset;
 
-    SliceInformation        baseSlices;
-    SliceInformation        bodySlices;
+    SliceInformation        baseSlices { SliceType::SliceBase };
+    SliceInformation        bodySlices { SliceType::SliceBody };
 
     PrintProfile*    printProfile    { };
 

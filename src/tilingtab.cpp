@@ -1,3 +1,6 @@
+#include <QtCore>
+#include <QtWidgets>
+#include "utils.h"
 #include "tilingtab.h"
 #include "tilingmanager.h"
 #include "window.h"
@@ -119,8 +122,8 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
         )
     );
 
-    QObject::connect( _space, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
-    QObject::connect( _count, &ParamSlider::valuechanged, this, &TilingTab::setStepValue );
+    QObject::connect( _space, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
+    QObject::connect( _count, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
 
 
     QObject::connect( _setupExpoTimeBt, &QPushButton::clicked, this, &TilingTab::setupExpoTimeClicked);
