@@ -25,15 +25,16 @@ enum class SliceType
 class SliceInformation
 {
 public:
-    SliceInformation(SliceType t): type(t)
+    SliceInformation(SliceType t):
+        type(t), layerCount(0), layerThickness(0)
     {
     }
 
     SliceType type;
     QString sliceDirectory;
     bool isPreSliced;
-    int layerCount=0;
-    int layerThickness=0;
+    int layerCount;
+    int layerThickness;
 };
 
 class PrintJob

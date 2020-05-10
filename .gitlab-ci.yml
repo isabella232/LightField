@@ -27,7 +27,7 @@ build_base:
     - lightfield
   artifacts:
     paths:
-      - packaging/latest/deb
+      - packaging
 
 build_xbase:
   stage: build_xbase
@@ -39,7 +39,7 @@ build_xbase:
     - lightfield
   artifacts:
     paths:
-      - packaging/latest/deb
+      - packaging
 
 build_dlp4710:
   stage: build_dlp4710
@@ -51,7 +51,7 @@ build_dlp4710:
     - lightfield
   artifacts:
     paths:
-      - packaging/latest/deb
+      - packaging
 
 build_xdlp4710:
   stage: build_xdlp4710
@@ -63,4 +63,4 @@ build_xdlp4710:
     - lightfield
   artifacts:
     paths:
-      - packaging/latest/deb
+      - packaging
