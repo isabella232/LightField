@@ -40,14 +40,14 @@ void SlicerTask::run()
         if (_printJob->hasBaseLayers() && (!_printJob->baseSlices.isPreSliced || _reslice)) {
             /* Need to render base layers */
 
-            debug("  + must renders base layers\n");
+            debug("  + must render base layers\n");
             _render(_printJob->baseSlices);
         }
 
         if (!_printJob->bodySlices.isPreSliced || _reslice) {
             /* Need to render body layers */
 
-             debug("  + must renders body layers\n");
+             debug("  + must rendes body layers\n");
             _render(_printJob->bodySlices);
         }
     } catch (const std::exception &ex) {
@@ -97,7 +97,6 @@ void SlicerTask::_render(const SliceInformation &slices)
     case SliceType::SliceBase:
         QObject::connect(&renderer, &SvgRenderer::layerCount, this, &SlicerTask::_baseLayerCount);
         QObject::connect(&renderer, &SvgRenderer::layerComplete, this, &SlicerTask::_baseLayerDone);
-        _printJob->setBaseManager(manager);
         sliced = QString("%1/sliced.svg").arg(_printJob->baseSlices.sliceDirectory);
         outputDirectory = _printJob->baseSlices.sliceDirectory;
         break;
@@ -105,13 +104,21 @@ void SlicerTask::_render(const SliceInformation &slices)
     case SliceType::SliceBody:
         QObject::connect(&renderer, &SvgRenderer::layerCount, this, &SlicerTask::_bodyLayerCount);
         QObject::connect(&renderer, &SvgRenderer::layerComplete, this, &SlicerTask::_bodyLayerDone);
-        _printJob->setBodyManager(manager);
         sliced = QString("%1/sliced.svg").arg(_printJob->bodySlices.sliceDirectory);
         outputDirectory = _printJob->bodySlices.sliceDirectory;
         break;
     }
 
     renderer.render(sliced, outputDirectory, _printJob, manager);
+
+    switch (slices.type) {
+    case SliceType::SliceBase:
+        _printJob->setBaseManager(manager);
+        break;
+    case SliceType::SliceBody:
+        _printJob->setBodyManager(manager);
+        break;
+    }
 }
 
 void SlicerTask::_createDirectory(const SliceInformation &slices)
