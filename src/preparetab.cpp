@@ -475,7 +475,7 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
 }
 
 void PrepareTab::_showLayerImage( int const layer ) {
-    debug(" +PrepareTab::_showLayerImage %s", _printJob->getLayerFileName( layer ).toUtf8().data() );
+    debug("+ PrepareTab::_showLayerImage %s\n", _printJob->getLayerFileName( layer ).toUtf8().data() );
     QPixmap pixmap { _printJob->getLayerPath( layer ) };
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );

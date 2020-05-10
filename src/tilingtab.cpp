@@ -331,9 +331,9 @@ void TilingTab::confirmButton_clicked ( bool ) {
                                      _stepBody,
                                      _space->getValue(),
                                      _count->getValue() );
-            //MERGE_TODO align who will provide directory name
-            //_printJob->jobWorkingDirectory = tilingMgr->getPath();
 
+            _printJob->directoryMode = true;
+            _printJob->directoryPath = tilingMgr->getPath();
             emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 
             dialog->done(0);

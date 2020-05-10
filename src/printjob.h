@@ -107,7 +107,10 @@ public:
 
     QString getLayerDirectory(int const layer) const
     {
-        return isBaseLayer(layer) ? baseSlices.sliceDirectory :  bodySlices.sliceDirectory;
+        if (directoryMode)
+            return directoryPath;
+
+        return isBaseLayer(layer) ? baseSlices.sliceDirectory : bodySlices.sliceDirectory;
     }
 
     QString getLayerFileName(int const layer) const
