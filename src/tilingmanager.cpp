@@ -88,10 +88,14 @@ void TilingManager::tileImages ( )
 
 
     /* iterating over slices in manifest */
-    for (int i = 0; i<_printJob->totalLayerCount(); i++) {
+    int total = _printJob->totalLayerCount();
+
+    for (int i = 0; i < total; i++) {
         QFileInfo entry ( _printJob->getLayerDirectory(i) % Slash % _printJob->getLayerFileName(i) );
 
         /* render tiles based on slice */
+        emit statusUpdate(QString("Tiling layer %1").arg(i));
+        emit progressUpdate((double)i / (double)total * 100);
         renderTiles ( entry );
     }
 

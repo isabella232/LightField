@@ -40,6 +40,7 @@ SOURCES +=                          \
     ../src/printtab.cpp             \
     ../src/processrunner.cpp        \
     ../src/profilestab.cpp          \
+    ../src/progressdialog.cpp       \
     ../src/shepherd.cpp             \
     ../src/signalhandler.cpp        \
     ../src/slicesorderpopup.cpp	    \
@@ -99,6 +100,7 @@ HEADERS  +=                         \
     ../src/processrunner.h          \
     ../src/profilesjsonparser.h     \
     ../src/profilestab.h            \
+    ../src/progressdialog.h         \
     ../src/shepherd.h               \
     ../src/signalhandler.h          \
     ../src/slicesorderpopup.h	    \

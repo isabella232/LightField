@@ -1,8 +1,11 @@
 #ifndef __PNGDISPLAYER_H__
 #define __PNGDISPLAYER_H__
 
-class PngDisplayer: public QMainWindow {
+#include <QtCore>
+#include <QtWidgets>
 
+class PngDisplayer: public QMainWindow
+{
     Q_OBJECT
 
 public:

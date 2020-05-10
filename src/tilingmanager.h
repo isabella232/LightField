@@ -7,14 +7,20 @@
 #include "printjob.h"
 
 
-class TilingManager {
+class TilingManager: public QObject
+{
+    Q_OBJECT
 
 public:
-  TilingManager( PrintJob* printJob );
-  ~TilingManager() = default;
+    TilingManager( PrintJob* printJob );
+    ~TilingManager() = default;
 
-  void processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
-  inline QString getPath ( ) { return _path; };
+    void processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
+    inline QString getPath ( ) { return _path; }
+
+signals:
+  void statusUpdate(const QString &messgae);
+  void progressUpdate(int percentage);
 
 protected:
   void tileImages ( );

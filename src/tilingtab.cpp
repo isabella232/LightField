@@ -1,5 +1,6 @@
 #include <QtCore>
 #include <QtWidgets>
+#include "progressdialog.h"
 #include "utils.h"
 #include "tilingtab.h"
 #include "tilingmanager.h"
@@ -57,8 +58,8 @@ void TilingExpoTimePopup::cancel( bool ) {
     this->close( );
 }
 
-TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
-    debug(" +TilingTab::TilingTab" );
+TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
+{
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
@@ -80,10 +81,14 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
 
-    _confirm->setFixedSize( MainButtonSize );
+    _confirm->setFixedSize(MainButtonSize.width(), SmallMainButtonSize.height());
     _confirm->setFont( fontAwesome );
     _confirm->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _confirm->setEnabled( false );
+
+    _setupExpoTimeBt->setFont(font22pt);
+    _setupExpoTimeBt->setFixedSize(MainButtonSize.width(), SmallMainButtonSize.height());
+    _setupExpoTimeBt->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     QGroupBox* lrInfo     = new QGroupBox();
     QGroupBox* baseLrInfo = new QGroupBox("Base layer");
@@ -107,17 +112,15 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent ) {
         WrapWidgetsInVBox( baseLrInfo, nullptr, bodyLrInfo )
     );
 
-    _setupExpoTimeBt->setFont( font22pt );
-    _setupExpoTimeBt->setMinimumSize( MainButtonSize );
 
     all->setLayout(
         WrapWidgetsInVBox(
            lrInfo,
            nullptr,
-           _setupExpoTimeBt,
            _space,
            _count,
            nullptr,
+           _setupExpoTimeBt,
            _confirm
         )
     );
@@ -307,24 +310,15 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 }
 
 
-void TilingTab::confirmButton_clicked ( bool ) {
+void TilingTab::confirmButton_clicked (bool)
+{
     TilingManager* tilingMgr = new  TilingManager( _printJob );
+    ProgressDialog* dialog = new ProgressDialog(this);
 
-    QDialog* dialog = new QDialog();
-    Window* w = App::mainWindow();
-    QRect r = w->geometry();
+    QObject::connect(tilingMgr, &TilingManager::statusUpdate, dialog, &ProgressDialog::setMessage);
+    QObject::connect(tilingMgr, &TilingManager::progressUpdate, dialog, &ProgressDialog::setProgress);
 
-    dialog->setModal( true );
-    dialog->setLayout( WrapWidgetsInHBox ( nullptr, new QLabel ( "Processing files ... <br>please wait" ), nullptr ) );
-
-    dialog->resize(300, 100);
-    dialog->setContentsMargins( { } );
-    dialog->setMinimumSize(QSize(300, 100));
     dialog->show();
-
-    dialog->move(r.x() + ((r.width() - dialog->width())/2), r.y() + ((r.height() - dialog->height())/2) );
-
-
 
     QThread *thread = QThread::create(
         [this, tilingMgr, dialog]
@@ -342,7 +336,7 @@ void TilingTab::confirmButton_clicked ( bool ) {
             _printJob->directoryPath = tilingMgr->getPath();
             emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 
-            dialog->done(0);
+            dialog->close();
             delete dialog;
             delete tilingMgr;
 
@@ -350,9 +344,6 @@ void TilingTab::confirmButton_clicked ( bool ) {
     );
 
     thread->start();
-    dialog->exec();
-
-    emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 }
 
 int TilingTab::_getMaxCount()

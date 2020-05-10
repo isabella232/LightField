@@ -41,7 +41,7 @@ class TilingTab: public TabBase {
 
 public:
     TilingTab( QWidget* parent = nullptr );
-    virtual ~TilingTab( ) { };
+    virtual ~TilingTab( ) { }
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Tiling; }
 protected:
@@ -74,7 +74,7 @@ private:
     double                  _stepBody                 { 2 };
     QPixmap*                _pixmap                   { nullptr };
     TilingExpoTimePopup     _expoTimePopup            { };
-    QPushButton*            _setupExpoTimeBt          { new QPushButton( "Setup exposition time" ) };
+    QPushButton*            _setupExpoTimeBt          { new QPushButton( "Exposure time" ) };
 
     void _showLayerImage ( );
     void _showWarningAndClose ( );
