@@ -59,12 +59,12 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _sliceStatusLabel->setText( "Slicer:" );
 
-    _sliceStatus->setText( "idle" );
+    _sliceStatus->setText( "Idle" );
     _sliceStatus->setFont( boldFont );
 
     _imageGeneratorStatusLabel->setText( "Image generator:" );
 
-    _imageGeneratorStatus->setText( "idle" );
+    _imageGeneratorStatus->setText( "Idle" );
     _imageGeneratorStatus->setFont( boldFont );
 
     _prepareMessage->setAlignment( Qt::AlignCenter );
@@ -374,8 +374,10 @@ bool PrepareTab::_checkSliceDirectories()
 {
     QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
 
-    if(_printJob->directoryMode)
+    if(_printJob->directoryMode) {
+        debug("+ PrepareTab::_checkSliceDirectories: directory mode, nothing to do\n");
         return true;
+    }
 
     if(_printJob->hasBaseLayers()) {
         _printJob->baseSlices.sliceDirectory = QString("%1-%2")
@@ -615,7 +617,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
 
-    _sliceStatus->setText( "idle" );
+    _sliceStatus->setText( "Idle" );
     _hasher = nullptr;
 
     bool goodJobDir = _checkSliceDirectories( );
@@ -693,11 +695,19 @@ void PrepareTab::_loadDirectoryManifest()
     _printJob->setBodyManager(manifestMgr);
     _orderButton->setEnabled(true);
     _setupTiling->setEnabled(true);
-    _setSliceControlsEnabled(true);
+    _setSliceControlsEnabled(false);
 
     layerCountUpdate(_printJob->totalLayerCount());
     for (int i = 0; i < _printJob->totalLayerCount(); i++)
         layerDoneUpdate(i);
+
+    _restartPreview();
+}
+
+void PrepareTab::_restartPreview()
+{
+    _visibleLayer = 0;
+    _showLayerImage(_visibleLayer);
 }
 
 void PrepareTab::_showWarning(QString content) {

@@ -11,10 +11,9 @@ class ThicknessWindow: public QDialog
     Q_OBJECT
 
 public:
-    ThicknessWindow(PrintJob *job, bool directoryMode, QWidget *parent = nullptr);
+    ThicknessWindow(PrintJob *job, QWidget *parent = nullptr);
 
 protected:
-    bool _directoryMode;
     PrintJob *_printJob;
     QPushButton *_ok;
     QPushButton *_cancel;

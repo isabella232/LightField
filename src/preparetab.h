@@ -104,6 +104,7 @@ private:
     void _showWarning( QString content );
     void _handlePrepareFailed( );
     void _loadDirectoryManifest();
+    void _restartPreview();
 
 signals:
     ;

@@ -4,8 +4,8 @@
 #include "constants.h"
 #include "utils.h"
 
-ThicknessWindow::ThicknessWindow(PrintJob *job, bool directoryMode, QWidget *parent):
-    QDialog(parent), _directoryMode(directoryMode), _printJob(job)
+ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
+    QDialog(parent), _printJob(job)
 {
     QVBoxLayout *layout;
     QHBoxLayout *buttons = new QHBoxLayout;
@@ -24,7 +24,7 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, bool directoryMode, QWidget *par
     _baseLayerThickness->setValue(job->baseSlices.layerThickness);
     _bodyLayerThickness->setValue(job->bodySlices.layerThickness);
 
-    if (_directoryMode) {
+    if (_printJob->directoryMode) {
         QObject::connect(_baseLayerThickness, &ParamSlider::onValueChanged, [=]() {
             _bodyLayerThickness->setValue(_baseLayerThickness->getValue());
         });

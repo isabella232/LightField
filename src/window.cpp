@@ -574,6 +574,7 @@ void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
         _modelSelection->estimatedVolume
     );
 
+    _printJob->directoryMode   = false;
     _printJob->vertexCount     = _modelSelection->vertexCount;
     _printJob->x               = _modelSelection->x;
     _printJob->y               = _modelSelection->y;
