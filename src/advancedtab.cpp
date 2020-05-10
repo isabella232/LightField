@@ -626,10 +626,8 @@ void AdvancedTab::updatePrintProfile() {
     }
 debug( "+ AdvancedTab::updatePrintProfile 2" );
 
-    profile->baseLayerParameters( ).setPumpingEnabled(_addBasePumpCheckbox->isChecked());
-
     PrintParameters baseParams;
-
+    baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
     baseParams.setPumpUpVelocity(_basePumpUpVelocitySlider->getValue());
     baseParams.setPumpUpPause(_upPauseSlider->getValue());
@@ -641,10 +639,8 @@ debug( "+ AdvancedTab::updatePrintProfile 2" );
     baseParams.setPowerLevel(_powerLevelSlider->value());
     profile->setBaseLayerParameters(baseParams);
 
-    profile->bodyLayerParameters( ).setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
-
     PrintParameters bodyParams;
-
+    bodyParams.setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
     bodyParams.setPumpUpVelocity(_bodyPumpUpVelocitySlider->getValue());
     bodyParams.setPumpUpPause(_bodyUpPauseSlider->getValue());
