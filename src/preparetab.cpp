@@ -505,9 +505,9 @@ void PrepareTab::_setSliceControlsEnabled( bool const enabled )
     update( );
 }
 
-void PrepareTab::_updatePrepareButtonState( ) {
-    _prepareButton->setEnabled( _isPrinterOnline && _isPrinterAvailable );
-
+void PrepareTab::_updatePrepareButtonState()
+{
+    _prepareButton->setEnabled(_isPrinterOnline && _isPrinterAvailable);
     update( );
 }
 
