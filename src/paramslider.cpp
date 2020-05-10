@@ -19,6 +19,8 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
     this->_slider->setMaximum(maxValue);
     this->_slider->setMinimum(minValue);
     this->_slider->setSingleStep(step);
+    this->_slider->setTickInterval( step );
+    this->_slider->setPageStep( step );
     this->_slider->setOrientation(Qt::Orientation::Horizontal);
     this->setStyleSheet( "padding: 0px 0px 0px 0px; " );
 
@@ -33,10 +35,7 @@ void ParamSlider::init(QString name, QString unit, int startValue, int maxValue,
             nullptr
         )
     );
-
-
 }
-
 
 double ParamSlider::getValueDouble()
 {
@@ -68,8 +67,51 @@ void ParamSlider::setMaxValue(int value)
    }
 }
 
+void ParamSlider::setMinValue(int value)
+{
+   _slider->setMinimum( value );
+
+   if(_slider->value() < value)
+   {
+       _slider->setValue( value );
+   }
+}
+
+void ParamSlider::setStep(int step)
+{
+    int stepRemainder = _slider->value() % step;
+    int newValue;
+
+   _slider->setSingleStep( step );
+   _slider->setTickInterval( step );
+   _slider->setPageStep( step );
+
+   if( stepRemainder )
+   {
+       if (_slider->value() - stepRemainder < _slider->minimum()) {
+           newValue = _slider->value() - stepRemainder + step;
+           if (newValue > _slider->maximum()) {
+               _slider->setValue(_slider->maximum());
+           } else {
+               _slider->setValue(newValue);
+           }
+       } else {
+           _slider->setValue(_slider->value() - stepRemainder);
+       }
+   }
+}
+
 void ParamSlider::onValueChanged(int)
 {
+    int remainder = _slider->value() % _slider->singleStep();
+    if ( remainder ) {
+        if (remainder > _slider->singleStep() / 2) {
+            _slider->setValue(_slider->value() + _slider->singleStep() - remainder);
+        } else {
+            _slider->setValue(_slider->value() - remainder);
+        }
+    }
+
     debug( "+ ParamSlider::onvaluechanged %f\n", _slider->value() / _factor);
 
     this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );

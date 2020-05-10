@@ -25,12 +25,23 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
     _bodyLayerThickness->setValue(job->bodySlices.layerThickness);
 
     if (_printJob->directoryMode) {
-        QObject::connect(_baseLayerThickness, &ParamSlider::onValueChanged, [=]() {
+        QObject::connect(_baseLayerThickness, &ParamSlider::valueChanged, [=]() {
             _bodyLayerThickness->setValue(_baseLayerThickness->getValue());
         });
 
-        QObject::connect(_bodyLayerThickness, &ParamSlider::onValueChanged, [=]() {
+        QObject::connect(_bodyLayerThickness, &ParamSlider::valueChanged, [=]() {
             _baseLayerThickness->setValue(_bodyLayerThickness->getValue());
+        });
+    } else {
+        QObject::connect(_bodyLayerThickness, &ParamSlider::valueChanged, [=]() {
+            _baseLayerThickness->setMinValue(_bodyLayerThickness->getValue());
+            int step = static_cast<int>(ceil(100.0 / _bodyLayerThickness->getValue()));
+            if ( 100 % _bodyLayerThickness->getValue() ) {
+                _baseLayerThickness->setMaxValue((step - 1) * _bodyLayerThickness->getValue());
+            } else {
+                _baseLayerThickness->setMaxValue(step * _bodyLayerThickness->getValue());
+            }
+            _baseLayerThickness->setStep(_bodyLayerThickness->getValue());
         });
     }
 

@@ -17,9 +17,9 @@ protected:
     PrintJob *_printJob;
     QPushButton *_ok;
     QPushButton *_cancel;
-    ParamSlider *_baseLayerCount { new ParamSlider("Number of Base Layers", "", 1, 20, 1) };
-    ParamSlider *_baseLayerThickness { new ParamSlider( "Base Layer Thickness", "µm", 10, 100, 10) };
-    ParamSlider *_bodyLayerThickness { new ParamSlider( "Body Layer Thickness", "µm", 10, 100, 10) };
+    ParamSlider *_baseLayerCount { new ParamSlider("Number of Base Layers", "", 1, 20, 1, 0) };
+    ParamSlider *_baseLayerThickness { new ParamSlider( "Base Layer Thickness", "µm", 10, 100, 10, 10) };
+    ParamSlider *_bodyLayerThickness { new ParamSlider( "Body Layer Thickness", "µm", 10, 100, 10, 10) };
 
     void ok_clicked( bool );
     void cancel_clicked( bool );

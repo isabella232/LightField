@@ -28,6 +28,8 @@ public:
     void   setValue(int value);
     double getValueDouble();
     void   setValueDouble(double value);
+    void   setMinValue(int value);
+    void   setStep(int step);
     void   setMaxValue(int value);
 
 signals:
