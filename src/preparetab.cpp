@@ -374,6 +374,9 @@ bool PrepareTab::_checkSliceDirectories()
 {
     QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
 
+    if(_printJob->directoryMode)
+        return true;
+
     if(_printJob->hasBaseLayers()) {
         _printJob->baseSlices.sliceDirectory = QString("%1-%2")
             .arg( sliceDirectoryBase)
@@ -381,7 +384,7 @@ bool PrepareTab::_checkSliceDirectories()
     }
 
     _printJob->bodySlices.sliceDirectory = QString("%1-%2")
-        .arg( sliceDirectoryBase)
+        .arg(sliceDirectoryBase)
         .arg(_printJob->bodySlices.layerThickness);
 
     debug(
