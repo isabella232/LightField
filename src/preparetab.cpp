@@ -655,6 +655,7 @@ void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
     _checkSliceDirectories();
+    emit uiStateChanged( TabIndex::Prepare, UiState::SliceCompleted );
 }
 
 void PrepareTab::_loadDirectoryManifest()
