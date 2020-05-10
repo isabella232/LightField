@@ -828,13 +828,13 @@ void PrepareTab::_updateSliceControls() {
 
 #if defined EXPERIMENTAL
         case 20:
-            _layerThicknessCustomButton->setChecked(true);
+            _layerThickness20Button->setChecked(true);
             return;
 #endif
         }
     }
 
-    //_layerThicknessCustomButton->setChecked(true);
+    _layerThicknessCustomButton->setChecked(true);
 }
 
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
