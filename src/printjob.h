@@ -34,6 +34,7 @@ public:
     PrintJob(const PrintJob &other) = default;
 
     QString modelFileName;
+    QString directoryPath;
     QString modelHash;
     QString currentImageFile;
     
@@ -46,6 +47,7 @@ public:
     double          exposureTime            { 1.0 }; // unit: s
     double          exposureTimeScaleFactor { 1.0 }; // for first two layers
     int             firstLayerOffset;
+    bool            directoryMode;
 
     SliceInformation        baseSlices { SliceType::SliceBase };
     SliceInformation        bodySlices { SliceType::SliceBody };
@@ -100,7 +102,7 @@ public:
         if (!hasBaseLayers())
             return false;
 
-        return (layer >= baseLayerStart()) && (layer < baseLayerEnd());
+        return (layer >= baseLayerStart()) && (layer <= baseLayerEnd());
     }
 
     QString getLayerDirectory(int const layer) const
@@ -112,7 +114,7 @@ public:
     {
         return isBaseLayer(layer)
             ? _baseManager->getElementAt(layer)
-            : _bodyManager->getElementAt(bodyLayerStart() + layer);
+            : _bodyManager->getElementAt(layer - baseSlices.layerCount);
     }
 
     QString getLayerPath( int const layer ) const {
@@ -129,7 +131,7 @@ public:
     void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
         _bodyManager.swap(manager);
         bodySlices.isPreSliced = true;
-        bodySlices.layerCount = _bodyManager->getSize();
+        bodySlices.layerCount = _bodyManager->getSize() - baseSlices.layerCount;
 
         if(_bodyManager->tiled())
             bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
@@ -142,8 +144,7 @@ public:
 
         if(!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
-            baseSlices.layerCount = _baseManager->getSize();
-            baseSlices.layerThickness = _baseManager->layerThickNessAt(0);
+            baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
         } else {
             baseSlices.sliceDirectory = nullptr;
             baseSlices.isPreSliced = false;

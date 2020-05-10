@@ -103,6 +103,7 @@ private:
     void _updatePrepareButtonState( );
     void _showWarning( QString content );
     void _handlePrepareFailed( );
+    void _loadDirectoryManifest();
 
 signals:
     ;

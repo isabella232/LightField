@@ -370,16 +370,17 @@ void PrepareTab::_checkOneSliceDirectory( char const* type, SliceInformation& sl
     }
 }
 
-bool PrepareTab::_checkSliceDirectories( ) {
+bool PrepareTab::_checkSliceDirectories()
+{
     QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
 
-    if( _layerThicknessCustomButton->isChecked() ) {
-        _printJob->baseSlices.sliceDirectory = QString { "%1-%2" }
+    if(_printJob->hasBaseLayers()) {
+        _printJob->baseSlices.sliceDirectory = QString("%1-%2")
             .arg( sliceDirectoryBase)
             .arg(_printJob->baseSlices.layerThickness);
     }
 
-    _printJob->bodySlices.sliceDirectory = QString { "%1-%2" }
+    _printJob->bodySlices.sliceDirectory = QString("%1-%2")
         .arg( sliceDirectoryBase)
         .arg(_printJob->bodySlices.layerThickness);
 
@@ -389,16 +390,15 @@ bool PrepareTab::_checkSliceDirectories( ) {
         "  + base slices directory: '%s'\n"
         "  + body slices directory: '%s'\n"
         "",
-        _printJob->modelFileName.toUtf8( ).data( ),
-        _printJob->baseSlices.sliceDirectory.toUtf8( ).data( ),
-        _printJob->bodySlices.sliceDirectory.toUtf8( ).data( )
+        _printJob->modelFileName.toUtf8().data(),
+        _printJob->baseSlices.sliceDirectory.toUtf8().data(),
+        _printJob->bodySlices.sliceDirectory.toUtf8().data()
     );
 
-    if(_layerThicknessCustomButton->isChecked()) {
-        _checkOneSliceDirectory( "base", _printJob->baseSlices );
-    }
+    if(_printJob->hasBaseLayers())
+        _checkOneSliceDirectory("base", _printJob->baseSlices);
 
-    _checkOneSliceDirectory( "body", _printJob->bodySlices );
+    _checkOneSliceDirectory("body", _printJob->bodySlices);
 
     auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
     _setNavigationButtonsEnabled( preSliced );
@@ -419,7 +419,7 @@ bool PrepareTab::_checkSliceDirectories( ) {
         //_copyToUSBButton->setEnabled( false );
     }
 
-    update( );
+    update();
     return preSliced;
 }
 
@@ -482,15 +482,10 @@ void PrepareTab::_showLayerImage( int const layer ) {
     update( );
 }
 
-void PrepareTab::_setSliceControlsEnabled( bool const enabled ) {
+void PrepareTab::_setSliceControlsEnabled( bool const enabled )
+{
     _sliceButton->setEnabled( enabled );
-
-    if(!_directoryMode) {
-        _orderButton->setEnabled( false );
-    } else {
-        _orderButton->setEnabled( enabled );
-    }
-
+    _orderButton->setEnabled(_directoryMode ? enabled : false );
     _setupTiling->setEnabled( enabled && !_printJob->isTiled() );
 
     _layerThicknessLabel->setEnabled( enabled );
@@ -669,6 +664,52 @@ void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
     _checkSliceDirectories();
+}
+
+void PrepareTab::_loadDirectoryManifest()
+{
+    QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
+    QStringList errors;
+    QStringList warnings;
+    QString warningsStr;
+
+    manifestMgr->setPath(_printJob->directoryPath);
+
+    switch(manifestMgr->parse(&errors, &warnings))
+    {
+    case ManifestParseResult::POSITIVE_WITH_WARNINGS:
+        warningsStr = warnings.join("<br>");
+        _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
+        /* FALLTHROUGH */
+
+    case ManifestParseResult::POSITIVE:
+        if (manifestMgr->tiled()) {
+            _setupTiling->setEnabled( false );
+            // in case of tiled design volume comes from manifest file instead of model calculation
+            _printJob->estimatedVolume = manifestMgr->tiledVolume();
+        }
+        break;
+
+    case ManifestParseResult::FILE_CORRUPTED:
+    case ManifestParseResult::FILE_NOT_EXIST: {
+            QString errorsStr = errors.join("<br>");
+            _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+            SlicesOrderPopup slicesOrderPopup { manifestMgr };
+            slicesOrderPopup.exec();
+            break;
+        }
+    }
+
+    _printJob->setBaseManager(manifestMgr);
+    _printJob->setBodyManager(manifestMgr);
+    _orderButton->setEnabled(true);
+    _setupTiling->setEnabled(true);
+    _setSliceControlsEnabled(true);
+
+    layerCountUpdate(_printJob->totalLayerCount());
+    for (int i = 0; i < _printJob->totalLayerCount(); i++)
+        layerDoneUpdate(i);
 }
 
 #if 0
@@ -1110,7 +1151,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _directoryMode = true;
             _setSliceControlsEnabled( false );
             _updateSliceControls();
-            //slicerProcess_body_finished( 0, QProcess::NormalExit );
+            _loadDirectoryManifest();
             break;
     }
 
