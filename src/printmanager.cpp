@@ -285,7 +285,7 @@ void PrintManager::stepB1_start( ) {
     auto powerLevel { _printJob->printProfile->baseLayerParameters( ).powerLevel( ) };
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", powerLevel );
 
-    QString pngFileName = _printJob->getLayerFileName( _currentLayer );
+    QString pngFileName = _printJob->getLayerPath( _currentLayer );
     if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
         debug( "+ PrintManager::stepB1_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
         this->abort( );
