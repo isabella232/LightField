@@ -2,6 +2,8 @@
 #define PROFILESJSONPARSER_H
 
 #include <QtCore>
+#include <QtWidgets>
+#include "constants.h"
 #include "printprofile.h"
 
 #define DEBUG_LOGS
@@ -9,8 +11,9 @@
 class ProfilesJsonParser
 {
 public:
-    static QVector<PrintProfile*>* loadProfiles() {
-        QVector<PrintProfile*>* profilesList = new QVector<PrintProfile*>();
+    static QVector<QSharedPointer<PrintProfile>>* loadProfiles()
+    {
+        auto profilesList = new QVector<QSharedPointer<PrintProfile>>();
         debug( "ProfilesJsonParser::loadProfiles: opening file\n" );
         QFile jsonFile(PrintProfilesPath);
         if(!jsonFile.exists())
@@ -36,7 +39,7 @@ public:
 
         debug( "ProfilesJsonParser::loadProfiles: iter over array: %d elements\n", array.count() );
         for(int i=0; i<array.count(); ++i) {
-            PrintProfile* printProfile = new PrintProfile();
+            QSharedPointer<PrintProfile> printProfile { new PrintProfile };
             try {
 
                 QJsonObject obj = array[i].toObject();
@@ -87,14 +90,9 @@ public:
                 debug( "  + push back to list\n" );
                 profilesList->push_back(printProfile);
             }
-            catch (QException*)
+            catch (const std::exception &ex)
             {
-                delete printProfile;
-            }
-            catch (...)
-            {
-                debug( "ProfilesJsonParser::loadProfiles: Unknown error while parsing print profile\n" );
-                delete printProfile;
+                debug("+ ProfilesJsonParser::loadProfiles: error\n", ex.what());
             }
         }
 
@@ -102,7 +100,8 @@ public:
         return profilesList;
     }
 
-    static void saveProfiles( const QVector<PrintProfile*>* profiles ) {
+    static void saveProfiles(const QVector<QSharedPointer<PrintProfile>>* profiles)
+    {
         QFile         jsonFile( PrintProfilesPath );
         QJsonDocument jsonDocument;
         QJsonArray    jsonArray;

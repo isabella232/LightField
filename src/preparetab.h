@@ -23,7 +23,7 @@ public:
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
-    void             loadPrintProfile(PrintProfile const* profile);
+    void             loadPrintProfile(QSharedPointer<PrintProfile> profile);
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 

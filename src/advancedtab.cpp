@@ -602,20 +602,20 @@ void AdvancedTab::updatePrintProfile() {
     if (_loadingPrintProfile)
         return;
 
-    PrintProfile* profile = (PrintProfile*)_printProfileManager->activeProfile();
+    QSharedPointer<PrintProfile> profile = _printProfileManager->activeProfile();
     debug( "+ AdvancedTab::updatePrintProfile 2" );
     QString tempProfileName = "temp";
     bool setActive = false;
     if(profile->profileName() != tempProfileName)
     {
-    debug( "+ AdvancedTab::updatePrintProfile 4" );
-        QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
-        auto iter = std::find_if( c->begin( ), c->end( ), [&tempProfileName] ( PrintProfile* p ) { return tempProfileName == p->profileName( ); } );
+        debug( "+ AdvancedTab::updatePrintProfile 4" );
+        QVector<QSharedPointer<PrintProfile>>* c = _printProfileManager->profiles();
+        auto iter = std::find_if( c->begin( ), c->end( ), [&tempProfileName] ( auto p ) { return tempProfileName == p->profileName( ); } );
         profile = ( iter != c->end( ) ) ? *iter : nullptr;
     debug( "+ AdvancedTab::updatePrintProfile 5" );
-        if(!profile)
+        if(profile.isNull())
         {
-            profile = new PrintProfile();
+            profile = QSharedPointer<PrintProfile> { new PrintProfile };
             profile->setProfileName(tempProfileName);
             _printProfileManager->addProfile(profile);
         }
@@ -671,10 +671,9 @@ debug( "+ AdvancedTab::updatePrintProfile 4" );
 debug( "+ AdvancedTab::updatePrintProfile 5" );
 }
 
-void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
+void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
+{
     _loadingPrintProfile = true;
-
-   // _numberOfBaseLayersSlider->setValue( profile->baseLayerCount( ) );
 
     if ( profile->baseLayerParameters( ).isPumpingEnabled( ) ) {
         PrintParameters const& baseParams = profile->baseLayerParameters( );
@@ -707,7 +706,7 @@ void AdvancedTab::loadPrintProfile( PrintProfile const* profile ) {
     }
 
     _loadingPrintProfile = false;
-    printJob()->printProfile = (PrintProfile*)profile;
+    printJob()->printProfile = profile;
 }
 
 void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)

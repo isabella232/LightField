@@ -4,7 +4,7 @@
 #include <QtCore>
 #include "printprofile.h"
 
-using PrintProfileCollection = QVector<PrintProfile*>;
+using PrintProfileCollection = QVector<QSharedPointer<PrintProfile>>;
 
 class PrintProfileManager: public QObject {
 
@@ -20,15 +20,15 @@ public:
         /*empty*/
     }
 
-    PrintProfileCollection const* profiles( ) {
+    PrintProfileCollection* profiles( ) {
         return _profiles;
     }
 
-    PrintProfile const* activeProfile( ) {
+    QSharedPointer<PrintProfile> activeProfile( ) {
         return _activeProfile;
     }
 
-    bool addProfile( PrintProfile* newProfile );
+    bool addProfile(QSharedPointer<PrintProfile> newProfile);
     bool removeProfile( QString const& name );
 
     bool setActiveProfile( QString const& profileName );
@@ -40,24 +40,12 @@ protected:
 
 private:
 
-    PrintProfileCollection* _profiles      { new PrintProfileCollection };
-    PrintProfile*           _activeProfile { };
-
-    PrintProfile* _findProfile( QString const& name );
+    PrintProfileCollection* _profiles { new PrintProfileCollection };
+    QSharedPointer<PrintProfile> _activeProfile { };
+    QSharedPointer<PrintProfile> _findProfile( QString const& name );
 
 signals:
-    ;
-
-    void activeProfileChanged( PrintProfile const* newProfile );
-
-public slots:
-    ;
-
-protected slots:
-    ;
-
-private slots:
-    ;
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile );
 
 };
 

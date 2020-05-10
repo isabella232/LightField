@@ -1,43 +1,32 @@
 #ifndef __PRINTPROFILE_H__
 #define __PRINTPROFILE_H__
 
+#include <QtCore>
+#include "debug.h"
 #include "printparameters.h"
 
-class PrintProfile: public QObject {
-
-    Q_OBJECT;
+class PrintProfile: public QObject
+{
+    Q_OBJECT
 
 public:
 
-    PrintProfile( QObject* parent = nullptr ): QObject( parent ) {
-        /*empty*/
+    PrintProfile(QObject* parent = nullptr):
+        QObject(parent)
+    {
+    }
+
+    PrintProfile(const PrintProfile& profile):
+        QObject(profile.parent())
+    {
+        _name = profile._name;
+        _baseLayerCount = profile._baseLayerCount;
+        _baseLayerParameters = profile._baseLayerParameters;
+        _bodyLayerParameters = profile._bodyLayerParameters;
     }
 
     virtual ~PrintProfile( ) override {
         /*empty*/
-    }
-
-  	//MERGE TODO
-    //PrintProfile( PrintProfile const& profile ): QObject( profile.parent( ) ) {
-    //   _name                 = profile._name;
-    //
-    //    _baseLayerCount       = profile._baseLayerCount;
-    //    _baseLayerParameters = profile._baseLayerParameters;
-    //
-    //    _bodyLayerParameters = profile._bodyLayerParameters;
-    //}
-  	
-    PrintProfile* copy() {
-        PrintProfile* printProfile = new PrintProfile();
-
-        printProfile->_name = this->_name;
-        printProfile->_baseLayerCount = this->_baseLayerCount;
-
-
-        printProfile->_baseLayerParameters = this->_baseLayerParameters;
-        printProfile->_bodyLayerParameters = this->_bodyLayerParameters;
-
-        return printProfile;
     }
 
     void debugPrint()

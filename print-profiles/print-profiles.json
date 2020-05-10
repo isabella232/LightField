@@ -1,7 +1,7 @@
 [
     {
         "name": "exampleProfile",
-        "baseLayerCount": 1,
+        "baseLayerCount": 2,
         "baseLayersPumpingParameters": {
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,

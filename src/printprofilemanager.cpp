@@ -1,13 +1,13 @@
 #include "pch.h"
 
 #include "printprofilemanager.h"
-PrintProfile* PrintProfileManager::_findProfile( QString const& profileName ) {
-    auto iter = std::find_if( _profiles->begin( ), _profiles->end( ), [&profileName] ( PrintProfile* p ) { return profileName == p->profileName( ); } );
+QSharedPointer<PrintProfile> PrintProfileManager::_findProfile( QString const& profileName ) {
+    auto iter = std::find_if( _profiles->begin( ), _profiles->end( ), [&profileName] ( auto p ) { return profileName == p->profileName( ); } );
     return ( iter != _profiles->end( ) ) ? *iter : nullptr;
 }
 
 
-bool PrintProfileManager::addProfile( PrintProfile* newProfile ) {
+bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile ) {
     auto profile = _findProfile( newProfile->profileName( ) );
     if ( !profile ) {
         _profiles->append( newProfile );

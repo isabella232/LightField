@@ -269,31 +269,37 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     debug( "+ TilingTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( state ) {
-        case UiState::SelectedDirectory:
-            this->_stepBase = 2.0;
-            this->_stepBody = 2.0;
-            this->_minExposureBase = 10.0;
-            this->_minExposureBody = 20.0;
-            this->_space->setValue( 1 );
-            this->_printJob = nullptr;
-            this->_currentLayerImage->clear();
-            _setEnabled( false );
+    switch (state) {
+    case UiState::SelectedDirectory:
+        this->_stepBase = 2.0;
+        this->_stepBody = 2.0;
+        this->_minExposureBase = 10.0;
+        this->_minExposureBody = 20.0;
+        this->_space->setValue( 1 );
+        this->_printJob = nullptr;
+        this->_currentLayerImage->clear();
+        _setEnabled( false );
         break;
-        case UiState::SelectCompleted:
-            _setEnabled( false );
-        case UiState::SelectStarted:
-            _setEnabled( false );
+
+    case UiState::SelectCompleted:
+        _setEnabled( false );
         break;
-        case UiState::SliceStarted:
-            _setEnabled( false );
+
+    case UiState::SelectStarted:
+        _setEnabled( false );
         break;
-        case UiState::PrintStarted:
-            _setEnabled( false );
+
+    case UiState::SliceStarted:
+        _setEnabled( false );
         break;
-        case UiState::SliceCompleted:
-        case UiState::PrintCompleted:
-        case UiState::TilingClicked:
+
+    case UiState::PrintStarted:
+        _setEnabled( false );
+        break;
+
+    case UiState::SliceCompleted:
+    case UiState::PrintCompleted:
+    case UiState::TilingClicked:
         break;
     }
 

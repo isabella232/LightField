@@ -143,13 +143,12 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
 
     QStandardItem* item = nullptr;
     QStandardItem* firstItem = nullptr;
-    QVector<PrintProfile*>* profiles = ProfilesJsonParser::loadProfiles();
+    QVector<QSharedPointer<PrintProfile>>* profiles = ProfilesJsonParser::loadProfiles();
     bool findDefaultProfile = false;
     int listItemIndex = 0;
+    int i = 0;
 
-    for(int i=0; i<profiles->count(); ++i)
-    {
-        PrintProfile* profile = (*profiles)[i];
+    foreach (QSharedPointer<PrintProfile> profile, *profiles) {
         _printProfileManager->addProfile(profile);
 
         item = new QStandardItem(profile->profileName());
@@ -161,8 +160,7 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
             findDefaultProfile = true;
         }
 
-        if( !i )
-        {
+        if(!i++) {
             firstItem=item;
             _printProfileManager->setActiveProfile(profile->profileName());
              _enableButtonProfile(true);
@@ -401,8 +399,8 @@ void ProfilesTab::loadProfile_clicked(bool)
 
 bool ProfilesTab::_createNewProfile(QString profileName)
 {
-    PrintProfile* printProfile = (PrintProfile*)_printProfileManager->activeProfile();
-    PrintProfile* profileCopy = printProfile->copy();
+    QSharedPointer<PrintProfile> printProfile = _printProfileManager->activeProfile();
+    QSharedPointer<PrintProfile> profileCopy { new PrintProfile(*printProfile) };
 
     profileCopy->setProfileName(profileName);
     _printProfileManager->addProfile(profileCopy);
@@ -420,9 +418,9 @@ bool ProfilesTab::_renamePProfile(QString profileName)
     QString oldName = index.data(Qt::DisplayRole).toString();
     _model->setData(index, QVariant(profileName));
 
-    QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
-    auto iter = std::find_if( c->begin( ), c->end( ), [&oldName] ( PrintProfile* p ) { return oldName == p->profileName( ); } );
-    PrintProfile* profile = ( iter != c->end( ) ) ? *iter : nullptr;
+    auto c = _printProfileManager->profiles();
+    auto iter = std::find_if( c->begin( ), c->end( ), [&oldName] ( auto p ) { return oldName == p->profileName( ); } );
+    auto profile = ( iter != c->end( ) ) ? *iter : nullptr;
 
     profile->setProfileName(profileName);
 
@@ -436,10 +434,10 @@ bool ProfilesTab::_updateProfile()
     QModelIndex index = _profilesList->currentIndex();
     QString profileName = index.data(Qt::DisplayRole).toString();
 
-    QVector<PrintProfile*>* c = (QVector<PrintProfile*>*)_printProfileManager->profiles();
-    auto iter = std::find_if( c->begin( ), c->end( ), [&profileName] ( PrintProfile* p ) { return profileName == p->profileName( ); } );
-    PrintProfile* profile = ( iter != c->end( ) ) ? *iter : nullptr;
-    PrintProfile* activeProfile = (PrintProfile*)_printProfileManager->activeProfile();
+    auto c = _printProfileManager->profiles();
+    auto iter = std::find_if( c->begin( ), c->end( ), [&profileName] ( auto p ) { return profileName == p->profileName( ); } );
+    auto profile = ( iter != c->end( ) ) ? *iter : nullptr;
+    auto activeProfile = _printProfileManager->activeProfile();
 
     profile->setBaseLayerCount(activeProfile->baseLayerCount());
 

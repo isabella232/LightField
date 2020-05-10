@@ -431,7 +431,7 @@ bool PrepareTab::_checkSliceDirectories( )
 
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
     _checkSliceDirectories( );
@@ -439,7 +439,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 50;
     _printJob->bodySlices.layerThickness = 50;
     _checkSliceDirectories( );
@@ -448,7 +448,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 0;
+    _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 20;
     _printJob->bodySlices.layerThickness = 20;
     _checkSliceDirectories( );
@@ -941,7 +941,7 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     _updatePrepareButtonState( );
 }
 
-void PrepareTab::loadPrintProfile(PrintProfile const* profile) {
+void PrepareTab::loadPrintProfile(QSharedPointer<PrintProfile> profile) {
     _printJob->baseSlices.layerCount = profile->baseLayerCount();
     _printJob->baseSlices.layerThickness = profile->baseLayerParameters().layerThickness();
     _printJob->bodySlices.layerThickness = profile->bodyLayerParameters().layerThickness();

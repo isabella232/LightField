@@ -141,7 +141,7 @@ public slots:
     void setPrinterAvailable( bool const value );
 
     void projectorPowerLevel_changed( int const percentage );
-    void loadPrintProfile (PrintProfile const* profile);
+    void loadPrintProfile (QSharedPointer<PrintProfile> profile);
     void updatePrintProfile();
 
 private slots:

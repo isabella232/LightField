@@ -61,7 +61,7 @@ public:
     SliceInformation        baseSlices { SliceType::SliceBase };
     SliceInformation        bodySlices { SliceType::SliceBody };
 
-    PrintProfile*    printProfile    { };
+    QSharedPointer<PrintProfile>    printProfile    { };
 
     bool isTiled()
     {
