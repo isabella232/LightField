@@ -60,7 +60,7 @@ cp .profile ~/.profile
 
 
 
-sudo apt install qt5-default libqt5opengl5-dev qtchooser -y
+sudo apt install qt5-default libqt5opengl5-dev qtchooser libgraphicsmagick++1-dev -y
 
 
 
