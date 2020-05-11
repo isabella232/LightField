@@ -234,7 +234,7 @@ void ProfilesTab::exportParams_clicked(bool)
             }
             else
             {
-               msgBox.setText("Exprot succeeded.");
+               msgBox.setText("Export succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
                msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
