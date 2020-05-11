@@ -330,7 +330,6 @@ void TilingTab::confirmButton_clicked (bool)
 
             _printJob->directoryMode = true;
             _printJob->directoryPath = tilingMgr->getPath();
-            emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 
             dialog->close();
             delete dialog;
@@ -340,6 +339,9 @@ void TilingTab::confirmButton_clicked (bool)
     );
 
     thread->start();
+
+    dialog->exec();
+    emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
 }
 
 int TilingTab::_getMaxCount()
