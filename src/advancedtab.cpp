@@ -575,8 +575,8 @@ void AdvancedTab::expoTimeEnabled_changed(int state) {
     if(state) {
         _baseExposureTimeSlider->setEnabled( true );
         _bodyExposureTimeSlider->setEnabled( true );
-        this->printJob()->exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
-        this->printJob()->exposureTimeScaleFactor = _baseExposureTimeSlider->getValue() / _bodyExposureTimeSlider->getValue();
+        this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
+        this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
         emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeEnabled);
     } else {
         _baseExposureTimeSlider->setEnabled( false );

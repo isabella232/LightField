@@ -128,13 +128,13 @@ void PrintTab::projectorPowerLevel_changed( int const percentage ) {
 }
 
 void PrintTab::bodyExpoTime_changed( ) {
-    _printJob->exposureTime = _bodyExposureTimeSlider->getValueDouble();
+    _printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValueDouble();
 
     update( );
 }
 
 void PrintTab::baseExpoTime_changed( ) {
-    _printJob->exposureTimeScaleFactor = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
+    _printJob->baseSlices.exposureTime = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
     update( );
 }
 
@@ -251,8 +251,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::TilingClicked:
             break;
         case UiState::SelectCompleted:
-            _bodyExposureTimeSlider->setValue( _printJob->exposureTime );
-            _baseExposureTimeSlider->setValue( _printJob->exposureTimeScaleFactor );
+            _bodyExposureTimeSlider->setValue( ( _printJob->bodySlices.exposureTime = 2000 ) );
+            _baseExposureTimeSlider->setValue( ( ( _printJob->baseSlices.exposureTime = 4000 ) / _printJob->bodySlices.exposureTime ) );
             break;
         case UiState::PrintStarted:
             setPrinterAvailable( false );
@@ -274,8 +274,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             _baseExposureTimeSlider->setEnabled(true);
             _bodyExposureTimeSlider->setEnabled(true);
 
-            this->_printJob->exposureTime = _bodyExposureTimeSlider->getValue();
-            this->_printJob->exposureTimeScaleFactor = _baseExposureTimeSlider->getValue();
+            this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
+            this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() * _bodyExposureTimeSlider->getValue();
         break;
 
     }

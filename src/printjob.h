@@ -35,6 +35,7 @@ public:
     bool isPreSliced;
     int layerCount;
     int layerThickness;
+    double exposureTime;
 };
 
 class PrintJob
@@ -53,8 +54,6 @@ public:
     Coordinate              y               { };
     Coordinate              z               { };
     double                  estimatedVolume { }; // unit: µL
-
-    double          exposureTimeScaleFactor { 1.0 }; // for first two layers
     int             firstLayerOffset;
     bool            directoryMode;
 

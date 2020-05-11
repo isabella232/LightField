@@ -67,7 +67,7 @@ protected:
 
     PrintJob*               _printJob                 { };
     PrintManager*           _printManager             { };
-    PrintProfileManager* _printProfileManager { };
+    PrintProfileManager*    _printProfileManager      { };
     Shepherd*               _shepherd                 { };
     UiState                 _uiState                  { };
     UsbMountManager*        _usbMountManager          { };

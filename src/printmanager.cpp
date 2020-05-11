@@ -328,10 +328,13 @@ void PrintManager::stepB2_start( ) {
 
     if(_isTiled){
         int realLayer = currentLayer()/_printJob->tilingCount();
-        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( ( realLayer < 2 ) ? _printJob->exposureTimeScaleFactor : 1.0 );
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
         _duringTiledLayer = true;
     }else {
-        layerExposureTime = _printJob->printProfile->baseLayerParameters( ).layerExposureTime( );
+        if( _printJob->isBaseLayer(currentLayer()))
+            layerExposureTime = _printJob->baseSlices.exposureTime;
+        else
+            layerExposureTime = _printJob->bodySlices.exposureTime;
     }
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
