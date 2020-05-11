@@ -3,6 +3,7 @@
 
 QRegularExpression        const  EndsWithWhitespaceRegex       { "\\s+$"      };
 QRegularExpression        const  SliceDirectoryNameRegex       { "-([0-9]+)$" };
+QRegularExpression        const  TiledDirectoryNameRegex       { "/tiled-.*" };
 QRegularExpression        const  NewLineRegex                  { "\\r?\\n"    };
 
 QSize                     const  SmallMainWindowSize           {    800,  480 };

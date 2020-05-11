@@ -28,7 +28,7 @@ void TilingManager::processImages(
     _space = space;
     _count = count;
     _wCount = count;
-    _spacePx = ((double)space) / ProjectorPixelSize;
+    _spacePx = static_cast<int>(static_cast<double>(space) / ProjectorPixelSize);
 
     QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6-").arg( _baseExpoTime ).arg( _baseStep )
             .arg( _bodyExpoTime ).arg( _bodyStep ).arg( _count ).arg( space ) % _printJob->modelHash;

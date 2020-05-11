@@ -722,6 +722,9 @@ void PrepareTab::_restartPreview()
 {
     _visibleLayer = 0;
     _showLayerImage(_visibleLayer);
+    if (_printJob->totalLayerCount()) {
+        _setNavigationButtonsEnabled(true);
+    }
 }
 
 void PrepareTab::_showWarning(QString content) {

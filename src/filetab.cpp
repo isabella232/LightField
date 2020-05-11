@@ -629,6 +629,13 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+            } else {
+                auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
+                if (match.hasMatch()) {
+                    _printJob->directoryMode = true;
+                    _printJob->directoryPath = _modelSelection.fileName;
+                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                }
             }
         }
     } else {

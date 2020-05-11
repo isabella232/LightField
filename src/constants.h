@@ -5,6 +5,7 @@
 
 QRegularExpression extern const  EndsWithWhitespaceRegex;
 QRegularExpression extern const  SliceDirectoryNameRegex;
+QRegularExpression extern const  TiledDirectoryNameRegex;
 QRegularExpression extern const  NewLineRegex;
 
 QSize              extern const  SmallMainWindowSize;
