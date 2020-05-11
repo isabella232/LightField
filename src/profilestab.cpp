@@ -191,23 +191,20 @@ void ProfilesTab::importParams_clicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-
             // @todo how to pass checkboxes values? what filename means?
-            if(!_printProfileManager->importProfiles(_usbMountPoint))
-            {
+            if(!_printProfileManager->importProfiles(_usbMountPoint)) {
                msgBox.setText("<center><nobr>Something went wrong. Make sure memory <br>stick is inserted into USB drive.</nobr></center>");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+               msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
-            }
-            else
-            {
-               msgBox.setText("Import successed.");
+            } else {
+               msgBox.setText("Import succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+               msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
+
         default:
             break;
     }
@@ -237,7 +234,7 @@ void ProfilesTab::exportParams_clicked(bool)
             }
             else
             {
-               msgBox.setText("Import succeed.");
+               msgBox.setText("Exprot succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
                msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
