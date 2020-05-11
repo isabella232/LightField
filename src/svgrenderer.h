@@ -43,12 +43,7 @@ private:
 
     bool                    _isRunning           { };
 
-    //MERGE_TODO check if has to be removed
-    //std::recursive_mutex    _layerRenderingLock;
-
     void _renderLayer( );
-    void _cleanUpOneProcessRunner( int const slot );
-    void _cleanUpProcessRunners( );
 
 signals:
     void layerCount( int const totalLayers );

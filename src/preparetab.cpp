@@ -893,8 +893,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::SelectedDirectory:
             _directoryMode = true;
             _setSliceControlsEnabled( false );
-            _updateSliceControls();
             _loadDirectoryManifest();
+            _updateSliceControls();
             break;
     }
 
