@@ -8,12 +8,13 @@ ProgressDialog::ProgressDialog(QWidget* parent):
 {
     _message = new QLabel;
     _message->setText("Please wait");
+    _message->setAlignment(Qt::AlignCenter);
 
     _progress = new QProgressBar;
     _progress->setRange(0, 100);
 
     setLayout(WrapWidgetsInVBox(_message, _progress));
-    setFixedSize(320, 200);
+    setFixedSize(320, 100);
 }
 
 void ProgressDialog::setMessage(const QString &message)

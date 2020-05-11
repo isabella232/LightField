@@ -693,10 +693,14 @@ void PrepareTab::_loadDirectoryManifest()
         }
     }
 
-    _printJob->baseSlices.layerCount = 0;
-    _printJob->baseSlices.isPreSliced = false;
-    _printJob->baseSlices.layerThickness = 0;
-    _printJob->baseSlices.sliceDirectory = nullptr;
+    if (_printJob->isTiled()) {
+        _printJob->baseSlices.layerCount = 0;
+        _printJob->baseSlices.isPreSliced = false;
+        _printJob->baseSlices.layerThickness = 0;
+        _printJob->baseSlices.sliceDirectory = nullptr;
+    } else {
+        _printJob->setBaseManager(manifestMgr);
+    }
 
     _printJob->bodySlices.layerCount = manifestMgr->getSize();
     _printJob->bodySlices.isPreSliced = true;
