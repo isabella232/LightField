@@ -20,7 +20,7 @@ void SlicerTask::run()
             QString output { QString("%1/sliced.svg").arg(dir.path()) };
 
             debug("  + must reslice base layers into %s\n", output.toUtf8().data());
-            emit sliceStatus("Slicing base layers");
+            emit sliceStatus("base layers");
             _createDirectory(_printJob->baseSlices);
             _slice(_printJob->modelFileName, output, _printJob->baseSlices.layerThickness);
         }
@@ -30,12 +30,12 @@ void SlicerTask::run()
             QString output { QString("%1/sliced.svg").arg(_printJob->bodySlices.sliceDirectory) };
 
             debug("  + must reslice body layers into %s\n", output.toUtf8().data());
-            emit sliceStatus("Slicing body layers");
+            emit sliceStatus("body layers");
             _createDirectory(_printJob->bodySlices);
             _slice(_printJob->modelFileName, output, _printJob->bodySlices.layerThickness);
         }
 
-        emit sliceStatus("Slicing finished");
+        emit sliceStatus("finished");
 
         if (_printJob->hasBaseLayers() && (!_printJob->baseSlices.isPreSliced || _reslice)) {
             /* Need to render base layers */
@@ -56,8 +56,8 @@ void SlicerTask::run()
     }
 
     debug("  + finished successfully\n");
-    emit sliceStatus("Idle");
-    emit renderStatus("Idle");
+    emit sliceStatus("idle");
+    emit renderStatus("idle");
     emit done(true);
 }
 
@@ -139,7 +139,11 @@ void SlicerTask::_baseLayerCount(int count)
 
 void SlicerTask::_baseLayerDone(int layer)
 {
-
+    emit renderStatus(QString("base layer %1").arg(layer));
+#if 0
+    if (layer < _printJob->bodyLayerStart())
+        emit layerDone(layer);
+#endif
 }
 
 void SlicerTask::_bodyLayerCount(int count)
@@ -150,6 +154,10 @@ void SlicerTask::_bodyLayerCount(int count)
 
 void SlicerTask::_bodyLayerDone(int layer)
 {
-
+    emit renderStatus(QString("body layer %1").arg(layer));
+#if 0
+    if (layer >= _printJob->bodyLayerStart())
+        emit layerDone(layer);
+#endif
 }
 
