@@ -30,7 +30,8 @@ void TilingManager::processImages(
     _wCount = count;
     _spacePx = ((double)space) / ProjectorPixelSize;
 
-    QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6").arg( _baseExpoTime ).arg( _baseStep ).arg( _bodyExpoTime ).arg( _bodyStep ).arg( _count ) % _printJob->modelHash;
+    QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6-").arg( _baseExpoTime ).arg( _baseStep )
+            .arg( _bodyExpoTime ).arg( _bodyStep ).arg( _count ).arg( space ) % _printJob->modelHash;
     _path = JobWorkingDirectoryPath % Slash % dirName;
 
     QDir dir ( JobWorkingDirectoryPath );
@@ -96,12 +97,12 @@ void TilingManager::tileImages ( )
         /* render tiles based on slice */
         emit statusUpdate(QString("Tiling layer %1").arg(i));
         emit progressUpdate((double)i / (double)total * 100);
-        renderTiles ( entry );
+        renderTiles ( entry, i );
     }
 
 }
 
-void TilingManager::renderTiles ( QFileInfo info ) {
+void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
     int overalCount = _wCount * _hCount; // overal count of tiles
 
     /* interating over each exposure time */
@@ -137,10 +138,10 @@ void TilingManager::renderTiles ( QFileInfo info ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
-        if(_printJob->baseSlices.layerCount < e) {
+        if( sequence < _printJob->baseSlices.layerCount ) {
             _expoTimeList.push_back( e == 1 ? _baseExpoTime : _baseStep );
         } else {
-            _expoTimeList.push_back( e == _printJob->baseSlices.layerCount + 1 ? _bodyExpoTime : _bodyStep );
+            _expoTimeList.push_back( e == 1 ? _bodyExpoTime : _bodyStep );
         }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );

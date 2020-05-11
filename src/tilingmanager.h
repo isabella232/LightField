@@ -24,7 +24,7 @@ signals:
 
 protected:
   void tileImages ( );
-  void renderTiles ( QFileInfo info );
+  void renderTiles ( QFileInfo info, int sequence );
   void putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j );
 private:
         PrintJob*             _printJob;

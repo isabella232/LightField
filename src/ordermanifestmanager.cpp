@@ -154,7 +154,7 @@ bool OrderManifestManager::save() {
         QJsonArray layerThickNessArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)
         {
-            layerThickNessArray.append(layerThickNessAt(i));
+            layerThickNessArray.append(layerThickNessAt(i / _tilingCount ));
         }
 
         tiling.insert( ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString(),  layerThickNessArray);
