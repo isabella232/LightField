@@ -4,6 +4,7 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "tabbase.h"
+#include "paramslider.h"
 
 enum class BuildPlatformState {
     Lowered,
@@ -44,9 +45,12 @@ private:
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
 
-    QLabel*            _powerLevelLabel                    { new QLabel      };
+    /*QLabel*            _powerLevelLabel                    { new QLabel      };
     QLabel*            _powerLevelValue                    { new QLabel      };
-    QSlider*           _powerLevelSlider                   { new QSlider     };
+    QSlider*           _powerLevelSlider                   { new QSlider     };*/
+
+    ParamSlider*       _powerLevelSlider                   { new ParamSlider( "Projector power level",
+                                                                              "%",    50, ProjectorMaxPercent,   ProjectorMinPercent, 1 ) };
 
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
@@ -54,6 +58,12 @@ private:
 
     QPushButton*       _raiseOrLowerButton                 { new QPushButton };
     QPushButton*       _homeButton                         { new QPushButton };
+
+    ParamSlider*        _baseExposureTimeSlider            { new ParamSlider( "Base layers exposure time factor",
+                                                                              "x",    2, 5, 1 ) };
+
+    ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
+                                                                              "s",    1000, 30000, 250, 250, 1000 ) };
 
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
@@ -90,12 +100,14 @@ private slots:
     void lowerBuildPlatform_moveAbsoluteComplete( bool const success );
     void home_homeComplete( bool const success );
 
-    void powerLevelSlider_sliderReleased( );
-    void powerLevelSlider_valueChanged( int percentage );
+    void powerLevelSlider_valueChanged( );
 
     void printButton_clicked( bool );
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );
+
+    void bodyExpoTime_changed( );
+    void baseExpoTime_changed( );
 
 };
 

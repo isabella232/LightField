@@ -45,7 +45,9 @@ public:
         PrintStarted,
         PrintCompleted,
         SelectedDirectory,
-        TilingClicked
+        TilingClicked,
+        AdvancedExposureTimeEnabled,
+        AdvancedExposureTimeDisabled,
     };
     Q_ENUM( UiState );
 

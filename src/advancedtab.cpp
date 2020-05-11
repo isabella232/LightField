@@ -551,16 +551,38 @@ void AdvancedTab::_setUpBasePumpForm(QFont boldFont)
 
 void AdvancedTab::_setUpLayersForm()
 {
+    _baseExposureTimeSlider->setEnabled( false );
+    _bodyExposureTimeSlider->setEnabled( false );
+
+    connect(_expoTimeEnabled, &QCheckBox::stateChanged, this, &AdvancedTab::expoTimeEnabled_changed);
+
     _layersForm->setContentsMargins( { } );
     _layersForm->setMinimumSize( MaximalRightHandPaneSize );
     _layersForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _layersForm->setLayout(
          WrapWidgetsInVBoxDM(
+            _expoTimeEnabled,
             _baseExposureTimeSlider,
             _bodyExposureTimeSlider,
             nullptr
          )
     );
+
+
+}
+
+void AdvancedTab::expoTimeEnabled_changed(int state) {
+    if(state) {
+        _baseExposureTimeSlider->setEnabled( true );
+        _bodyExposureTimeSlider->setEnabled( true );
+        this->printJob()->exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
+        this->printJob()->exposureTimeScaleFactor = _baseExposureTimeSlider->getValue() / _bodyExposureTimeSlider->getValue();
+        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeEnabled);
+    } else {
+        _baseExposureTimeSlider->setEnabled( false );
+        _bodyExposureTimeSlider->setEnabled( false );
+        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeDisabled);
+    }
 }
 
 void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)

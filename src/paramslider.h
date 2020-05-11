@@ -31,6 +31,7 @@ public:
     void   setMinValue(int value);
     void   setStep(int step);
     void   setMaxValue(int value);
+    inline QSlider* innerSlider() { return _slider; }
 
 signals:
     void valueChanged();

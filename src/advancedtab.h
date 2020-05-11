@@ -98,6 +98,7 @@ private:
 
     ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,   1 ) };
     ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,   1 ) };
+    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time controll") };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };
@@ -174,6 +175,8 @@ private slots:
     void chbox_addBasePumpCheckChanged(int state);
 
     void setLayersSettingsEnabled(bool enabled);
+
+    void expoTimeEnabled_changed(int state);
 };
 
 #endif // __ADVANCEDTAB_H__

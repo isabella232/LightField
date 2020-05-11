@@ -21,27 +21,19 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
+    QObject::connect( _powerLevelSlider, &ParamSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
+    QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::bodyExpoTime_changed   );
+    QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::baseExpoTime_changed   );
 
-    _powerLevelLabel->setText( "Projector power level:" );
-
-    _powerLevelValue->setAlignment( Qt::AlignRight );
-    _powerLevelValue->setFont( boldFont );
-
-    _powerLevelSlider->setMinimum( ProjectorMinPercent );
-    _powerLevelSlider->setMaximum( ProjectorMaxPercent );
-    _powerLevelSlider->setOrientation( Qt::Horizontal );
-    _powerLevelSlider->setPageStep( 5 );
-    _powerLevelSlider->setSingleStep( 1 );
-    _powerLevelSlider->setTickInterval( 5 );
-    _powerLevelSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _powerLevelSlider, &QSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
-    QObject::connect( _powerLevelSlider, &QSlider::sliderReleased, this, &PrintTab::powerLevelSlider_sliderReleased );
-
+    _powerLevelSlider->innerSlider()->setPageStep( 5 );
+    _powerLevelSlider->innerSlider()->setSingleStep( 1 );
+    _powerLevelSlider->innerSlider()->setTickInterval( 5 );
 
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
-        WrapWidgetsInHBoxDM( _powerLevelLabel, nullptr, _powerLevelValue ),
         _powerLevelSlider,
+        _bodyExposureTimeSlider,
+        _baseExposureTimeSlider,
         nullptr
     ) );
     _optionsGroup->setTitle( "Print settings" );
@@ -86,8 +78,6 @@ void PrintTab::_connectPrintJob( ) {
     int powerLevelValue = _printJob->printProfile->baseLayerParameters( ).powerLevel( );
 
     _powerLevelSlider->setValue( powerLevelValue );
-    _powerLevelValue->setText( QString( "%1%" ).arg( powerLevelValue ) );
-
     update( );
 }
 
@@ -125,25 +115,26 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     update( );
 }
 
-void PrintTab::powerLevelSlider_sliderReleased( ) {
-    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-
-    emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
-}
-
-void PrintTab::powerLevelSlider_valueChanged( int percentage ) {
-    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->value( ) );
-    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
+void PrintTab::powerLevelSlider_valueChanged( ) {
+    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->getValue( ) );
+    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->getValue( ) );
 
     update( );
 }
 
 void PrintTab::projectorPowerLevel_changed( int const percentage ) {
     _powerLevelSlider->setValue( percentage );
-    _powerLevelValue->setText( QString( "%1%" ).arg( percentage ) );
+    update( );
+}
 
+void PrintTab::bodyExpoTime_changed( ) {
+    _printJob->exposureTime = _bodyExposureTimeSlider->getValueDouble();
+
+    update( );
+}
+
+void PrintTab::baseExpoTime_changed( ) {
+    _printJob->exposureTimeScaleFactor = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
     update( );
 }
 
@@ -254,13 +245,15 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch ( _uiState ) {
         case UiState::SelectStarted:
-        case UiState::SelectCompleted:
         case UiState::SliceStarted:
         case UiState::SliceCompleted:
             break;
         case UiState::TilingClicked:
             break;
-
+        case UiState::SelectCompleted:
+            _bodyExposureTimeSlider->setValue( _printJob->exposureTime );
+            _baseExposureTimeSlider->setValue( _printJob->exposureTimeScaleFactor );
+            break;
         case UiState::PrintStarted:
             setPrinterAvailable( false );
             emit printerAvailabilityChanged( false );
@@ -273,6 +266,18 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
         case UiState::SelectedDirectory:
             break;
+        case UiState::AdvancedExposureTimeEnabled:
+            _baseExposureTimeSlider->setEnabled(false);
+            _bodyExposureTimeSlider->setEnabled(false);
+            break;
+        case UiState::AdvancedExposureTimeDisabled:
+            _baseExposureTimeSlider->setEnabled(true);
+            _bodyExposureTimeSlider->setEnabled(true);
+
+            this->_printJob->exposureTime = _bodyExposureTimeSlider->getValue();
+            this->_printJob->exposureTimeScaleFactor = _baseExposureTimeSlider->getValue();
+        break;
+
     }
 
     update( );
