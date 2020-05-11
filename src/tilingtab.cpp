@@ -206,27 +206,23 @@ void TilingTab::setStepValue()
 
     for(int i=0; i<wCount; ++i) {
         int x = tileSlots[i];
-        int minExposure = 0;
-        int step = 0;
 
-        if(_printJob->baseSlices.layerCount < i) {
-            minExposure = _minExposureBase;
-            step = _stepBase;
-        } else {
-            minExposure = _minExposureBody;
-            step = _stepBody;
-        }
+        double minExposureBase = _minExposureBase;
+        double stepBase = _stepBase;
+        double minExposureBody = _minExposureBody;
+        double stepBody = _stepBody;
 
-        double e = minExposure + ( ( wCount - ( i + 1 ) ) * step );
+        double eBase = minExposureBase + ( ( wCount - ( i + 1 ) ) * stepBase );
+        double eBody = minExposureBody + ( ( wCount - ( i + 1 ) ) * stepBody );
 
         if(i==0) {
             painter.drawPixmap( x, y - (spacePx/2), *_pixmap );          
-             _renderText( &painter, _pixmapWidth, QPoint(x, y - (spacePx/2) ), e );
+             _renderText( &painter, _pixmapWidth, QPoint(x, y - (spacePx/2) ), eBase, eBody );
         }
         else
         {
             painter.drawPixmap( x, y, *_pixmap );
-             _renderText( &painter, _pixmapWidth, QPoint(x, y), e );
+             _renderText( &painter, _pixmapWidth, QPoint(x, y), eBase, eBody  );
         }
     }
 
@@ -235,10 +231,10 @@ void TilingTab::setStepValue()
     update( );
 }
 
-void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expo)
+void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase, double expoBody)
 {
     QFontMetrics fm( painter->font() );
-    QString text = QString( "Exposure %1 sec" ).arg( expo );
+    QString text = QString( "Exposure %1/%2 sec" ).arg( expoBase ).arg(expoBody);
 
     int textWidth=fm.horizontalAdvance(text);
 
@@ -247,7 +243,7 @@ void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double
         int textHeight = fm.height();
 
         text = QString( "Expo." );
-        QString text2 = QString( "%1 s" ).arg(expo);
+        QString text2 = QString( "%1/%2 s" ).arg(expoBase).arg(expoBody);
 
         painter->drawText( QPoint(pos.x(), pos.y() - textHeight - 2), text );
         painter->drawText( pos, text2 );
