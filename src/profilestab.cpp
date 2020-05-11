@@ -3,6 +3,7 @@
 #include "inputdialog.h"
 #include "profilestab.h"
 #include "profilesjsonparser.h"
+#include "usbmountmanager.h"
 #include "window.h"
 
 #include <dirent.h>
@@ -501,4 +502,26 @@ bool ProfilesTab::_loadPrintProfile()
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
     return _printProfileManager->setActiveProfile(itemText);
+}
+
+void ProfilesTab::_connectUsbMountManager()
+{
+    QObject::connect(_usbMountManager, &UsbMountManager::filesystemMounted, this,
+        &ProfilesTab::_filesystemMounted);
+    QObject::connect(_usbMountManager, &UsbMountManager::filesystemUnmounted, this,
+        &ProfilesTab::_filesystemUnmounted);
+}
+
+void ProfilesTab::_filesystemMounted(const QString& mountPoint)
+{
+    _importParams->setEnabled(true);
+    _exportParams->setEnabled(true);
+    _usbMountPoint = mountPoint;
+}
+
+void ProfilesTab::_filesystemUnmounted(const QString& mountPoint)
+{
+    _importParams->setEnabled(false);
+    _exportParams->setEnabled(false);
+    _usbMountPoint = "";
 }
