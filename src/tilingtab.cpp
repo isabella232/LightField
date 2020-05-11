@@ -410,4 +410,6 @@ void TilingTab::setupExpoTimeClicked(bool) {
         _minExposureBodyValue->setText ( QString("%1s").arg( _expoTimePopup.minExposureBody() ) );
         _stepBodyValue->setText ( QString("%1s").arg( _expoTimePopup.stepBody() ) );
     }
+
+    setStepValue();
 }
