@@ -70,7 +70,8 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
         { "*-20"  },
 #endif
         { "*-50"  },
-        { "*-100" }
+        { "*-100" },
+        { "*tiled*" }
     } );
     _libraryFsModel->setRootPath( StlModelLibraryPath );
     QObject::connect( _libraryFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::libraryFsModel_directoryLoaded );
