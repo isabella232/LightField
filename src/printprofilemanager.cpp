@@ -1,6 +1,8 @@
 #include "pch.h"
 
+#include "profilesjsonparser.h"
 #include "printprofilemanager.h"
+
 QSharedPointer<PrintProfile> PrintProfileManager::_findProfile( QString const& profileName ) {
     auto iter = std::find_if( _profiles->begin( ), _profiles->end( ), [&profileName] ( auto p ) { return profileName == p->profileName( ); } );
     return ( iter != _profiles->end( ) ) ? *iter : nullptr;
@@ -41,10 +43,32 @@ bool PrintProfileManager::setActiveProfile( QString const& profileName ) {
     }
 }
 
-bool PrintProfileManager::importProfiles( QString const& /*fileName*/ ) {
-    return false;
+bool PrintProfileManager::importProfiles(const QString& mountPoint)
+{
+    QString sourcePath { QString("%1/print-profiles.json").arg(mountPoint) };
+    QFile sourceFile(sourcePath);
+
+    debug("+ PrintProfileManager::importProfiles\n");
+    debug("  + mountPoint: %s\n", mountPoint.toUtf8().data());
+    debug("  + sourcePath: %s\n", sourcePath.toUtf8().data());
+
+    if (!QFile::remove(PrintProfilesPath))
+        return false;
+
+    return sourceFile.copy(PrintProfilesPath);
 }
 
-bool PrintProfileManager::exportProfiles( QString const& /*fileName*/ ) {
-    return false;
+bool PrintProfileManager::exportProfiles(const QString& mountPoint )
+{
+    QString destPath { QString("%1/print-profiles.json").arg(mountPoint) };
+    QFile sourceFile(PrintProfilesPath);
+
+    debug("+ PrintProfileManager::importProfiles\n");
+    debug("  + mountPoint: %s\n", mountPoint.toUtf8().data());
+    debug("  + destPath: %s\n", destPath.toUtf8().data());
+
+    if (!QFile::remove(destPath))
+        return false;
+
+    return sourceFile.copy(destPath);
 }

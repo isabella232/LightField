@@ -15,7 +15,6 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
     _fontAwesome = new QFont(fontAwesome);
 
-
     QGroupBox* cpyProfilesUsbBox = new QGroupBox();
     cpyProfilesUsbBox->setLayout(WrapWidgetsInVBox(_cpyProfilesUsb, nullptr));
     cpyProfilesUsbBox->setContentsMargins( { } );
@@ -29,32 +28,27 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     _cpyStlFilesUsb->setFont(fontAwesome);
 
     _importParams->setFont(fontAwesome);
-    _importParams->setFixedSize( MainButtonSize );
-    _importParams->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _importParams->setEnabled(false);
+    _importParams->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _exportParams->setFont(fontAwesome);
-    _exportParams->setFixedSize( MainButtonSize );
-    _exportParams->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _exportParams->setEnabled(false);
+    _exportParams->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _newProfile->setFont(fontAwesome);
-    _newProfile->setFixedSize( MainButtonSize );
-    _newProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _newProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _renameProfile->setFont(fontAwesome);
-    _renameProfile->setFixedSize( MainButtonSize );
-    _renameProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _renameProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _overwriteProfile->setFont(fontAwesome);
-    _overwriteProfile->setFixedSize( MainButtonSize );
-    _overwriteProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _overwriteProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _deleteProfile->setFont(fontAwesome);
-    _deleteProfile->setFixedSize( MainButtonSize );
-    _deleteProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _deleteProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     _loadProfile->setFont(fontAwesome);
-    _loadProfile->setFixedSize( MainButtonSize );  
-    _loadProfile->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _loadProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Default disabled all button  no profile is selected
     _enableButtonProfile(false);
@@ -73,21 +67,12 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
         WrapWidgetsInHBox(
               WrapWidgetsInVBox(
                    _exportParams,
-                   cpyProfilesUsbBox,
-                   cpyStlFilesUsbBox,
-                   nullptr,
-                   WrapWidgetsInHBox(
-                       WrapWidgetsInVBox(
-                            _importParams,
-                            _loadProfile,
-                            _deleteProfile
-                       ),
-                       WrapWidgetsInVBox(
-                            _newProfile,
-                            _renameProfile,
-                            _overwriteProfile
-                       )
-                   )
+                   _importParams,
+                   _loadProfile,
+                   _deleteProfile,
+                   _newProfile,
+                   _renameProfile,
+                   _overwriteProfile
               ),
               _profilesList
         )
@@ -208,7 +193,7 @@ void ProfilesTab::importParams_clicked(bool)
         case QMessageBox::Yes:
 
             // @todo how to pass checkboxes values? what filename means?
-            if(!_printProfileManager->importProfiles(nullptr))
+            if(!_printProfileManager->importProfiles(_usbMountPoint))
             {
                msgBox.setText("<center><nobr>Something went wrong. Make sure memory <br>stick is inserted into USB drive.</nobr></center>");
                msgBox.setStandardButtons(QMessageBox::Ok);
@@ -243,7 +228,7 @@ void ProfilesTab::exportParams_clicked(bool)
     switch (ret) {
         case QMessageBox::Yes:
             // @todo how to pass checkboxes values? what filename means?
-            if(!_printProfileManager->exportProfiles(nullptr))
+            if(!_printProfileManager->exportProfiles(_usbMountPoint))
             {
                msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
                msgBox.setStandardButtons(QMessageBox::Ok);
@@ -252,7 +237,7 @@ void ProfilesTab::exportParams_clicked(bool)
             }
             else
             {
-               msgBox.setText("Import successed.");
+               msgBox.setText("Import succeed.");
                msgBox.setStandardButtons(QMessageBox::Ok);
                msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
@@ -514,6 +499,7 @@ void ProfilesTab::_connectUsbMountManager()
 
 void ProfilesTab::_filesystemMounted(const QString& mountPoint)
 {
+    debug( "+ ProfilesTab::_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8().data());
     _importParams->setEnabled(true);
     _exportParams->setEnabled(true);
     _usbMountPoint = mountPoint;
@@ -521,6 +507,7 @@ void ProfilesTab::_filesystemMounted(const QString& mountPoint)
 
 void ProfilesTab::_filesystemUnmounted(const QString& mountPoint)
 {
+    debug("+ ProfilesTab::_filesystemUnmounted: mount point '%s'\n", mountPoint.toUtf8().data());
     _importParams->setEnabled(false);
     _exportParams->setEnabled(false);
     _usbMountPoint = "";
