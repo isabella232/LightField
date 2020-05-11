@@ -52,9 +52,7 @@ bool PrintProfileManager::importProfiles(const QString& mountPoint)
     debug("  + mountPoint: %s\n", mountPoint.toUtf8().data());
     debug("  + sourcePath: %s\n", sourcePath.toUtf8().data());
 
-    if (!QFile::remove(PrintProfilesPath))
-        return false;
-
+    QFile::remove(PrintProfilesPath);
     return sourceFile.copy(PrintProfilesPath);
 }
 
@@ -63,12 +61,10 @@ bool PrintProfileManager::exportProfiles(const QString& mountPoint )
     QString destPath { QString("%1/print-profiles.json").arg(mountPoint) };
     QFile sourceFile(PrintProfilesPath);
 
-    debug("+ PrintProfileManager::importProfiles\n");
+    debug("+ PrintProfileManager::exportProfiles\n");
     debug("  + mountPoint: %s\n", mountPoint.toUtf8().data());
     debug("  + destPath: %s\n", destPath.toUtf8().data());
 
-    if (!QFile::remove(destPath))
-        return false;
-
+    QFile::remove(destPath);
     return sourceFile.copy(destPath);
 }
