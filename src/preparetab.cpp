@@ -710,6 +710,9 @@ void PrepareTab::_loadDirectoryManifest()
     _orderButton->setEnabled(true);
     _setupTiling->setEnabled(!_printJob->isTiled());
     _setSliceControlsEnabled(false);
+    if (!manifestMgr->tiled()) {
+        _setupTiling->setEnabled( true );
+    }
 
     layerCountUpdate(_printJob->totalLayerCount());
     for (int i = 0; i < _printJob->totalLayerCount(); i++)

@@ -108,6 +108,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
+    _profilesTab->setUsbMountManager    ( _usbMountManager );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
@@ -269,6 +270,7 @@ void Window::terminate( ) {
     if ( _usbMountManager ) {
         _fileTab   ->setUsbMountManager( nullptr );
         _prepareTab->setUsbMountManager( nullptr );
+        _profilesTab->setUsbMountManager( nullptr );
         _systemTab ->setUsbMountManager( nullptr );
 
         QObject::disconnect( _usbMountManager );

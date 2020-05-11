@@ -1010,7 +1010,6 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
 }
 
 bool PrintManager::_hasLayerMoreElements() {
-    //MERGE_TODO check
     if (_currentLayer+1 == _printJob->totalLayerCount()) {
     return false;
     }
