@@ -219,7 +219,7 @@ void ProfilesTab::exportParams_clicked(bool)
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     msgBox.setFont(*_fontAwesome);
-    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+    //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -229,14 +229,14 @@ void ProfilesTab::exportParams_clicked(bool)
             {
                msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             else
             {
                msgBox.setText("Export succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -263,13 +263,13 @@ void ProfilesTab::newProfile_clicked(bool)
        if(!_createNewProfile(filename))
         {
             msgBox.setText("Something went wrong.");
-            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly added.");
-            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
@@ -291,13 +291,13 @@ void ProfilesTab::renamePProfile_clicked(bool)
         if(!_renamePProfile(filename))
         {
             msgBox.setText("Something went wrong.");
-            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly renamed.");
-            msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
@@ -371,7 +371,7 @@ void ProfilesTab::loadProfile_clicked(bool)
             {
                msgBox.setText("Something went wrong.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
+               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
