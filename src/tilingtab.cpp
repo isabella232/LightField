@@ -7,7 +7,9 @@
 #include "window.h"
 
 
-TilingExpoTimePopup::TilingExpoTimePopup( ) {
+TilingExpoTimePopup::TilingExpoTimePopup( QWidget * parent ):
+    QDialog(parent)
+{
     auto origFont    = font( );
     auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );

@@ -12,7 +12,7 @@ class TilingExpoTimePopup: public QDialog {
     Q_OBJECT
 
 public:
-    TilingExpoTimePopup( );
+    TilingExpoTimePopup(QWidget *parent);
 
     inline void setMinExposureBase(double value) { _minExposureBase->setValueDouble(value); }
     inline void setStepBase(double value)        { _stepBase->setValueDouble(value);        }
@@ -73,7 +73,7 @@ private:
     double                  _minExposureBody          { 10 };
     double                  _stepBody                 { 2 };
     QPixmap*                _pixmap                   { nullptr };
-    TilingExpoTimePopup     _expoTimePopup            { };
+    TilingExpoTimePopup     _expoTimePopup            { this };
     QPushButton*            _setupExpoTimeBt          { new QPushButton( "Exposure time" ) };
 
     void _showLayerImage ( );
