@@ -21,6 +21,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
+    _bodyExposureTimeSlider->setValueDouble( 2 );
+
     QObject::connect( _powerLevelSlider, &ParamSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
     QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::bodyExpoTime_changed   );
     QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::baseExpoTime_changed   );
@@ -52,6 +54,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _homeButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _homeButton->setText( "Home" );
     QObject::connect( _homeButton, &QPushButton::clicked, this, &PrintTab::homeButton_clicked );
+
+
 
     _adjustmentsGroup->setFixedHeight( MainButtonSize.height( ) );
     _adjustmentsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );

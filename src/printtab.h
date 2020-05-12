@@ -60,10 +60,10 @@ private:
     QPushButton*       _homeButton                         { new QPushButton };
 
     ParamSlider*        _baseExposureTimeSlider            { new ParamSlider( "Base layers exposure time factor",
-                                                                              "x",    2, 5, 1 ) };
+                                                                              "x",    2, 5, 1, 1 ) };
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
-                                                                              "s",    1000, 30000, 250, 250, 1000 ) };
+                                                                              "s",    2000, 30000, 250, 250, 1000 ) };
 
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 

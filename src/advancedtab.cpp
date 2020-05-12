@@ -675,6 +675,10 @@ void AdvancedTab::updatePrintProfile() {
 
     if(setActive)
         _printProfileManager->setActiveProfile(tempProfileName);
+
+    this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
+    this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
+
 }
 
 void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)

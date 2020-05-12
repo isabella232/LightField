@@ -332,9 +332,9 @@ void PrintManager::stepB2_start( ) {
         _duringTiledLayer = true;
     }else {
         if( _printJob->isBaseLayer(currentLayer()))
-            layerExposureTime = _printJob->baseSlices.exposureTime;
+            layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
         else
-            layerExposureTime = _printJob->bodySlices.exposureTime;
+            layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
     }
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
