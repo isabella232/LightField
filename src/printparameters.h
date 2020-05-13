@@ -52,7 +52,7 @@ public:
 
     // unit: mm, multiples of 0.01
     double pumpDownDistance_Effective( ) const {
-        return _pumpUpDistance - ( _layerThickness / 1000.0 );
+        return _pumpUpDistance;
     }
 
     // unit: mm/min

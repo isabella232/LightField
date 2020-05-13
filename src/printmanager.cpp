@@ -520,6 +520,35 @@ void PrintManager::stepB4b1_completed( ) {
         return;
     }
 
+    stepB4b2_start();
+}
+
+// B4b2. Move one layer up
+void PrintManager::stepB4b2_start( ) {
+    _step = PrintStep::B4b2;
+
+    debug( "+ PrintManager::stepB4b2_start: moving one layer up\n" );
+
+    QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepB4b2_completed );
+
+    _movementSequencer->setMovements( _stepB4b2_movements );
+    _movementSequencer->execute( );
+}
+
+void PrintManager::stepB4b2_completed( bool const success ) {
+    debug( "+ PrintManager::stepB4b2_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepB4b2_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepD1_start( );
+        return;
+    }
+
+
     if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
         stepC1_start( );
     } else {
@@ -528,7 +557,7 @@ void PrintManager::stepB4b1_completed( ) {
 }
 
 // ====================================
-// == Section C: For each base layer ==
+// == Section C: For each body layer ==
 // ====================================
 
 // C1. Start projection: "set-projector-power ${_printJob->powerLevel}".
@@ -754,6 +783,34 @@ void PrintManager::stepC4b1_completed( ) {
         return;
     }
 
+    stepC4b2_start( );
+}
+
+// C4b2. Move one layer up
+void PrintManager::stepC4b2_start( ) {
+    _step = PrintStep::C4b2;
+
+    debug( "+ PrintManager::stepC4b2_start: moving one layer up\n" );
+
+    QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepC4b2_completed );
+
+    _movementSequencer->setMovements( _stepC4b2_movements );
+    _movementSequencer->execute( );
+}
+
+void PrintManager::stepC4b2_completed( bool const success ) {
+    debug( "+ PrintManager::stepC4b2_completed: action %s\n", SucceededString( success ) );
+
+    QObject::disconnect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepC4b2_completed );
+
+    if ( !success && ( _printResult != PrintResult::Abort ) ) {
+        _printResult = PrintResult::Failure;
+    }
+    if ( IsBadPrintResult( _printResult ) ) {
+        stepD1_start( );
+        return;
+    }
+
     stepC1_start( );
 }
 
@@ -918,10 +975,14 @@ void PrintManager::print( PrintJob* printJob ) {
     _stepB4a2_movements.push_back( { MoveType::Relative, baseMoveDownDistance,             baseParameters.pumpDownVelocity_Effective( ) } );
     _stepB4a2_movements.push_back( { baseParameters.pumpDownPause( ) } );
 
+    _stepB4b2_movements.push_back( { MoveType::Relative, ( baseParameters.layerThickness( ) / 1000.0 ), PrinterDefaultLowSpeed } );
+
     _stepC4a2_movements.push_back( { MoveType::Relative, bodyParameters.pumpUpDistance( ), bodyParameters.pumpUpVelocity_Effective( ) } );
     _stepC4a2_movements.push_back( { bodyParameters.pumpUpPause( ) } );
     _stepC4a2_movements.push_back( { MoveType::Relative, bodyMoveDownDistance,             bodyParameters.pumpDownVelocity_Effective( ) } );
     _stepC4a2_movements.push_back( { bodyParameters.pumpDownPause( ) } );
+
+    _stepC4b2_movements.push_back( { MoveType::Relative, ( bodyParameters.layerThickness( ) / 1000.0 ), PrinterDefaultLowSpeed } );
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
