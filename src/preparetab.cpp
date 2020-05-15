@@ -411,14 +411,14 @@ bool PrepareTab::_checkSliceDirectories( )
 
         _navigateCurrentLabel->setText( QString { "1/%1" }.arg( _printJob->totalLayerCount() ) );
 
-        _sliceButton->setText( "Reslice" );
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice" : "Reslice");
         _setupTiling->setEnabled(true);
         _orderButton->setEnabled(false);
         _reslice = true;
         //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
-        _sliceButton->setText( "Slice" );
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice." : "Slice");
         _setupTiling->setEnabled(false);
         _orderButton->setEnabled(false);
         _reslice = false;
