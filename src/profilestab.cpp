@@ -178,15 +178,12 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
 
 void ProfilesTab::importParams_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     // <nobr> because when two line text causes wrong value of sizeHint().width() and sizeHint().height()
     msgBox.setText("<center><nobr>Are You sure to import all profiles <br>from USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     msgBox.setFont(*_fontAwesome);
-    msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -195,12 +192,10 @@ void ProfilesTab::importParams_clicked(bool)
             if(!_printProfileManager->importProfiles(_usbMountPoint)) {
                msgBox.setText("<center><nobr>Something went wrong. Make sure memory <br>stick is inserted into USB drive.</nobr></center>");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             } else {
                msgBox.setText("Import succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.move( w->x() + (w->width() - msgBox.sizeHint().width())/2, w->y() + (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -212,14 +207,11 @@ void ProfilesTab::importParams_clicked(bool)
 
 void ProfilesTab::exportParams_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setText("<center><nobr>Are You sure to export all profiles <br>to USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     msgBox.setFont(*_fontAwesome);
-    //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -229,14 +221,12 @@ void ProfilesTab::exportParams_clicked(bool)
             {
                msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             else
             {
                msgBox.setText("Export succeeded.");
                msgBox.setStandardButtons(QMessageBox::Ok);
-               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
                msgBox.exec();
             }
             break;
@@ -247,9 +237,7 @@ void ProfilesTab::exportParams_clicked(bool)
 
 void ProfilesTab::newProfile_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setFont(*_fontAwesome);
 
@@ -263,13 +251,11 @@ void ProfilesTab::newProfile_clicked(bool)
        if(!_createNewProfile(filename))
         {
             msgBox.setText("Something went wrong.");
-            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly added.");
-            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
@@ -277,9 +263,7 @@ void ProfilesTab::newProfile_clicked(bool)
 
 void ProfilesTab::renamePProfile_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setFont(*_fontAwesome);
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
@@ -291,13 +275,11 @@ void ProfilesTab::renamePProfile_clicked(bool)
         if(!_renamePProfile(filename))
         {
             msgBox.setText("Something went wrong.");
-            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
         else
         {
             msgBox.setText("Profile successfuly renamed.");
-            //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
             msgBox.exec();
         }
     }
@@ -305,13 +287,10 @@ void ProfilesTab::renamePProfile_clicked(bool)
 
 void ProfilesTab::updateProfile_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to update selected profile?");
-    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -330,13 +309,10 @@ void ProfilesTab::updateProfile_clicked(bool)
 
 void ProfilesTab::deleteProfile_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to delete selected profile?");
-    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -355,14 +331,10 @@ void ProfilesTab::deleteProfile_clicked(bool)
 
 void ProfilesTab::loadProfile_clicked(bool)
 {
-    Window* w = App::mainWindow();
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to load selected profile?");
-    //qDebug() << w->width() << " " << msgBox.sizeHint().width() << " " << w->height() << " " << msgBox.sizeHint().height();
-    msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
     int ret = msgBox.exec();
 
     switch (ret) {
