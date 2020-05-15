@@ -6,16 +6,15 @@
 void ParamSlider::init(QString name, QString unit, int startValue, int maxValue, int step,
     int minValue)
 {
-    QString valueLabel = QString::number(startValue) + QString(" ") + unit;
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
 
     _unit = unit;
     this->_nameLabel->setText(name);
-    this->_valueLabel->setText(valueLabel);
     this->_valueLabel->setFont(boldFont);
     this->_slider->setValue(startValue);
-    this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
+
+    this->_valueLabel->setText( QString::number(startValue / _factor) + " " + QString(_unit) );
     this->_slider->setMaximum(maxValue);
     this->_slider->setMinimum(minValue);
     this->_slider->setSingleStep(step);
@@ -111,9 +110,6 @@ void ParamSlider::onValueChanged(int)
             _slider->setValue(_slider->value() - remainder);
         }
     }
-
-    debug( "+ ParamSlider::onvaluechanged %f\n", _slider->value() / _factor);
-
     this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
     emit valueChanged();
 }
