@@ -18,7 +18,7 @@ protected:
     QPushButton *_ok;
     QPushButton *_cancel;
     ParamSlider *_baseLayerCount { new ParamSlider("Number of Base Layers", "", 1, 20, 1, 0) };
-    ParamSlider *_baseLayerThickness { new ParamSlider( "Base Layer Thickness", "µm", 10, 100, 10, 10) };
+    ParamSlider *_baseLayerThickness { new ParamSlider( "Base Layer Thickness", "µm", 100, 100, 100, 100) };
     ParamSlider *_bodyLayerThickness { new ParamSlider( "Body Layer Thickness", "µm", 10, 100, 10, 10) };
 
     void ok_clicked( bool );
