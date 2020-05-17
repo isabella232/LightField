@@ -144,8 +144,10 @@ public:
         bodySlices.isPreSliced = true;
         bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
 
-        if(_bodyManager->tiled())
+        if(_bodyManager->tiled()){
             bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
+        }
+        updateProfileLayersInfo();
 
     }
 
@@ -156,6 +158,9 @@ public:
         if(!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
+            if(_baseManager->tiled()){
+                //TODO update body layer thickness
+            }
         } else {
             baseSlices.sliceDirectory = nullptr;
             baseSlices.isPreSliced = false;
@@ -170,6 +175,19 @@ public:
             return _bodyManager->tilingCount();
 
         return 0;
+    }
+
+    void updateProfileLayersInfo(){
+        printProfile->baseLayerParameters().setLayerThickness(baseSlices.layerThickness);
+        printProfile->bodyLayerParameters().setLayerThickness(bodySlices.layerThickness);
+        printProfile->setBaseLayerCount(baseSlices.layerCount);
+    }
+
+    bool isProfileLayerInfoSync(){
+        if(baseSlices.layerThickness != printProfile->baseLayerParameters().layerThickness()) return false;
+        if(bodySlices.layerThickness != printProfile->bodyLayerParameters().layerThickness()) return false;
+        if(baseSlices.layerCount != printProfile->baseLayerCount()) return false;
+        return true;
     }
 
 private:
