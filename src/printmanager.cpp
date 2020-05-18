@@ -955,6 +955,11 @@ void PrintManager::print( PrintJob* printJob ) {
 
     _pngDisplayer->clear( );
 
+    if(!_printJob->isProfileLayerInfoSync()){
+        debug( "+ PrintManager::print: WARNING! printJob and print profile layer thicknesses out of sync!");
+        _printJob->updateProfileLayersInfo();
+    }
+
     // TODO set up movements
     auto const  profile              { _printJob->printProfile };
     auto const& baseParameters       { profile->baseLayerParameters( ) };

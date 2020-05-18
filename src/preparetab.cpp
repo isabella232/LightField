@@ -589,8 +589,8 @@ void PrepareTab::setupTiling_clicked( bool ) {
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
     debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
-    debug("  + base layer thickness: %d\n", _printJob->baseSlices.layerThickness);
-    debug("  + body layer thickness: %d\n", _printJob->bodySlices.layerThickness);
+    debug("  + base layer thickness: %d\n", _printJob->baseLayerThickness());
+    debug("  + body layer thickness: %d\n", _printJob->bodyLayerThickness());
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
