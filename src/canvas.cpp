@@ -64,6 +64,7 @@ void Canvas::load_mesh(Mesh* m)
     delete m;
 
     center = (lower + upper) / 2;
+    gravityCenter = center;
     scale = 2 / (upper - lower).length();
 
     // Reset other camera parameters
@@ -189,7 +190,8 @@ QMatrix4x4 Canvas::transform_matrix() const
     m.rotate(tilt, QVector3D(1, 0, 0));
     m.rotate(yaw,  QVector3D(0, 0, 1));
     m.scale(-scale, scale, -scale);
-    m.translate(-center);
+    m.translate(-gravityCenter);
+
     return m;
 }
 

@@ -12,12 +12,15 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
     auto origFont = font();
     auto font22pt = ModifyFont(origFont, LargeFontSize);
 
+    this->setModal( true );
+
     _ok = new QPushButton("OK");
     _ok->setFont(font22pt);
     QWidget::connect(_ok, &QPushButton::clicked, this, &ThicknessWindow::ok_clicked);
 
     _cancel = new QPushButton("Cancel");
     _cancel->setFont(font22pt);
+
     QWidget::connect(_cancel, &QPushButton::clicked, this, &ThicknessWindow::cancel_clicked);
 
     _baseLayerCount->setValue(job->baseSlices.layerCount);
@@ -34,14 +37,16 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
         });
     } else {
         QObject::connect(_bodyLayerThickness, &ParamSlider::valueChanged, [=]() {
-            _baseLayerThickness->setMinValue(_bodyLayerThickness->getValue());
-            int step = static_cast<int>(ceil(100.0 / _bodyLayerThickness->getValue()));
+            _baseLayerThickness->setMinValue( _bodyLayerThickness->getValue() );
+
+            int step = static_cast<int>( ceil(100.0 / _bodyLayerThickness->getValue()) );
+
             if ( 100 % _bodyLayerThickness->getValue() ) {
-                _baseLayerThickness->setMaxValue((step - 1) * _bodyLayerThickness->getValue());
+                _baseLayerThickness->setMaxValue( (step - 1) * _bodyLayerThickness->getValue() );
             } else {
-                _baseLayerThickness->setMaxValue(step * _bodyLayerThickness->getValue());
+                _baseLayerThickness->setMaxValue( step * _bodyLayerThickness->getValue() );
             }
-            _baseLayerThickness->setStep(_bodyLayerThickness->getValue());
+            _baseLayerThickness->setStep( _bodyLayerThickness->getValue() );
         });
     }
 
@@ -49,8 +54,8 @@ ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
     buttons->addWidget(_cancel);
     layout = WrapWidgetsInVBox(
         _baseLayerCount,
-        _baseLayerThickness,
-        _bodyLayerThickness);
+        _bodyLayerThickness,
+        _baseLayerThickness);
 
     layout->addLayout(buttons);
     setLayout(layout);
