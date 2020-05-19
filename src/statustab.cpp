@@ -62,6 +62,9 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _printerStateDisplay->setFont( _boldFont );
     _printerStateDisplay->setText( "Printer is OFFLINE" );
 
+    _zPositionDisplay->setFont( _boldFont );
+    _zPositionDisplay->setText( "Z position " );
+
     _temperatureDisplay->setFont( _boldFont );
     _temperatureDisplay->setVisible( false );
 
@@ -118,6 +121,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
             WrapWidgetsInHBox( _estimatedTimeLeftDisplay,  nullptr ),
             WrapWidgetsInHBox( _percentageCompleteDisplay, nullptr ),
             WrapWidgetsInHBox( _printerStateDisplay,       nullptr ),
+            WrapWidgetsInHBox( _zPositionDisplay,          nullptr ),
             WrapWidgetsInHBox( _temperatureDisplay,        nullptr ),
             WrapWidgetsInHBox( _projectorLampStateDisplay, nullptr ),
             nullptr,
@@ -487,6 +491,15 @@ void StatusTab::printer_temperatureReport( double const bedCurrentTemperature, d
     update( );
 }
 
+void StatusTab::printer_positionReport( double const px, int const cx ) {
+    debug( "+ StatusTab::printer_positionReport: px %.2f mm, cx %d\n", px, cx );
+    _zPositionDisplay->setText( QString { "Z position: %1 mm" }.arg( px, 0, 'f', 2 ) );
+
+    update( );
+}
+
+
+
 void StatusTab::initializationCommands_sendComplete( bool const success ) {
     QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
 
@@ -560,6 +573,7 @@ void StatusTab::_connectShepherd( ) {
         QObject::connect( _shepherd, &Shepherd::printer_online,            this, &StatusTab::printer_online            );
         QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &StatusTab::printer_offline           );
         QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &StatusTab::printer_temperatureReport );
+        QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &StatusTab::printer_positionReport    );
     }
 }
 

@@ -435,6 +435,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
@@ -443,6 +444,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 50;
     _printJob->bodySlices.layerThickness = 50;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 
 #if defined EXPERIMENTAL
@@ -452,6 +454,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 20;
     _printJob->bodySlices.layerThickness = 20;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 #endif // defined EXPERIMENTAL
 
@@ -586,8 +589,8 @@ void PrepareTab::setupTiling_clicked( bool ) {
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
     debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
-    debug("  + base layer thickness: %d\n", _printJob->baseSlices.layerThickness);
-    debug("  + body layer thickness: %d\n", _printJob->bodySlices.layerThickness);
+    debug("  + base layer thickness: %d\n", _printJob->baseLayerThickness());
+    debug("  + body layer thickness: %d\n", _printJob->bodyLayerThickness());
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
