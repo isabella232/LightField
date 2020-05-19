@@ -29,17 +29,17 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _threadPool.setMaxThreadCount(1);
 
     _layerThicknessLabel->setEnabled( false );
-    _layerThicknessLabel->setText( "Layer height:" );
+    _layerThicknessLabel->setText( "Layer Height Resolution:" );
 
     _layerThickness100Button->setEnabled( false );
     _layerThickness100Button->setChecked( true );
     _layerThickness100Button->setFont( font12pt );
-    _layerThickness100Button->setText( "Standard res (100 µm)" );
+    _layerThickness100Button->setText( "Standard Res (100 µm)" );
     QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
     _layerThickness50Button->setEnabled( false );
     _layerThickness50Button->setChecked( false );
-    _layerThickness50Button->setText( "High res (50 µm)" );
+    _layerThickness50Button->setText( "Medium Res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
@@ -52,7 +52,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( false );
     _layerThickness20Button->setChecked( false );
-    _layerThickness20Button->setText( "Super-high res (20 µm)" );
+    _layerThickness20Button->setText( "High Res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
 #endif
