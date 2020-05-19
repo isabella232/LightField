@@ -21,10 +21,10 @@ enum class PrintStep {
     A1, A2, A3,
     B1, B2, B2a, B3,
         B4a1, B4a2,
-        B4b1,
+        B4b1, B4b2,
     C1, C2, C2a, C3,
         C4a1, C4a2,
-        C4b1,
+        C4b1, C4b2,
     D1,
     E1, E2,
 };
@@ -73,7 +73,9 @@ private:
     QList<MovementInfo> _stepA1_movements;
     QList<MovementInfo> _stepA3_movements;
     QList<MovementInfo> _stepB4a2_movements;
+    QList<MovementInfo> _stepB4b2_movements;
     QList<MovementInfo> _stepC4a2_movements;
+    QList<MovementInfo> _stepC4b2_movements;
 
     QTimer* _makeAndStartTimer( int const duration, void ( PrintManager::*func )( ) );
     void    _stopAndCleanUpTimer( QTimer*& timer );
@@ -148,6 +150,8 @@ private slots:
     void stepB4b1_start( );
     void stepB4b1_completed( );
 
+    void stepB4b2_start( );
+    void stepB4b2_completed( bool const success );
 
     void stepC1_start( );
     void stepC1_completed( );
@@ -170,6 +174,9 @@ private slots:
 
     void stepC4b1_start( );
     void stepC4b1_completed( );
+
+    void stepC4b2_start( );
+    void stepC4b2_completed( bool const success );
 
 
     void stepD1_start( );

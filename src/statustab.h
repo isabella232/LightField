@@ -32,6 +32,7 @@ private:
     QLabel*             _elapsedTimeDisplay         { new QLabel      };
     QLabel*             _estimatedTimeLeftDisplay   { new QLabel      };
     QLabel*             _percentageCompleteDisplay  { new QLabel      };
+    QLabel*             _zPositionDisplay           { new QLabel      };
     QLabel*             _printerStateDisplay        { new QLabel      };
     QLabel*             _temperatureDisplay         { new QLabel      };
     QLabel*             _projectorLampStateDisplay  { new QLabel      };
@@ -97,6 +98,7 @@ public slots:
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
     void setPrinterAvailable( bool const value );
+    void printer_positionReport( double const px, int const cx );
 
 protected slots:
 

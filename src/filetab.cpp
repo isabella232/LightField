@@ -623,6 +623,7 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->baseSlices.layerCount = 2;
                 _printJob->baseSlices.layerThickness = match.captured(1).toInt();
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
+                _printJob->updateProfileLayersInfo();
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
