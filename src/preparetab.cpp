@@ -494,7 +494,6 @@ void PrepareTab::_showLayerImage( int const layer ) {
 void PrepareTab::_setSliceControlsEnabled( bool const enabled )
 {
     _sliceButton->setEnabled( enabled );
-    _orderButton->setEnabled(_directoryMode ? enabled : false );
     _setupTiling->setEnabled( enabled && !_printJob->isTiled() );
 
     _layerThicknessLabel->setEnabled( enabled );
@@ -869,6 +868,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::SelectStarted:
             _directoryMode = false;
             _setSliceControlsEnabled( false );
+            _orderButton->setEnabled( false );
             break;
 
         case UiState::SelectCompleted:
@@ -902,11 +902,13 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::PrintStarted:
             _setSliceControlsEnabled( false );
             setPrinterAvailable( false );
+            _orderButton->setEnabled( false );
             emit printerAvailabilityChanged( false );
             break;
 
         case UiState::PrintCompleted:
             _setSliceControlsEnabled( true );
+            _orderButton->setEnabled(_directoryMode ? true : false );
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
             break;
