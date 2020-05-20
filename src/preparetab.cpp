@@ -491,6 +491,18 @@ void PrepareTab::_showLayerImage( int const layer ) {
     update( );
 }
 
+void PrepareTab::_showLayerImage(QString path) {
+    debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data() );
+    QPixmap pixmap { path };
+    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
+        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+
+    _currentLayerImage->setPixmap( pixmap );
+
+    update( );
+}
+
 void PrepareTab::_setSliceControlsEnabled( bool const enabled )
 {
     _sliceButton->setEnabled( enabled );
@@ -594,6 +606,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
+    _setNavigationButtonsEnabled(false);
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
@@ -648,10 +661,11 @@ void PrepareTab::layerCountUpdate(int count)
     update();
 }
 
-void PrepareTab::layerDoneUpdate(int layer)
+void PrepareTab::layerDoneUpdate(int layer, QString path)
 {
     _visibleLayer = layer;
-    _showLayerImage(_visibleLayer);
+    _navigateCurrentLabel->setText(QString("%1").arg(layer));
+    _showLayerImage(path);
 }
 
 void PrepareTab::slicingDone(bool success)
@@ -719,8 +733,6 @@ void PrepareTab::_loadDirectoryManifest()
     }
 
     layerCountUpdate(_printJob->totalLayerCount());
-    for (int i = 0; i < _printJob->totalLayerCount(); i++)
-        layerDoneUpdate(i);
 
     _restartPreview();
 }

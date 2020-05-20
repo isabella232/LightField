@@ -100,6 +100,7 @@ private:
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage( int const layer );
+    void _showLayerImage( QString path );
     void _setSliceControlsEnabled( bool const enabled );
     void _updateSliceControls();
     void _updatePrepareButtonState( );
@@ -163,7 +164,7 @@ private slots:
     void slicingStatusUpdate(const QString &status);
     void renderingStatusUpdate(const QString &status);
     void layerCountUpdate(int count);
-    void layerDoneUpdate(int layer);
+    void layerDoneUpdate(int layer, QString path);
     void slicingDone(bool success);
 
     void prepareButton_clicked( bool );
