@@ -696,7 +696,7 @@ void PrepareTab::_loadDirectoryManifest()
         }
     }
 
-    if (_printJob->isTiled()) {
+    if (manifestMgr->tiled()) {
         _printJob->baseSlices.layerCount = 0;
         _printJob->baseSlices.isPreSliced = false;
         _printJob->baseSlices.layerThickness = 0;
