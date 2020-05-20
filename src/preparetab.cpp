@@ -626,7 +626,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     bool goodJobDir = _checkSliceDirectories( );
     emit slicingNeeded( !goodJobDir );
-
+    if(goodJobDir) _restartPreview();
     update( );
 }
 
@@ -658,6 +658,7 @@ void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
     _checkSliceDirectories();
+    _restartPreview();
     emit uiStateChanged( TabIndex::Prepare, UiState::SliceCompleted );
 }
 
