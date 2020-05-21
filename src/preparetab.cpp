@@ -153,13 +153,6 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _orderButton->setText( "Order editor" );
     QObject::connect( _orderButton, &QPushButton::clicked, this, &PrepareTab::orderButton_clicked );
 
-    _setupTiling->setEnabled( false );
-    _setupTiling->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
-    _setupTiling->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _setupTiling->setFont( font22pt );
-    _setupTiling->setText( "Setup tiling" );
-    QObject::connect( _setupTiling, &QPushButton::clicked, this, &PrepareTab::setupTiling_clicked );
-
     _currentLayerImage->setAlignment( Qt::AlignCenter );
     _currentLayerImage->setContentsMargins( { } );
     _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -201,8 +194,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->addWidget( _optionsContainer, 0, 0, 1, 1 );
     _layout->addWidget( _prepareButton, 1, 0, 1, 1 );
     _layout->addWidget( _orderButton, 2, 0, 1, 1 );
-    _layout->addWidget( _setupTiling, 3, 0, 1, 1 );
-    _layout->addWidget( _sliceButton, 4, 0, 1, 1 );
+    _layout->addWidget( _sliceButton, 3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
@@ -290,7 +282,8 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
-            _setupTiling->setEnabled( false );
+            //TODO
+            //_setupTiling->setEnabled( false );
             _printJob->estimatedVolume = manifestMgr->tiledVolume();
         }
         break;
@@ -412,14 +405,17 @@ bool PrepareTab::_checkSliceDirectories( )
         _navigateCurrentLabel->setText( QString { "1/%1" }.arg( _printJob->totalLayerCount() ) );
 
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice" : "Reslice");
-        _setupTiling->setEnabled(true);
+        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
+
         _orderButton->setEnabled(false);
         _reslice = true;
         //_copyToUSBButton->setEnabled( true );
     } else {
         _navigateCurrentLabel->setText( "0/0" );
+        
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice." : "Slice");
-        _setupTiling->setEnabled(false);
+        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
+        
         _orderButton->setEnabled(false);
         _reslice = false;
         //_copyToUSBButton->setEnabled( false );
@@ -494,7 +490,12 @@ void PrepareTab::_showLayerImage( int const layer ) {
 void PrepareTab::_setSliceControlsEnabled( bool const enabled )
 {
     _sliceButton->setEnabled( enabled );
-    _setupTiling->setEnabled( enabled && !_printJob->isTiled() );
+    _orderButton->setEnabled(_directoryMode ? enabled : false );
+    if( enabled && !_printJob->isTiled() ) {
+        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
+    } else {
+        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
+    }
 
     _layerThicknessLabel->setEnabled( enabled );
     _layerThickness100Button->setEnabled( enabled );
@@ -576,13 +577,6 @@ void PrepareTab::orderButton_clicked( bool ) {
         emit uiStateChanged(TabIndex::File, UiState::SelectedDirectory);
     else
         emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
-}
-
-void PrepareTab::setupTiling_clicked( bool ) {
-    debug(" +PrepareTab::setupTiling_clicked\n");
-
-    emit setupTiling( _printJob );
-    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -678,7 +672,7 @@ void PrepareTab::_loadDirectoryManifest()
 
     case ManifestParseResult::POSITIVE:
         if (manifestMgr->tiled()) {
-            _setupTiling->setEnabled( false );
+            emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
             // in case of tiled design volume comes from manifest file instead of model calculation
             _printJob->estimatedVolume = manifestMgr->tiledVolume();
         }
@@ -710,10 +704,14 @@ void PrepareTab::_loadDirectoryManifest()
 
     _printJob->setBodyManager(manifestMgr);
     _orderButton->setEnabled(true);
-    _setupTiling->setEnabled(!_printJob->isTiled());
+    if( _printJob->isTiled() ) {
+        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
+    } else {
+        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
+    }
     _setSliceControlsEnabled(false);
     if (!manifestMgr->tiled()) {
-        _setupTiling->setEnabled( true );
+        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
     }
 
     layerCountUpdate(_printJob->totalLayerCount());

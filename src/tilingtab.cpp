@@ -75,20 +75,25 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
     _currentLayerImage->setMinimumSize( MaximalRightHandPaneSize );
     _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
 
+
+    _setupTiling->setEnabled( false );
+    _setupTiling->setMinimumWidth( MainButtonSize.width() );
+    _setupTiling->setFont( font22pt );
+    _setupTiling->setText( "Setup tiling" );
+    QObject::connect( _setupTiling, &QPushButton::clicked, this, &TilingTab::setupTilingClicked );
+
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage
     );
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
 
-    _confirm->setFixedSize(MainButtonSize.width(), SmallMainButtonSize.height());
     _confirm->setFont( fontAwesome );
-    _confirm->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _confirm->setMinimumWidth( MainButtonSize.width() );
     _confirm->setEnabled( false );
 
     _setupExpoTimeBt->setFont(font22pt);
-    _setupExpoTimeBt->setFixedSize(MainButtonSize.width(), SmallMainButtonSize.height());
-    _setupExpoTimeBt->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    _setupExpoTimeBt->setMinimumWidth( MainButtonSize.width() );
 
     QGroupBox* lrInfo     = new QGroupBox();
     QGroupBox* baseLrInfo = new QGroupBox("Base layer");
@@ -115,6 +120,8 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
 
     all->setLayout(
         WrapWidgetsInVBox(
+           _setupTiling,
+           nullptr,
            lrInfo,
            nullptr,
            _space,
@@ -277,13 +284,14 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         this->_minExposureBase = 10.0;
         this->_minExposureBody = 20.0;
         this->_space->setValue( 1 );
-        this->_printJob = nullptr;
         this->_currentLayerImage->clear();
         _setEnabled( false );
+        _setupTiling->setEnabled( false );
         break;
 
     case UiState::SelectCompleted:
         _setEnabled( false );
+        _setupTiling->setEnabled( false );
         break;
 
     case UiState::SelectStarted:
@@ -300,7 +308,19 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
     case UiState::SliceCompleted:
     case UiState::PrintCompleted:
+        break;
     case UiState::TilingClicked:
+        _setupTiling->setEnabled( false );
+        _setEnabled( true );
+        break;
+    case UiState::EnableTiling:
+        _setupTiling->setEnabled( true );
+        _setEnabled( false );
+        break;
+
+    case UiState::DisableTiling:
+        _setupTiling->setEnabled( false );
+        _setEnabled( false );
         break;
     }
 
@@ -310,7 +330,9 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
 void TilingTab::confirmButton_clicked (bool)
 {
-    TilingManager* tilingMgr = new  TilingManager( _printJob );
+    debug( "+ TilingTab::confirmButton_clicked\n" );
+
+    TilingManager* tilingMgr = new  TilingManager( printJob() );
     ProgressDialog* dialog = new ProgressDialog(this);
 
     QObject::connect(tilingMgr, &TilingManager::statusUpdate, dialog, &ProgressDialog::setMessage);
@@ -330,8 +352,8 @@ void TilingTab::confirmButton_clicked (bool)
                                      _space->getValue(),
                                      _count->getValue() );
 
-            _printJob->directoryMode = true;
-            _printJob->directoryPath = tilingMgr->getPath();
+            printJob()->directoryMode = true;
+            printJob()->directoryPath = tilingMgr->getPath();
 
             dialog->close();
             delete dialog;
@@ -390,10 +412,12 @@ void TilingTab::_setEnabled(bool enabled)
     this->_space->setEnabled( enabled );
     this->_setupExpoTimeBt->setEnabled( enabled );
     this->_count->setEnabled( enabled );
+
+    this->_currentLayerImage->clear();
 }
 
 void TilingTab::setupExpoTimeClicked(bool) {
-
+    debug( "+ TilingTab::setupExpoTimeClicked\n" );
     _expoTimePopup.setMinExposureBase( _minExposureBase );
     _expoTimePopup.setStepBase( _stepBase );
     _expoTimePopup.setMinExposureBody( _minExposureBody );
@@ -412,4 +436,33 @@ void TilingTab::setupExpoTimeClicked(bool) {
     }
 
     setStepValue();
+}
+
+void TilingTab::setupTilingClicked ( bool ) {
+    debug( "+ TilingTab::setupTilingClicked\n" );
+
+    this->_areaWidth = _currentLayerImage->width( );
+    this->_areaHeight = _currentLayerImage->height( );
+    this->_wRatio = ((double)_areaWidth) /  ProjectorWindowSize.width();
+    this->_hRatio = ((double)_areaHeight) /  ProjectorWindowSize.height();
+    QPixmap pixmap ( printJob()->getLayerDirectory(0) % Slash % printJob()->getLayerFileName(0) );
+
+    if( this->_pixmap )
+        delete this->_pixmap;
+
+    this->_pixmap = new QPixmap ( pixmap.scaled( pixmap.width( ) * _wRatio, pixmap.height( ) * _hRatio) );
+
+    this->_pixmapWidth = this->_pixmap->width( );
+    this->_pixmapHeight = this->_pixmap->height( );
+
+    if(_getMaxCount() < 1) {
+            _showWarningAndClose();
+            return;
+    }
+
+    _setEnabled( true );
+
+    _showLayerImage();
+
+    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
 }

@@ -140,8 +140,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _tilingTab->setContentsMargins( { } );
     _tilingTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _prepareTab, &PrepareTab::setupTiling, _tilingTab,   &TilingTab::setupTilingClicked );
-
 
     //
     // "Print" tab
