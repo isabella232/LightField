@@ -669,9 +669,15 @@ void PrepareTab::layerDoneUpdate(int layer, QString path)
 void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
-    _checkSliceDirectories();
-    _restartPreview();
-    emit uiStateChanged( TabIndex::Prepare, UiState::SliceCompleted );
+
+    if (success) {
+        _checkSliceDirectories();
+        _restartPreview();
+        emit uiStateChanged(TabIndex::Prepare, UiState::SliceCompleted);
+    } else {
+        QMessageBox msgbox { QMessageBox::Icon::Critical, "Error", "Slicing error" };
+        msgbox.exec();
+    }
 }
 
 void PrepareTab::_loadDirectoryManifest()
