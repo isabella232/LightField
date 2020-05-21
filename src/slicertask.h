@@ -30,9 +30,9 @@ protected:
     void _render(const SliceInformation &slices);
     void _createDirectory(const SliceInformation &slices);
     void _baseLayerCount(int count);
-    void _baseLayerDone(int layer, QString path);
+    void _baseLayerDone(int layer, const QString &path);
     void _bodyLayerCount(int count);
-    void _bodyLayerDone(int layer, QString path);
+    void _bodyLayerDone(int layer, const QString &path);
 
     PrintJob* _printJob;
     bool _reslice;

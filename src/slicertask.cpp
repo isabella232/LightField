@@ -137,7 +137,7 @@ void SlicerTask::_baseLayerCount(int count)
     _printJob->baseSlices.layerCount = std::min(_printJob->baseSlices.layerCount, count);
 }
 
-void SlicerTask::_baseLayerDone(int layer, QString path)
+void SlicerTask::_baseLayerDone(int layer, const QString &path)
 {
     emit renderStatus(QString("base layer %1").arg(layer));
     emit layerDone(layer, path);
@@ -149,7 +149,7 @@ void SlicerTask::_bodyLayerCount(int count)
     emit layerCount(_printJob->totalLayerCount());
 }
 
-void SlicerTask::_bodyLayerDone(int layer, QString path)
+void SlicerTask::_bodyLayerDone(int layer, const QString &path)
 {
     emit renderStatus(QString("body layer %1").arg(layer));
     emit layerDone(layer, path);
