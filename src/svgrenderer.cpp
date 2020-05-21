@@ -41,7 +41,7 @@ void SvgRenderer::loadSlices( PrintJob* printJob ) {
 
         debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
         layerNumber++;
-        emit layerComplete( layerNumber );
+        emit layerComplete( layerNumber, fileName );
     }
     TimingLogger::stopTiming( TimingId::LoadingPngFolder );
 

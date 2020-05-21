@@ -474,20 +474,32 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     update( );
 }
 
-void PrepareTab::_showLayerImage( int const layer ) {
-    debug("+ PrepareTab::_showLayerImage %s\n", _printJob->getLayerFileName( layer ).toUtf8().data() );
-    QPixmap pixmap { _printJob->getLayerPath( layer ) };
-    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
-        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
-    }
+void PrepareTab::_showLayerImage(int const layer)
+{
+    _navigateCurrentLabel->setText(QString { "%1/%2" }
+        .arg(layer + 1)
+        .arg(_printJob->totalLayerCount()));
 
-    _currentLayerImage->setPixmap( pixmap );
-    _navigateCurrentLabel->setText( QString { "%1/%2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount() ) );
-
-    update( );
+    _showLayerImage(_printJob->getLayerPath(layer));
+    update();
 }
 
-void PrepareTab::_setSliceControlsEnabled( bool const enabled )
+void PrepareTab::_showLayerImage(const QString &path)
+{
+    debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data());
+    QPixmap pixmap { path };
+
+    if ((pixmap.width() > _currentLayerImage->width()) ||
+        (pixmap.height() > _currentLayerImage->height())) {
+        pixmap = pixmap.scaled(_currentLayerImage->size(),
+            Qt::KeepAspectRatio, Qt::SmoothTransformation );
+    }
+
+    _currentLayerImage->setPixmap(pixmap);
+    update();
+}
+
+void PrepareTab::_setSliceControlsEnabled(bool const enabled)
 {
     _sliceButton->setEnabled( enabled );
     _orderButton->setEnabled(_directoryMode ? enabled : false );
@@ -587,6 +599,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
+    _setNavigationButtonsEnabled(false);
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
@@ -614,13 +627,16 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
 
-    _sliceStatus->setText( "Idle" );
+    _sliceStatus->setText("Idle");
     _hasher = nullptr;
 
-    bool goodJobDir = _checkSliceDirectories( );
+    bool goodJobDir = _checkSliceDirectories();
     emit slicingNeeded( !goodJobDir );
-
-    update( );
+    
+    if (goodJobDir)
+        _restartPreview();
+        
+    update();
 }
 
 void PrepareTab::slicingStatusUpdate(const QString &status)
@@ -641,16 +657,18 @@ void PrepareTab::layerCountUpdate(int count)
     update();
 }
 
-void PrepareTab::layerDoneUpdate(int layer)
+void PrepareTab::layerDoneUpdate(int layer, QString path)
 {
     _visibleLayer = layer;
-    _showLayerImage(_visibleLayer);
+    _navigateCurrentLabel->setText(QString("%1").arg(layer));
+    _showLayerImage(path);
 }
 
 void PrepareTab::slicingDone(bool success)
 {
     _setSliceControlsEnabled(true);
     _checkSliceDirectories();
+    _restartPreview();
     emit uiStateChanged( TabIndex::Prepare, UiState::SliceCompleted );
 }
 
@@ -715,8 +733,6 @@ void PrepareTab::_loadDirectoryManifest()
     }
 
     layerCountUpdate(_printJob->totalLayerCount());
-    for (int i = 0; i < _printJob->totalLayerCount(); i++)
-        layerDoneUpdate(i);
 
     _restartPreview();
 }

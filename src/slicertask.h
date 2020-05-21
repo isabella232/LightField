@@ -21,7 +21,7 @@ signals:
     void sliceStatus(const QString &status);
     void renderStatus(const QString &status);
     void layerCount(int count);
-    void layerDone(int layer);
+    void layerDone(int layer, QString path);
     void done(bool success);
 
 protected:
@@ -30,9 +30,9 @@ protected:
     void _render(const SliceInformation &slices);
     void _createDirectory(const SliceInformation &slices);
     void _baseLayerCount(int count);
-    void _baseLayerDone(int layer);
+    void _baseLayerDone(int layer, const QString &path);
     void _bodyLayerCount(int count);
-    void _bodyLayerDone(int layer);
+    void _bodyLayerDone(int layer, const QString &path);
 
     PrintJob* _printJob;
     bool _reslice;
