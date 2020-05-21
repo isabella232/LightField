@@ -99,8 +99,8 @@ private:
     void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
-    void _showLayerImage( int const layer );
-    void _showLayerImage( QString path );
+    void _showLayerImage(int const layer);
+    void _showLayerImage(const QString &path);
     void _setSliceControlsEnabled( bool const enabled );
     void _updateSliceControls();
     void _updatePrepareButtonState( );

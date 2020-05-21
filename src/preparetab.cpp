@@ -478,32 +478,32 @@ void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     update( );
 }
 
-void PrepareTab::_showLayerImage( int const layer ) {
-    debug("+ PrepareTab::_showLayerImage %s\n", _printJob->getLayerFileName( layer ).toUtf8().data() );
-    QPixmap pixmap { _printJob->getLayerPath( layer ) };
-    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
-        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
-    }
+void PrepareTab::_showLayerImage(int const layer)
+{
+    _navigateCurrentLabel->setText(QString { "%1/%2" }
+        .arg(layer + 1)
+        .arg(_printJob->totalLayerCount()));
 
-    _currentLayerImage->setPixmap( pixmap );
-    _navigateCurrentLabel->setText( QString { "%1/%2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount() ) );
-
-    update( );
+    _showLayerImage(_printJob->getLayerPath(layer));
+    update();
 }
 
-void PrepareTab::_showLayerImage(QString path) {
-    debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data() );
+void PrepareTab::_showLayerImage(const QString &path)
+{
+    debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data());
     QPixmap pixmap { path };
-    if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
-        pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
+
+    if ((pixmap.width() > _currentLayerImage->width()) ||
+        (pixmap.height() > _currentLayerImage->height())) {
+        pixmap = pixmap.scaled(_currentLayerImage->size(),
+            Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
 
-    _currentLayerImage->setPixmap( pixmap );
-
-    update( );
+    _currentLayerImage->setPixmap(pixmap);
+    update();
 }
 
-void PrepareTab::_setSliceControlsEnabled( bool const enabled )
+void PrepareTab::_setSliceControlsEnabled(bool const enabled)
 {
     _sliceButton->setEnabled( enabled );
     _orderButton->setEnabled(_directoryMode ? enabled : false );
