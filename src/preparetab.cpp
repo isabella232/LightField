@@ -29,17 +29,17 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _threadPool.setMaxThreadCount(1);
 
     _layerThicknessLabel->setEnabled( false );
-    _layerThicknessLabel->setText( "Layer height:" );
+    _layerThicknessLabel->setText( "Layer Height Resolution:" );
 
     _layerThickness100Button->setEnabled( false );
     _layerThickness100Button->setChecked( true );
     _layerThickness100Button->setFont( font12pt );
-    _layerThickness100Button->setText( "Standard res (100 µm)" );
+    _layerThickness100Button->setText( "Standard Res (100 µm)" );
     QObject::connect( _layerThickness100Button, &QPushButton::clicked, this, &PrepareTab::layerThickness100Button_clicked );
 
     _layerThickness50Button->setEnabled( false );
     _layerThickness50Button->setChecked( false );
-    _layerThickness50Button->setText( "High res (50 µm)" );
+    _layerThickness50Button->setText( "Medium Res (50 µm)" );
     _layerThickness50Button->setFont( font12pt );
     QObject::connect( _layerThickness50Button, &QPushButton::clicked, this, &PrepareTab::layerThickness50Button_clicked );
 
@@ -52,7 +52,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 #if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( false );
     _layerThickness20Button->setChecked( false );
-    _layerThickness20Button->setText( "Super-high res (20 µm)" );
+    _layerThickness20Button->setText( "High Res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
 #endif
@@ -431,6 +431,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
@@ -439,6 +440,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 50;
     _printJob->bodySlices.layerThickness = 50;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 
 #if defined EXPERIMENTAL
@@ -448,6 +450,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
     _printJob->baseSlices.layerThickness = 20;
     _printJob->bodySlices.layerThickness = 20;
     _checkSliceDirectories( );
+    _printJob->updateProfileLayersInfo();
 }
 #endif // defined EXPERIMENTAL
 
@@ -579,8 +582,8 @@ void PrepareTab::orderButton_clicked( bool ) {
 void PrepareTab::sliceButton_clicked( bool ) {
     debug( "+ PrepareTab::sliceButton_clicked\n" );
     debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
-    debug("  + base layer thickness: %d\n", _printJob->baseSlices.layerThickness);
-    debug("  + body layer thickness: %d\n", _printJob->bodySlices.layerThickness);
+    debug("  + base layer thickness: %d\n", _printJob->baseLayerThickness());
+    debug("  + body layer thickness: %d\n", _printJob->bodyLayerThickness());
 
     _sliceStatus->setText( "starting base layers" );
     _imageGeneratorStatus->setText( "waiting" );
@@ -686,7 +689,7 @@ void PrepareTab::_loadDirectoryManifest()
         }
     }
 
-    if (_printJob->isTiled()) {
+    if (manifestMgr->tiled()) {
         _printJob->baseSlices.layerCount = 0;
         _printJob->baseSlices.isPreSliced = false;
         _printJob->baseSlices.layerThickness = 0;
@@ -863,6 +866,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::SelectStarted:
             _directoryMode = false;
             _setSliceControlsEnabled( false );
+            _orderButton->setEnabled( false );
             break;
 
         case UiState::SelectCompleted:
@@ -896,11 +900,13 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         case UiState::PrintStarted:
             _setSliceControlsEnabled( false );
             setPrinterAvailable( false );
+            _orderButton->setEnabled( false );
             emit printerAvailabilityChanged( false );
             break;
 
         case UiState::PrintCompleted:
             _setSliceControlsEnabled( true );
+            _orderButton->setEnabled(_directoryMode ? true : false );
             setPrinterAvailable( true );
             emit printerAvailabilityChanged( true );
             break;

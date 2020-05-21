@@ -197,6 +197,8 @@ void TilingTab::setStepValue()
     // single row tiling
     int y = ( _areaHeight - _pixmapHeight ) / 2;
 
+    // 3 mm Y offset for first element
+    int deltaY = ( 3 / ProjectorPixelSize ) * _hRatio;
     std::vector<int> tileSlots;
 
     int deltax = (_areaWidth - (wCount*_pixmapWidth) - (wCount -1)*spacePx)/2 - TilingMargin;
@@ -223,8 +225,8 @@ void TilingTab::setStepValue()
         double eBody = minExposureBody + ( ( wCount - ( i + 1 ) ) * stepBody );
 
         if(i==0) {
-            painter.drawPixmap( x, y - (spacePx/2), *_pixmap );          
-             _renderText( &painter, _pixmapWidth, QPoint(x, y - (spacePx/2) ), eBase, eBody );
+            painter.drawPixmap( x, y - deltaY, *_pixmap );
+             _renderText( &painter, _pixmapWidth, QPoint(x, y - deltaY ), eBase, eBody );
         }
         else
         {
