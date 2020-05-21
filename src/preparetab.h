@@ -78,7 +78,6 @@ private:
     QWidget*          _optionsContainer            { new QWidget          };
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
-    QPushButton*      _setupTiling                 { new QPushButton      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -118,8 +117,6 @@ signals:
 
     void printerAvailabilityChanged( bool const available );
 
-    void setupTiling( PrintJob* _printJob );
-
 public slots:
     ;
 
@@ -156,7 +153,6 @@ private slots:
     void sliceButton_clicked( bool );
 
     void orderButton_clicked( bool );
-    void setupTiling_clicked( bool );
 
     void hasher_resultReady( QString const hash );
 

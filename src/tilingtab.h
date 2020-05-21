@@ -25,10 +25,10 @@ public:
     inline double stepBody()        { return _stepBody->getValueDouble();        }
 
 private:
-    ParamSlider*            _minExposureBase              { new ParamSlider ("Base layer minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
-    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 2, 1, 4 )};
-    ParamSlider*            _minExposureBody              { new ParamSlider ("Body layer minimum exposure", "sec", 1, 40, 2, 1, 4 ) };
-    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 2, 1, 4 )};
+    ParamSlider*            _minExposureBase              { new ParamSlider ("Base layer minimum exposure", "sec", 1, 40, 1, 1, 4 ) };
+    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 1, 1, 4 )};
+    ParamSlider*            _minExposureBody              { new ParamSlider ("Body layer minimum exposure", "sec", 1, 40, 1, 1, 4 ) };
+    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 1, 1, 4 )};
     QPushButton*            _okButton                     { new QPushButton ("Ok" )                };
     QPushButton*            _cancelButton                 { new QPushButton ("Cancel" )            };
 
@@ -61,7 +61,6 @@ private:
     QLabel*                 _minExposureBodyValue     { new QLabel("10s") };
     QLabel*                 _stepBodyValue            { new QLabel("2s") };
 
-    PrintJob*               _printJob                 { };
     int                     _pixmapWidth              { 0 };
     int                     _pixmapHeight             { 0 };
     int                     _areaWidth                { 0 };
@@ -75,6 +74,7 @@ private:
     QPixmap*                _pixmap                   { nullptr };
     TilingExpoTimePopup     _expoTimePopup            { };
     QPushButton*            _setupExpoTimeBt          { new QPushButton( "Exposure time" ) };
+    QPushButton*            _setupTiling              { new QPushButton      };
 
     void _showLayerImage ( );
     void _showWarningAndClose ( );
@@ -85,34 +85,7 @@ signals:
     ;
 
 public slots:
-    void setupTilingClicked ( PrintJob* printJob ) {
-        debug( "+ TilingTab::setupTilingClicked\n" );
-
-        this->_printJob = printJob;
-
-        this->_areaWidth = _currentLayerImage->width( );
-        this->_areaHeight = _currentLayerImage->height( );
-        this->_wRatio = ((double)_areaWidth) /  ProjectorWindowSize.width();
-        this->_hRatio = ((double)_areaHeight) /  ProjectorWindowSize.height();
-        QPixmap pixmap ( _printJob->getLayerDirectory(0) % Slash % _printJob->getLayerFileName(0) );
-
-        if( this->_pixmap )
-            delete this->_pixmap;
-
-        this->_pixmap = new QPixmap ( pixmap.scaled( pixmap.width( ) * _wRatio, pixmap.height( ) * _hRatio) );
-
-        this->_pixmapWidth = this->_pixmap->width( );
-        this->_pixmapHeight = this->_pixmap->height( );
-
-        if(_getMaxCount() < 1) {
-                _showWarningAndClose();
-                return;
-        }
-
-        _setEnabled( true );
-
-        _showLayerImage();
-    }
+    void setupTilingClicked ( bool );
 
     void setStepValue();
 

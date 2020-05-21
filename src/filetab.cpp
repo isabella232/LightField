@@ -116,10 +116,16 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
 
     _dimensionsLabel->setAlignment( Qt::AlignLeft | Qt::AlignBottom );
     _dimensionsLabel->setTextFormat( Qt::RichText );
+    _dimensionsLabel->setText( "Loading... " );
 
     _errorLabel->setAlignment( Qt::AlignRight | Qt::AlignBottom );
     _errorLabel->setTextFormat( Qt::RichText );
 
+    _deleteButton = new QPushButton( "Delete file", this );
+    _deleteButton->setFont( font16pt );
+    _deleteButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _deleteButton->setFixedSize( SmallMainButtonSize );
+    QObject::connect( _deleteButton, &QPushButton::clicked, this, &FileTab::deleteButton_clicked );
 
     _viewSolid->setChecked( true );
     _viewSolid->setEnabled( false );
@@ -136,25 +142,20 @@ FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( pa
     auto viewButtonsLayout = WrapWidgetsInHBox( nullptr, _viewSolid, _viewWireframe );
     viewButtonsLayout->setAlignment( Qt::AlignVCenter );
 
-
-
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
         viewButtonsLayout,
         _canvas,
+        WrapWidgetsInHBox(nullptr, _deleteButton),
         WrapWidgetsInHBox( _dimensionsLabel, nullptr, _errorLabel )
     ) );
 
 
     setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 
-
-    _deleteButton = new QPushButton( "Delete file", this );
-    _deleteButton->setFont( font16pt );
-    _deleteButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-    QObject::connect( _deleteButton, &QPushButton::clicked, this, &FileTab::deleteButton_clicked );
+    update();
 }
 
 FileTab::~FileTab( ) {
@@ -162,14 +163,11 @@ FileTab::~FileTab( ) {
 }
 
 void FileTab::_initialShowEvent( QShowEvent* event ) {
-    auto metrics    { QFontMetrics { _deleteButton->font( )            } };
-    auto canvasRect { QRect        { _canvas->pos( ), _canvas->size( ) } };
-
-    _deleteButton->resize( QSize { metrics.horizontalAdvance( _deleteButton->text( ) ), metrics.height( ) * 2 } + ButtonPadding );
-    _deleteButton->move( _rightColumn->pos( ) + canvasRect.bottomRight( ) - QPoint { _deleteButton->width( ) - 1, _deleteButton->height( ) - 1 } );
     _deleteButton->setEnabled( false );
-
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );
+
+    _dimensionsLabel->clear();
+    _errorLabel->clear( );
 
     event->accept( );
 }
@@ -288,29 +286,23 @@ void FileTab::_showUsbStick( ) {
     update( );
 }
 
-void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
+{
     debug( "+ FileTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-            _selectedRow = -1;
-            break;
-
-        case UiState::SelectCompleted:
-        case UiState::TilingClicked:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-
+    switch (_uiState) {
+    case UiState::SelectStarted:
+        _selectedRow = -1;
         break;
-        case UiState::SelectedDirectory:
-        if(sender == TabIndex::Tiling)
-        {
+
+    case UiState::SelectedDirectory:
+        if (sender == TabIndex::Tiling) {
             auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
+        break;
 
+   default:
         break;
     }
 }
@@ -623,6 +615,7 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->baseSlices.layerCount = 2;
                 _printJob->baseSlices.layerThickness = match.captured(1).toInt();
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
+                _printJob->updateProfileLayersInfo();
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
