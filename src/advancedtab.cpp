@@ -24,10 +24,9 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
     _forms[0] = _generalForm;
-    _forms[1] = _temperatureForm;
-    _forms[2] = _basePumpForm;
-    _forms[3] = _layersForm;
-    _forms[4] = _bodyPumpForm;
+    _forms[1] = _basePumpForm;
+    _forms[2] = _layersForm;
+    _forms[3] = _bodyPumpForm;
 
     QWidget::connect(_addBasePumpCheckbox, &QCheckBox::clicked, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_addBodyPumpCheckbox, &QCheckBox::clicked, this, &AdvancedTab::updatePrintProfile);
@@ -59,7 +58,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
     _rightColumn->setLayout(WrapWidgetsInVBox(
         _generalForm,
-        _temperatureForm,
         _basePumpForm,
         _layersForm,
         _bodyPumpForm,
@@ -67,7 +65,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     ));
 
     setLayout( WrapWidgetsInHBox(
-        WrapWidgetsInVBox( _leftMenu ),
+        WrapWidgetsInVBox( _leftMenu, _temperatureForm ),
         _rightColumn, nullptr
         )
     );
@@ -111,37 +109,33 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     debug( "+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SelectCompleted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-            break;
+    switch (_uiState) {
+    case UiState::PrintStarted:
+        setPrinterAvailable( false );
+        emit printerAvailabilityChanged( false );
+        break;
 
-        case UiState::PrintStarted:
-            setPrinterAvailable( false );
-            emit printerAvailabilityChanged( false );
-            break;
+    case UiState::PrintCompleted:
+        setPrinterAvailable( true );
+        emit printerAvailabilityChanged( true );
+        break;
 
-        case UiState::PrintCompleted:
-            setPrinterAvailable( true );
-            emit printerAvailabilityChanged( true );
-            break;
-        case UiState::SelectedDirectory:
-            if(sender == TabIndex::Tiling) {
+    case UiState::SelectedDirectory:
+        if(sender == TabIndex::Tiling)
+            setLayersSettingsEnabled(false);
+        else if (sender == TabIndex::Prepare) {
+            if(_printJob->isTiled())
                 setLayersSettingsEnabled(false);
-            } else if (sender == TabIndex::Prepare) {
-                if(_printJob->isTiled()) {
-                    setLayersSettingsEnabled(false);
-                }
-                else
-                {
-                    setLayersSettingsEnabled(true);
-                    _offsetSlider->setValue( printJob()->firstLayerOffset );
-                }
-
+            else {
+                setLayersSettingsEnabled(true);
+                _offsetSlider->setValue( printJob()->firstLayerOffset );
             }
-            break;
+
+        }
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -314,17 +308,14 @@ void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
     QStandardItem* generalItem = item;
     model->setItem(0, 0, item);
 
-    item = new QStandardItem(QString("Temperature"));
+    item = new QStandardItem(QString("Base Pump"));
     model->setItem(1, 0, item);
 
-    item = new QStandardItem(QString("Base Pump"));
+    item = new QStandardItem(QString("Layers"));
     model->setItem(2, 0, item);
 
-    item = new QStandardItem(QString("Layers"));
-    model->setItem(3, 0, item);
-
     item = new QStandardItem(QString("Body Pump"));
-    model->setItem(4, 0, item);
+    model->setItem(3, 0, item);
 
     QItemSelectionModel* selectionModel = new QItemSelectionModel(model);
     QObject::connect(
@@ -337,6 +328,7 @@ void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
     _leftMenu->setVisible( true );
     _leftMenu->setSelectionBehavior(QAbstractItemView::SelectRows);
     _leftMenu->setCurrentIndex(model->indexFromItem(generalItem));
+    _leftMenu->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding );
 }
 
 void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome) {
@@ -501,15 +493,12 @@ void AdvancedTab::_setUpTemperaturelForm(QFont boldFont) {
     _zPosition         ->setText( EmDash );
 
     _temperatureForm->setContentsMargins( { } );
-    _temperatureForm->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _temperatureForm->setMinimumSize(MaximalRightHandPaneSize);
+    _temperatureForm->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum );
     _temperatureForm->setLayout( WrapWidgetsInVBoxDM(
         WrapWidgetsInHBox( _currentTemperatureLabel, nullptr, _currentTemperature ),
         WrapWidgetsInHBox( _targetTemperatureLabel,  nullptr, _targetTemperature  ),
         WrapWidgetsInHBox( _heatingElementLabel,     nullptr, _heatingElement     ),
-        WrapWidgetsInHBox( _zPositionLabel,          nullptr, _zPosition          ),
-        WrapWidgetsInHBox( _leftMenu ),
-        nullptr
+        WrapWidgetsInHBox( _zPositionLabel,          nullptr, _zPosition          )
     ) );
 }
 

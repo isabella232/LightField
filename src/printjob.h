@@ -87,50 +87,35 @@ public:
 
     int baseLayerThickness()
     {
-        if(isTiled()){
-            if(hasBaseLayers()){
-                return _baseManager->layerThickNessAt(0);
-            } else {
-                return 0;
-            }
-        } else {
-            if(hasBaseLayers()){
-                return baseSlices.layerThickness;
-            }else{
-                return 0;
-            }
-        }
+        if (isTiled())
+            return hasBaseLayers() ? _baseManager->layerThickNessAt(0) : 0;
+        else
+            return hasBaseLayers() ? baseSlices.layerThickness : 0;
     }
 
-    int bodyLayerThickness(){
-        if(isTiled()){
-            return _bodyManager->layerThickNessAt(0);
-        } else {
-            return bodySlices.layerThickness;
-        }
+    int bodyLayerThickness()
+    {
+        return isTiled()
+            ? _bodyManager->layerThickNessAt(0)
+            : bodySlices.layerThickness;
     }
 
-    int getLayerThicknessAt(int layerNo){
-        if(isTiled()){
-            if(hasBaseLayers()){
-                if(layerNo <= _baseManager->getSize()){
-                    return _baseManager->layerThickNessAt(layerNo);
-                } else {
-                    return _bodyManager->layerThickNessAt(layerNo);
-                }
-            } else {
+    int getLayerThicknessAt(int layerNo)
+    {
+        if (isTiled()){
+            if (hasBaseLayers()) {
+                return layerNo <= _baseManager->getSize()
+                    ? _baseManager->layerThickNessAt(layerNo)
+                    : _bodyManager->layerThickNessAt(layerNo);
+            } else
                 return _bodyManager->layerThickNessAt(layerNo);
-            }
         } else {
-            if(hasBaseLayers()){
-                if(layerNo <= baseSlices.layerCount) {
-                    return baseSlices.layerThickness;
-                } else {
-                    return bodySlices.layerThickness;
-                }
-            } else {
+            if (hasBaseLayers()) {
+                return layerNo <= baseSlices.layerCount
+                    ? baseSlices.layerThickness
+                    : bodySlices.layerThickness;
+            } else
                 return bodySlices.layerThickness;
-            }
         }
     }
 
