@@ -270,13 +270,15 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     QStringList errors;
     QStringList warnings;
 
-    switch(manifestMgr->parse(&errors, &warnings))
+    switch (manifestMgr->parse(&errors, &warnings))
     {
     case ManifestParseResult::POSITIVE_WITH_WARNINGS: {
         QString warningsStr = warnings.join("<br>");
 
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually: " % warningsStr);
         }
+        /* FALLTHROUGH */
+
     case ManifestParseResult::POSITIVE:
         if(manifestMgr->tiled()){
 

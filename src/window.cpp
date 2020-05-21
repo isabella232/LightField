@@ -499,6 +499,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
 void Window::tabs_currentChanged(int index)
 {
     //debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
+    (void)index;
     update();
 }
 
