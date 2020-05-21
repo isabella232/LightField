@@ -634,13 +634,16 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
 
     _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
 
-    _sliceStatus->setText( "Idle" );
+    _sliceStatus->setText("Idle");
     _hasher = nullptr;
 
-    bool goodJobDir = _checkSliceDirectories( );
+    bool goodJobDir = _checkSliceDirectories();
     emit slicingNeeded( !goodJobDir );
-    if(goodJobDir) _restartPreview();
-    update( );
+    
+    if (goodJobDir)
+        _restartPreview();
+        
+    update();
 }
 
 void PrepareTab::slicingStatusUpdate(const QString &status)
