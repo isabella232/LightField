@@ -394,6 +394,16 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         _modelSelection.z.min, _modelSelection.z.max, _modelSelection.z.size
     );
 
+    debug(
+        "Printer Maximum X: %12.6f\n"
+        "Printer Maximum Y: %12.6f\n"
+        "Printer Maximum Z: %12.6f\n"
+        "",
+        PrinterMaximumX,
+        PrinterMaximumY,
+        PrinterMaximumZ
+    );
+
     _dimensionsText = QString { "%1 mm × %2 mm × %3 mm" }
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
         .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
