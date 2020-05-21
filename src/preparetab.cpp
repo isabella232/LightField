@@ -567,7 +567,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath(_printJob->bodySlices.sliceDirectory);
+    manifestMgr->setPath(_printJob->directoryPath);
 
     SlicesOrderPopup popup { manifestMgr };
     popup.exec();
