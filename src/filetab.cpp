@@ -286,29 +286,23 @@ void FileTab::_showUsbStick( ) {
     update( );
 }
 
-void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
+{
     debug( "+ FileTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-            _selectedRow = -1;
-            break;
-
-        case UiState::SelectCompleted:
-        case UiState::TilingClicked:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-
+    switch (_uiState) {
+    case UiState::SelectStarted:
+        _selectedRow = -1;
         break;
-        case UiState::SelectedDirectory:
-        if(sender == TabIndex::Tiling)
-        {
+
+    case UiState::SelectedDirectory:
+        if (sender == TabIndex::Tiling) {
             auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
+        break;
 
+   default:
         break;
     }
 }
