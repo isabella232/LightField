@@ -413,7 +413,7 @@ bool PrepareTab::_checkSliceDirectories( )
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         
-        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice." : "Slice");
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice" : "Slice");
         emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
         
         _orderButton->setEnabled(false);
