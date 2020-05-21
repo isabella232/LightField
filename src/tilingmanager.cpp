@@ -159,7 +159,7 @@ void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j
     int y = ( ProjectorWindowSize.height() - pixmap.height() ) / 2;
 
     if(i == 0)
-        y -= ( _space / ProjectorPixelSize ) / 5;
+        y -= ( 3 / ProjectorPixelSize );
 
     debug( "+ TilingManager::renderTiles x %d, y %d \n", x, y);
 
