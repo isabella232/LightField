@@ -104,7 +104,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _prepareButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _prepareButton->setFont( font22pt );
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-    _prepareButton->setText( "Prepare" );
+    _prepareButton->setText( "Prepare..." );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
 
     //_copyToUSBButton->setEnabled( false );
@@ -143,7 +143,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _sliceButton->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _sliceButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _sliceButton->setFont( font22pt );
-    _sliceButton->setText( "Slice" );
+    _sliceButton->setText( "Slice..." );
     QObject::connect( _sliceButton, &QPushButton::clicked, this, &PrepareTab::sliceButton_clicked );
 
     _orderButton->setEnabled( false );
@@ -404,7 +404,7 @@ bool PrepareTab::_checkSliceDirectories( )
 
         _navigateCurrentLabel->setText( QString { "1/%1" }.arg( _printJob->totalLayerCount() ) );
 
-        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice" : "Reslice");
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice..." : "Reslice...");
         emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
 
         _orderButton->setEnabled(false);
@@ -413,7 +413,7 @@ bool PrepareTab::_checkSliceDirectories( )
     } else {
         _navigateCurrentLabel->setText( "0/0" );
         
-        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice" : "Slice");
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice..." : "Slice...");
         emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
         
         _orderButton->setEnabled(false);
@@ -770,7 +770,7 @@ void PrepareTab::prepareButton_clicked( bool ) {
     _prepareMessage->setText( "Moving the build platform to its home location&" );
     _prepareProgress->show( );
 
-    _prepareButton->setText( "Continue" );
+    _prepareButton->setText( "Continue..." );
     _prepareButton->setEnabled( false );
 
     QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::shepherd_homeComplete );
@@ -833,7 +833,7 @@ void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success )
     }
 
     _prepareMessage->setText( "Preparation completed." );
-    _prepareButton->setText( "Prepare" );
+    _prepareButton->setText( "Prepare..." );
 
     setPrinterAvailable( true );
     emit printerAvailabilityChanged( true );
