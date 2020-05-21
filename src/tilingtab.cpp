@@ -306,13 +306,11 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         _setEnabled( false );
         break;
 
-    case UiState::SliceCompleted:
-    case UiState::PrintCompleted:
-        break;
     case UiState::TilingClicked:
         _setupTiling->setEnabled( false );
         _setEnabled( true );
         break;
+
     case UiState::EnableTiling:
         _setupTiling->setEnabled( true );
         _setEnabled( false );
@@ -321,6 +319,9 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     case UiState::DisableTiling:
         _setupTiling->setEnabled( false );
         _setEnabled( false );
+        break;
+
+    default:
         break;
     }
 

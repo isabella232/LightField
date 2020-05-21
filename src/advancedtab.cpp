@@ -109,37 +109,33 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     debug( "+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SelectCompleted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-            break;
+    switch (_uiState) {
+    case UiState::PrintStarted:
+        setPrinterAvailable( false );
+        emit printerAvailabilityChanged( false );
+        break;
 
-        case UiState::PrintStarted:
-            setPrinterAvailable( false );
-            emit printerAvailabilityChanged( false );
-            break;
+    case UiState::PrintCompleted:
+        setPrinterAvailable( true );
+        emit printerAvailabilityChanged( true );
+        break;
 
-        case UiState::PrintCompleted:
-            setPrinterAvailable( true );
-            emit printerAvailabilityChanged( true );
-            break;
-        case UiState::SelectedDirectory:
-            if(sender == TabIndex::Tiling) {
+    case UiState::SelectedDirectory:
+        if(sender == TabIndex::Tiling)
+            setLayersSettingsEnabled(false);
+        else if (sender == TabIndex::Prepare) {
+            if(_printJob->isTiled())
                 setLayersSettingsEnabled(false);
-            } else if (sender == TabIndex::Prepare) {
-                if(_printJob->isTiled()) {
-                    setLayersSettingsEnabled(false);
-                }
-                else
-                {
-                    setLayersSettingsEnabled(true);
-                    _offsetSlider->setValue( printJob()->firstLayerOffset );
-                }
-
+            else {
+                setLayersSettingsEnabled(true);
+                _offsetSlider->setValue( printJob()->firstLayerOffset );
             }
-            break;
+
+        }
+        break;
+
+    default:
+        break;
     }
 }
 

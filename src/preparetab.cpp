@@ -876,66 +876,66 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     debug( "+ PrepareTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::TilingClicked:
-            break;
-        case UiState::SelectStarted:
-            _directoryMode = false;
-            _setSliceControlsEnabled( false );
-            _orderButton->setEnabled( false );
-            break;
+    switch (_uiState) {
+    case UiState::SelectStarted:
+        _directoryMode = false;
+        _setSliceControlsEnabled(false);
+        _orderButton->setEnabled(false);
+        break;
 
-        case UiState::SelectCompleted:
-            _directoryMode = false;
-            _setSliceControlsEnabled( false );
+    case UiState::SelectCompleted:
+        _directoryMode = false;
+        _setSliceControlsEnabled(false);
 
-            _sliceStatus->setText( "idle" );
-            _imageGeneratorStatus->setText( "idle" );
-            _currentLayerImage->clear( );
-            _navigateCurrentLabel->setText( "0/0" );
-            _setNavigationButtonsEnabled( false );
+        _sliceStatus->setText("idle");
+        _imageGeneratorStatus->setText("idle");
+        _currentLayerImage->clear();
+        _navigateCurrentLabel->setText("0/0");
+        _setNavigationButtonsEnabled(false);
 
-            if ( _hasher ) {
-                _hasher->deleteLater( );
-            }
-            _hasher = new Hasher;
-            QObject::connect( _hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection );
-            _hasher->hash( _printJob->modelFileName, QCryptographicHash::Md5 );
-            break;
+        if (_hasher)
+            _hasher->deleteLater();
 
-        case UiState::SliceStarted:
-            _setSliceControlsEnabled( false );
-            break;
+        _hasher = new Hasher;
+        QObject::connect(_hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection);
+        _hasher->hash(_printJob->modelFileName, QCryptographicHash::Md5);
+        break;
 
-        case UiState::SliceCompleted:
-            if ( !_directoryMode ) {
-                _setSliceControlsEnabled( true );
-            }
-            break;
+    case UiState::SliceStarted:
+        _setSliceControlsEnabled(false);
+        break;
 
-        case UiState::PrintStarted:
-            _setSliceControlsEnabled( false );
-            setPrinterAvailable( false );
-            _orderButton->setEnabled( false );
-            emit printerAvailabilityChanged( false );
-            break;
+    case UiState::SliceCompleted:
+        if (!_directoryMode)
+            _setSliceControlsEnabled(true);
+        break;
 
-        case UiState::PrintCompleted:
-            _setSliceControlsEnabled( true );
-            _orderButton->setEnabled(_directoryMode ? true : false );
-            setPrinterAvailable( true );
-            emit printerAvailabilityChanged( true );
-            break;
+    case UiState::PrintStarted:
+        _setSliceControlsEnabled(false);
+        setPrinterAvailable(false);
+        _orderButton->setEnabled(false);
+        emit printerAvailabilityChanged(false);
+        break;
 
-        case UiState::SelectedDirectory:
-            _directoryMode = true;
-            _setSliceControlsEnabled( false );
-            _loadDirectoryManifest();
-            _updateSliceControls();
-            break;
+    case UiState::PrintCompleted:
+        _setSliceControlsEnabled(true);
+        _orderButton->setEnabled(_directoryMode);
+        setPrinterAvailable(true);
+        emit printerAvailabilityChanged(true);
+        break;
+
+    case UiState::SelectedDirectory:
+        _directoryMode = true;
+        _setSliceControlsEnabled(false);
+        _loadDirectoryManifest();
+        _updateSliceControls();
+        break;
+
+    default:
+        break;
     }
 
-    update( );
+    update();
 }
 
 void PrepareTab::printer_online( ) {

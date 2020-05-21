@@ -127,22 +127,22 @@ void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     debug( "+ SystemTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::TilingClicked:
-        case UiState::SelectStarted:
-        case UiState::SelectCompleted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintCompleted:
-            setPrinterAvailable( true );
-            break;
+    switch (_uiState) {
+    case UiState::TilingClicked:
+    case UiState::SelectStarted:
+    case UiState::SelectCompleted:
+    case UiState::SliceStarted:
+    case UiState::SliceCompleted:
+    case UiState::PrintCompleted:
+        setPrinterAvailable( true );
+        break;
 
-        case UiState::PrintStarted:
-            setPrinterAvailable( false );
-            break;
+    case UiState::PrintStarted:
+        setPrinterAvailable( false );
+        break;
 
-        case UiState::SelectedDirectory:
-            break;
+    default:
+        break;
     }
 }
 

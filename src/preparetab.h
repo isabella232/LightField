@@ -109,28 +109,16 @@ private:
     void _restartPreview();
 
 signals:
-    ;
-
-    void slicingNeeded( bool const needed );
-
-    void preparePrinterStarted( );
-    void preparePrinterComplete( bool const success );
-
-    void printerAvailabilityChanged( bool const available );
+    void slicingNeeded(bool const needed);
+    void preparePrinterStarted();
+    void preparePrinterComplete(bool const success);
+    void printerAvailabilityChanged(bool const available);
 
 public slots:
-    ;
-
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
     void setPrinterAvailable( bool const value );
 
-protected slots:
-    ;
-
 private slots:
-    ;
-
     void usbMountManager_filesystemMounted( QString const& mountPoint );
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
