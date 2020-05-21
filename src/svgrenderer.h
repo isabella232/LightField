@@ -47,7 +47,7 @@ private:
 
 signals:
     void layerCount( int const totalLayers );
-    void layerComplete( int const layer );
+    void layerComplete( int const layer, QString path );
 };
 
 class LayerRenderTask: public QRunnable
@@ -88,7 +88,7 @@ public:
 
         _renderer._completedLayers++;
 
-        emit _renderer.layerComplete(_layerNumber);
+        emit _renderer.layerComplete(_layerNumber, _outputPath);
         debug("+ completed layer %d\n", _layerNumber);
     }
 
