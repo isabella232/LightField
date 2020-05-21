@@ -504,7 +504,6 @@ void PrepareTab::_showLayerImage(const QString &path)
 void PrepareTab::_setSliceControlsEnabled(bool const enabled)
 {
     _sliceButton->setEnabled( enabled );
-    _orderButton->setEnabled(_directoryMode ? enabled : false );
     if( enabled && !_printJob->isTiled() ) {
         emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
     } else {
