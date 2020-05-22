@@ -4,6 +4,7 @@
 #include <QString>
 #include <QStringList>
 #include <QFile>
+#include "constants.h"
 
 enum class ManifestParseResult {
     FILE_NOT_EXIST,
@@ -113,38 +114,47 @@ public:
 
     ManifestSortType sortType() { return _type; }
 
-    void setSortType( ManifestSortType sortType) { this->_type = sortType;  }
+    void setSortType( ManifestSortType sortType)
+    {
+        this->_type = sortType;
+    }
 
-    void addFile(const QString &filename) {
+    void addFile(const QString &filename)
+    {
         _fileNameList.append(filename);
         _size++;
     }
 
-    void setFileList ( QStringList list ) {
+    void setFileList(const QStringList &list)
+    {
         this->_fileNameList.clear();
         this->_fileNameList.append(list);
-
         this->_size = list.size();
     }
 
-    void setExpoTimeList( QList<double> list ) {
+    void setExpoTimeList(const QList<double> &list)
+    {
         this->_tilingExpoTime.clear();
         this->_tilingExpoTime.append(list);
     }
 
-    void setTilingMinExpoTime(double minExoTm) {
+    void setTilingMinExpoTime(double minExoTm)
+    {
         this->_tilingMinExposure = minExoTm;
     }
 
-    void setTilingStep (double step) {
+    void setTilingStep (double step)
+    {
         this->_tilingStep = step;
     }
 
-    void setTilingSpace (int space) {
+    void setTilingSpace (int space)
+    {
         this->_tilingSpace = space;
     }
 
-    void setTilingCount (int count) {
+    void setTilingCount (int count)
+    {
         this->_tilingCount = count;
     }
 
@@ -191,7 +201,10 @@ public:
     inline int tilingCount()           { return _tilingCount; }
     inline int manifestVolume()        { return _estimatedVolume; }
 
-    inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
+    inline QString getFirstElement()
+    {
+        return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr;
+    }
 
     inline QString getElementAt(int position) {
         return _fileNameList[position];

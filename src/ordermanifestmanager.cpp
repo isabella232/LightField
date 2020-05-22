@@ -1,6 +1,8 @@
 #include <exception>
 #include <QtCore>
+#include <QtWidgets>
 #include "constants.h"
+#include "debug.h"
 #include "ordermanifestmanager.h"
 
 using namespace std;
@@ -138,7 +140,7 @@ bool OrderManifestManager::save() {
 
 
 
-    if(_tiled)
+    if (_tiled)
     {
         QJsonObject tiling;
 
@@ -156,10 +158,8 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString(), expoArray );
 
         QJsonArray layerThickNessArray;
-        for(int i=0; i<_tilingExpoTime.size(); ++i)
-        {
+        for (int i=0; i<_tilingExpoTime.size(); ++i)
             layerThickNessArray.append(layerThickNessAt(i / _tilingCount ));
-        }
 
         tiling.insert( ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString(),  layerThickNessArray);
 
@@ -167,34 +167,35 @@ bool OrderManifestManager::save() {
 
     }
 
-
-
     QJsonArray jsonArray;
+    QString fileName;
     QImage calculationImage;
     int activeTreshold = QColor("white").value() / 2;
+    int i = 0;
 
-    for(int i=0; i<_fileNameList.size(); ++i)
-    {
+    foreach (fileName, _fileNameList) {
         QJsonObject entity;
-        entity.insert( ManifestKeys(ManifestKeys::FILE_NAME).toQString(), QJsonValue { _fileNameList[i] } );
+        entity.insert(ManifestKeys(ManifestKeys::FILE_NAME).toQString(), QJsonValue { fileName });
 
         if(_tiled || _calculateArea) {
             unsigned int activePixels = 0;
 
-            jsonArray.append(entity);
-
-            if(_calculateArea) {
-                calculationImage.load(_dirPath % Slash % _fileNameList[i]);
-                for (int size_y=0;size_y<calculationImage.height();size_y++) {
-                    for (int size_x=0;size_x<calculationImage.width();size_x++) {
+            if (_calculateArea) {
+                calculationImage.load(_dirPath % Slash % fileName);
+                for (int size_y=0; size_y < calculationImage.height(); size_y++) {
+                    for (int size_x=0; size_x < calculationImage.width(); size_x++) {
                         QColor tempColor = calculationImage.pixel(size_x, size_y);
-                        if(tempColor.value() >= activeTreshold) activePixels++;
+                        if (tempColor.value() >= activeTreshold)
+                            activePixels++;
                     }
                 }
-                double reconstructedVolume = ProjectorPixelSize * ProjectorPixelSize * activePixels * layerThickNessAt(i) / 1000; //  units: mm * mm * µm / 1000 = µL
-                _estimatedVolume += reconstructedVolume;
+
+                _estimatedVolume += ProjectorPixelSize * ProjectorPixelSize *
+                    activePixels * layerThickNessAt(i++) / 1000; // units: mm * mm * µm / 1000 = µL
             }
         }
+
+        jsonArray.append(entity);
     }
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
