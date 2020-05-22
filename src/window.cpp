@@ -480,6 +480,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectedDirectory:
+            _setModelRendered(true);
             if (_tabWidget->currentIndex( ) == +TabIndex::File ||
                 _tabWidget->currentIndex() == +TabIndex::Tiling ) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);

@@ -770,25 +770,28 @@ void PrepareTab::_showWarning(QString content) {
     msgBox.exec();
 }
 
-void PrepareTab::prepareButton_clicked( bool ) {
-    debug( "+ PrepareTab::prepareButton_clicked\n" );
+void PrepareTab::prepareButton_clicked(bool)
+{
+    debug("+ PrepareTab::prepareButton_clicked\n");
 
-    QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
+    QObject::disconnect(_prepareButton, &QPushButton::clicked, this, nullptr);
 
-    _prepareMessage->setText( "Moving the build platform to its home location&" );
-    _prepareProgress->show( );
+    _prepareMessage->setText("Moving the build platform to its home location");
+    _prepareProgress->show();
 
-    _prepareButton->setText( "Continue..." );
-    _prepareButton->setEnabled( false );
+    _prepareButton->setText("Continue...");
+    _prepareButton->setEnabled(false);
 
-    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrepareTab::shepherd_homeComplete );
-    _shepherd->doHome( );
+    QObject::connect(_shepherd, &Shepherd::action_homeComplete, this,
+        &PrepareTab::shepherd_homeComplete);
 
-    setPrinterAvailable( false );
-    emit printerAvailabilityChanged( false );
-    emit preparePrinterStarted( );
+    _shepherd->doHome();
 
-    update( );
+    setPrinterAvailable(false);
+    emit printerAvailabilityChanged(false);
+    emit preparePrinterStarted();
+
+    update();
 }
 
 void PrepareTab::shepherd_homeComplete( bool const success ) {
