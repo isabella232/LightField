@@ -147,9 +147,13 @@ void AdvancedTab::printer_positionReport( double const px, int const cx ) {
 }
 
 void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
-    _currentTemperature->setText( QString( "%1 °C" ).arg( bedCurrentTemperature, 0, 'f', 2 ) );
-    _targetTemperature ->setText( QString( "%1 °C" ).arg( bedTargetTemperature,  0, 'f', 2 ) );
-    _heatingElement    ->setText( bedPwm ? "ON" : "off"                                      );
+    _currentTemperature->setText(QString("%1 °C").arg(bedCurrentTemperature, 0, 'f', 2));
+    if (bedTargetTemperature < 30) {
+        _targetTemperature->setText(QString("OFF"));
+    } else {
+        _targetTemperature->setText(QString("%1 °C").arg(bedTargetTemperature, 0, 'f', 2));
+    }
+    _heatingElement->setText(bedPwm ? "ON" : "OFF");
 
     update( );
 }
@@ -381,7 +385,7 @@ void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome) {
 
     _bedTemperatureSlider->setEnabled( false );
     _bedTemperatureSlider->setMinimum( 30 );
-    _bedTemperatureSlider->setMaximum( 50 );
+    _bedTemperatureSlider->setMaximum( 75 );
     _bedTemperatureSlider->setOrientation( Qt::Horizontal );
     _bedTemperatureSlider->setPageStep( 1 );
     _bedTemperatureSlider->setSingleStep( 1 );
