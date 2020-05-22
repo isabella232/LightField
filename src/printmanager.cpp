@@ -957,12 +957,7 @@ void PrintManager::print( PrintJob* printJob ) {
     _isTiled = printJob->isTiled();
     _elementsOnLayer = printJob->tilingCount();
 
-    _pngDisplayer->clear( );
-
-    if(!_printJob->isProfileLayerInfoSync()){
-        debug( "+ PrintManager::print: WARNING! printJob and print profile layer thicknesses out of sync!");
-        _printJob->updateProfileLayersInfo();
-    }
+    _pngDisplayer->clear();
 
     // TODO set up movements
     auto const  profile              { _printJob->printProfile };

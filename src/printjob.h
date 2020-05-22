@@ -195,8 +195,6 @@ public:
 
         if (_bodyManager->tiled())
             bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
-
-        updateProfileLayersInfo();
     }
 
     void setBaseManager(QSharedPointer<OrderManifestManager> manager)
@@ -215,7 +213,6 @@ public:
             baseSlices.layerCount = 0;
             baseSlices.layerThickness = -1;
         }
-        updateProfileLayersInfo();
     }
 
     int tilingCount()
@@ -224,19 +221,6 @@ public:
             return _bodyManager->tilingCount();
 
         return 0;
-    }
-
-    void updateProfileLayersInfo(){
-        printProfile->baseLayerParameters().setLayerThickness(baseLayerThickness());
-        printProfile->bodyLayerParameters().setLayerThickness(bodyLayerThickness());
-        printProfile->setBaseLayerCount(baseSlices.layerCount);
-    }
-
-    bool isProfileLayerInfoSync(){
-        if(baseLayerThickness() != printProfile->baseLayerParameters().layerThickness()) return false;
-        if(bodyLayerThickness() != printProfile->bodyLayerParameters().layerThickness()) return false;
-        if(baseSlices.layerCount != printProfile->baseLayerCount()) return false;
-        return true;
     }
 
 private:
