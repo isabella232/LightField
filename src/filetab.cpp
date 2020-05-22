@@ -637,6 +637,8 @@ void FileTab::selectButton_clicked( bool ) {
                     emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
                 }
             }
+
+            _printJob->modelFileName = _modelSelection.fileName;
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );
