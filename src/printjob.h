@@ -194,7 +194,7 @@ public:
         bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
 
         if (_bodyManager->tiled())
-            bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
+            bodySlices.layerThickness = -1;
     }
 
     void setBaseManager(QSharedPointer<OrderManifestManager> manager)
@@ -204,9 +204,9 @@ public:
         if (!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
-            if(_baseManager->tiled()){
-                baseSlices.layerThickness = _baseManager->layerThickNessAt(0);
-            }
+            if (_baseManager->tiled())
+                baseSlices.layerThickness = -1;
+
         } else {
             baseSlices.sliceDirectory = nullptr;
             baseSlices.isPreSliced = false;

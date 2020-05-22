@@ -720,7 +720,7 @@ void PrepareTab::_loadDirectoryManifest()
     if (manifestMgr->tiled()) {
         _printJob->baseSlices.layerCount = 0;
         _printJob->baseSlices.isPreSliced = false;
-        _printJob->baseSlices.layerThickness = 0;
+        _printJob->baseSlices.layerThickness = -1;
         _printJob->baseSlices.sliceDirectory = nullptr;
     } else {
         _printJob->setBaseManager(manifestMgr);

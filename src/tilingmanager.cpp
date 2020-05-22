@@ -46,9 +46,9 @@ void TilingManager::processImages(
 
     manifestMgr.setFileList( _fileNameList );
     manifestMgr.setExpoTimeList( _expoTimeList );
-    manifestMgr.setBaseLayerThickness( _printJob->baseSlices.layerThickness );
-    manifestMgr.setBodyLayerThickness( _printJob->bodySlices.layerThickness );
-    manifestMgr.setBaseLayerCount( _printJob->baseSlices.layerCount );
+    manifestMgr.setBaseLayerThickness(-1);
+    manifestMgr.setBodyLayerThickness(-1);
+    manifestMgr.setBaseLayerCount(0);
     manifestMgr.setPath( JobWorkingDirectoryPath % Slash % dirName );
 
     manifestMgr.setTiled( true );
