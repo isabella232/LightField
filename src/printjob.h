@@ -80,6 +80,11 @@ public:
         return baseSlices.layerCount + bodySlices.layerCount;
     }
 
+    int slicedBaseLayerCount() const
+    {
+        return _bodyManager->getSize();
+    }
+
     int baseThickness() const
     {
         return baseSlices.layerCount * baseSlices.layerThickness;
@@ -173,16 +178,25 @@ public:
         else return -1.0;
     }
 
+    QSharedPointer<OrderManifestManager> getBaseManager()
+    {
+        return _baseManager;
+    }
+
+    QSharedPointer<OrderManifestManager> getBodyManager()
+    {
+        return _bodyManager;
+    }
+
     void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
         _bodyManager.swap(manager);
         bodySlices.isPreSliced = true;
         bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
 
-        if(_bodyManager->tiled()){
+        if (_bodyManager->tiled())
             bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
-        }
-        updateProfileLayersInfo();
 
+        updateProfileLayersInfo();
     }
 
     void setBaseManager(QSharedPointer<OrderManifestManager> manager)

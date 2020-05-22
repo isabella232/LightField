@@ -153,9 +153,7 @@ void SvgRenderer::render(QString const& svgFileName,
         auto in { QString("%1/%2.svg").arg(_outputDirectory).arg(i, 6, 10, DigitZero) };
         auto out { QString("%1/%2.png").arg(_outputDirectory).arg( i, 6, 10, DigitZero) };
         LayerRenderTask *task { new LayerRenderTask { *this, i, in, out } };
-
         _threadPool.start(task);
-        debug("+ submitted layer %d to thread pool\n", i);
     }
 
     _threadPool.waitForDone();

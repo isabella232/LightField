@@ -1,3 +1,4 @@
+#include <sys/sysinfo.h>
 #include <QtCore>
 #include "svgrenderer.h"
 #include "slicertask.h"
@@ -13,6 +14,11 @@ void SlicerTask::run()
 {
     debug("+ SlicerTask::run\n");
 
+    bool oneHeight = _printJob->baseSlices.layerThickness == _printJob->bodySlices.layerThickness;
+
+    if (oneHeight)
+        debug("  + base and body layers are the same height\n");
+
     try {
         if (_printJob->hasBaseLayers() && (!_printJob->baseSlices.isPreSliced || _reslice)) {
             /* Need to reslice base layers */
@@ -25,7 +31,7 @@ void SlicerTask::run()
             _slice(_printJob->modelFileName, output, _printJob->baseSlices.layerThickness);
         }
 
-        if (!_printJob->bodySlices.isPreSliced || _reslice) {
+        if ((!_printJob->bodySlices.isPreSliced || _reslice) && !oneHeight) {
             /* Need to reslice body layers */
             QString output { QString("%1/sliced.svg").arg(_printJob->bodySlices.sliceDirectory) };
 
@@ -44,11 +50,17 @@ void SlicerTask::run()
             _render(_printJob->baseSlices);
         }
 
-        if (!_printJob->bodySlices.isPreSliced || _reslice) {
-            /* Need to render body layers */
+        if (oneHeight) {
+            _printJob->setBodyManager(_printJob->getBaseManager());
+            _printJob->bodySlices.layerCount = _printJob->slicedBaseLayerCount() - _printJob->baseSlices.layerCount;
+            emit layerCount(_printJob->totalLayerCount());
+        } else {
+            if (!_printJob->bodySlices.isPreSliced || _reslice) {
+                /* Need to render body layers */
 
-             debug("  + must rendes body layers\n");
-            _render(_printJob->bodySlices);
+                 debug("  + must rendes body layers\n");
+                _render(_printJob->bodySlices);
+            }
         }
     } catch (const std::exception &ex) {
         debug("  + caught exception: %s\n", ex.what());
@@ -63,7 +75,7 @@ void SlicerTask::run()
 
 int SlicerTask::_numThreads()
 {
-    return 4;
+    return get_nprocs();
 }
 
 void SlicerTask::_slice(const QString &input, const QString &output, int layerHeight)
