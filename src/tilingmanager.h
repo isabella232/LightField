@@ -44,6 +44,7 @@ private:
         int                   _hCount;
         QStringList           _fileNameList;
         QList<double>         _expoTimeList;
+        QList<int>            _layerThicknessList;
         std::vector<int>      _tileSlots;
 };
 

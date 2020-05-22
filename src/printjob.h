@@ -107,7 +107,7 @@ public:
 
     int getLayerThicknessAt(int layerNo)
     {
-        if (isTiled()){
+        if (isTiled()) {
             if (hasBaseLayers()) {
                 return layerNo <= _baseManager->getSize()
                     ? _baseManager->layerThickNessAt(layerNo)

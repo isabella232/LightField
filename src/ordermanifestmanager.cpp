@@ -159,7 +159,7 @@ bool OrderManifestManager::save() {
 
         QJsonArray layerThickNessArray;
         for (int i=0; i<_tilingExpoTime.size(); ++i)
-            layerThickNessArray.append(layerThickNessAt(i / _tilingCount ));
+            layerThickNessArray.append(layerThickNessAt(i));
 
         tiling.insert( ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString(),  layerThickNessArray);
 
@@ -224,10 +224,10 @@ double OrderManifestManager::getTimeForElementAt(int position){
  * @return
  */
 int OrderManifestManager::layerThickNessAt(int position) {
-    if(_layerThickNess.count() > 0 && _layerThickNess.count() < position )
+    if(_layerThickNess.count() > 0 && position < _layerThickNess.count())
     {
         return _layerThickNess[position];
-    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() >= position) {
+    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() <= position) {
         return -1;
     } else {
         if( position < _baseLayerCount ) {

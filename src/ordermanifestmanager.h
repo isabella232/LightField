@@ -138,6 +138,11 @@ public:
         this->_tilingExpoTime.append(list);
     }
 
+    void setLayerThicknessList(const QList<int> &list)
+    {
+        this->_layerThickNess = list;
+    }
+
     void setTilingMinExpoTime(double minExoTm)
     {
         this->_tilingMinExposure = minExoTm;

@@ -1,4 +1,5 @@
-
+#include <QtCore>
+#include "constants.h"
 #include "tilingmanager.h"
 
 
@@ -44,11 +45,12 @@ void TilingManager::processImages(
     OrderManifestManager manifestMgr;
 
 
-    manifestMgr.setFileList( _fileNameList );
-    manifestMgr.setExpoTimeList( _expoTimeList );
-    manifestMgr.setBaseLayerThickness(-1);
-    manifestMgr.setBodyLayerThickness(-1);
-    manifestMgr.setBaseLayerCount(0);
+    manifestMgr.setFileList(_fileNameList);
+    manifestMgr.setExpoTimeList(_expoTimeList);
+    manifestMgr.setLayerThicknessList(_layerThicknessList);
+    manifestMgr.setBaseLayerThickness(_printJob->baseSlices.layerThickness);
+    manifestMgr.setBodyLayerThickness(_printJob->bodySlices.layerThickness);
+    manifestMgr.setBaseLayerCount(_printJob->baseSlices.layerCount);
     manifestMgr.setPath( JobWorkingDirectoryPath % Slash % dirName );
 
     manifestMgr.setTiled( true );
@@ -140,9 +142,11 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
         pixmap.save( &file, "PNG" );
 
         if( sequence < _printJob->baseSlices.layerCount ) {
-            _expoTimeList.push_back( e == 1 ? _baseExpoTime : _baseStep );
+            _expoTimeList.push_back(e == 1 ? _baseExpoTime : _baseStep);
+            _layerThicknessList.push_back(e == 1 ? _printJob->baseSlices.layerThickness : 0);
         } else {
-            _expoTimeList.push_back( e == 1 ? _bodyExpoTime : _bodyStep );
+            _expoTimeList.push_back(e == 1 ? _bodyExpoTime : _bodyStep);
+            _layerThicknessList.push_back(e == 1 ? _printJob->bodySlices.layerThickness : 0);
         }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );
