@@ -30,7 +30,7 @@ public:
         VOLUME
     };
 
-    static const QString strings[15];
+    static const QString strings[12];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -176,6 +176,9 @@ public:
         this->_baseLayerCount = count;
     }
 
+    void requireAreaCalculation(){
+        this->_calculateArea = true;
+    }
 
     inline int baseLayerThickness()    { return _baseLayerThickNess; }
     inline int bodyLayerThickness()    { return _bodyLayerThickNess; }
@@ -186,7 +189,7 @@ public:
     inline double tilingStep()         { return _tilingStep; }
     inline int tilingSpace()           { return _tilingSpace; }
     inline int tilingCount()           { return _tilingCount; }
-    inline int tiledVolume()           { return _estimatedVolume; }
+    inline int manifestVolume()        { return _estimatedVolume; }
 
     inline QString getFirstElement() { return _fileNameList.size() > 0 ? _fileNameList[0] : nullptr; }
 
@@ -214,6 +217,7 @@ public:
         _type = ManifestSortType::NUMERIC;
         _dirPath = "";
         _estimatedVolume = 0;
+        _calculateArea = false;
     }
 
     Iterator iterator() {
@@ -245,6 +249,7 @@ private:
     QList<double>       _tilingExpoTime    { };
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
+    bool                _calculateArea     {false};
 };
 
 #endif // ORDERMANIFESTMANAGER_H

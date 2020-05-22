@@ -284,9 +284,8 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
 
-            //TODO
-            //_setupTiling->setEnabled( false );
-            _printJob->estimatedVolume = manifestMgr->tiledVolume();
+            emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
+            _printJob->estimatedVolume = manifestMgr->manifestVolume();
         }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
@@ -700,7 +699,7 @@ void PrepareTab::_loadDirectoryManifest()
         if (manifestMgr->tiled()) {
             emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
             // in case of tiled design volume comes from manifest file instead of model calculation
-            _printJob->estimatedVolume = manifestMgr->tiledVolume();
+            _printJob->estimatedVolume = manifestMgr->manifestVolume();
         }
         break;
 
@@ -708,6 +707,12 @@ void PrepareTab::_loadDirectoryManifest()
     case ManifestParseResult::FILE_NOT_EXIST: {
             QString errorsStr = errors.join("<br>");
             _showWarning("Manifest file containing order of slices doesn't exist or file is corrupted. <br>You must enter the order manually. <br>" % errorsStr);
+
+            manifestMgr->setTiled(false);
+            manifestMgr->requireAreaCalculation();
+            manifestMgr->setBaseLayerCount( 2 );
+            manifestMgr->setBodyLayerThickness( 100 );
+            manifestMgr->setBaseLayerThickness( 100 );
 
             SlicesOrderPopup slicesOrderPopup { manifestMgr };
             slicesOrderPopup.exec();

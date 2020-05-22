@@ -43,6 +43,7 @@ void TilingManager::processImages(
 
     OrderManifestManager manifestMgr;
 
+
     manifestMgr.setFileList( _fileNameList );
     manifestMgr.setExpoTimeList( _expoTimeList );
     manifestMgr.setBaseLayerThickness( _printJob->baseSlices.layerThickness );
