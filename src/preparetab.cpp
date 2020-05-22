@@ -431,8 +431,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
-    _checkSliceDirectories( );
-    _printJob->updateProfileLayersInfo();
+    _checkSliceDirectories();
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
@@ -440,8 +439,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 50;
     _printJob->bodySlices.layerThickness = 50;
-    _checkSliceDirectories( );
-    _printJob->updateProfileLayersInfo();
+    _checkSliceDirectories();
 }
 
 #if defined EXPERIMENTAL
@@ -450,8 +448,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 20;
     _printJob->bodySlices.layerThickness = 20;
-    _checkSliceDirectories( );
-    _printJob->updateProfileLayersInfo();
+    _checkSliceDirectories();
 }
 #endif // defined EXPERIMENTAL
 

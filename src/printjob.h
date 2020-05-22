@@ -201,7 +201,7 @@ public:
     {
         _baseManager.swap(manager);
 
-        if(!_baseManager.isNull()) {
+        if (!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
             if(_baseManager->tiled()){

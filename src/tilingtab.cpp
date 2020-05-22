@@ -179,12 +179,13 @@ void TilingTab::setStepValue()
     painter.setFont( QFont( "Arial", 15 ) );
     painter.setPen( Qt::red );
 
+#if 0
     // multi row tilling
-    /*for(int i=0,z=1; i<wCount; ++i) {
-        for(int j=0; j<hCount; ++j,++z)
+    for (int i=0,z=1; i<wCount; ++i) {
+        for (int j=0; j<hCount; ++j, ++z)
         {
                             /*margin*/                /* image */                 /* space */
-    /*      int x = ( pixmap.width( ) * value) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
+          int x = ( pixmap.width( ) * value) + ( pixmap.width( ) * i ) + ( pixmap.width( ) * value * i );
             int y = ( pixmap.height( ) * value) + ( pixmap.height( ) * j )  + ( pixmap.height( ) * value * j );
 
             int e = _minExposure->getValue() + ( ((wCount*hCount) - z) * _step->getValue() );
@@ -192,7 +193,8 @@ void TilingTab::setStepValue()
             painter.drawPixmap( x, y, pixmap );
             painter.drawText( QPoint(x, y), QString( "Exposure %1 sec" ).arg( e ) );
         }
-    }*/
+    }
+#endif
 
     // single row tiling
     int y = ( _areaHeight - _pixmapHeight ) / 2;
@@ -290,42 +292,43 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         break;
 
     case UiState::SelectCompleted:
-        _setEnabled( false );
-        _setupTiling->setEnabled( false );
+        _setEnabled(false);
+        _setupTiling->setEnabled(false);
         break;
 
     case UiState::SelectStarted:
-        _setEnabled( false );
+        _setEnabled(false);
         break;
 
     case UiState::SliceStarted:
-        _setEnabled( false );
+        _setEnabled(false);
         break;
 
     case UiState::PrintStarted:
-        _setEnabled( false );
+        _setEnabled(false);
         break;
 
     case UiState::TilingClicked:
-        _setupTiling->setEnabled( false );
-        _setEnabled( true );
+        _setupTiling->setEnabled(false);
+        _setEnabled(true);
+        setStepValue();
         break;
 
     case UiState::EnableTiling:
-        _setupTiling->setEnabled( true );
-        _setEnabled( false );
+        _setupTiling->setEnabled(true);
+        _setEnabled(false);
         break;
 
     case UiState::DisableTiling:
-        _setupTiling->setEnabled( false );
-        _setEnabled( false );
+        _setupTiling->setEnabled(false);
+        _setEnabled(false);
         break;
 
     default:
         break;
     }
 
-    update( );
+    update();
 }
 
 
@@ -395,15 +398,11 @@ void TilingTab::_showWarningAndClose ()
     auto origFont    = font( );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
 
-    Window* w = App::mainWindow();
-    QRect r = w->geometry();
 
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setFont(fontAwesome);
     msgBox.setText( "Slices are too wide to be tiled." );
-    msgBox.show();
-    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
     msgBox.exec();
 }
 
