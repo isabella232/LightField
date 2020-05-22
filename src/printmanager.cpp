@@ -478,7 +478,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd() ) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1) ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -546,7 +546,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
     }
 
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1)) {
         stepC1_start( );
     } else {
         stepB1_start( );
