@@ -945,6 +945,13 @@ void PrintManager::print( PrintJob* printJob ) {
         return;
     }
 
+    if (printJob->hasBaseLayers()) {
+        Q_ASSERT(printJob->baseSlices.layerCount > 0);
+        Q_ASSERT(printJob->baseSlices.layerThickness > 0);
+    }
+
+    Q_ASSERT(printJob->bodySlices.layerThickness > 0);
+
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
     _isTiled = printJob->isTiled();
