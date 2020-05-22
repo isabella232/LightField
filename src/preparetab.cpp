@@ -401,25 +401,25 @@ bool PrepareTab::_checkSliceDirectories( )
     auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
     _setNavigationButtonsEnabled( preSliced );
     _setSliceControlsEnabled( true );
-    if ( preSliced ) {
 
+    if (preSliced) {
         _navigateCurrentLabel->setText( QString { "1/%1" }.arg( _printJob->totalLayerCount() ) );
-
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice..." : "Reslice...");
-        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
-
         _orderButton->setEnabled(false);
         _reslice = true;
         //_copyToUSBButton->setEnabled( true );
+
+
+        if (!_printJob->isTiled())
+            emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
     } else {
-        _navigateCurrentLabel->setText( "0/0" );
-        
-        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice..." : "Slice...");
-        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
-        
+        _navigateCurrentLabel->setText("0/0");
+        _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice..." : "Slice..."); 
         _orderButton->setEnabled(false);
         _reslice = false;
         //_copyToUSBButton->setEnabled( false );
+
+        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
     }
 
     update();
@@ -731,17 +731,15 @@ void PrepareTab::_loadDirectoryManifest()
 
     _printJob->setBodyManager(manifestMgr);
     _orderButton->setEnabled(true);
-    if( _printJob->isTiled() ) {
-        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
-    } else {
-        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
-    }
     _setSliceControlsEnabled(false);
-    if (!manifestMgr->tiled()) {
-        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
-    }
 
     layerCountUpdate(_printJob->totalLayerCount());
+
+    QTimer::singleShot(0, [=]() {
+        emit uiStateChanged(TabIndex::Prepare, _printJob->isTiled()
+            ? UiState::DisableTiling
+            : UiState::EnableTiling);
+    });
 
     _restartPreview();
 }

@@ -287,8 +287,8 @@ void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         this->_minExposureBody = 20.0;
         this->_space->setValue( 1 );
         this->_currentLayerImage->clear();
-        _setEnabled( false );
-        _setupTiling->setEnabled( false );
+        _setEnabled(false);
+        _setupTiling->setEnabled(false);
         break;
 
     case UiState::SelectCompleted:
