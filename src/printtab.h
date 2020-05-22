@@ -106,8 +106,7 @@ private slots:
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );
 
-    void bodyExpoTime_changed( );
-    void baseExpoTime_changed( );
+    void exposureTime_update( );
 
 };
 
