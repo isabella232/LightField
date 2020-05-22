@@ -302,7 +302,7 @@ void AdvancedTab::setPrinterAvailable( bool const value ) {
 }
 
 void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
-    AdvancedTabSelectionModel* model = new AdvancedTabSelectionModel(5, 1, _forms, FORMS_COUNT);
+    AdvancedTabSelectionModel* model = new AdvancedTabSelectionModel(4, 1, _forms, FORMS_COUNT);
 
     QStandardItem* item = new QStandardItem(QString("General"));
     QStandardItem* generalItem = item;
