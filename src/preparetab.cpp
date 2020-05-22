@@ -134,6 +134,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 #endif // defined EXPERIMENTAL
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
+        _prepareGroup,
         WrapWidgetsInVBox(
             WrapWidgetsInHBox( nullptr, _warningHotLabel, nullptr, _warningUvLabel, nullptr )
         )
