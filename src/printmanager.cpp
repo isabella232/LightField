@@ -331,10 +331,7 @@ void PrintManager::stepB2_start( ) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
         _duringTiledLayer = true;
     }else {
-        if( _printJob->isBaseLayer(currentLayer()))
-            layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
-        else
-            layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
+        layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
     }
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
@@ -481,7 +478,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd() ) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1) ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -549,7 +546,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
     }
 
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1)) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -610,7 +607,7 @@ void PrintManager::stepC1_failed( int const exitCode, QProcess::ProcessError con
 void PrintManager::stepC2_start( ) {
     _step = PrintStep::C2;
 
-    int layerExposureTime = _printJob->printProfile->bodyLayerParameters( ).layerExposureTime( );
+    int layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
     debug( "+ PrintManager::stepC2_start: pausing for %d ms\n", layerExposureTime );
 
     _layerExposureTimer = _makeAndStartTimer( layerExposureTime, &PrintManager::stepC2_completed );

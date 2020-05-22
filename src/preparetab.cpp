@@ -503,7 +503,6 @@ void PrepareTab::_showLayerImage(const QString &path)
 void PrepareTab::_setSliceControlsEnabled(bool const enabled)
 {
     _sliceButton->setEnabled( enabled );
-    _orderButton->setEnabled(_directoryMode ? enabled : false );
     if( enabled && !_printJob->isTiled() ) {
         emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
     } else {
@@ -581,7 +580,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath(_printJob->bodySlices.sliceDirectory);
+    manifestMgr->setPath(_printJob->directoryPath);
 
     SlicesOrderPopup popup { manifestMgr };
     popup.exec();

@@ -371,7 +371,7 @@ void Window::startPrinting( ) {
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
         "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -387,7 +387,7 @@ void Window::startPrinting( ) {
         baseLayerParameters.noPumpUpVelocity( ),
         baseLayerParameters.pumpEveryNthLayer( ),
         baseLayerParameters.layerThickness( ),
-        baseLayerParameters.layerExposureTime( ),
+        baseSlices.exposureTime,
         baseLayerParameters.powerLevel( )
 
 
@@ -406,7 +406,7 @@ void Window::startPrinting( ) {
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
         "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -421,7 +421,7 @@ void Window::startPrinting( ) {
         bodyLayerParameters.noPumpUpVelocity( ),
         bodyLayerParameters.pumpEveryNthLayer( ),
         bodyLayerParameters.layerThickness( ),
-        bodyLayerParameters.layerExposureTime( ),
+        bodySlices.exposureTime,
         bodyLayerParameters.powerLevel( )
     );
 
