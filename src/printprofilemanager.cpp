@@ -13,7 +13,8 @@ QSharedPointer<PrintProfile> PrintProfileManager::_findProfile( QString const& p
 }
 
 
-bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile ) {
+bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
+{
     auto profile = _findProfile( newProfile->profileName( ) );
     if ( !profile ) {
         _profiles->append( newProfile );
@@ -24,7 +25,8 @@ bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile ) {
     }
 }
 
-bool PrintProfileManager::removeProfile( QString const& name ) {
+bool PrintProfileManager::removeProfile(const QString& name)
+{
     auto profile = _findProfile( name );
     if ( profile ) {
         _profiles->removeOne( profile );
@@ -35,7 +37,8 @@ bool PrintProfileManager::removeProfile( QString const& name ) {
     }
 }
 
-bool PrintProfileManager::setActiveProfile( QString const& profileName ) {
+bool PrintProfileManager::setActiveProfile(const QString& profileName)
+{
     auto newProfile = _findProfile( profileName );
     if ( newProfile ) {
         emit activeProfileChanged( newProfile );
