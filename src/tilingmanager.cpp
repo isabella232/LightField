@@ -1,22 +1,15 @@
 #include <QtCore>
 #include "constants.h"
 #include "tilingmanager.h"
-
+#include "utils.h"
 
 TilingManager::TilingManager( PrintJob* printJob )
 {
     _printJob = printJob;
 }
 
-void TilingManager::processImages(
-        int width,
-        int height,
-        double baseExpoTime,
-        double baseStep,
-        double bodyExpoTime,
-        double bodyStep,
-        int space,
-        int count )
+void TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
+    double bodyExpoTime, double bodyStep, int space, int count)
 {
     debug( "+ TilingManager::processImages\n");
 
@@ -31,42 +24,48 @@ void TilingManager::processImages(
     _wCount = count;
     _spacePx = static_cast<int>(static_cast<double>(space) / ProjectorPixelSize);
 
-    QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6-").arg( _baseExpoTime ).arg( _baseStep )
-            .arg( _bodyExpoTime ).arg( _bodyStep ).arg( _count ).arg( space ) % _printJob->modelHash;
+    QString dirName = QString("tiled-%1-%2-%3-%4-%5-%6-%7")
+        .arg(_baseExpoTime)
+        .arg(_baseStep)
+        .arg(_bodyExpoTime)
+        .arg(_bodyStep)
+        .arg(_count)
+        .arg(_space)
+        .arg(_printJob->modelHash);
+
     _path = JobWorkingDirectoryPath % Slash % dirName;
 
-    QDir dir ( JobWorkingDirectoryPath );
-    dir.mkdir( dirName );
+    QDir dir (JobWorkingDirectoryPath);
+    dir.mkdir(dirName);
 
-    tileImages( );
+    tileImages();
 
-    QFile::link( _path , StlModelLibraryPath % Slash % dirName );
+    QFile::link(_path, StlModelLibraryPath % Slash % dirName);
 
     OrderManifestManager manifestMgr;
-
-
     manifestMgr.setFileList(_fileNameList);
     manifestMgr.setExpoTimeList(_expoTimeList);
     manifestMgr.setLayerThicknessList(_layerThicknessList);
     manifestMgr.setBaseLayerThickness(_printJob->baseSlices.layerThickness);
     manifestMgr.setBodyLayerThickness(_printJob->bodySlices.layerThickness);
     manifestMgr.setBaseLayerCount(_printJob->baseSlices.layerCount);
-    manifestMgr.setPath( JobWorkingDirectoryPath % Slash % dirName );
+    manifestMgr.setPath(JobWorkingDirectoryPath % Slash % dirName);
 
-    manifestMgr.setTiled( true );
-    manifestMgr.setTilingSpace( _space );
-    manifestMgr.setTilingCount( _count );
-    manifestMgr.setVolume( _count * _printJob->estimatedVolume );
+    manifestMgr.setTiled(true);
+    manifestMgr.setTilingSpace(_space);
+    manifestMgr.setTilingCount(_count);
+    manifestMgr.setVolume(_count * _printJob->estimatedVolume);
 
     manifestMgr.save();
 }
 
-void TilingManager::tileImages ( )
+void TilingManager::tileImages()
 {
     debug( "+ TilingManager::tileImages\n");
 
     QPixmap pixmap;
-    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _printJob->getLayerFileName(0) );
+
+    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _printJob->getLayerFileName(0));
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
