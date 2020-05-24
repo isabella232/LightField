@@ -149,11 +149,12 @@ char const* ToString( QDialog::DialogCode const value ) {
 #endif
 }
 
-char const* ToString( BuildType const value ) {
+char const* ToString(BuildType value)
+{
 #if defined _DEBUG
-    if ( ( value >= BuildType::unknown ) && ( value <= BuildType::Debug ) ) {
+    if ((value >= BuildType::Unknown) && (value <= BuildType::Debug)) {
 #endif
-        return BuildTypeStrings[static_cast<int>( value )];
+        return BuildTypeStrings[static_cast<int>(value)];
 #if defined _DEBUG
     } else {
         return nullptr;

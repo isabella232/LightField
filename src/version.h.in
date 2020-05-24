@@ -1,38 +1,42 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-enum class BuildType {
-    unknown,
+enum class BuildType
+{
+    Unknown,
     Release,
     Debug,
 };
 
-inline constexpr unsigned MakeVersionCode( unsigned const major, unsigned const minor, unsigned const teeny, unsigned const build = 0 ) {
-    return ( ( major & 0xFFu ) << 24u ) | ( ( minor & 0xFFu ) << 16u ) | ( ( teeny & 0xFFu ) << 8u ) | ( build & 0xFFu );
+inline constexpr unsigned MakeVersionCode(unsigned major, unsigned minor, unsigned teeny, unsigned build = 0)
+{
+    return ((major & 0xFFu) << 24u) | ((minor & 0xFFu) << 16u) | ((teeny & 0xFFu) << 8u) | (build & 0xFFu);
 }
 
-inline constexpr void DecodeVersionCode( unsigned const versionCode, int& major, int& minor, int& teeny, int& build ) {
-    major = static_cast<int>( ( versionCode >> 24u ) & 0xFFu );
-    minor = static_cast<int>( ( versionCode >> 16u ) & 0xFFu );
-    teeny = static_cast<int>( ( versionCode >>  8u ) & 0xFFu );
-    build = static_cast<int>(   versionCode          & 0xFFu );
+inline constexpr void DecodeVersionCode(unsigned versionCode, int& major, int& minor, int& teeny, int& build)
+{
+    major = static_cast<int>((versionCode >> 24u) & 0xFFu);
+    minor = static_cast<int>((versionCode >> 16u) & 0xFFu);
+    teeny = static_cast<int>((versionCode >> 8u) & 0xFFu);
+    build = static_cast<int>(versionCode  & 0xFFu);
 }
 
-char      const* LIGHTFIELD_VERSION_STRING        __attribute__(( weak )) = "@@VERSION_STRING@@";
-unsigned  const  LIGHTFIELD_VERSION_MAJOR                                 = @@VERSION_MAJOR@@;
-unsigned  const  LIGHTFIELD_VERSION_MINOR                                 = @@VERSION_MINOR@@;
-unsigned  const  LIGHTFIELD_VERSION_TEENY                                 = @@VERSION_TEENY@@;
-unsigned  const  LIGHTFIELD_VERSION_BUILD                                 = @@VERSION_BUILD@@;
-unsigned  const  LIGHTFIELD_VERSION_CODE                                  = MakeVersionCode( LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR, LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD );
+const char* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@LF_VERSION_STRING@";
+const unsigned int LIGHTFIELD_VERSION_MAJOR = @LF_VERSION_MAJOR@;
+const unsigned int LIGHTFIELD_VERSION_MINOR = @LF_VERSION_MINOR@;
+const unsigned int LIGHTFIELD_VERSION_TEENY = @LF_VERSION_TEENY@;
+const unsigned int LIGHTFIELD_VERSION_BUILD = @LF_VERSION_BUILD@;
+const unsigned int LIGHTFIELD_VERSION_CODE = MakeVersionCode(LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR,
+    LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD);
 
 #if defined _DEBUG
-BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                            = BuildType::Debug;
-#elif defined NDEBUG                                              
-BuildType const  LIGHTFIELD_VERSION_BUILD_TYPE                            = BuildType::Release;
+const BuildType LIGHTFIELD_VERSION_BUILD_TYPE = BuildType::Debug;
+#elif defined NDEBUG
+const BuildType LIGHTFIELD_VERSION_BUILD_TYPE = BuildType::Release;
 #else
-#   error Unknown build type: Neither _DEBUG nor NDEBUG are #define:d.
+#error Unknown build type: Neither _DEBUG nor NDEBUG are #defined
 #endif
 
-char      const* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__(( weak )) = "@@RELEASE_TRAIN@@";
+const char* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__(( weak )) = "@RELEASE_TRAIN@";
 
 #endif // __VERSION_H__
