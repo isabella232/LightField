@@ -27,6 +27,12 @@ set(CMAKE_AUTOUIC ON)
 
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/src/version.h @ONLY)
 
+if((${LF_RELEASE_TRAIN} EQUAL "dlp4710") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+  set(LF_PROJECTOR_TYPE "dlp4710")
+else()
+  set(LF_PROJECTOR_TYPE "dlpc350")
+endif()
+
 set(Project_Sources
         src/advancedtab.cpp
         src/advancedtabselectionmodel.cpp
@@ -144,7 +150,7 @@ set(Project_Headers
         ${CMAKE_BINARY_DIR}/src/version.h)
 
 set(Project_Resources
-        images/images.qrc
+        images/images-${LF_PROJECTOR_TYPE}.qrc
         gl/gl.qrc
         text/text.qrc)
 
@@ -175,7 +181,7 @@ if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   target_compile_definitions(lf PRIVATE -D_DEBUG)
 endif()
 
-if((${LF_RELEASE_TRAIN} EQUALS "xbase") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+if((${LF_RELEASE_TRAIN} EQUAL "xbase") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
   target_compile_definitions(lf PRIVATE -DEXPERIMENTAL)
 endif()
 
