@@ -48,6 +48,8 @@ public:
         TilingClicked,
         AdvancedExposureTimeEnabled,
         AdvancedExposureTimeDisabled,
+        EnableTiling,
+        DisableTiling
     };
     Q_ENUM( UiState );
 

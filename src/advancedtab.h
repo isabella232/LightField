@@ -112,7 +112,7 @@ private:
     ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
     ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5,      5 ) };
 
-    static const int FORMS_COUNT                      { 5 };
+    static const int FORMS_COUNT                      { 4 };
     QWidget*         _forms[FORMS_COUNT];
 
     PngDisplayer*    _pngDisplayer                    { };

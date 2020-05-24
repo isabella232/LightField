@@ -1,3 +1,5 @@
+#include <QtCore>
+#include <QtWidgets>
 #include "pch.h"
 
 #include "debuglogcopier.h"

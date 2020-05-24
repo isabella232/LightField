@@ -1,6 +1,9 @@
 #ifndef __PRINT_MANAGER_H__
 #define __PRINT_MANAGER_H__
 
+#include <QtCore>
+#include "constants.h"
+
 class MovementInfo;
 class MovementSequencer;
 class PngDisplayer;

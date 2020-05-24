@@ -1,6 +1,8 @@
 #ifndef __DEBUGLOGCOPIER_H__
 #define __DEBUGLOGCOPIER_H__
 
+#include <QtCore>
+#include <QtWidgets>
 #include "filecopier.h"
 #include "initialshoweventmixin.h"
 
@@ -48,19 +50,9 @@ private:
     void _showMessage( QString const& message );
 
 signals:
-    ;
-
     void finished( );
 
-public slots:
-    ;
-
-protected slots:
-    ;
-
 private slots:
-    ;
-
     void abortButton_clicked( bool );
     void okButton_clicked( bool );
 

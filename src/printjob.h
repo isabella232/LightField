@@ -80,6 +80,11 @@ public:
         return baseSlices.layerCount + bodySlices.layerCount;
     }
 
+    int slicedBaseLayerCount() const
+    {
+        return _bodyManager->getSize();
+    }
+
     int baseThickness() const
     {
         return baseSlices.layerCount * baseSlices.layerThickness;
@@ -87,50 +92,35 @@ public:
 
     int baseLayerThickness()
     {
-        if(isTiled()){
-            if(hasBaseLayers()){
-                return _baseManager->layerThickNessAt(0);
-            } else {
-                return 0;
-            }
-        } else {
-            if(hasBaseLayers()){
-                return baseSlices.layerThickness;
-            }else{
-                return 0;
-            }
-        }
+        if (isTiled())
+            return hasBaseLayers() ? _baseManager->layerThickNessAt(0) : 0;
+        else
+            return hasBaseLayers() ? baseSlices.layerThickness : 0;
     }
 
-    int bodyLayerThickness(){
-        if(isTiled()){
-            return _bodyManager->layerThickNessAt(0);
-        } else {
-            return bodySlices.layerThickness;
-        }
+    int bodyLayerThickness()
+    {
+        return isTiled()
+            ? _bodyManager->layerThickNessAt(0)
+            : bodySlices.layerThickness;
     }
 
-    int getLayerThicknessAt(int layerNo){
-        if(isTiled()){
-            if(hasBaseLayers()){
-                if(layerNo <= _baseManager->getSize()){
-                    return _baseManager->layerThickNessAt(layerNo);
-                } else {
-                    return _bodyManager->layerThickNessAt(layerNo);
-                }
-            } else {
+    int getLayerThicknessAt(int layerNo)
+    {
+        if (isTiled()) {
+            if (hasBaseLayers()) {
+                return layerNo <= _baseManager->getSize()
+                    ? _baseManager->layerThickNessAt(layerNo)
+                    : _bodyManager->layerThickNessAt(layerNo);
+            } else
                 return _bodyManager->layerThickNessAt(layerNo);
-            }
         } else {
-            if(hasBaseLayers()){
-                if(layerNo <= baseSlices.layerCount) {
-                    return baseSlices.layerThickness;
-                } else {
-                    return bodySlices.layerThickness;
-                }
-            } else {
+            if (hasBaseLayers()) {
+                return layerNo <= baseSlices.layerCount
+                    ? baseSlices.layerThickness
+                    : bodySlices.layerThickness;
+            } else
                 return bodySlices.layerThickness;
-            }
         }
     }
 
@@ -188,35 +178,41 @@ public:
         else return -1.0;
     }
 
+    QSharedPointer<OrderManifestManager> getBaseManager()
+    {
+        return _baseManager;
+    }
+
+    QSharedPointer<OrderManifestManager> getBodyManager()
+    {
+        return _bodyManager;
+    }
+
     void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
         _bodyManager.swap(manager);
         bodySlices.isPreSliced = true;
         bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
 
-        if(_bodyManager->tiled()){
-            bodySlices.layerThickness = _bodyManager->layerThickNessAt(0);
-        }
-        updateProfileLayersInfo();
-
+        if (_bodyManager->tiled())
+            bodySlices.layerThickness = -1;
     }
 
     void setBaseManager(QSharedPointer<OrderManifestManager> manager)
     {
         _baseManager.swap(manager);
 
-        if(!_baseManager.isNull()) {
+        if (!_baseManager.isNull()) {
             baseSlices.isPreSliced = true;
             baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
-            if(_baseManager->tiled()){
-                baseSlices.layerThickness = _baseManager->layerThickNessAt(0);
-            }
+            if (_baseManager->tiled())
+                baseSlices.layerThickness = -1;
+
         } else {
             baseSlices.sliceDirectory = nullptr;
             baseSlices.isPreSliced = false;
             baseSlices.layerCount = 0;
             baseSlices.layerThickness = -1;
         }
-        updateProfileLayersInfo();
     }
 
     int tilingCount()
@@ -225,19 +221,6 @@ public:
             return _bodyManager->tilingCount();
 
         return 0;
-    }
-
-    void updateProfileLayersInfo(){
-        printProfile->baseLayerParameters().setLayerThickness(baseLayerThickness());
-        printProfile->bodyLayerParameters().setLayerThickness(bodyLayerThickness());
-        printProfile->setBaseLayerCount(baseSlices.layerCount);
-    }
-
-    bool isProfileLayerInfoSync(){
-        if(baseLayerThickness() != printProfile->baseLayerParameters().layerThickness()) return false;
-        if(bodyLayerThickness() != printProfile->bodyLayerParameters().layerThickness()) return false;
-        if(baseSlices.layerCount != printProfile->baseLayerCount()) return false;
-        return true;
     }
 
 private:

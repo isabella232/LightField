@@ -88,8 +88,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
     QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _prepareTab, &PrepareTab::loadPrintProfile );
 
-    OrderManifestManager* manifestMgr = new OrderManifestManager( );
-    for ( auto tabA : tabs ) {
+    for (const auto &tabA: tabs) {
         QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
         QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
         QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd     );
@@ -97,7 +96,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         QObject::connect( tabA, &TabBase::iconChanged,        [ this ] ( TabIndex const sender, QIcon const& icon ) { _tabWidget->setTabIcon( +sender, icon ); } );
         QObject::connect( tabA, &TabBase::uiStateChanged,     this, &Window::tab_uiStateChanged );
 
-        for ( auto tabB : tabs ) {
+        for (const auto &tabB: tabs ) {
             QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
             tabA->setPrintProfileManager( _printProfileManager);
         }
@@ -140,8 +139,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _tilingTab->setContentsMargins( { } );
     _tilingTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    QObject::connect( _prepareTab, &PrepareTab::setupTiling, _tilingTab,   &TilingTab::setupTilingClicked );
-
 
     //
     // "Print" tab
@@ -374,7 +371,7 @@ void Window::startPrinting( ) {
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
         "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -390,7 +387,7 @@ void Window::startPrinting( ) {
         baseLayerParameters.noPumpUpVelocity( ),
         baseLayerParameters.pumpEveryNthLayer( ),
         baseLayerParameters.layerThickness( ),
-        baseLayerParameters.layerExposureTime( ),
+        baseSlices.exposureTime,
         baseLayerParameters.powerLevel( )
 
 
@@ -409,7 +406,7 @@ void Window::startPrinting( ) {
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
         "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %d ms\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -424,7 +421,7 @@ void Window::startPrinting( ) {
         bodyLayerParameters.noPumpUpVelocity( ),
         bodyLayerParameters.pumpEveryNthLayer( ),
         bodyLayerParameters.layerThickness( ),
-        bodyLayerParameters.layerExposureTime( ),
+        bodySlices.exposureTime,
         bodyLayerParameters.powerLevel( )
     );
 
@@ -461,51 +458,50 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
+            _setModelRendered( false );
+            if (_tabWidget->currentIndex( ) == +TabIndex::File) {
+                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
+                update();
+            }
 
-        _setModelRendered( false );
-        if ( _tabWidget->currentIndex( ) == +TabIndex::File ) {
-            _tabWidget->setCurrentIndex( +TabIndex::Prepare );
-
-            update( );
-        }
-
-        break;
+            break;
 
         case UiState::SliceStarted:
-            _setModelRendered( false );
+            _setModelRendered(false);
             break;
 
         case UiState::SliceCompleted:
-            _setModelRendered( true );
-            if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
+            _setModelRendered(true);
+            if (_isModelRendered && _isPrinterPrepared &&
+                _tabWidget->currentIndex() == +TabIndex::Prepare) {
                 _tabWidget->setCurrentIndex( +TabIndex::Print );
-
                 update( );
             }
             break;
 
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-            break;
-
         case UiState::SelectedDirectory:
-            if ( _tabWidget->currentIndex( ) == +TabIndex::File || _tabWidget->currentIndex() == +TabIndex::Tiling )
-                _tabWidget->setCurrentIndex( +TabIndex::Prepare );
-
-                update( );
+            _setModelRendered(true);
+            if (_tabWidget->currentIndex( ) == +TabIndex::File ||
+                _tabWidget->currentIndex() == +TabIndex::Tiling ) {
+                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
+                update();
+            }
             break;
         case UiState::TilingClicked:
-            _tabWidget->setCurrentIndex( +TabIndex::Tiling );
+            _tabWidget->setCurrentIndex(+TabIndex::Tiling);
+            update();
+            break;
 
-            update( );
-        break;
+        default:
+            break;
     }
 }
 
-void Window::tabs_currentChanged( int index ) {
+void Window::tabs_currentChanged(int index)
+{
     //debug( "+ Window::tabs_currentChanged: new tab is '%s' [%d]\n", ToString( static_cast<TabIndex>( index ) ), index );
-
-    update( );
+    (void)index;
+    update();
 }
 
 void Window::helpButton_clicked( bool ) {

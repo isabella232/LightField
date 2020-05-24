@@ -286,29 +286,23 @@ void FileTab::_showUsbStick( ) {
     update( );
 }
 
-void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
+{
     debug( "+ FileTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-            _selectedRow = -1;
-            break;
-
-        case UiState::SelectCompleted:
-        case UiState::TilingClicked:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-        case UiState::PrintStarted:
-        case UiState::PrintCompleted:
-
+    switch (_uiState) {
+    case UiState::SelectStarted:
+        _selectedRow = -1;
         break;
-        case UiState::SelectedDirectory:
-        if(sender == TabIndex::Tiling)
-        {
+
+    case UiState::SelectedDirectory:
+        if (sender == TabIndex::Tiling) {
             auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
+        break;
 
+   default:
         break;
     }
 }
@@ -398,6 +392,16 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         _modelSelection.x.min, _modelSelection.x.max, _modelSelection.x.size,
         _modelSelection.y.min, _modelSelection.y.max, _modelSelection.y.size,
         _modelSelection.z.min, _modelSelection.z.max, _modelSelection.z.size
+    );
+
+    debug(
+        "Printer Maximum X: %12.6f\n"
+        "Printer Maximum Y: %12.6f\n"
+        "Printer Maximum Z: %12.6f\n"
+        "",
+        PrinterMaximumX,
+        PrinterMaximumY,
+        PrinterMaximumZ
     );
 
     _dimensionsText = QString { "%1 mm × %2 mm × %3 mm" }
@@ -621,7 +625,6 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->baseSlices.layerCount = 2;
                 _printJob->baseSlices.layerThickness = match.captured(1).toInt();
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
-                _printJob->updateProfileLayersInfo();
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
                 emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
@@ -633,6 +636,8 @@ void FileTab::selectButton_clicked( bool ) {
                     emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
                 }
             }
+
+            _printJob->modelFileName = _modelSelection.fileName;
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );

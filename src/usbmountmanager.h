@@ -6,13 +6,12 @@
 class ProcessRunner;
 class StdioLogger;
 
-class UsbMountManager: public QObject {
-
+class UsbMountManager: public QObject
+{
     Q_OBJECT
 
 public:
-
-    UsbMountManager( QObject* parent = nullptr );
+    UsbMountManager(QObject* parent = nullptr);
     virtual ~UsbMountManager( ) override;
 
     void    remount( bool const writable );

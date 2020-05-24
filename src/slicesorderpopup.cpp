@@ -12,9 +12,6 @@ SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifest
     auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
-    Window* win = App::mainWindow();
-    QRect r = win->geometry();
-    move( r.x( )+50, r.y( )+100 );
     resize( 924, 400 );
 
     _okButton->setFont( fontAwesome );
@@ -231,5 +228,4 @@ void SlicesOrderPopup::custom_clicked(bool) {
 
     debug( "+ SlicesOrderPopup::custom_clicked \n" );
 }
-
 

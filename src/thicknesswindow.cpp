@@ -65,7 +65,6 @@ void ThicknessWindow::ok_clicked(bool) {
     _printJob->baseSlices.layerCount = _baseLayerCount->getValue();
     _printJob->baseSlices.layerThickness = _baseLayerThickness->getValue();
     _printJob->bodySlices.layerThickness = _bodyLayerThickness->getValue();
-    _printJob->updateProfileLayersInfo();
     done(QDialog::Accepted);
 }
 

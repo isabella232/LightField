@@ -1,11 +1,13 @@
 #include <exception>
 #include <QtCore>
+#include <QtWidgets>
 #include "constants.h"
+#include "debug.h"
 #include "ordermanifestmanager.h"
 
 using namespace std;
 
-const QString ManifestKeys::strings[15] = {
+const QString ManifestKeys::strings[12] = {
         "size",
         "sort_type",
         "tiling",
@@ -80,7 +82,6 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
             _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
             _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
             _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
-            _estimatedVolume = tilingNested.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
 
             QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
 
@@ -96,6 +97,10 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
     }
     } catch (...) {
         return ManifestParseResult::FILE_CORRUPTED;
+    }
+
+    if(root.contains( ManifestKeys(ManifestKeys::VOLUME).toQString( ) ) ) {
+      _estimatedVolume = root.value(ManifestKeys(ManifestKeys::VOLUME).toQString()).toDouble();
     }
 
     QJsonArray entities = root.value(ManifestKeys(ManifestKeys::ENTITIES).toQString()).toArray();
@@ -133,7 +138,9 @@ bool OrderManifestManager::save() {
     root.insert( ManifestKeys(ManifestKeys::SORT_TYPE).toQString(), QJsonValue { _type.toQString() } );
     root.insert( ManifestKeys(ManifestKeys::SIZE).toQString(),      QJsonValue { _size } );
 
-    if(_tiled)
+
+
+    if (_tiled)
     {
         QJsonObject tiling;
 
@@ -141,7 +148,6 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::STEP).toQString(),            QJsonValue { _tilingStep } );
         tiling.insert( ManifestKeys(ManifestKeys::SPACE).toQString(),           QJsonValue { _tilingSpace } );
         tiling.insert( ManifestKeys(ManifestKeys::COUNT).toQString(),           QJsonValue { _tilingCount } );
-        tiling.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(),          QJsonValue { _estimatedVolume } );
 
         QJsonArray expoArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)
@@ -152,26 +158,47 @@ bool OrderManifestManager::save() {
         tiling.insert( ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString(), expoArray );
 
         QJsonArray layerThickNessArray;
-        for(int i=0; i<_tilingExpoTime.size(); ++i)
-        {
-            layerThickNessArray.append(layerThickNessAt(i / _tilingCount ));
-        }
+        for (int i=0; i<_tilingExpoTime.size(); ++i)
+            layerThickNessArray.append(layerThickNessAt(i));
 
         tiling.insert( ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString(),  layerThickNessArray);
 
         root.insert( ManifestKeys(ManifestKeys::TILING).toQString(), tiling );
+
     }
 
     QJsonArray jsonArray;
+    QString fileName;
+    QImage calculationImage;
+    int activeTreshold = QColor("white").value() / 2;
+    int i = 0;
 
-    for(int i=0; i<_fileNameList.size(); ++i)
-    {
+    foreach (fileName, _fileNameList) {
         QJsonObject entity;
-        entity.insert( ManifestKeys(ManifestKeys::FILE_NAME).toQString(),      QJsonValue { _fileNameList[i] } );
+        entity.insert(ManifestKeys(ManifestKeys::FILE_NAME).toQString(), QJsonValue { fileName });
+
+        if(_tiled || _calculateArea) {
+            unsigned int activePixels = 0;
+
+            if (_calculateArea) {
+                calculationImage.load(_dirPath % Slash % fileName);
+                for (int size_y=0; size_y < calculationImage.height(); size_y++) {
+                    for (int size_x=0; size_x < calculationImage.width(); size_x++) {
+                        QColor tempColor = calculationImage.pixel(size_x, size_y);
+                        if (tempColor.value() >= activeTreshold)
+                            activePixels++;
+                    }
+                }
+
+                _estimatedVolume += ProjectorPixelSize * ProjectorPixelSize *
+                    activePixels * layerThickNessAt(i++) / 1000; // units: mm * mm * µm / 1000 = µL
+            }
+        }
 
         jsonArray.append(entity);
     }
 
+    root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
     jsonDocument.setObject(root);
 
@@ -197,10 +224,10 @@ double OrderManifestManager::getTimeForElementAt(int position){
  * @return
  */
 int OrderManifestManager::layerThickNessAt(int position) {
-    if(_layerThickNess.count() > 0 && _layerThickNess.count() < position )
+    if(_layerThickNess.count() > 0 && position < _layerThickNess.count())
     {
         return _layerThickNess[position];
-    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() >= position) {
+    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() <= position) {
         return -1;
     } else {
         if( position < _baseLayerCount ) {

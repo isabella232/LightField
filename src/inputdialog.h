@@ -1,23 +1,24 @@
 #ifndef __INPUTDIALOG_H__
 #define __INPUTDIALOG_H__
 
+#include <iostream>
+#include <cstdbool>
 #include "keyboard.h"
 #include "window.h"
+#include "utils.h"
 
-#include <iostream>
-#include <stdbool.h>
-
-
-class InputDialog: public QDialog {
+class InputDialog: public QDialog
+{
     Q_OBJECT
-    private:
+
+private:
         Keyboard*    _keyboard          { new Keyboard(this) };
         QLabel*      _message           { new QLabel };
         QLineEdit*   _input             { new QLineEdit };
         QPushButton* _okButton          { new QPushButton("Ok") };
         QPushButton* _cancelButton      { new QPushButton("Cancel")};
         QWidget*     _widget            { new QWidget };
-    public:
+public:
         InputDialog() { }
         InputDialog(QString text) {
             auto origFont    = font( );

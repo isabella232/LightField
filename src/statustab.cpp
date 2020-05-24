@@ -581,33 +581,32 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     debug( "+ StatusTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SelectCompleted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-            _modelFileNameLabel->clear( );
-            _imageFileNameLabel->clear();
-            _stopButton->setVisible( false );
-            _reprintButton->setVisible( true );
-            break;
+    switch (_uiState) {
+    case UiState::SelectStarted:
+    case UiState::SelectCompleted:
+    case UiState::SliceStarted:
+    case UiState::SliceCompleted:
+        _modelFileNameLabel->clear( );
+        _imageFileNameLabel->clear();
+        _stopButton->setVisible( false );
+        _reprintButton->setVisible( true );
+        break;
 
-        case UiState::PrintStarted:
-            _modelFileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
-            _stopButton->setEnabled( true );
-            _stopButton->setText( "STOP" );
-            _stopButton->setVisible( true );
-            _reprintButton->setVisible( false );
-            break;
+    case UiState::PrintStarted:
+        _modelFileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
+        _stopButton->setEnabled( true );
+        _stopButton->setText( "STOP" );
+        _stopButton->setVisible( true );
+        _reprintButton->setVisible( false );
+        break;
 
-        case UiState::PrintCompleted:
-            _stopButton->setVisible( false );
-            _reprintButton->setVisible( true );
-            break;
+    case UiState::PrintCompleted:
+        _stopButton->setVisible( false );
+        _reprintButton->setVisible( true );
+        break;
 
-        case UiState::SelectedDirectory:
-        case UiState::TilingClicked:
-            break;
+    default:
+        break;
     }
 
     _updateReprintButtonState( );

@@ -78,7 +78,6 @@ private:
     QWidget*          _optionsContainer            { new QWidget          };
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
-    QPushButton*      _setupTiling                 { new QPushButton      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -99,7 +98,8 @@ private:
     void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
-    void _showLayerImage( int const layer );
+    void _showLayerImage(int const layer);
+    void _showLayerImage(const QString &path);
     void _setSliceControlsEnabled( bool const enabled );
     void _updateSliceControls();
     void _updatePrepareButtonState( );
@@ -109,30 +109,16 @@ private:
     void _restartPreview();
 
 signals:
-    ;
-
-    void slicingNeeded( bool const needed );
-
-    void preparePrinterStarted( );
-    void preparePrinterComplete( bool const success );
-
-    void printerAvailabilityChanged( bool const available );
-
-    void setupTiling( PrintJob* _printJob );
+    void slicingNeeded(bool const needed);
+    void preparePrinterStarted();
+    void preparePrinterComplete(bool const success);
+    void printerAvailabilityChanged(bool const available);
 
 public slots:
-    ;
-
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
     void setPrinterAvailable( bool const value );
 
-protected slots:
-    ;
-
 private slots:
-    ;
-
     void usbMountManager_filesystemMounted( QString const& mountPoint );
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
@@ -156,14 +142,13 @@ private slots:
     void sliceButton_clicked( bool );
 
     void orderButton_clicked( bool );
-    void setupTiling_clicked( bool );
 
     void hasher_resultReady( QString const hash );
 
     void slicingStatusUpdate(const QString &status);
     void renderingStatusUpdate(const QString &status);
     void layerCountUpdate(int count);
-    void layerDoneUpdate(int layer);
+    void layerDoneUpdate(int layer, QString path);
     void slicingDone(bool success);
 
     void prepareButton_clicked( bool );

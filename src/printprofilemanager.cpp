@@ -1,3 +1,7 @@
+#include <cerrno>
+#include <cstring>
+#include <sys/mount.h>
+#include <QtCore>
 #include "pch.h"
 
 #include "profilesjsonparser.h"
@@ -9,7 +13,8 @@ QSharedPointer<PrintProfile> PrintProfileManager::_findProfile( QString const& p
 }
 
 
-bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile ) {
+bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
+{
     auto profile = _findProfile( newProfile->profileName( ) );
     if ( !profile ) {
         _profiles->append( newProfile );
@@ -20,7 +25,8 @@ bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile ) {
     }
 }
 
-bool PrintProfileManager::removeProfile( QString const& name ) {
+bool PrintProfileManager::removeProfile(const QString& name)
+{
     auto profile = _findProfile( name );
     if ( profile ) {
         _profiles->removeOne( profile );
@@ -31,7 +37,8 @@ bool PrintProfileManager::removeProfile( QString const& name ) {
     }
 }
 
-bool PrintProfileManager::setActiveProfile( QString const& profileName ) {
+bool PrintProfileManager::setActiveProfile(const QString& profileName)
+{
     auto newProfile = _findProfile( profileName );
     if ( newProfile ) {
         emit activeProfileChanged( newProfile );
@@ -60,11 +67,24 @@ bool PrintProfileManager::exportProfiles(const QString& mountPoint )
 {
     QString destPath { QString("%1/print-profiles.json").arg(mountPoint) };
     QFile sourceFile(PrintProfilesPath);
+    bool result;
 
     debug("+ PrintProfileManager::exportProfiles\n");
     debug("  + mountPoint: %s\n", mountPoint.toUtf8().data());
     debug("  + destPath: %s\n", destPath.toUtf8().data());
 
+    if (mount(nullptr, mountPoint.toUtf8().data(), nullptr, MS_REMOUNT, nullptr) != 0) {
+        debug("  + failed to remount %s rw: %s\n", mountPoint.toUtf8().data(), strerror(errno));
+        return false;
+    }
+
     QFile::remove(destPath);
-    return sourceFile.copy(destPath);
+    result = sourceFile.copy(destPath);
+
+    if (mount(nullptr, mountPoint.toUtf8().data(), nullptr, MS_REMOUNT | MS_RDONLY, nullptr) != 0) {
+        debug("  + failed to remount %s ro: %s\n", mountPoint.toUtf8().data(), strerror(errno));
+        return false;
+    }
+
+    return result;
 }

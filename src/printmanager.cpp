@@ -331,10 +331,7 @@ void PrintManager::stepB2_start( ) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
         _duringTiledLayer = true;
     }else {
-        if( _printJob->isBaseLayer(currentLayer()))
-            layerExposureTime = _printJob->baseSlices.exposureTime;
-        else
-            layerExposureTime = _printJob->bodySlices.exposureTime;
+        layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
     }
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
@@ -481,7 +478,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd() ) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1) ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -549,7 +546,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
     }
 
 
-    if ( _currentBaseLayer == _printJob->baseLayerEnd()) {
+    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1)) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -610,7 +607,7 @@ void PrintManager::stepC1_failed( int const exitCode, QProcess::ProcessError con
 void PrintManager::stepC2_start( ) {
     _step = PrintStep::C2;
 
-    int layerExposureTime = _printJob->printProfile->bodyLayerParameters( ).layerExposureTime( );
+    int layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
     debug( "+ PrintManager::stepC2_start: pausing for %d ms\n", layerExposureTime );
 
     _layerExposureTimer = _makeAndStartTimer( layerExposureTime, &PrintManager::stepC2_completed );
@@ -787,14 +784,22 @@ void PrintManager::stepC4b1_completed( ) {
 }
 
 // C4b2. Move one layer up
-void PrintManager::stepC4b2_start( ) {
+void PrintManager::stepC4b2_start()
+{
     _step = PrintStep::C4b2;
+    QList<MovementInfo> movements = {
+        {
+            MoveType::Relative,
+            _printJob->getLayerThicknessAt(_currentLayer) / 1000.0,
+            PrinterDefaultLowSpeed
+        }
+    };
 
-    debug( "+ PrintManager::stepC4b2_start: moving one layer up\n" );
+    debug("+ PrintManager::stepC4b2_start: moving one layer up\n");
 
-    QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepC4b2_completed );
-
-    _movementSequencer->setMovements( _stepC4b2_movements );
+    QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
+        &PrintManager::stepC4b2_completed);
+    _movementSequencer->setMovements(movements);
     _movementSequencer->execute( );
 }
 
@@ -948,17 +953,25 @@ void PrintManager::print( PrintJob* printJob ) {
         return;
     }
 
+    if (printJob->isTiled()) {
+        Q_ASSERT(printJob->baseSlices.layerCount == 0);
+        Q_ASSERT(printJob->baseSlices.layerThickness == -1);
+        Q_ASSERT(printJob->bodySlices.layerThickness == -1);
+    } else {
+        if (printJob->hasBaseLayers()) {
+            Q_ASSERT(printJob->baseSlices.layerCount > 0);
+            Q_ASSERT(printJob->baseSlices.layerThickness > 0);
+        }
+
+        Q_ASSERT(printJob->bodySlices.layerThickness > 0);
+    }
+
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
     _isTiled = printJob->isTiled();
     _elementsOnLayer = printJob->tilingCount();
 
-    _pngDisplayer->clear( );
-
-    if(!_printJob->isProfileLayerInfoSync()){
-        debug( "+ PrintManager::print: WARNING! printJob and print profile layer thicknesses out of sync!");
-        _printJob->updateProfileLayersInfo();
-    }
+    _pngDisplayer->clear();
 
     // TODO set up movements
     auto const  profile              { _printJob->printProfile };
@@ -986,8 +999,6 @@ void PrintManager::print( PrintJob* printJob ) {
     _stepC4a2_movements.push_back( { bodyParameters.pumpUpPause( ) } );
     _stepC4a2_movements.push_back( { MoveType::Relative, bodyMoveDownDistance,             bodyParameters.pumpDownVelocity_Effective( ) } );
     _stepC4a2_movements.push_back( { bodyParameters.pumpDownPause( ) } );
-
-    _stepC4b2_movements.push_back( { MoveType::Relative, ( bodyParameters.layerThickness( ) / 1000.0 ), PrinterDefaultLowSpeed } );
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;

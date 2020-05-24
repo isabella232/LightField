@@ -1,6 +1,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include "constants.h"
 #include "key.h"
 #include "keyboard.h"
 

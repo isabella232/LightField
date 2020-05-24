@@ -22,8 +22,10 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
     QObject::connect( _powerLevelSlider, &ParamSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
-    QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::bodyExpoTime_changed   );
-    QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::baseExpoTime_changed   );
+    QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
+    QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
+
+
 
     _powerLevelSlider->innerSlider()->setPageStep( 5 );
     _powerLevelSlider->innerSlider()->setSingleStep( 1 );
@@ -109,6 +111,8 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
+    //TODO: debug slider itself instead of overwriting it
+    _bodyExposureTimeSlider->setValue(1000);
 
     event->accept( );
 
@@ -127,13 +131,9 @@ void PrintTab::projectorPowerLevel_changed( int const percentage ) {
     update( );
 }
 
-void PrintTab::bodyExpoTime_changed( ) {
+
+void PrintTab::exposureTime_update( ) {
     _printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValueDouble();
-
-    update( );
-}
-
-void PrintTab::baseExpoTime_changed( ) {
     _printJob->baseSlices.exposureTime = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
     update( );
 }
@@ -149,6 +149,7 @@ void PrintTab::printSpeedSlider_valueChanged( int value ) {
 
 void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
+    exposureTime_update();
     emit printRequested( );
     emit uiStateChanged( TabIndex::Print, UiState::PrintStarted );
 
@@ -243,44 +244,42 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
     debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s; PO? %s PA? %s PP? %s MR? %s\n", ToString( sender ), ToString( _uiState ), ToString( state ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
     _uiState = state;
 
-    switch ( _uiState ) {
-        case UiState::SelectStarted:
-        case UiState::SliceStarted:
-        case UiState::SliceCompleted:
-            break;
-        case UiState::TilingClicked:
-            break;
+    switch (_uiState) {
         case UiState::SelectCompleted:
-            _bodyExposureTimeSlider->setValue( ( _printJob->bodySlices.exposureTime = 2000 ) );
-            _baseExposureTimeSlider->setValue( ( ( _printJob->baseSlices.exposureTime = 4000 ) / _printJob->bodySlices.exposureTime ) );
+            _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
+            _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
+                _printJob->bodySlices.exposureTime);
             break;
+
         case UiState::PrintStarted:
-            setPrinterAvailable( false );
-            emit printerAvailabilityChanged( false );
+            setPrinterAvailable(false);
+            emit printerAvailabilityChanged(false);
             break;
 
         case UiState::PrintCompleted:
-            setPrinterAvailable( true );
-            emit printerAvailabilityChanged( true );
+            setPrinterAvailable(true);
+            emit printerAvailabilityChanged(true);
             break;
 
-        case UiState::SelectedDirectory:
-            break;
         case UiState::AdvancedExposureTimeEnabled:
             _baseExposureTimeSlider->setEnabled(false);
             _bodyExposureTimeSlider->setEnabled(false);
             break;
+
         case UiState::AdvancedExposureTimeDisabled:
             _baseExposureTimeSlider->setEnabled(true);
             _bodyExposureTimeSlider->setEnabled(true);
 
             this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
-            this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() * _bodyExposureTimeSlider->getValue();
-        break;
+            this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() *
+                _bodyExposureTimeSlider->getValue();
+            break;
 
+        default:
+            break;
     }
 
-    update( );
+    update();
 }
 
 void PrintTab::printer_online( ) {
