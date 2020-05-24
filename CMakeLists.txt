@@ -17,12 +17,7 @@ set(LF_VERSION_MINOR "0")
 set(LF_VERSION_TEENY "12")
 set(LF_VERSION_BUILD "7")
 set(LF_VERSION_STRING "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_TEENY}.${LF_VERSION_BUILD}")
-
-if(CMAKE_BUILD_TYPE EQUAL Debug)
-  set(LF_RELEASE_TRAIN "Debug")
-else()
-  set(LF_RELEASE_TRAIN "Release")
-endif()
+set(LF_RELEASE_TRAIN "base" CACHE STRING "Release train")
 
 project(lf)
 
@@ -176,8 +171,12 @@ target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml PkgConfig::MAG
 # Add version definitions to use within the code. 
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   target_compile_definitions(lf PRIVATE -D_DEBUG)
+endif()
+
+if((${LF_RELEASE_TRAIN} EQUALS "xbase") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+  target_compile_definitions(lf PRIVATE -DEXPERIMENTAL)
 endif()
 
 install(TARGETS lf RUNTIME DESTINATION bin)
