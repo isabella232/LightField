@@ -2,6 +2,8 @@
 #define __UTILS_H__
 
 #include <QtCore>
+#include <QtWidgets>
+#include "constants.h"
 
 double   GetBootTimeClock( );
 bool     GetFileSystemInfoFromPath( QString const& fileName, qint64& bytesFree, qint64& optimalWriteBlockSize );
