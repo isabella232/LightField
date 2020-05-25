@@ -1,3 +1,4 @@
+#include <QtCore>
 #include "pch.h"
 
 #include "profilesjsonparser.h"
