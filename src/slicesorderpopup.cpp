@@ -197,13 +197,14 @@ void SlicesOrderPopup::arrowUp_clicked(bool) {
 void SlicesOrderPopup::arrowDown_clicked(bool) {
     debug( "+ SlicesOrderPopup::arrowDown_clicked \n" );
     int currIdx = _list->currentIndex( ).row( );
-
     if(currIdx == _model->rowCount()-1)
         return;
+    auto currRow = _model->takeRow( currIdx );
 
+    if(currRow.count() == 0)
+        return;
     int nextRow = currIdx + 1;
 
-    auto currRow = _model->takeRow( currIdx );
     _model->removeRows( currIdx, 0 );
     _model->insertRow( nextRow, currRow );
 
