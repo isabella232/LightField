@@ -1,8 +1,9 @@
 [
     {
-        "name": "exampleProfile",
+        "name": "default",
         "baseLayerCount": 2,
         "baseLayersPumpingParameters": {
+            "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
@@ -14,6 +15,7 @@
             "powerLevel": 50.0
         },
         "bodyLayersPumpingParameters": {
+            "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
