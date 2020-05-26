@@ -47,7 +47,8 @@ private:
     bool _updateProfile();
     bool _deletePrintProfile();
     bool _loadPrintProfile();
-    void _enableButtonProfile( bool enabled );
+    void _enableButtonProfile(bool enabled);
+    void _usbRemounted(const bool succeeded, const bool writable);
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;

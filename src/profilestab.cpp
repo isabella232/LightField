@@ -172,6 +172,34 @@ void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManag
     delete profiles;
 }
 
+void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
+{
+    QMessageBox msgBox { this };
+
+    QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
+        &ProfilesTab::_usbRemounted);
+
+    if (!succeeded) {
+        msgBox.setText("Could not remount USB stick. Make sure memory stick is inserted into USB drive.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+        return;
+    }
+
+    if (!_printProfileManager->exportProfiles(_usbMountPoint)) {
+        msgBox.setText("Could not export profiles. Make sure memory stick is inserted into USB drive.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+        _usbMountManager->remount(false);
+        return;
+    }
+
+    msgBox.setText("Export succeeded.");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+    _usbMountManager->remount(false);
+}
+
 void ProfilesTab::importParams_clicked(bool)
 {
     QMessageBox msgBox { this };
@@ -213,20 +241,9 @@ void ProfilesTab::exportParams_clicked(bool)
     switch (ret) {
         case QMessageBox::Yes:
             // @todo how to pass checkboxes values? what filename means?
+            QObject::connect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
+                &ProfilesTab::_usbRemounted);
             _usbMountManager->remount(true);
-            if(!_printProfileManager->exportProfiles(_usbMountPoint))
-            {
-               msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
-            else
-            {
-               msgBox.setText("Export succeeded.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
-            _usbMountManager->remount(false);
             break;
         default:
             break;
