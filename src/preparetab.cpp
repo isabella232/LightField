@@ -400,10 +400,10 @@ bool PrepareTab::_checkSliceDirectories( )
     _setSliceControlsEnabled( true );
 
     if (preSliced) {
-        _navigateCurrentLabel->setText( QString { "1/%1" }.arg( _printJob->totalLayerCount() ) );
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice..." : "Reslice...");
         _orderButton->setEnabled(false);
         _reslice = true;
+        _restartPreview();
         //_copyToUSBButton->setEnabled( true );
 
 
@@ -745,9 +745,9 @@ void PrepareTab::_restartPreview()
 {
     _visibleLayer = 0;
     _showLayerImage(_visibleLayer);
-    if (_printJob->totalLayerCount()) {
+
+    if (_printJob->totalLayerCount())
         _setNavigationButtonsEnabled(true);
-    }
 }
 
 void PrepareTab::_showWarning(QString content) {
