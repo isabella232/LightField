@@ -214,7 +214,6 @@ void ProfilesTab::exportParams_clicked(bool)
         case QMessageBox::Yes:
             // @todo how to pass checkboxes values? what filename means?
             _usbMountManager->remount(true);
-            sleep(1);
             if(!_printProfileManager->exportProfiles(_usbMountPoint))
             {
                msgBox.setText("Something went wrong. Make sure memory stick is inserted into USB drive.");
