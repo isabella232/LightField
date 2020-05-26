@@ -328,13 +328,13 @@ void PrintManager::stepB2_start( ) {
 
     int layerExposureTime;
 
-    if(_isTiled){
-        int realLayer = currentLayer()/_printJob->tilingCount();
+    if (_isTiled) {
+        int realLayer = currentLayer() / _printJob->tilingCount();
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
         _duringTiledLayer = true;
-    }else {
+    } else
         layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
-    }
+
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
     _layerExposureTimer = _makeAndStartTimer( layerExposureTime, &PrintManager::stepB2_completed );
@@ -609,7 +609,15 @@ void PrintManager::stepC1_failed( int const exitCode, QProcess::ProcessError con
 void PrintManager::stepC2_start( ) {
     _step = PrintStep::C2;
 
-    int layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
+    int layerExposureTime;
+
+    if (_isTiled) {
+        int realLayer = currentLayer() / _printJob->tilingCount();
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
+        _duringTiledLayer = true;
+    } else
+        layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
+
     debug( "+ PrintManager::stepC2_start: pausing for %d ms\n", layerExposureTime );
 
     _layerExposureTimer = _makeAndStartTimer( layerExposureTime, &PrintManager::stepC2_completed );
