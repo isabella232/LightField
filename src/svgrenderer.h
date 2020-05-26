@@ -71,6 +71,7 @@ public:
         /* GraphicsMagick needs normalized locale */
         (void) setlocale(LC_ALL,"");
         (void) setlocale(LC_NUMERIC, "C");
+        Magick::InitializeMagick(nullptr);
 
         image.quiet(false);
 

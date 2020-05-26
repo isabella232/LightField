@@ -306,23 +306,19 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     // check that the layer SVG files are newer than the sliced SVG file,
     //   and that the layer PNG files are newer than the layer SVG files,
     //   and that there are no gaps in the numbering.
-    while ( iter.hasNext() ) {
+    while (iter.hasNext()) {
 
         QFileInfo entry ( sliceInfo.sliceDirectory % Slash % *iter);
         ++iter;
 
-        if ( slicedSvgFileLastModified > entry.lastModified( ) ) {
-            debug( "  + Fail: sliced SVG file is newer than layer SVG file %s\n", entry.fileName( ).toUtf8( ).data( ) );
+        if (!entry.exists()) {
+            debug( "  + Fail: layer PNG file %s does not exist\n", entry.fileName().toUtf8().data());
             return false;
         }
-
-        auto layerPngFile = QFileInfo { entry.path( ) + Slash + entry.completeBaseName( ) + QString { ".png" } };
-        if ( !layerPngFile.exists( ) ) {
-            debug( "  + Fail: layer PNG file %s does not exist\n", layerPngFile.fileName( ).toUtf8( ).data( ) );
-            return false;
-        }
-        if ( entry.lastModified( ) > layerPngFile.lastModified( ) ) {
-            debug( "  + Fail: layer SVG file %s is newer than layer PNG file %s\n", entry.fileName( ).toUtf8( ).data( ), layerPngFile.fileName( ).toUtf8( ).data( ) );
+        if (slicedSvgFileLastModified > entry.lastModified()) {
+            debug("  + Fail: layer PNG file %s is newer than SVG file\n", entry.fileName().toUtf8().data());
+            debug("    + SVG file timestamp: %s\n", slicedSvgFileLastModified.toString().toUtf8().data());
+            debug("    + layer PNG file timestamp: %s\n", entry.lastModified().toString().toUtf8().data());
             return false;
         }
 
