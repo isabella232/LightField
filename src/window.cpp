@@ -85,20 +85,28 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _prepareTab->setPrintJob(_printJob);
     _advancedTab->setPrintJob(_printJob);
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _prepareTab, &PrepareTab::loadPrintProfile );
+
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _advancedTab, &AdvancedTab::loadPrintProfile);
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
-        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
-        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
-        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd     );
+        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
+        QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
+        QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
+        QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
+        QObject::connect(tabA, &TabBase::iconChanged,
+            [this] (TabIndex const sender, QIcon const& icon) {
+                _tabWidget->setTabIcon(+sender, icon);
+            }
+        );
 
-        QObject::connect( tabA, &TabBase::iconChanged,        [ this ] ( TabIndex const sender, QIcon const& icon ) { _tabWidget->setTabIcon( +sender, icon ); } );
-        QObject::connect( tabA, &TabBase::uiStateChanged,     this, &Window::tab_uiStateChanged );
+        for (const auto &tabB: tabs) {
+            QObject::connect(tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged,
+                Qt::QueuedConnection);
 
-        for (const auto &tabB: tabs ) {
-            QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
-            tabA->setPrintProfileManager( _printProfileManager);
+            tabA->setPrintProfileManager(_printProfileManager);
         }
     }
 

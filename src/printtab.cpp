@@ -114,6 +114,9 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     //TODO: debug slider itself instead of overwriting it
     _bodyExposureTimeSlider->setValue(1000);
 
+    _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
+    _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
+
     event->accept( );
 
     update( );
@@ -246,9 +249,16 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch (_uiState) {
         case UiState::SelectCompleted:
+            _baseExposureTimeSlider->setEnabled(false);
+            _bodyExposureTimeSlider->setEnabled(false);
             _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
             _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
                 _printJob->bodySlices.exposureTime);
+            break;
+
+        case UiState::PrintJobReady:
+            _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
+            _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
             break;
 
         case UiState::PrintStarted:
@@ -267,8 +277,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             break;
 
         case UiState::AdvancedExposureTimeDisabled:
-            _baseExposureTimeSlider->setEnabled(true);
-            _bodyExposureTimeSlider->setEnabled(true);
+            _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
+            _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
 
             this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
             this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() *

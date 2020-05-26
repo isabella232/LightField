@@ -282,10 +282,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     case ManifestParseResult::POSITIVE:
         if(manifestMgr->tiled()){
-
             debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
-
-            emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
             _printJob->estimatedVolume = manifestMgr->manifestVolume();
         }
         break;
@@ -368,6 +365,7 @@ bool PrepareTab::_checkSliceDirectories( )
 
     if(_printJob->directoryMode) {
         debug("+ PrepareTab::_checkSliceDirectories: directory mode, nothing to do\n");
+        emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
         return true;
     }
 
@@ -406,17 +404,13 @@ bool PrepareTab::_checkSliceDirectories( )
         _restartPreview();
         //_copyToUSBButton->setEnabled( true );
 
-
-        if (!_printJob->isTiled())
-            emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
+        emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
     } else {
         _navigateCurrentLabel->setText("0/0");
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom slice..." : "Slice..."); 
         _orderButton->setEnabled(false);
         _reslice = false;
         //_copyToUSBButton->setEnabled( false );
-
-        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
     }
 
     update();
@@ -496,19 +490,13 @@ void PrepareTab::_showLayerImage(const QString &path)
 
 void PrepareTab::_setSliceControlsEnabled(bool const enabled)
 {
-    _sliceButton->setEnabled( enabled );
-    if( enabled && !_printJob->isTiled() ) {
-        emit uiStateChanged(TabIndex::Prepare, UiState::EnableTiling);
-    } else {
-        emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
-    }
-
-    _layerThicknessLabel->setEnabled( enabled );
-    _layerThickness100Button->setEnabled( enabled );
-    _layerThickness50Button->setEnabled( enabled );
-    _layerThicknessCustomButton->setEnabled( enabled );
+    _sliceButton->setEnabled(enabled);
+    _layerThicknessLabel->setEnabled(enabled);
+    _layerThickness100Button->setEnabled(enabled);
+    _layerThickness50Button->setEnabled(enabled);
+    _layerThicknessCustomButton->setEnabled(enabled);
 #if defined EXPERIMENTAL
-    _layerThickness20Button->setEnabled( enabled );
+    _layerThickness20Button->setEnabled(enabled);
 #endif // defined EXPERIMENTAL
 
     update( );
@@ -690,7 +678,6 @@ void PrepareTab::_loadDirectoryManifest()
 
     case ManifestParseResult::POSITIVE:
         if (manifestMgr->tiled()) {
-            emit uiStateChanged(TabIndex::Prepare, UiState::DisableTiling);
             // in case of tiled design volume comes from manifest file instead of model calculation
             _printJob->estimatedVolume = manifestMgr->manifestVolume();
         }
@@ -732,13 +719,8 @@ void PrepareTab::_loadDirectoryManifest()
 
     layerCountUpdate(_printJob->totalLayerCount());
 
-    QTimer::singleShot(0, [=]() {
-        emit uiStateChanged(TabIndex::Prepare, _printJob->isTiled()
-            ? UiState::DisableTiling
-            : UiState::EnableTiling);
-    });
-
     _restartPreview();
+    emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
 }
 
 void PrepareTab::_restartPreview()

@@ -42,14 +42,13 @@ public:
         SelectCompleted,
         SliceStarted,
         SliceCompleted,
+        PrintJobReady,
         PrintStarted,
         PrintCompleted,
         SelectedDirectory,
         TilingClicked,
         AdvancedExposureTimeEnabled,
         AdvancedExposureTimeDisabled,
-        EnableTiling,
-        DisableTiling
     };
     Q_ENUM( UiState );
 
@@ -98,8 +97,6 @@ signals:
     void iconChanged( TabIndex const sender, QIcon const& icon );
 
 public slots:
-    ;
-
     virtual void setPrintJob( PrintJob* printJob );
     virtual void setPrintManager( PrintManager* printManager );
     virtual void setPrintProfileManager( PrintProfileManager* printProfileManager );
