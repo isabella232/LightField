@@ -63,7 +63,7 @@ void SvgRenderer::render(QString const& svgFileName,
 
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
-    _threadPool.setMaxThreadCount(get_nprocs());
+    _threadPool.setMaxThreadCount(1);
     _outputDirectory = outputDirectory;
     _layerList.clear();
 

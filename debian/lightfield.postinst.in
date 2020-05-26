@@ -41,8 +41,8 @@ case "$1" in
 
         systemctl daemon-reload
         systemctl set-default multi-user.target
-        systemctl enable --now set-projector-power.service clean-up-mount-points.service
-        systemctl enable getty@tty1.service
+        systemctl enable --no-ask-password --now set-projector-power.service clean-up-mount-points.service
+        systemctl enable --no-ask-password getty@tty1.service
         systemctl daemon-reload
 
         if [ "${RELEASE_TRAIN}" = "dlp4710" ]
