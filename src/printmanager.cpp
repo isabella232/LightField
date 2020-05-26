@@ -840,6 +840,8 @@ void PrintManager::stepD1_start( ) {
         emit lampStatusChange( false );
     }
 
+    _pngDisplayer->clear( );
+
     debug( "+ PrintManager::stepD1_start: raising build platform to maximum Z\n" );
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
