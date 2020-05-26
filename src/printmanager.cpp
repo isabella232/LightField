@@ -623,7 +623,11 @@ void PrintManager::stepC2_completed( ) {
         return;
     }
 
-    stepC3_start( );
+    if(_isTiled) {
+        stepC2a_start();
+    }else{
+        stepC3_start( );
+    }
 }
 
 
