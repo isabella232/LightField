@@ -259,6 +259,8 @@ void PrintManager::stepA3_completed( bool const success ) {
         return;
     }
 
+    emit printPausable(true);
+
     if ( _printJob->baseLayerStart() > -1 ) {
         stepB1_start( );
     } else if ( _printJob->bodyLayerStart() > -1 ) {
