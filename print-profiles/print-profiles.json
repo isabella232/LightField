@@ -1,6 +1,6 @@
 [
     {
-        "name": "default",
+        "name": "default-profile",
         "baseLayerCount": 2,
         "baseLayersPumpingParameters": {
             "pumpingEnabled": true,
