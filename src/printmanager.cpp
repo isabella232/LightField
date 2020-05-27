@@ -329,8 +329,7 @@ void PrintManager::stepB2_start( ) {
     int layerExposureTime;
 
     if (_isTiled) {
-        int realLayer = currentLayer() / _printJob->tilingCount();
-        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else
         layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
@@ -612,8 +611,7 @@ void PrintManager::stepC2_start( ) {
     int layerExposureTime;
 
     if (_isTiled) {
-        int realLayer = currentLayer() / _printJob->tilingCount();
-        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else
         layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
@@ -653,13 +651,13 @@ void PrintManager::stepC2a_start( ){
         emit startingLayer( _currentLayer );
         QString pngFileName = _printJob->getLayerPath( _currentLayer );
         if ( !_pngDisplayer->loadImageFile( pngFileName ) ) {
-            debug( "+ PrintManager::stepB2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
+            debug( "+ PrintManager::stepC2a_start: PngDisplayer::loadImageFile failed for file %s\n", pngFileName.toUtf8( ).data( ) );
             this->abort( );
             return;
         }
         stepC2_start( );
     }else{
-        debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
+        debug( "+ PrintManager::stepC2a_start: current layer has no more tiled elements'\n" );
         _duringTiledLayer = false;
         stepC3_start( );
     }
