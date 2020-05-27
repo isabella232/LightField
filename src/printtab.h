@@ -44,11 +44,6 @@ private:
     bool               _isModelRendered                    { false };
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
-
-    /*QLabel*            _powerLevelLabel                    { new QLabel      };
-    QLabel*            _powerLevelValue                    { new QLabel      };
-    QSlider*           _powerLevelSlider                   { new QSlider     };*/
-
     ParamSlider*       _powerLevelSlider                   { new ParamSlider( "Projector power level",
                                                                               "%",    50, ProjectorMaxPercent,   ProjectorMinPercent, 1 ) };
 
@@ -72,7 +67,7 @@ private:
     void _updateUiState( );
 
 signals:
-
+    void advancedControlsChanged(bool enabled);
     void printerAvailabilityChanged( bool const available );
     void printRequested( );
 
@@ -86,7 +81,7 @@ public slots:
     void setPrinterPrepared( bool const value );
     void setPrinterAvailable( bool const value );
     void projectorPowerLevel_changed( int const percentage );
-    void enableExpoTimeSliders( bool enable );
+    void changeExpoTimeSliders();
 
 protected slots:
 

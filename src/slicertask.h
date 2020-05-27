@@ -14,7 +14,7 @@ class SlicerTask: public QObject, public QRunnable
     Q_OBJECT
 
 public:
-    explicit SlicerTask(PrintJob *printJob, bool reslice, QObject *parent = nullptr);
+    explicit SlicerTask(QSharedPointer<PrintJob> printJob, bool reslice, QObject *parent = nullptr);
     virtual void run() override;
 
 signals:
@@ -34,7 +34,7 @@ protected:
     void _bodyLayerCount(int count);
     void _bodyLayerDone(int layer, const QString &path);
 
-    PrintJob* _printJob;
+    QSharedPointer<PrintJob> _printJob;
     bool _reslice;
 };
 

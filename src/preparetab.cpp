@@ -444,7 +444,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob.get(), this);
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
@@ -582,7 +582,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
-    SlicerTask *task { new SlicerTask(_printJob.get(), _reslice) };
+    SlicerTask *task { new SlicerTask(_printJob, _reslice) };
     QObject::connect(task, &SlicerTask::sliceStatus, this, &PrepareTab::slicingStatusUpdate);
     QObject::connect(task, &SlicerTask::renderStatus, this, &PrepareTab::renderingStatusUpdate);
     QObject::connect(task, &SlicerTask::layerCount, this, &PrepareTab::layerCountUpdate);
@@ -615,6 +615,7 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     if (goodJobDir)
         _restartPreview();
         
+    _updateSliceControls();
     update();
 }
 

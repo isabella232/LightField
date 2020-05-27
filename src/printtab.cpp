@@ -249,22 +249,16 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch (_uiState) {
         case UiState::SelectCompleted:
-            _baseExposureTimeSlider->setEnabled(false);
-            _bodyExposureTimeSlider->setEnabled(false);
+            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
             _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
                 _printJob->bodySlices.exposureTime);
-
-            if(_printJob->isTiled()) {
-                enableExpoTimeSliders(false);
-            } else {
-                enableExpoTimeSliders(true);
-            }
             break;
 
         case UiState::PrintJobReady:
-            _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
-            _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
+            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             break;
 
         case UiState::PrintStarted:
@@ -283,11 +277,13 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
     update();
 }
 
-void PrintTab::enableExpoTimeSliders( bool enable ) {
+void PrintTab::changeExpoTimeSliders()
+{
+    bool enable = _printJob->hasBasicControlsEnabled();
     _baseExposureTimeSlider->setEnabled(enable);
     _bodyExposureTimeSlider->setEnabled(enable);
 
-    if( !enable ) {
+    if(enable) {
         this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
         this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() *
             _bodyExposureTimeSlider->getValue();

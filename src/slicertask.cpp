@@ -3,7 +3,7 @@
 #include "svgrenderer.h"
 #include "slicertask.h"
 
-SlicerTask::SlicerTask(PrintJob *printJob, bool reslice, QObject *parent):
+SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, bool reslice, QObject *parent):
     QObject(parent),
     _printJob(printJob),
     _reslice(reslice)

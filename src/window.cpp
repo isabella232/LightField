@@ -183,7 +183,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab, &PrepareTab::setPrinterAvailable       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,   &PrintTab::setPrinterAvailable         );
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
-    QObject::connect( _advancedTab, &AdvancedTab::advancedExposureTimeEnabled, _printTab,  &PrintTab::enableExpoTimeSliders       );
+    QObject::connect( _advancedTab, &AdvancedTab::advancedExposureTimeChanged, _printTab,  &PrintTab::changeExpoTimeSliders       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
 
@@ -436,9 +436,8 @@ void Window::startPrinting( ) {
         bodyLayerParameters.powerLevel( )
     );
 
-    PrintJob* job = _printJob.get();
-    QSharedPointer<PrintJob> newJob = QSharedPointer<PrintJob>( new PrintJob(*_printJob) );
-    _printJob.swap( newJob );
+    QSharedPointer<PrintJob> job(_printJob);
+    _printJob.reset(new PrintJob(*_printJob));
 
     PrintManager* oldPrintManager = _printManager;
 
@@ -470,19 +469,11 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            if( this->_printJob->directoryMode ) {
-                _setModelRendered( false );
-                if (_tabWidget->currentIndex( ) == +TabIndex::File) {
-                    _tabWidget->setCurrentIndex(+TabIndex::Prepare);
-                    update();
-                }
-            } else {
-                _setModelRendered(true);
-                if (_tabWidget->currentIndex( ) == +TabIndex::File ||
-                    _tabWidget->currentIndex() == +TabIndex::Tiling ) {
-                    _tabWidget->setCurrentIndex(+TabIndex::Prepare);
-                    update();
-                }
+            _setModelRendered(!this->_printJob->directoryMode);
+            if (_tabWidget->currentIndex() == +TabIndex::File ||
+                _tabWidget->currentIndex() == +TabIndex::Tiling) {
+                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
+                update();
             }
             break;
 
@@ -498,6 +489,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
                 update( );
             }
             break;
+
         case UiState::TilingClicked:
             _tabWidget->setCurrentIndex(+TabIndex::Tiling);
             update();

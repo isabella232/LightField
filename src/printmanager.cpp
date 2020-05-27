@@ -167,11 +167,7 @@ void PrintManager::_cleanUp( ) {
     _stopAndCleanUpTimer( _preProjectionTimer );
     _stopAndCleanUpTimer( _layerExposureTimer );
     _stopAndCleanUpTimer( _preLiftTimer       );
-
-    if ( _printJob ) {
-        delete _printJob;
-        _printJob = nullptr;
-    }
+    _printJob.clear();
 
     if ( _setProjectorPowerProcess ) {
         if ( _setProjectorPowerProcess->state( ) != QProcess::NotRunning ) {
@@ -963,8 +959,9 @@ void PrintManager::stepE2_completed( bool const success ) {
     }
 }
 
-void PrintManager::print( PrintJob* printJob ) {
-    if ( _printJob ) {
+void PrintManager::print(QSharedPointer<PrintJob> printJob)
+{
+    if (!_printJob.isNull()) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );
         return;
     }
