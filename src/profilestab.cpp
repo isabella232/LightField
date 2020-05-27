@@ -120,56 +120,10 @@ void ProfilesTab::_setupProfilesList(QFont font) {
 
 }
 
-void ProfilesTab::setPrintProfileManager( PrintProfileManager* printProfileManager ) {
+void ProfilesTab::setPrintProfileManager(PrintProfileManager* printProfileManager)
+{
     _printProfileManager = printProfileManager;
-
-    QStandardItem* item = nullptr;
-    QStandardItem* firstItem = nullptr;
-    QVector<QSharedPointer<PrintProfile>>* profiles = ProfilesJsonParser::loadProfiles();
-    bool findDefaultProfile = false;
-    int listItemIndex = 0;
-    int i = 0;
-
-    foreach (QSharedPointer<PrintProfile> profile, *profiles) {
-        _printProfileManager->addProfile(profile);
-
-        item = new QStandardItem(profile->profileName());
-        item->setEditable( false );
-
-        findDefaultProfile = false;
-        if ( profile->profileName() == "default" )
-        {
-            findDefaultProfile = true;
-        }
-
-        if(!i++) {
-            firstItem=item;
-            _printProfileManager->setActiveProfile(profile->profileName());
-             _enableButtonProfile(true);
-        }
-
-        if ( !findDefaultProfile )
-        {
-           _model->setItem( listItemIndex, 0, item );
-           listItemIndex++;
-        }
-    }
-
-    if ( findDefaultProfile )
-    {
-        qDebug() << "Find default profile";
-    }
-    else
-    {
-        // TODO: create default profile ?
-        qDebug() << "Not find default profile";
-    }
-
-
-    if( firstItem )
-        _profilesList->setCurrentIndex( _model->indexFromItem(firstItem) );
-
-    delete profiles;
+    _loadProfiles();
 }
 
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
@@ -212,7 +166,6 @@ void ProfilesTab::importParams_clicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            // @todo how to pass checkboxes values? what filename means?
             if(!_printProfileManager->importProfiles(_usbMountPoint)) {
                msgBox.setText("<center><nobr>Something went wrong. Make sure memory <br>stick is inserted into USB drive.</nobr></center>");
                msgBox.setStandardButtons(QMessageBox::Ok);
@@ -222,6 +175,8 @@ void ProfilesTab::importParams_clicked(bool)
                msgBox.setStandardButtons(QMessageBox::Ok);
                msgBox.exec();
             }
+
+            _loadProfiles();
             break;
 
         default:
@@ -471,6 +426,52 @@ bool ProfilesTab::_loadPrintProfile()
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
     return _printProfileManager->setActiveProfile(itemText);
+}
+
+void ProfilesTab::_loadProfiles()
+{
+    QVector<QSharedPointer<PrintProfile>>* profiles = ProfilesJsonParser::loadProfiles();
+    QStandardItem* item = nullptr;
+    QStandardItem* firstItem = nullptr;
+
+    bool findDefaultProfile = false;
+    int listItemIndex = 0;
+    int i = 0;
+
+    foreach (QSharedPointer<PrintProfile> profile, *profiles) {
+        _printProfileManager->addProfile(profile);
+
+        item = new QStandardItem(profile->profileName());
+        item->setEditable(false);
+
+        findDefaultProfile = false;
+        if (profile->profileName() == "default")
+            findDefaultProfile = true;
+
+        if (!i++) {
+            firstItem=item;
+            _printProfileManager->setActiveProfile(profile->profileName());
+            _enableButtonProfile(true);
+        }
+
+        if (!findDefaultProfile) {
+           _model->setItem( listItemIndex, 0, item );
+           listItemIndex++;
+        }
+    }
+
+    if (findDefaultProfile)
+        qDebug() << "Find default profile";
+    else
+    {
+        // TODO: create default profile ?
+        qDebug() << "Not find default profile";
+    }
+
+    if (firstItem)
+        _profilesList->setCurrentIndex( _model->indexFromItem(firstItem) );
+
+    delete profiles;
 }
 
 void ProfilesTab::_connectUsbMountManager()

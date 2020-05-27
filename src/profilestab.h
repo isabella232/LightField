@@ -47,6 +47,7 @@ private:
     bool _updateProfile();
     bool _deletePrintProfile();
     bool _loadPrintProfile();
+    void _loadProfiles();
     void _enableButtonProfile(bool enabled);
     void _usbRemounted(const bool succeeded, const bool writable);
 

@@ -275,7 +275,8 @@ void TilingTab::_showLayerImage( ) {
 
 
 
-void TilingTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
+{
     debug( "+ TilingTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
