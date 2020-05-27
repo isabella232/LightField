@@ -413,6 +413,8 @@ bool PrepareTab::_checkSliceDirectories( )
         //_copyToUSBButton->setEnabled( false );
     }
 
+    emit slicingNeeded(!preSliced);
+
     update();
     return preSliced;
 }
@@ -610,7 +612,6 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
     _hasher = nullptr;
 
     bool goodJobDir = _checkSliceDirectories();
-    emit slicingNeeded( !goodJobDir );
     
     if (goodJobDir)
         _restartPreview();
