@@ -725,6 +725,26 @@ void PrintManager::stepC4a1_completed( ) {
 void PrintManager::stepC4a2_start( ) {
     _step = PrintStep::C4a2;
 
+    const auto& bodyParameters = _printJob->printProfile->bodyLayerParameters();
+    QList<MovementInfo> movements = {
+        {
+            MoveType::Relative,
+            bodyParameters.pumpUpDistance(),
+            bodyParameters.pumpUpVelocity_Effective()
+        },
+        {
+            bodyParameters.pumpUpPause()
+        },
+        {
+            MoveType::Relative,
+            -bodyParameters.pumpDownDistance_Effective() + (_printJob->getLayerThicknessAt(_currentLayer) / 1000),
+            bodyParameters.pumpDownVelocity_Effective()
+        },
+        {
+            bodyParameters.pumpDownPause()
+        }
+    };
+
     ++_currentLayer;
     if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4a2_start: print complete\n" );
@@ -739,8 +759,8 @@ void PrintManager::stepC4a2_start( ) {
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepC4a2_completed );
 
-    _movementSequencer->setMovements( _stepC4a2_movements );
-    _movementSequencer->execute( );
+    _movementSequencer->setMovements(movements);
+    _movementSequencer->execute();
 }
 
 void PrintManager::stepC4a2_completed( bool const success ) {
@@ -1007,11 +1027,6 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     _stepB4a2_movements.push_back( { baseParameters.pumpDownPause( ) } );
 
     _stepB4b2_movements.push_back( { MoveType::Relative, ( _printJob->baseSlices.layerThickness / 1000.0 ), PrinterDefaultLowSpeed } );
-
-    _stepC4a2_movements.push_back( { MoveType::Relative, bodyParameters.pumpUpDistance( ), bodyParameters.pumpUpVelocity_Effective( ) } );
-    _stepC4a2_movements.push_back( { bodyParameters.pumpUpPause( ) } );
-    _stepC4a2_movements.push_back( { MoveType::Relative, bodyMoveDownDistance,             bodyParameters.pumpDownVelocity_Effective( ) } );
-    _stepC4a2_movements.push_back( { bodyParameters.pumpDownPause( ) } );
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
