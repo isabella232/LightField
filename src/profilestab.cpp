@@ -129,6 +129,7 @@ void ProfilesTab::setPrintProfileManager(PrintProfileManager* printProfileManage
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
 {
     QMessageBox msgBox { this };
+    msgBox.setFont(*_fontAwesome);
 
     QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
         &ProfilesTab::_usbRemounted);
@@ -216,15 +217,11 @@ void ProfilesTab::newProfile_clicked(bool)
 
     QString filename = inputDialog->getValue();
 
-    if (ret && !filename.isEmpty())
-    {
-       if(!_createNewProfile(filename))
-        {
+    if (ret && !filename.isEmpty()) {
+        if (!_createNewProfile(filename)) {
             msgBox.setText("Something went wrong.");
             msgBox.exec();
-        }
-        else
-        {
+        } else {
             msgBox.setText("Profile successfuly added.");
             msgBox.exec();
         }
