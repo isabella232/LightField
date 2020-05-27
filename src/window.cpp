@@ -465,11 +465,11 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     _uiState = state;
     switch ( _uiState ) {
         case UiState::SelectStarted:
-            _setModelRendered( false );
+            _setModelRendered(false);
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered(!this->_printJob->directoryMode);
+            _setModelRendered(this->_printJob->directoryMode);
             if (_tabWidget->currentIndex() == +TabIndex::File ||
                 _tabWidget->currentIndex() == +TabIndex::Tiling) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);
@@ -485,7 +485,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             _setModelRendered(true);
             if (_isModelRendered && _isPrinterPrepared &&
                 _tabWidget->currentIndex() == +TabIndex::Prepare) {
-                _tabWidget->setCurrentIndex( +TabIndex::Print );
+                _tabWidget->setCurrentIndex( +TabIndex::Print);
                 update( );
             }
             break;
