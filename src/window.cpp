@@ -598,13 +598,6 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
 void Window::prepareTab_slicingNeeded( bool const needed ) {
     debug( "+ Window::prepareTab_slicingNeeded: %s; [PP? %s MR? %s current tab %s]\n", YesNoString( needed ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( static_cast<TabIndex>( _tabWidget->currentIndex( ) ) ) );
     _setModelRendered( !needed );
-
-    if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
-        debug( "+ Window::prepareTab_slicingNeeded: switching to Print tab\n" );
-        _tabWidget->setCurrentIndex( +TabIndex::Print );
-
-        update( );
-    }
 }
 
 void Window::signalHandler_signalReceived( siginfo_t const& info ) {
