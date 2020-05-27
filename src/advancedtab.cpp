@@ -535,8 +535,8 @@ void AdvancedTab::_setUpBasePumpForm(QFont boldFont)
 
 void AdvancedTab::_setUpLayersForm()
 {
-    _baseExposureTimeSlider->setEnabled( false );
-    _bodyExposureTimeSlider->setEnabled( false );
+    _baseExposureTimeSlider->setEnabled(false);
+    _bodyExposureTimeSlider->setEnabled(false);
 
     connect(_expoTimeEnabled, &QCheckBox::stateChanged, this, &AdvancedTab::expoTimeEnabled_changed);
 
@@ -551,19 +551,17 @@ void AdvancedTab::_setUpLayersForm()
             nullptr
          )
     );
-
-
 }
 
 void AdvancedTab::expoTimeEnabled_changed(int state)
 {
+    bool enabled;
+
     _printJob->enableAdvancedControls(state);
-    bool enabled = _printJob->hasAdvancedControlsEnabled();
+    enabled = _printJob->hasAdvancedControlsEnabled();
+    setLayersSettingsEnabled(enabled);
 
-    _baseExposureTimeSlider->setEnabled(enabled);
-    _bodyExposureTimeSlider->setEnabled(enabled);
-
-    if (state) {
+    if (enabled) {
         this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
         this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
     }
