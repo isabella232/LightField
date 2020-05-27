@@ -295,7 +295,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         _selectedRow = -1;
         break;
 
-    case UiState::SelectedDirectory:
+    case UiState::SelectCompleted:
         if (sender == TabIndex::Tiling) {
             auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
@@ -608,17 +608,19 @@ void FileTab::toggleLocationButton_clicked( bool ) {
     update( );
 }
 
-void FileTab::selectButton_clicked( bool ) {
+void FileTab::selectButton_clicked(bool)
+{
     debug(
         "+ FileTab::selectButton_clicked:\n"
         "  + current models location: %s\n"
         "",
         ToString( _modelsLocation )
     );
-    if ( _modelsLocation == ModelsLocation::Library ) {
-        if ( _modelSelection.type == ModelFileType::File ) {
-            emit modelSelected( &_modelSelection );
-            emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+
+    if (_modelsLocation == ModelsLocation::Library) {
+        if (_modelSelection.type == ModelFileType::File) {
+            emit modelSelected(&_modelSelection);
+            emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
@@ -627,13 +629,13 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
-                emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
                     _printJob->directoryMode = true;
                     _printJob->directoryPath = _modelSelection.fileName;
-                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                    emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
                 }
             }
 
@@ -694,7 +696,8 @@ void FileTab::selectButton_clicked( bool ) {
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
                 if ( copiedFiles > 0 ) {
-                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                    this->printJob()->directoryMode = true;
+                    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
                 } else {
                     // TODO inform user of failure somehow
                 }

@@ -51,7 +51,7 @@ private:
 
     Shepherd*           _shepherd                 { };
     MovementSequencer*  _movementSequencer        { };
-    PrintJob*           _printJob                 { };
+    QSharedPointer<PrintJob> _printJob;
     PngDisplayer*       _pngDisplayer             { };
     ProcessRunner*      _setProjectorPowerProcess { };
     PrintResult         _printResult              { };
@@ -87,7 +87,6 @@ private:
     bool    _hasLayerMoreElements();
 
 signals:
-    ;
 
     void requestDispensePrintSolution( );
 
@@ -105,7 +104,7 @@ public slots:
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
-    void print( PrintJob* printJob );
+    void print(QSharedPointer<PrintJob> printJob);
     void pause( );
     void resume( );
     void terminate( );

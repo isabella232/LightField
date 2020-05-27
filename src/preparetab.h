@@ -44,7 +44,6 @@ private:
     int               _renderedLayers              { };
     bool              _isPrinterOnline             { false };
     bool              _isPrinterAvailable          { true  };
-    bool              _directoryMode               { false };
     bool              _reslice                     { false };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };

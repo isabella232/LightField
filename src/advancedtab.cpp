@@ -120,18 +120,9 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
         emit printerAvailabilityChanged( true );
         break;
 
-    case UiState::SelectedDirectory:
-        if(sender == TabIndex::Tiling)
-            setLayersSettingsEnabled(false);
-        else if (sender == TabIndex::Prepare) {
-            if(_printJob->isTiled())
-                setLayersSettingsEnabled(false);
-            else {
-                setLayersSettingsEnabled(true);
-                _offsetSlider->setValue( printJob()->firstLayerOffset );
-            }
-
-        }
+    case UiState::PrintJobReady:
+        setLayersSettingsEnabled(_printJob->hasAdvancedControlsEnabled());
+        _offsetSlider->setValue(_printJob->firstLayerOffset);
         break;
 
     default:
@@ -564,18 +555,20 @@ void AdvancedTab::_setUpLayersForm()
 
 }
 
-void AdvancedTab::expoTimeEnabled_changed(int state) {
-    if(state) {
-        _baseExposureTimeSlider->setEnabled( true );
-        _bodyExposureTimeSlider->setEnabled( true );
+void AdvancedTab::expoTimeEnabled_changed(int state)
+{
+    _printJob->enableAdvancedControls(state);
+    bool enabled = _printJob->hasAdvancedControlsEnabled();
+
+    _baseExposureTimeSlider->setEnabled(enabled);
+    _bodyExposureTimeSlider->setEnabled(enabled);
+
+    if (state) {
         this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
         this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
-        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeEnabled);
-    } else {
-        _baseExposureTimeSlider->setEnabled( false );
-        _bodyExposureTimeSlider->setEnabled( false );
-        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeDisabled);
     }
+
+    emit advancedExposureTimeChanged();
 }
 
 void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)

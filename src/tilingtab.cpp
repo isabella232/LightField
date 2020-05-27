@@ -281,20 +281,20 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
     _uiState = state;
 
     switch (state) {
-    case UiState::SelectedDirectory:
-        this->_stepBase = 2.0;
-        this->_stepBody = 2.0;
-        this->_minExposureBase = 10.0;
-        this->_minExposureBody = 20.0;
-        this->_space->setValue( 1 );
-        this->_currentLayerImage->clear();
-        _setEnabled(false);
-        _setupTiling->setEnabled(false);
-        break;
-
     case UiState::SelectCompleted:
         _setEnabled(false);
         _setupTiling->setEnabled(false);
+
+        if (printJob()->directoryMode) {
+            this->_stepBase = 2.0;
+            this->_stepBody = 2.0;
+            this->_minExposureBase = 10.0;
+            this->_minExposureBody = 20.0;
+            this->_space->setValue(1);
+            this->_currentLayerImage->clear();
+            _setEnabled(false);
+            _setupTiling->setEnabled(false);
+        }
         break;
 
     case UiState::SelectStarted:
@@ -332,7 +332,7 @@ void TilingTab::confirmButton_clicked (bool)
 {
     debug( "+ TilingTab::confirmButton_clicked\n" );
 
-    TilingManager* tilingMgr = new  TilingManager( printJob() );
+    TilingManager* tilingMgr = new  TilingManager( printJob().get() );
     ProgressDialog* dialog = new ProgressDialog(this);
 
     QObject::connect(tilingMgr, &TilingManager::statusUpdate, dialog, &ProgressDialog::setMessage);
@@ -365,7 +365,7 @@ void TilingTab::confirmButton_clicked (bool)
     thread->start();
 
     dialog->exec();
-    emit uiStateChanged( TabIndex::Tiling, UiState::SelectedDirectory );
+    emit uiStateChanged( TabIndex::Tiling, UiState::SelectCompleted );
 }
 
 int TilingTab::_getMaxCount()
@@ -435,15 +435,18 @@ void TilingTab::setupExpoTimeClicked(bool) {
 }
 
 void TilingTab::setupTilingClicked ( bool ) {
-    debug( "+ TilingTab::setupTilingClicked\n" );
+    debug("+ TilingTab::setupTilingClicked\n");
 
-    this->_areaWidth = _currentLayerImage->width( );
-    this->_areaHeight = _currentLayerImage->height( );
-    this->_wRatio = ((double)_areaWidth) /  ProjectorWindowSize.width();
-    this->_hRatio = ((double)_areaHeight) /  ProjectorWindowSize.height();
-    QPixmap pixmap ( printJob()->getLayerDirectory(0) % Slash % printJob()->getLayerFileName(0) );
+    this->_areaWidth = _currentLayerImage->width();
+    this->_areaHeight = _currentLayerImage->height();
+    this->_wRatio = (static_cast<double>(_areaWidth)) / ProjectorWindowSize.width();
+    this->_hRatio = (static_cast<double>(_areaHeight)) / ProjectorWindowSize.height();
 
-    if( this->_pixmap )
+    QPixmap pixmap(QString("%1/%2")
+        .arg(printJob()->getLayerDirectory(0))
+        .arg(printJob()->getLayerFileName(0)));
+
+    if(this->_pixmap)
         delete this->_pixmap;
 
     this->_pixmap = new QPixmap ( pixmap.scaled( pixmap.width( ) * _wRatio, pixmap.height( ) * _hRatio) );
@@ -456,9 +459,8 @@ void TilingTab::setupTilingClicked ( bool ) {
             return;
     }
 
-    _setEnabled( true );
-
+    _setEnabled(true);
     _showLayerImage();
 
-    emit uiStateChanged( TabIndex::Prepare, UiState::TilingClicked );
+    emit uiStateChanged(TabIndex::Prepare, UiState::TilingClicked);
 }

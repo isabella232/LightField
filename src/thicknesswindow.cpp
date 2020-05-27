@@ -4,7 +4,7 @@
 #include "constants.h"
 #include "utils.h"
 
-ThicknessWindow::ThicknessWindow(PrintJob *job, QWidget *parent):
+ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, QWidget *parent):
     QDialog(parent), _printJob(job)
 {
     QVBoxLayout *layout;

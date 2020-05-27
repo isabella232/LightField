@@ -26,8 +26,10 @@ class SliceInformation
 {
 public:
     SliceInformation(SliceType t):
-        type(t), layerCount(0), layerThickness(0)
+        type(t), layerCount(-1), layerThickness(100)
     {
+        if (t == SliceType::SliceBase)
+            layerCount = 2;
     }
 
     SliceType type;
@@ -68,6 +70,27 @@ public:
             return _bodyManager->tiled();
 
         return false;
+    }
+
+    bool hasBasicControlsEnabled()
+    {
+        if (isTiled())
+            return false;
+
+        return !_advancedControlsEnabled;
+    }
+
+    bool hasAdvancedControlsEnabled()
+    {
+        if (isTiled())
+            return false;
+
+        return _advancedControlsEnabled;
+    }
+
+    void enableAdvancedControls(bool enable)
+    {
+        _advancedControlsEnabled = enable;
     }
 
     bool hasBaseLayers() const
@@ -226,6 +249,7 @@ public:
 private:
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
+    bool _advancedControlsEnabled;
 };
 
 #endif // __PRINTJOB_H__
