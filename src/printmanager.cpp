@@ -329,8 +329,7 @@ void PrintManager::stepB2_start( ) {
     int layerExposureTime;
 
     if (_isTiled) {
-        int realLayer = currentLayer() / _printJob->tilingCount();
-        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else
         layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
@@ -612,8 +611,7 @@ void PrintManager::stepC2_start( ) {
     int layerExposureTime;
 
     if (_isTiled) {
-        int realLayer = currentLayer() / _printJob->tilingCount();
-        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer()) * ( realLayer < 2 );
+        layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else
         layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
