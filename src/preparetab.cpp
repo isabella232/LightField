@@ -444,7 +444,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob.get(), this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
@@ -567,10 +567,7 @@ void PrepareTab::orderButton_clicked( bool ) {
     SlicesOrderPopup popup { manifestMgr };
     popup.exec();
 
-    if(_directoryMode)
-        emit uiStateChanged(TabIndex::File, UiState::SelectedDirectory);
-    else
-        emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
+    emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
 }
 
 void PrepareTab::sliceButton_clicked( bool ) {
@@ -585,7 +582,7 @@ void PrepareTab::sliceButton_clicked( bool ) {
 
     TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
 
-    SlicerTask *task { new SlicerTask(_printJob, _reslice) };
+    SlicerTask *task { new SlicerTask(_printJob.get(), _reslice) };
     QObject::connect(task, &SlicerTask::sliceStatus, this, &PrepareTab::slicingStatusUpdate);
     QObject::connect(task, &SlicerTask::renderStatus, this, &PrepareTab::renderingStatusUpdate);
     QObject::connect(task, &SlicerTask::layerCount, this, &PrepareTab::layerCountUpdate);
@@ -867,27 +864,33 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
     switch (_uiState) {
     case UiState::SelectStarted:
-        _directoryMode = false;
         _setSliceControlsEnabled(false);
         _orderButton->setEnabled(false);
         break;
 
     case UiState::SelectCompleted:
-        _directoryMode = false;
-        _setSliceControlsEnabled(false);
 
-        _sliceStatus->setText("idle");
-        _imageGeneratorStatus->setText("idle");
-        _currentLayerImage->clear();
-        _navigateCurrentLabel->setText("0/0");
-        _setNavigationButtonsEnabled(false);
+        if( !_printJob->directoryMode ) {
+            _setSliceControlsEnabled(false);
 
-        if (_hasher)
-            _hasher->deleteLater();
+            _sliceStatus->setText("idle");
+            _imageGeneratorStatus->setText("idle");
+            _currentLayerImage->clear();
+            _navigateCurrentLabel->setText("0/0");
+            _setNavigationButtonsEnabled(false);
 
-        _hasher = new Hasher;
-        QObject::connect(_hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection);
-        _hasher->hash(_printJob->modelFileName, QCryptographicHash::Md5);
+            if (_hasher)
+                _hasher->deleteLater();
+
+            _hasher = new Hasher;
+            QObject::connect(_hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection);
+            _hasher->hash(_printJob->modelFileName, QCryptographicHash::Md5);
+
+        } else {
+            _setSliceControlsEnabled(false);
+            _loadDirectoryManifest();
+            _updateSliceControls();
+        }
         break;
 
     case UiState::SliceStarted:
@@ -895,7 +898,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::SliceCompleted:
-        if (!_directoryMode)
+        if ( !_printJob->directoryMode )
             _setSliceControlsEnabled(true);
         break;
 
@@ -908,16 +911,9 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
     case UiState::PrintCompleted:
         _setSliceControlsEnabled(true);
-        _orderButton->setEnabled(_directoryMode);
+        _orderButton->setEnabled( _printJob->directoryMode );
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
-        break;
-
-    case UiState::SelectedDirectory:
-        _directoryMode = true;
-        _setSliceControlsEnabled(false);
-        _loadDirectoryManifest();
-        _updateSliceControls();
         break;
 
     default:

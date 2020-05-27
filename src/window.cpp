@@ -56,7 +56,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
 
-    _printJob = new PrintJob;
+    _printJob = QSharedPointer<PrintJob>(new PrintJob);
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
@@ -163,6 +163,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( this,      &Window::modelRendered,                _printTab,    &PrintTab::setModelRendered               );
     QObject::connect( this,      &Window::printerPrepared,              _printTab,    &PrintTab::setPrinterPrepared             );
 
+
     //
     // "Status" tab
     //
@@ -182,8 +183,10 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab, &PrepareTab::setPrinterAvailable       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,   &PrintTab::setPrinterAvailable         );
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
+    QObject::connect( _advancedTab, &AdvancedTab::advancedExposureTimeEnabled, _printTab,  &PrintTab::enableExpoTimeSliders       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
+
 
     //
     // "Profiles" tab
@@ -433,8 +436,9 @@ void Window::startPrinting( ) {
         bodyLayerParameters.powerLevel( )
     );
 
-    PrintJob* job = _printJob;
-    _printJob = new PrintJob(*_printJob);
+    PrintJob* job = _printJob.get();
+    QSharedPointer<PrintJob> newJob = QSharedPointer<PrintJob>( new PrintJob(*_printJob) );
+    _printJob.swap( newJob );
 
     PrintManager* oldPrintManager = _printManager;
 
@@ -466,12 +470,20 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered( false );
-            if (_tabWidget->currentIndex( ) == +TabIndex::File) {
-                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
-                update();
+            if( this->_printJob->directoryMode ) {
+                _setModelRendered( false );
+                if (_tabWidget->currentIndex( ) == +TabIndex::File) {
+                    _tabWidget->setCurrentIndex(+TabIndex::Prepare);
+                    update();
+                }
+            } else {
+                _setModelRendered(true);
+                if (_tabWidget->currentIndex( ) == +TabIndex::File ||
+                    _tabWidget->currentIndex() == +TabIndex::Tiling ) {
+                    _tabWidget->setCurrentIndex(+TabIndex::Prepare);
+                    update();
+                }
             }
-
             break;
 
         case UiState::SliceStarted:
@@ -484,15 +496,6 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
                 _tabWidget->currentIndex() == +TabIndex::Prepare) {
                 _tabWidget->setCurrentIndex( +TabIndex::Print );
                 update( );
-            }
-            break;
-
-        case UiState::SelectedDirectory:
-            _setModelRendered(true);
-            if (_tabWidget->currentIndex( ) == +TabIndex::File ||
-                _tabWidget->currentIndex() == +TabIndex::Tiling ) {
-                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
-                update();
             }
             break;
         case UiState::TilingClicked:

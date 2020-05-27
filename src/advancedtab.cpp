@@ -120,17 +120,19 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
         emit printerAvailabilityChanged( true );
         break;
 
-    case UiState::SelectedDirectory:
-        if(sender == TabIndex::Tiling)
-            setLayersSettingsEnabled(false);
-        else if (sender == TabIndex::Prepare) {
-            if(_printJob->isTiled())
+    case UiState::SelectCompleted:
+        if( _printJob->directoryMode ) {
+            if(sender == TabIndex::Tiling)
                 setLayersSettingsEnabled(false);
-            else {
-                setLayersSettingsEnabled(true);
-                _offsetSlider->setValue( printJob()->firstLayerOffset );
-            }
+            else if (sender == TabIndex::Prepare) {
+                if(_printJob->isTiled())
+                    setLayersSettingsEnabled(false);
+                else {
+                    setLayersSettingsEnabled(true);
+                    _offsetSlider->setValue( printJob()->firstLayerOffset );
+                }
 
+            }
         }
         break;
 
@@ -570,11 +572,11 @@ void AdvancedTab::expoTimeEnabled_changed(int state) {
         _bodyExposureTimeSlider->setEnabled( true );
         this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
         this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
-        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeEnabled);
+        emit advancedExposureTimeEnabled( true );
     } else {
         _baseExposureTimeSlider->setEnabled( false );
         _bodyExposureTimeSlider->setEnabled( false );
-        emit uiStateChanged(TabIndex::Advanced, UiState::AdvancedExposureTimeDisabled);
+        emit advancedExposureTimeEnabled( false );
     }
 }
 

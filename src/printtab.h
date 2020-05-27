@@ -84,10 +84,9 @@ public slots:
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
-
     void setPrinterAvailable( bool const value );
-
     void projectorPowerLevel_changed( int const percentage );
+    void enableExpoTimeSliders( bool enable );
 
 protected slots:
 

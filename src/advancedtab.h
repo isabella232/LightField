@@ -134,6 +134,7 @@ private:
 signals:
     void printerAvailabilityChanged( bool const available );
     void projectorPowerLevelChanged( int const value );
+    void advancedExposureTimeEnabled( bool enabled );
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
