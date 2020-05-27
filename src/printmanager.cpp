@@ -992,8 +992,8 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     auto const& bodyParameters       { profile->bodyLayerParameters( ) };
     auto const& firstParameters      { ( profile->baseLayerCount( ) > 0 ) ? baseParameters : bodyParameters };
     auto const  firstLayerHeight     { ( std::max( 100, firstParameters.layerThickness( ) ) + g_settings.buildPlatformOffset ) / 1000.0 };
-    auto const  baseMoveDownDistance { -baseParameters.pumpDownDistance_Effective( ) + ( baseParameters.layerThickness( ) / 1000.0 ) };
-    auto const  bodyMoveDownDistance { -bodyParameters.pumpDownDistance_Effective( ) + ( bodyParameters.layerThickness( ) / 1000.0 ) };
+    auto const  baseMoveDownDistance { -baseParameters.pumpDownDistance_Effective( ) + ( _printJob->baseSlices.layerThickness / 1000.0 ) };
+    auto const  bodyMoveDownDistance { -bodyParameters.pumpDownDistance_Effective( ) + ( _printJob->bodySlices.layerThickness / 1000.0 ) };
 
     _stepA1_movements  .push_back( { MoveType::Absolute, PrinterRaiseToMaximumZ,           PrinterDefaultHighSpeed } );
 
@@ -1006,7 +1006,7 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     _stepB4a2_movements.push_back( { MoveType::Relative, baseMoveDownDistance,             baseParameters.pumpDownVelocity_Effective( ) } );
     _stepB4a2_movements.push_back( { baseParameters.pumpDownPause( ) } );
 
-    _stepB4b2_movements.push_back( { MoveType::Relative, ( baseParameters.layerThickness( ) / 1000.0 ), PrinterDefaultLowSpeed } );
+    _stepB4b2_movements.push_back( { MoveType::Relative, ( _printJob->baseSlices.layerThickness / 1000.0 ), PrinterDefaultLowSpeed } );
 
     _stepC4a2_movements.push_back( { MoveType::Relative, bodyParameters.pumpUpDistance( ), bodyParameters.pumpUpVelocity_Effective( ) } );
     _stepC4a2_movements.push_back( { bodyParameters.pumpUpPause( ) } );
