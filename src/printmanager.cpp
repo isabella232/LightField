@@ -735,7 +735,7 @@ void PrintManager::stepC4a2_start( ) {
         },
         {
             MoveType::Relative,
-            -bodyParameters.pumpDownDistance_Effective() + (_printJob->getLayerThicknessAt(_currentLayer) / 1000),
+            -bodyParameters.pumpDownDistance_Effective() + (_printJob->getLayerThicknessAt(_currentLayer) / 1000.0),
             bodyParameters.pumpDownVelocity_Effective()
         },
         {

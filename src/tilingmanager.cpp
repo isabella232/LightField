@@ -142,10 +142,10 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
 
         if( sequence < _printJob->baseSlices.layerCount ) {
             _expoTimeList.push_back(e == 1 ? _baseExpoTime : _baseStep);
-            _layerThicknessList.push_back(e == 1 ? _printJob->baseSlices.layerThickness : 0);
+            _layerThicknessList.push_back(_printJob->baseSlices.layerThickness);
         } else {
             _expoTimeList.push_back(e == 1 ? _bodyExpoTime : _bodyStep);
-            _layerThicknessList.push_back(e == 1 ? _printJob->bodySlices.layerThickness : 0);
+            _layerThicknessList.push_back(_printJob->bodySlices.layerThickness);
         }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );
