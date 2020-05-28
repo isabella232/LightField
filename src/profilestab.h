@@ -40,7 +40,6 @@ private:
     QListView*          _profilesList                    { new QListView                          };
     QStandardItemModel* _model                           { new QStandardItemModel                 };
     QFont*              _fontAwesome;
-    QVBoxLayout*        _vbox;
     void _setupProfilesList(QFont font);
     bool _createNewProfile(QString profileName);
     bool _renamePProfile(QString profileName);
