@@ -103,6 +103,12 @@ void ProfilesTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     _uiState = state;
 
     switch (_uiState) {
+    case UiState::PrintStarted:
+        _setEnabled(false);
+        break;
+    case UiState::PrintCompleted:
+        _setEnabled(true);
+        break;
     default:
         break;
     }
@@ -493,4 +499,12 @@ void ProfilesTab::_filesystemUnmounted(const QString& mountPoint)
     _importParams->setEnabled(false);
     _exportParams->setEnabled(false);
     _usbMountPoint = "";
+}
+
+void ProfilesTab::_setEnabled( bool enabled ) {
+    _loadProfile->setEnabled( enabled );
+    _deleteProfile->setEnabled( enabled );
+    _newProfile->setEnabled( enabled );
+    _renameProfile->setEnabled( enabled );
+    _overwriteProfile->setEnabled( enabled );
 }

@@ -112,11 +112,13 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     switch (_uiState) {
     case UiState::PrintStarted:
         setPrinterAvailable( false );
+        _setEnabled( false );
         emit printerAvailabilityChanged( false );
         break;
 
     case UiState::PrintCompleted:
         setPrinterAvailable( true );
+        _setEnabled( true );
         emit printerAvailabilityChanged( true );
         break;
 
@@ -692,6 +694,15 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
 
     _loadingPrintProfile = false;
     printJob()->printProfile = profile;
+}
+
+void AdvancedTab::_setEnabled( bool enabled ) {
+
+    _buildPlatformOffsetGroup->setEnabled( enabled );
+    _bedHeatingGroup->setEnabled( enabled );
+    _basePumpForm->setEnabled( enabled );
+    _bodyPumpForm->setEnabled( enabled );
+    _layersForm->setEnabled( enabled );
 }
 
 void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)

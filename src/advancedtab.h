@@ -130,6 +130,7 @@ private:
     void _setUpBasePumpForm( QFont fontBold );
     void _setUpLayersForm( );
     void _setUpBodyPumpForm( QFont fontBold );
+    void _setEnabled( bool enabled );
 
 signals:
     void basicControlsChanged(bool enabled);
