@@ -77,7 +77,7 @@ AdvancedTab::~AdvancedTab( ) {
 
 void AdvancedTab::chbox_addBodyPumpChanged(int state)
 {
-    _bodyPumpEveryNthLayer->setEnabled(state);
+    _bodyPumpEveryNthLayer->setEnabled(false);
     _bodyDistanceSlider->setEnabled(state);
     _bodyPumpUpVelocitySlider->setEnabled(state);
     _bodyPumpDownVelocitySlider->setEnabled(state);
@@ -584,6 +584,7 @@ void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
 
     _addBodyPumpCheckbox->setFont(boldFont);
     _addBodyPumpCheckbox->setChecked(true);
+    _bodyPumpEveryNthLayer->setEnabled(false);
 
     QObject::connect( _addBodyPumpCheckbox, &QCheckBox::stateChanged, this, &AdvancedTab::chbox_addBodyPumpChanged );
 
