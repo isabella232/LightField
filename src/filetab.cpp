@@ -619,20 +619,11 @@ void FileTab::selectButton_clicked(bool)
 
     if (_modelsLocation == ModelsLocation::Library) {
         if (_modelSelection.type == ModelFileType::File) {
-            //new print job object
-            auto printJob = QSharedPointer<PrintJob>( new PrintJob() );
-            _printJob.swap( printJob );
-
             emit modelSelected(&_modelSelection);
             emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
-
-                //new print job object
-                auto printJob = QSharedPointer<PrintJob>( new PrintJob() );
-                _printJob.swap( printJob );
-
                 _printJob->baseSlices.layerCount = 2;
                 _printJob->baseSlices.layerThickness = match.captured(1).toInt();
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
@@ -642,11 +633,6 @@ void FileTab::selectButton_clicked(bool)
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
-
-                    //new print job object
-                    auto printJob = QSharedPointer<PrintJob>( new PrintJob() );
-                    _printJob.swap( printJob );
-
                     _printJob->directoryMode = true;
                     _printJob->directoryPath = _modelSelection.fileName;
                     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
