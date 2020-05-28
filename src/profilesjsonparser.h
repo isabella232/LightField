@@ -48,6 +48,10 @@ public:
                 debug( "  + get name\n");
                 auto name = obj["name"];
 
+                if(obj.contains("default")) {
+                    printProfile->setDefault( true );
+                }
+
                 if(name.isString()) {
                     printProfile->setProfileName(obj["name"].toString());
                 }
@@ -118,6 +122,9 @@ public:
 
             QJsonObject json;
             json["name"]                 = profile->profileName( );
+            if(profile->isDefault( )) {
+                json["default"]              = "true";
+            }
             json["baseLayerCount"]       = profile->baseLayerCount( );
             json["baseLayerParameters"] = _serializePrintParameters( profile->baseLayerParameters( ) );
             json["bodyLayerParameters"] = _serializePrintParameters( profile->bodyLayerParameters( ) );

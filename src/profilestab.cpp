@@ -448,7 +448,7 @@ void ProfilesTab::_loadProfiles()
         item->setEditable(false);
 
         findDefaultProfile = false;
-        if (profile->profileName() == "default")
+        if (profile->isDefault())
             findDefaultProfile = true;
 
         if (!i++) {

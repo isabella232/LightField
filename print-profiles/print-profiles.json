@@ -1,6 +1,7 @@
 [
     {
-        "name": "default-profile",
+        "name": "16adda77-9020-45c4-ba01-622488a67d2a",
+	"default": true,
         "baseLayerCount": 2,
         "baseLayersPumpingParameters": {
             "pumpingEnabled": true,
