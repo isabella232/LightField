@@ -699,18 +699,19 @@ void PrepareTab::_loadDirectoryManifest()
         }
     }
 
-    if (manifestMgr->tiled()) {
-        _printJob->baseSlices.layerCount = 0;
-        _printJob->baseSlices.isPreSliced = false;
-        _printJob->baseSlices.layerThickness = -1;
-        _printJob->baseSlices.sliceDirectory = nullptr;
-    } else {
-        _printJob->setBaseManager(manifestMgr);
-    }
-
-    _printJob->bodySlices.layerCount = manifestMgr->getSize();
+    _printJob->setBaseManager(manifestMgr);
     _printJob->bodySlices.isPreSliced = true;
     _printJob->bodySlices.sliceDirectory = manifestMgr->path();
+
+    if (manifestMgr->tiled()) {
+        _printJob->baseSlices.layerCount = manifestMgr->baseLayerCount();
+        _printJob->baseSlices.isPreSliced = true;
+        _printJob->baseSlices.layerThickness = -1;
+        _printJob->baseSlices.sliceDirectory = manifestMgr->path();
+
+        _printJob->bodySlices.layerCount = manifestMgr->getSize() - manifestMgr->baseLayerCount();
+    } else
+        _printJob->bodySlices.layerCount = manifestMgr->getSize();
 
     _printJob->setBodyManager(manifestMgr);
     _orderButton->setEnabled(true);

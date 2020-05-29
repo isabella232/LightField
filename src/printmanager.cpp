@@ -457,8 +457,28 @@ void PrintManager::stepB4a2_start( ) {
     debug( "+ PrintManager::stepB4a2_start: performing 'pumping' manoeuvre\n" );
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepB4a2_completed );
+    const auto& baseParameters = _printJob->printProfile->baseLayerParameters();
+    QList<MovementInfo> movements = {
+        {
+            MoveType::Relative,
+            baseParameters.pumpUpDistance(),
+            baseParameters.pumpUpVelocity_Effective()
+        },
+        {
+            baseParameters.pumpUpPause()
+        },
+        {
+            MoveType::Relative,
+            -baseParameters.pumpDownDistance_Effective() +
+                (_printJob->getLayerThicknessAt(_currentLayer - _elementsOnLayer) / 1000.0),
+            baseParameters.pumpDownVelocity_Effective()
+        },
+        {
+            baseParameters.pumpDownPause()
+        }
+    };
 
-    _movementSequencer->setMovements( _stepB4a2_movements );
+    _movementSequencer->setMovements(movements);
     _movementSequencer->execute( );
 }
 
@@ -986,7 +1006,6 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     }
 
     if (printJob->isTiled()) {
-        Q_ASSERT(printJob->baseSlices.layerCount == 0);
         Q_ASSERT(printJob->baseSlices.layerThickness == -1);
         Q_ASSERT(printJob->bodySlices.layerThickness == -1);
     } else {
@@ -1005,27 +1024,20 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     _pngDisplayer->clear();
 
-    // TODO set up movements
-    auto const  profile              { _printJob->printProfile };
-    auto const& baseParameters       { profile->baseLayerParameters( ) };
-    auto const& bodyParameters       { profile->bodyLayerParameters( ) };
-    auto const& firstParameters      { ( profile->baseLayerCount( ) > 0 ) ? baseParameters : bodyParameters };
-    auto const  firstLayerHeight     { ( std::max( 100, firstParameters.layerThickness( ) ) + g_settings.buildPlatformOffset ) / 1000.0 };
-    auto const  baseMoveDownDistance { -baseParameters.pumpDownDistance_Effective( ) + ( _printJob->baseSlices.layerThickness / 1000.0 ) };
-    auto const  bodyMoveDownDistance { -bodyParameters.pumpDownDistance_Effective( ) + ( _printJob->bodySlices.layerThickness / 1000.0 ) };
+    auto const profile {_printJob->printProfile};
+    auto const& baseParameters {profile->baseLayerParameters()};
+    auto const& bodyParameters {profile->bodyLayerParameters()};
+    auto const& firstParameters {(profile->baseLayerCount() > 0) ? baseParameters : bodyParameters};
+    auto const firstLayerHeight {(std::max(100, firstParameters.layerThickness()) + g_settings.buildPlatformOffset ) / 1000.0};
+    auto const baseMoveDownDistance {-baseParameters.pumpDownDistance_Effective() + (_printJob->baseSlices.layerThickness / 1000.0)};
 
-    _stepA1_movements  .push_back( { MoveType::Absolute, PrinterRaiseToMaximumZ,           PrinterDefaultHighSpeed } );
+    _stepA1_movements.push_back({MoveType::Absolute, PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed});
 
-    _stepA3_movements  .push_back( { MoveType::Absolute, PrinterHighSpeedThresholdZ,       PrinterDefaultHighSpeed } );
-    _stepA3_movements  .push_back( { MoveType::Absolute, firstLayerHeight,                 firstParameters.noPumpDownVelocity_Effective( ) } );
-    _stepA3_movements  .push_back( { PauseAfterPrintSolutionDispensed } );
+    _stepA3_movements.push_back({MoveType::Absolute, PrinterHighSpeedThresholdZ, PrinterDefaultHighSpeed});
+    _stepA3_movements.push_back({MoveType::Absolute, firstLayerHeight, firstParameters.noPumpDownVelocity_Effective()});
+    _stepA3_movements.push_back({PauseAfterPrintSolutionDispensed});
 
-    _stepB4a2_movements.push_back( { MoveType::Relative, baseParameters.pumpUpDistance( ), baseParameters.pumpUpVelocity_Effective( ) } );
-    _stepB4a2_movements.push_back( { baseParameters.pumpUpPause( ) } );
-    _stepB4a2_movements.push_back( { MoveType::Relative, baseMoveDownDistance,             baseParameters.pumpDownVelocity_Effective( ) } );
-    _stepB4a2_movements.push_back( { baseParameters.pumpDownPause( ) } );
-
-    _stepB4b2_movements.push_back( { MoveType::Relative, ( _printJob->baseSlices.layerThickness / 1000.0 ), PrinterDefaultLowSpeed } );
+    _stepB4b2_movements.push_back({MoveType::Relative, (_printJob->baseSlices.layerThickness / 1000.0), PrinterDefaultLowSpeed});
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;

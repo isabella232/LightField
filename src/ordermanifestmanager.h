@@ -28,10 +28,11 @@ public:
         FILE_NAME,
         LAYER_THICKNESS,
         EXPOSURE_TIME,
-        VOLUME
+        VOLUME,
+        BASE_LAYER_CNT
     };
 
-    static const QString strings[12];
+    static const QString strings[13];
 
     ManifestKeys() = default;
     constexpr ManifestKeys(Value key) : value(key) { }
@@ -61,8 +62,7 @@ public:
     ManifestSortType(QString key) {
         for(uint8_t i=0; i<strings->length(); ++i) {
             if(strings[i] == key) {
-                value = (Value)i;
-
+                value = static_cast<Value>(i);
                 return;
             }
         }
@@ -204,7 +204,7 @@ public:
     inline double tilingStep()         { return _tilingStep; }
     inline int tilingSpace()           { return _tilingSpace; }
     inline int tilingCount()           { return _tilingCount; }
-    inline int manifestVolume()        { return _estimatedVolume; }
+    inline double manifestVolume()     { return _estimatedVolume; }
 
     inline QString getFirstElement()
     {
@@ -248,6 +248,7 @@ public:
     double getTimeForElementAt(int position);
 
     int layerThickNessAt(int position);
+    bool isBaseLayer(int position);
 
 private:
     QString             _dirPath;

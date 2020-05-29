@@ -75,7 +75,6 @@ private:
 
     QList<MovementInfo> _stepA1_movements;
     QList<MovementInfo> _stepA3_movements;
-    QList<MovementInfo> _stepB4a2_movements;
     QList<MovementInfo> _stepB4b2_movements;
     QList<MovementInfo> _stepC4b2_movements;
 
