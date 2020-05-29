@@ -52,6 +52,10 @@ public:
                     printProfile->setDefault( true );
                 }
 
+                if(obj.contains("active")) {
+                    printProfile->setActive( true );
+                }
+
                 if(name.isString()) {
                     printProfile->setProfileName(obj["name"].toString());
                 }
@@ -125,6 +129,10 @@ public:
             if(profile->isDefault( )) {
                 json["default"]              = "true";
             }
+            if(profile->isActive( )) {
+                json["active"]              = "true";
+            }
+
             json["baseLayerCount"]       = profile->baseLayerCount( );
             json["baseLayerParameters"] = _serializePrintParameters( profile->baseLayerParameters( ) );
             json["bodyLayerParameters"] = _serializePrintParameters( profile->bodyLayerParameters( ) );

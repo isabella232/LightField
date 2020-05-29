@@ -129,7 +129,10 @@ void ProfilesTab::_setupProfilesList(QFont font) {
 void ProfilesTab::setPrintProfileManager(PrintProfileManager* printProfileManager)
 {
     _printProfileManager = printProfileManager;
-    _loadProfiles();
+
+    connect(_printProfileManager, &PrintProfileManager::reloadProfiles, this, &ProfilesTab::_loadProfiles);
+
+    _printProfileManager->reload();
 }
 
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
@@ -307,7 +310,7 @@ void ProfilesTab::loadProfile_clicked(bool)
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
-    msgBox.setText("Are You sure to load selected profile?");
+    msgBox.setText("Are You sure to load selected profile. All local changes will discard?");
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -413,15 +416,15 @@ bool ProfilesTab::_deletePrintProfile()
 {
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
-    _printProfileManager->removeProfile(itemText);
+    if( _printProfileManager->removeProfile(itemText) ) {
+        _model->removeRows(index.row(), 1);
 
-    _model->removeRows(index.row(), 1);
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+        _enableButtonProfile(false); // Because no item is selected after deleted
 
-    ProfilesJsonParser::loadProfiles();
-    _enableButtonProfile(false); // Because no item is selected after deleted
-
-    return true;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool ProfilesTab::_loadPrintProfile()
@@ -431,45 +434,26 @@ bool ProfilesTab::_loadPrintProfile()
     return _printProfileManager->setActiveProfile(itemText);
 }
 
-void ProfilesTab::_loadProfiles()
+void ProfilesTab::loadProfiles( PrintProfileCollection* profiles )
 {
-    QVector<QSharedPointer<PrintProfile>>* profiles;
     QStandardItem* item = nullptr;
 
-    bool findDefaultProfile = false;
     int listItemIndex = 0;
 
-    profiles = ProfilesJsonParser::loadProfiles();
+    _model->removeRows( 0, _model->rowCount() );
 
     foreach (QSharedPointer<PrintProfile> profile, *profiles) {
-        _printProfileManager->addProfile(profile);
-
         item = new QStandardItem(profile->profileName());
         item->setEditable(false);
-
-        findDefaultProfile = false;
-        if (profile->isDefault()) {
-            findDefaultProfile = true;
-            _printProfileManager->setActiveProfile(profile->profileName());
-            _profilesList->setCurrentIndex(_model->indexFromItem(item));
-            _enableButtonProfile(true);
-        }
-
-        if (!findDefaultProfile) {
-           _model->setItem( listItemIndex, 0, item );
-           listItemIndex++;
-        }
+        _profilesList->setCurrentIndex(_model->indexFromItem(item));
+        _model->setItem( listItemIndex, 0, item );
+        listItemIndex++;
     }
+}
 
-    if (findDefaultProfile)
-        qDebug() << "Find default profile";
-    else
-    {
-        // TODO: create default profile ?
-        qDebug() << "Not find default profile";
-    }
+void ProfilesTab::setActive( QSharedPointer<PrintProfile> printProfile )
+{
 
-    delete profiles;
 }
 
 void ProfilesTab::_connectUsbMountManager()

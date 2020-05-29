@@ -85,6 +85,10 @@ public:
         return _default;
     }
 
+    bool isActive() {
+        return _active;
+    }
+
     int baseLayerCount( ) const {
         return _baseLayerCount;
     }
@@ -119,6 +123,10 @@ public:
         _default = isDefault;
     }
 
+    void setActive(bool isActive) {
+        _active = isActive;
+    }
+
     void setBaseLayerCount( int const newCount ) {
         _baseLayerCount = newCount;
     }
@@ -137,6 +145,7 @@ private:
 
     QString         _name;
     bool            _default;
+    bool            _active;
     int             _baseLayerCount       { };
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;

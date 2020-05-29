@@ -12,10 +12,7 @@ class PrintProfileManager: public QObject
 
 public:
 
-    PrintProfileManager(QObject* parent = nullptr): QObject(parent)
-    {
-        /*empty*/
-    }
+    PrintProfileManager(QObject* parent = nullptr);
 
     virtual ~PrintProfileManager() override
     {
@@ -37,14 +34,17 @@ public:
     bool setActiveProfile(QString const& profileName);
     bool importProfiles(QString const& fileName);
     bool exportProfiles(QString const& fileName);
+    void reload();
 
 private:
-    PrintProfileCollection* _profiles { new PrintProfileCollection };
+    PrintProfileCollection* _profiles;
     QSharedPointer<PrintProfile> _activeProfile { };
     QSharedPointer<PrintProfile> _findProfile( QString const& name );
+    static QSharedPointer<PrintProfile> _findProfileCustom ( QString const& name, PrintProfileCollection* profiles );
 
 signals:
     void activeProfileChanged(QSharedPointer<PrintProfile> newProfile );
+    void reloadProfiles( PrintProfileCollection* profiles );
 };
 
 #endif //!__PRINTPROFILEMANAGER_H__

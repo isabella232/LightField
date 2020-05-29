@@ -32,7 +32,7 @@ private:
     QPushButton*        _exportParams                    { new QPushButton("Export")              };
     QPushButton*        _newProfile                      { new QPushButton("Create profile")      };
     QPushButton*        _renameProfile                   { new QPushButton("Rename profile")      };
-    QPushButton*        _overwriteProfile                { new QPushButton("Update profile")      };
+    QPushButton*        _overwriteProfile                { new QPushButton("Save profile")        };
     QPushButton*        _deleteProfile                   { new QPushButton("Delete selected")     };
     QPushButton*        _loadProfile                     { new QPushButton("Load selected")       };
     QCheckBox*          _cpyProfilesUsb                  { new QCheckBox("Copy profiles from/to USB")  };
@@ -46,7 +46,6 @@ private:
     bool _updateProfile();
     bool _deletePrintProfile();
     bool _loadPrintProfile();
-    void _loadProfiles();
     void _enableButtonProfile(bool enabled);
     void _usbRemounted(const bool succeeded, const bool writable);
     void _setEnabled( bool enabled );
@@ -62,6 +61,8 @@ public slots:
     void deleteProfile_clicked(bool);
     void loadProfile_clicked(bool);
     void itemClicked(const QModelIndex &index);
+
+    void loadProfiles( PrintProfileCollection* profiles );
 
 };
 
