@@ -710,7 +710,7 @@ void PrepareTab::_loadDirectoryManifest()
 
     _printJob->bodySlices.layerCount = manifestMgr->getSize();
     _printJob->bodySlices.isPreSliced = true;
-    _printJob->baseSlices.sliceDirectory = manifestMgr->path();
+    _printJob->bodySlices.sliceDirectory = manifestMgr->path();
 
     _printJob->setBodyManager(manifestMgr);
     _orderButton->setEnabled(true);

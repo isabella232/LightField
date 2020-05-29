@@ -110,6 +110,10 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     _uiState = state;
 
     switch (_uiState) {
+    case UiState::SelectStarted:
+        _setEnabled(true);
+        break;
+
     case UiState::PrintStarted:
         setPrinterAvailable( false );
         _setEnabled( false );

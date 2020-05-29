@@ -91,9 +91,8 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 
             QJsonArray layerThicknessArray = tilingNested.value(ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString()).toArray();
 
-            for(int i=0; i<layerThicknessArray.count(); ++i) {
+            for(int i=0; i<layerThicknessArray.count(); ++i)
                 _layerThickNess.push_back(layerThicknessArray[i].toInt());
-            }
     }
     } catch (...) {
         return ManifestParseResult::FILE_CORRUPTED;
