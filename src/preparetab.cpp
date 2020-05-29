@@ -797,7 +797,7 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     QObject::disconnect( _prepareButton, &QPushButton::clicked, this, nullptr );
     _prepareButton->setEnabled( false );
 
-    _prepareMessage->setText( "Raising the build platform&" );
+    _prepareMessage->setText( "Raising the build platform" );
     _prepareProgress->show( );
 
     QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
