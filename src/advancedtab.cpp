@@ -346,9 +346,9 @@ void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome) {
     _offsetSlider->setSingleStep( 1 );
     _offsetSlider->setTickInterval( 4 );
     _offsetSlider->setTickPosition( QSlider::TicksBothSides );
-    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
     QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
     QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
+    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
 
 
     _buildPlatformOffsetGroup->setContentsMargins( { } );
