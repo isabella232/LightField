@@ -85,19 +85,19 @@ private:
     QScrollArea*  _basePumpForm                       { new QScrollArea                                                          };
     QCheckBox*    _addBasePumpCheckbox                { new QCheckBox( "Enable pumping for base layers" )                        };
 
-    ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250 ) };
-    ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5 ) };
-    ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5 ) };
+    ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
+    ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5, 5 ) };
+    ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5, 5 ) };
     ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   1 ) };
     ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5 ) };
+    ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5, 5 ) };
 
 
     //Layer Form
     QWidget*      _layersForm                          { new QWidget                                                              };
 
-    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50 ) };
+    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
+    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
     QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time controll") };
 
     //Body Pump Form
@@ -105,7 +105,7 @@ private:
     QCheckBox*    _addBodyPumpCheckbox                { new QCheckBox( "Enable pumping for body layers" )                        };
 
     ParamSlider*  _bodyPumpEveryNthLayer              { new ParamSlider( "Body Pump Every Nth Layer", "",         5,   20,   1 ) };
-    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000, 250 ) };
+    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
     ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
