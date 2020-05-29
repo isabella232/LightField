@@ -143,18 +143,13 @@ private:
     bool            _defaultProfile;    
 
 signals:
-    ;
-
     void profileNameChanged( QString const& newName );
 
 public slots:
-    ;
 
 protected slots:
-    ;
 
 private slots:
-    ;
 
 };
 
