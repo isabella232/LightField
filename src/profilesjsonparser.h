@@ -58,7 +58,7 @@ public:
                 else
                 {
                     debug( "ProfilesJsonParser::loadProfiles: Error while parsing name field" );
-                    throw new QException();
+                    printProfile->setProfileName("Unknown");
                 }
 
                 debug( "  + get baseLayerCount\n" );
@@ -69,7 +69,7 @@ public:
                 else
                 {
                     debug( "ProfilesJsonParser::loadProfiles: Error while parsing baseLayerCount field" );
-                    throw new QException();
+                    printProfile->setBaseLayerCount(2);
                 }
 
                 debug( "  + get baseLayerParameters\n" );
@@ -164,7 +164,7 @@ private:
             return value.toBool( );
         else {
             debug( "ProfilesJsonParser::_parseBoolValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
-            throw new QException( );
+            return false;
         }
     }
 
@@ -174,7 +174,7 @@ private:
             return value.toInt( );
         else {
             debug( "ProfilesJsonParser::_parseIntValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
-            throw new QException( );
+            return 0;
         }
     }
 
@@ -184,7 +184,7 @@ private:
             return value.toDouble( );
         else {
             debug( "ProfilesJsonParser::_parseDoubleValue: Error while parsing field %s\n", propertyName.toUtf8( ).data( ) );
-            throw new QException( );
+            return 0.0;
         }
     }
 

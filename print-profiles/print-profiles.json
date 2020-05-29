@@ -3,24 +3,28 @@
         "name": "16adda77-9020-45c4-ba01-622488a67d2a",
 	"default": true,
         "baseLayerCount": 2,
-        "baseLayersPumpingParameters": {
+        "baseLayerParameters": {
             "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
             "pumpDownPause": 4000,
+            "pumpUpVelocity": 50,
+            "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,
             "layerExposureTime": 1000,
             "powerLevel": 50.0
         },
-        "bodyLayersPumpingParameters": {
+        "bodyLayerParameters": {
             "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
             "pumpDownPause": 4000,
+            "pumpUpVelocity": 50,
+            "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,

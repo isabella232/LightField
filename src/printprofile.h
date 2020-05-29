@@ -37,7 +37,7 @@ public:
         debug("     objectAddress:                  %d\n", this);
         debug("     baseLayerCount                  %d\n", _baseLayerCount);
         //debug("     baseLayersParametersEnabled        %d\n", _baseLayersParametersEnabled);
-        debug("     baseLayersPumpingParameters:    \n");
+        debug("     baseLayersParameters:    \n");
         debug("     objectAddress:                  %d\n", &_baseLayerParameters);
         debug("         powerLevel:                 %d\n", _baseLayerParameters.powerLevel());
         debug("         pumpUpVelocity:             %d\n", _baseLayerParameters.pumpUpVelocity_Effective());
@@ -54,7 +54,7 @@ public:
         debug("         pumpDownDistance_Effective: %d\n", _baseLayersPumpingParameters.pumpDownDistance_Effective());
         debug("         pumpDownVelocity_Effective: %d\n", _baseLayersPumpingParameters.pumpDownVelocity_Effective());*/
         //debug("     bodyLayersParametersEnabled        %d\n", _bodyLayersParametersEnabled);
-        debug("     bodyLayersPumpingParameters:    \n");
+        debug("     bodyLayersParameters:    \n");
         debug("     objectAddress:                  %d\n", &_bodyLayerParameters);
         debug("         powerLevel:                 %d\n", _bodyLayerParameters.powerLevel());
         debug("         pumpUpVelocity:             %d\n", _bodyLayerParameters.pumpUpVelocity_Effective());

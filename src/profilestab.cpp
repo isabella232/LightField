@@ -433,13 +433,13 @@ bool ProfilesTab::_loadPrintProfile()
 
 void ProfilesTab::_loadProfiles()
 {
-    QVector<QSharedPointer<PrintProfile>>* profiles = ProfilesJsonParser::loadProfiles();
+    QVector<QSharedPointer<PrintProfile>>* profiles;
     QStandardItem* item = nullptr;
-    QStandardItem* firstItem = nullptr;
 
     bool findDefaultProfile = false;
     int listItemIndex = 0;
-    int i = 0;
+
+    profiles = ProfilesJsonParser::loadProfiles();
 
     foreach (QSharedPointer<PrintProfile> profile, *profiles) {
         _printProfileManager->addProfile(profile);
@@ -448,12 +448,10 @@ void ProfilesTab::_loadProfiles()
         item->setEditable(false);
 
         findDefaultProfile = false;
-        if (profile->isDefault())
+        if (profile->isDefault()) {
             findDefaultProfile = true;
-
-        if (!i++) {
-            firstItem=item;
             _printProfileManager->setActiveProfile(profile->profileName());
+            _profilesList->setCurrentIndex(_model->indexFromItem(item));
             _enableButtonProfile(true);
         }
 
@@ -470,9 +468,6 @@ void ProfilesTab::_loadProfiles()
         // TODO: create default profile ?
         qDebug() << "Not find default profile";
     }
-
-    if (firstItem)
-        _profilesList->setCurrentIndex( _model->indexFromItem(firstItem) );
 
     delete profiles;
 }
