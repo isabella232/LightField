@@ -105,7 +105,7 @@ private:
     QCheckBox*    _addBodyPumpCheckbox                { new QCheckBox( "Enable pumping for body layers" )                        };
 
     ParamSlider*  _bodyPumpEveryNthLayer              { new ParamSlider( "Body Pump Every Nth Layer", "",         5,   20,   1 ) };
-    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000,   1 ) };
+    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000, 250 ) };
     ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
