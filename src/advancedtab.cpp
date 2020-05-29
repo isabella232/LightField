@@ -613,30 +613,14 @@ void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
     _bodyPumpForm->setWidget(container);
 }
 
-void AdvancedTab::updatePrintProfile() {
+void AdvancedTab::updatePrintProfile()
+{
+    QSharedPointer<PrintProfile> profile = _printJob->printProfile;
+
     if (_loadingPrintProfile)
         return;
 
-    QSharedPointer<PrintProfile> profile = _printProfileManager->activeProfile();
-    QString tempProfileName = "temp";
-    bool setActive = false;
-
-    debug("+ AdvancedTab::updatePrintProfile");
-
-    if (profile->profileName() != tempProfileName)
-    {
-        QVector<QSharedPointer<PrintProfile>>* c = _printProfileManager->profiles();
-        auto iter = std::find_if( c->begin( ), c->end( ), [&tempProfileName] ( auto p ) { return tempProfileName == p->profileName( ); } );
-        profile = ( iter != c->end( ) ) ? *iter : nullptr;
-        if(profile.isNull())
-        {
-            profile = QSharedPointer<PrintProfile> { new PrintProfile };
-            profile->setProfileName(tempProfileName);
-            _printProfileManager->addProfile(profile);
-        }
-
-        setActive = true;
-    }
+    debug("+ AdvancedTab::updatePrintProfile\n");
 
     PrintParameters baseParams;
     baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
@@ -663,9 +647,6 @@ void AdvancedTab::updatePrintProfile() {
     bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
     bodyParams.setPowerLevel(_powerLevelSlider->value());
     profile->setBodyLayerParameters(bodyParams);
-
-    if(setActive)
-        _printProfileManager->setActiveProfile(tempProfileName);
 }
 
 void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
