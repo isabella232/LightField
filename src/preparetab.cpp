@@ -300,41 +300,30 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
-    // check that the layer SVG files are newer than the sliced SVG file,
-    //   and that the layer PNG files are newer than the layer SVG files,
-    //   and that there are no gaps in the numbering.
     while (iter.hasNext()) {
-
-        QFileInfo entry ( sliceInfo.sliceDirectory % Slash % *iter);
+        QFileInfo entry(sliceInfo.sliceDirectory % Slash % *iter);
         ++iter;
 
         if (!entry.exists()) {
             debug( "  + Fail: layer PNG file %s does not exist\n", entry.fileName().toUtf8().data());
             return false;
         }
-        if (slicedSvgFileLastModified > entry.lastModified()) {
-            debug("  + Fail: layer PNG file %s is newer than SVG file\n", entry.fileName().toUtf8().data());
-            debug("    + SVG file timestamp: %s\n", slicedSvgFileLastModified.toString().toUtf8().data());
-            debug("    + layer PNG file timestamp: %s\n", entry.lastModified().toString().toUtf8().data());
+
+        layerNumber = RemoveFileExtension(entry.baseName()).toInt();
+        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
+            debug("  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber);
             return false;
         }
 
-        layerNumber = RemoveFileExtension( entry.baseName( ) ).toInt( );
-        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
-            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
-            return false;
-        }
         prevLayerNumber = layerNumber;
     }
 
-    if(isBody) {
+    if(isBody)
         _printJob->setBodyManager( manifestMgr );
-    } else {
+    else
         _printJob->setBaseManager( manifestMgr );
-    }
 
-    debug( "  + Success: %d layers\n", sliceInfo.layerCount );
-
+    debug("  + Success: %d layers\n", sliceInfo.layerCount);
     return true;
 }
 
