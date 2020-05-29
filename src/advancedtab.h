@@ -96,8 +96,8 @@ private:
     //Layer Form
     QWidget*      _layersForm                          { new QWidget                                                              };
 
-    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,   1 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,   1 ) };
+    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50 ) };
+    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50 ) };
     QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time controll") };
 
     //Body Pump Form
