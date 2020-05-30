@@ -22,12 +22,9 @@ enum class PrintResult {
 enum class PrintStep {
     none,
     A1, A2, A3,
-    B1, B2, B2a, B3,
-        B4a1, B4a2,
-        B4b1, B4b2,
     C1, C2, C2a, C3,
-        C4a1, C4a2,
-        C4b1, C4b2,
+        C4, C5,
+
     D1,
     E1, E2,
 };
@@ -166,11 +163,11 @@ private slots:
     void stepC3_completed( );
     void stepC3_failed( int const exitCode, QProcess::ProcessError const error );
 
-    void stepC4a1_start( );
-    void stepC4a1_completed( );
+    void stepC4_start( );
+    void stepC4_completed( );
 
-    void stepC4a2_start( );
-    void stepC4a2_completed( bool const success );
+    void stepC5_start( );
+    void stepC5_completed( bool const success );
 
     void stepC4b1_start( );
     void stepC4b1_completed( );

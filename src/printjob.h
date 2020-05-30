@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "coordinate.h"
 #include "printprofile.h"
+#include "movementsequencer.h"
 #include "ordermanifestmanager.h"
 
 
@@ -18,6 +19,12 @@ enum class SliceType
 {
     SliceBase,
     SliceBody,
+};
+
+
+enum class WaitBeforeZmoveType{
+    WaitBeforeLift,
+    WaitBeforeProject
 };
 
 
@@ -62,6 +69,7 @@ public:
     SliceInformation        baseSlices { SliceType::SliceBase };
     SliceInformation        bodySlices { SliceType::SliceBody };
 
+    //TODO copy over all profile data exactly on printtab print button clicked
     QSharedPointer<PrintProfile>    printProfile    { };
 
     bool isTiled()
@@ -71,6 +79,75 @@ public:
 
         return false;
     }
+
+    bool hasLayerMoreElements(int checkedImage)
+    {
+        if (checkedImage+1 == totalLayerCount()) {
+        return false;
+        }
+
+        if(isTiled())
+        {
+            if(checkedImage == 0){
+              return (tilingCount()>1) ? true : false;
+            }else{
+              return (checkedImage+1) % tilingCount();
+            }
+
+        }else{
+         return false;
+        }
+
+    }
+
+    WaitBeforeZmoveType getPauseTypeBeforeZmove(int layerNum)
+    {
+            if(getLayerProfileParams(layerNum).isPumpingEnabled()){
+                return WaitBeforeZmoveType::WaitBeforeLift;
+            } else {
+                return WaitBeforeZmoveType::WaitBeforeProject;
+            }
+    }
+
+    double getLayerPowerLevel(int layerNum)
+    {
+        return getLayerProfileParams(layerNum).powerLevel();
+    }
+
+    QList<MovementInfo> getMovementAfterLayer(int layerNum)
+    {
+        QList<MovementInfo> movements;
+
+        if(getLayerProfileParams(layerNum).isPumpingEnabled())
+        {
+            movements.push_back( { MoveType::Relative,
+                                   getLayerProfileParams(layerNum).pumpUpDistance( ),
+                                   getLayerProfileParams(layerNum).pumpUpVelocity_Effective( ) } );
+
+            movements.push_back( { getLayerProfileParams(layerNum).pumpUpPause( ) } );
+
+            //TODO check if proper layer number is selected
+            movements.push_back( { MoveType::Relative,
+                                   -getLayerProfileParams(layerNum).pumpDownDistance_Effective() +
+                                       (getLayerThicknessAt(layerNum - tilingCount() + 1) / 1000.0),
+                                   getLayerProfileParams(layerNum).pumpDownVelocity_Effective( ) } );
+
+            movements.push_back( { getLayerProfileParams(layerNum).pumpDownPause( ) } );
+
+        }else{
+             movements.push_back( { MoveType::Relative,
+                                    getLayerThicknessAt(layerNum) / 1000.0,
+                                    PrinterDefaultLowSpeed } );
+        }
+
+
+
+        return movements;
+
+    }
+
+
+
 
     bool hasBasicControlsEnabled()
     {
@@ -173,6 +250,15 @@ public:
             return false;
 
         return (layer >= baseLayerStart()) && (layer <= baseLayerEnd());
+    }
+
+    PrintParameters& getLayerProfileParams(int layerNum)
+    {
+        if(isBaseLayer(layerNum)){
+            return printProfile->baseLayerParameters();
+        } else {
+            return printProfile->bodyLayerParameters();
+        }
     }
 
     QString getLayerDirectory(int const layer) const
