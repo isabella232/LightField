@@ -12,12 +12,13 @@ class ProfilesTab: public TabBase
 
 public:
 
-    ProfilesTab( QWidget* parent = nullptr );
-    virtual ~ProfilesTab( ) override;
+    ProfilesTab(QWidget* parent = nullptr);
+    virtual ~ProfilesTab() override;
+    virtual TabIndex tabIndex() const override
+    {
+        return TabIndex::Profiles;
+    }
 
-    virtual TabIndex tabIndex( ) const override { return TabIndex::Profiles; }
-
-    void setPrintProfileManager( PrintProfileManager* printProfileManager );
 
 protected:
     virtual void _connectUsbMountManager() override;
@@ -25,7 +26,6 @@ protected:
     void _filesystemUnmounted(QString const& mountPoint);
 
 private:
-    PrintProfileManager* _printProfileManager;
     QString _usbMountPoint { "" };
 
     QPushButton*        _importParams                    { new QPushButton("Import")              };
@@ -48,7 +48,9 @@ private:
     bool _loadPrintProfile();
     void _enableButtonProfile(bool enabled);
     void _usbRemounted(const bool succeeded, const bool writable);
-    void _setEnabled( bool enabled );
+    void _setEnabled(bool enabled);
+    void _activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
+    virtual void _connectPrintProfileManager() override;
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
@@ -62,7 +64,7 @@ public slots:
     void loadProfile_clicked(bool);
     void itemClicked(const QModelIndex &index);
 
-    void loadProfiles( PrintProfileCollection* profiles );
+    void loadProfiles();
 
 };
 

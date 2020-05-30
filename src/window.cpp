@@ -65,7 +65,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
-
+    _printProfileManager->reload();
+    _printJob->printProfile = _printProfileManager->activeProfile();
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -83,15 +84,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
-    _prepareTab->setPrintJob(_printJob);
-    _advancedTab->setPrintJob(_printJob);
-
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
+        tabA->setPrintJob(_printJob);
         QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
         QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
