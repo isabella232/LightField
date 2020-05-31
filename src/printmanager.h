@@ -58,9 +58,7 @@ private:
     PrintStep           _step                     { };
     PrintStep           _pausedStep               { };
     int                 _currentLayer             { };
-    int                 _currentBaseLayer         { };
     int                 _elementsOnLayer          { };
-    bool                _isTiled                  { false };
     bool                _paused                   { false };
     double              _position                 { };
     double              _pausedPosition           { };
@@ -124,32 +122,6 @@ private slots:
     void stepA3_start( );
     void stepA3_completed( bool const success );
 
-
-    void stepB1_start( );
-    void stepB1_completed( );
-    void stepB1_failed( int const exitCode, QProcess::ProcessError const error );
-
-    void stepB2_start( );
-    void stepB2_completed( );
-
-    void stepB2a_start( );
-
-    void stepB3_start( );
-    void stepB3_completed( );
-    void stepB3_failed( int const exitCode, QProcess::ProcessError const error );
-
-    void stepB4a1_start( );
-    void stepB4a1_completed( );
-
-    void stepB4a2_start( );
-    void stepB4a2_completed( bool const success );
-
-    void stepB4b1_start( );
-    void stepB4b1_completed( );
-
-    void stepB4b2_start( );
-    void stepB4b2_completed( bool const success );
-
     void stepC1_start( );
     void stepC1_completed( );
     void stepC1_failed( int const exitCode, QProcess::ProcessError const error );
@@ -168,13 +140,6 @@ private slots:
 
     void stepC5_start( );
     void stepC5_completed( bool const success );
-
-    void stepC4b1_start( );
-    void stepC4b1_completed( );
-
-    void stepC4b2_start( );
-    void stepC4b2_completed( bool const success );
-
 
     void stepD1_start( );
     void stepD1_completed( bool const success );

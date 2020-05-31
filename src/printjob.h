@@ -281,10 +281,13 @@ public:
     }
 
     double getTimeForElementAt( int position ) {
-        if(_bodyManager && isTiled())
+        if(isTiled()){
+            //TODO align if base is existing for tiled designs
             return _bodyManager->getTimeForElementAt( position );
+        }else{
+            return isBaseLayer(position) ? baseSlices.exposureTime : bodySlices.exposureTime;
+        }
 
-        else return -1.0;
     }
 
     QSharedPointer<OrderManifestManager> getBaseManager()

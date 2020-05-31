@@ -597,10 +597,8 @@ void PrintManager::stepE2_completed( bool const success ) {
 
     emit printResumed( );
     switch ( _pausedStep ) {
-        case PrintStep::B1:   stepB1_start( );   break;
-        case PrintStep::B4b1: stepB4b1_start( ); break;
         case PrintStep::C1:   stepC1_start( );   break;
-        case PrintStep::C4b1: stepC4b1_start( ); break;
+        case PrintStep::C4:   stepC4_start( );   break;
 
         default:
             debug( "+ PrintManager::stepE4_completed: paused at invalid step %s?\n", ToString( _pausedStep ) );
@@ -630,7 +628,6 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
     _printJob = printJob;
-    _isTiled = printJob->isTiled();
     _elementsOnLayer = printJob->tilingCount();
 
     _pngDisplayer->clear();
@@ -648,11 +645,8 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     _stepA3_movements.push_back({MoveType::Absolute, firstLayerHeight, firstParameters.noPumpDownVelocity_Effective()});
     _stepA3_movements.push_back({PauseAfterPrintSolutionDispensed});
 
-    _stepB4b2_movements.push_back({MoveType::Relative, (_printJob->baseSlices.layerThickness / 1000.0), PrinterDefaultLowSpeed});
-
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
-    _currentBaseLayer = _printJob->baseLayerStart();
     emit printStarting( );
     stepA1_start( );
 }
@@ -705,18 +699,11 @@ void PrintManager::abort( ) {
             stepA2_completed( );
             break;
 
-        case PrintStep::B4a1:
+        case PrintStep::C4:
             // TODO is this still necessary?
-            debug( "  + Interrupting base pre-lift timer\n" );
+            debug( "  + Interrupting pre-lift timer\n" );
             _stopAndCleanUpTimer( _preLiftTimer );
-            stepB4a1_completed( );
-            break;
-
-        case PrintStep::C4a1:
-            // TODO is this still necessary?
-            debug( "  + Interrupting body pre-lift timer\n" );
-            _stopAndCleanUpTimer( _preLiftTimer );
-            stepC4a1_completed( );
+            stepC4_completed( );
             break;
 
         default:
@@ -739,5 +726,4 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
     debug( "+ PrintManager::printer_positionReport: new position %.2f mm, new threshold %.2f mm\n", _position, _threshold );
 }
 
-bool PrintManager::_hasLayerMoreElements() {
 
