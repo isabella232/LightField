@@ -9,8 +9,9 @@
 #include <dirent.h>
 #include <iostream>
 
-ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
-    auto origFont    = font( );
+ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
+{
+    auto origFont    = font();
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
     _fontAwesome = new QFont(fontAwesome);
@@ -54,14 +55,14 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     _enableButtonProfile(false);
     _setupProfilesList(fontAwesome);
 
-    QObject::connect( _importParams, &QPushButton::clicked, this, &ProfilesTab::importParams_clicked );
-    QObject::connect( _exportParams, &QPushButton::clicked, this, &ProfilesTab::exportParams_clicked );
-    QObject::connect( _newProfile, &QPushButton::clicked, this, &ProfilesTab::newProfile_clicked );
-    QObject::connect( _renameProfile, &QPushButton::clicked, this, &ProfilesTab::renamePProfile_clicked );
-    QObject::connect( _overwriteProfile, &QPushButton::clicked, this, &ProfilesTab::updateProfile_clicked );
-    QObject::connect( _deleteProfile, &QPushButton::clicked, this, &ProfilesTab::deleteProfile_clicked );
-    QObject::connect( _loadProfile, &QPushButton::clicked, this, &ProfilesTab::loadProfile_clicked );
-    QObject::connect( _profilesList, &QListView::clicked, this, &ProfilesTab::itemClicked );
+    QObject::connect(_importParams, &QPushButton::clicked, this,&ProfilesTab::importParamsClicked);
+    QObject::connect(_exportParams, &QPushButton::clicked, this, &ProfilesTab::exportParamsClicked);
+    QObject::connect(_newProfile, &QPushButton::clicked, this, &ProfilesTab::newProfileClicked);
+    QObject::connect(_renameProfile, &QPushButton::clicked, this, &ProfilesTab::renamePProfileClicked);
+    QObject::connect(_overwriteProfile, &QPushButton::clicked, this, &ProfilesTab::updateProfileClicked);
+    QObject::connect(_deleteProfile, &QPushButton::clicked, this, &ProfilesTab::deleteProfileClicked);
+    QObject::connect(_loadProfile, &QPushButton::clicked, this, &ProfilesTab::loadProfileClicked);
+    QObject::connect(_profilesList, &QListView::clicked, this, &ProfilesTab::itemClicked);
 
     setLayout(
         WrapWidgetsInHBox(
@@ -79,7 +80,8 @@ ProfilesTab::ProfilesTab( QWidget* parent ): TabBase( parent ) {
     );
 }
 
-ProfilesTab::~ProfilesTab( ) {
+ProfilesTab::~ProfilesTab()
+{
     /*empty*/
 }
 
@@ -91,14 +93,16 @@ void ProfilesTab::itemClicked(const QModelIndex& index)
 }
 
 
-void ProfilesTab::_enableButtonProfile( bool enabled ) {
+void ProfilesTab::_enableButtonProfile(bool enabled)
+{
     _overwriteProfile->setEnabled(enabled);
     _deleteProfile->setEnabled(enabled);
     _loadProfile->setEnabled(enabled);
     _renameProfile->setEnabled(enabled);
 }
 
-void ProfilesTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
+void ProfilesTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
+{
     debug( "+ ProfilesTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
     _uiState = state;
 
@@ -114,22 +118,25 @@ void ProfilesTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     }
 }
 
-void ProfilesTab::_setupProfilesList(QFont font) {
-
-    QItemSelectionModel* selectionModel = new QItemSelectionModel( _model );
-    _profilesList->setModel( _model );
-    _profilesList->setSelectionModel( selectionModel );
-    _profilesList->setFont( font );
-    _profilesList->setVisible( true );
-    _profilesList->setSelectionBehavior( QAbstractItemView::SelectRows );
-    _profilesList->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-
+void ProfilesTab::_setupProfilesList(QFont font)
+{
+    QItemSelectionModel* selectionModel = new QItemSelectionModel(_model);
+    _profilesList->setModel(_model);
+    _profilesList->setSelectionModel(selectionModel);
+    _profilesList->setFont(font);
+    _profilesList->setVisible(true);
+    _profilesList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    _profilesList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void ProfilesTab::setPrintProfileManager(PrintProfileManager* printProfileManager)
+void ProfilesTab::_connectPrintProfileManager()
 {
-    _printProfileManager = printProfileManager;
-    _loadProfiles();
+    connect(_printProfileManager, &PrintProfileManager::reloadProfiles, this,
+        &ProfilesTab::loadProfiles);
+    connect(_printProfileManager, &PrintProfileManager::activeProfileChanged, this,
+        &ProfilesTab::loadProfiles);
+
+    _printProfileManager->reload();
 }
 
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
@@ -161,7 +168,7 @@ void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
     _usbMountManager->remount(false);
 }
 
-void ProfilesTab::importParams_clicked(bool)
+void ProfilesTab::importParamsClicked(bool)
 {
     QMessageBox msgBox { this };
     // <nobr> because when two line text causes wrong value of sizeHint().width() and sizeHint().height()
@@ -183,7 +190,7 @@ void ProfilesTab::importParams_clicked(bool)
                msgBox.exec();
             }
 
-            _loadProfiles();
+            loadProfiles();
             break;
 
         default:
@@ -191,7 +198,7 @@ void ProfilesTab::importParams_clicked(bool)
     }
 }
 
-void ProfilesTab::exportParams_clicked(bool)
+void ProfilesTab::exportParamsClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setText("<center><nobr>Are You sure to export all profiles <br>to USB memory stick?</nobr></center>");
@@ -202,7 +209,6 @@ void ProfilesTab::exportParams_clicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            // @todo how to pass checkboxes values? what filename means?
             QObject::connect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
                 &ProfilesTab::_usbRemounted);
             _usbMountManager->remount(true);
@@ -212,7 +218,7 @@ void ProfilesTab::exportParams_clicked(bool)
     }
 }
 
-void ProfilesTab::newProfile_clicked(bool)
+void ProfilesTab::newProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
@@ -234,7 +240,7 @@ void ProfilesTab::newProfile_clicked(bool)
     }
 }
 
-void ProfilesTab::renamePProfile_clicked(bool)
+void ProfilesTab::renamePProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
@@ -245,20 +251,17 @@ void ProfilesTab::renamePProfile_clicked(bool)
     QString filename = inputDialog->getValue();
     if (ret && !filename.isEmpty())
     {
-        if(!_renamePProfile(filename))
-        {
+        if(!_renamePProfile(filename)) {
             msgBox.setText("Something went wrong.");
             msgBox.exec();
-        }
-        else
-        {
+        } else {
             msgBox.setText("Profile successfuly renamed.");
             msgBox.exec();
         }
     }
 }
 
-void ProfilesTab::updateProfile_clicked(bool)
+void ProfilesTab::updateProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -268,19 +271,14 @@ void ProfilesTab::updateProfile_clicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            if(!_updateProfile())
-            {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
+            _updateProfile();
             break;
         default:
             break;
     }
 }
 
-void ProfilesTab::deleteProfile_clicked(bool)
+void ProfilesTab::deleteProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -290,35 +288,24 @@ void ProfilesTab::deleteProfile_clicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            if(!_deletePrintProfile())
-            {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
+            _deletePrintProfile();
             break;
         default:
             break;
     }
 }
 
-void ProfilesTab::loadProfile_clicked(bool)
+void ProfilesTab::loadProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
-    msgBox.setText("Are You sure to load selected profile?");
+    msgBox.setText("Are You sure to load selected profile. All local changes will discarded?");
     int ret = msgBox.exec();
 
     switch (ret) {
         case QMessageBox::Yes:
-            if(!_loadPrintProfile())
-            {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               //msgBox.move( (w->width() - msgBox.sizeHint().width())/2, (w->height() - msgBox.sizeHint().height())/2 );
-               msgBox.exec();
-            }
+            _loadPrintProfile();
             break;
         default:
             break;
@@ -332,10 +319,6 @@ bool ProfilesTab::_createNewProfile(QString profileName)
 
     profileCopy->setProfileName(profileName);
     _printProfileManager->addProfile(profileCopy);
-    QStandardItem* item = new QStandardItem(profileName);
-    item->setEditable(false);
-    _model->appendRow(item);
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
     return true;
 }
 
@@ -346,26 +329,32 @@ bool ProfilesTab::_renamePProfile(QString profileName)
     QString oldName = index.data(Qt::DisplayRole).toString();
     _model->setData(index, QVariant(profileName));
 
-    auto c = _printProfileManager->profiles();
-    auto iter = std::find_if( c->begin( ), c->end( ), [&oldName] ( auto p ) { return oldName == p->profileName( ); } );
-    auto profile = ( iter != c->end( ) ) ? *iter : nullptr;
-
+    auto profile = _printProfileManager->getProfile(profileName);
     profile->setProfileName(profileName);
-
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+    _printProfileManager->saveProfiles();
 
     return true;
 }
 
-bool ProfilesTab::_updateProfile()
+void ProfilesTab::_updateProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString profileName = index.data(Qt::DisplayRole).toString();
-
-    auto c = _printProfileManager->profiles();
-    auto iter = std::find_if( c->begin( ), c->end( ), [&profileName] ( auto p ) { return profileName == p->profileName( ); } );
-    auto profile = ( iter != c->end( ) ) ? *iter : nullptr;
     auto activeProfile = _printProfileManager->activeProfile();
+
+    if (profileName.isEmpty()) {
+        msgBox.setText("Please select a profile to update");
+        msgBox.exec();
+        return;
+    }
+
+    auto profile = _printProfileManager->getProfile(profileName);
+    if (profile.isNull()) {
+        msgBox.setText("Profile not found");
+        msgBox.exec();
+        return;
+    }
 
     profile->setBaseLayerCount(activeProfile->baseLayerCount());
 
@@ -405,71 +394,55 @@ bool ProfilesTab::_updateProfile()
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
     profile->debugPrint();
-
-    return true;
 }
 
-bool ProfilesTab::_deletePrintProfile()
+void ProfilesTab::_deletePrintProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
-    _printProfileManager->removeProfile(itemText);
 
-    _model->removeRows(index.row(), 1);
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
-
-    ProfilesJsonParser::loadProfiles();
-    _enableButtonProfile(false); // Because no item is selected after deleted
-
-    return true;
+    try {
+        _printProfileManager->removeProfile(itemText);
+    } catch (const std::exception &ex) {
+        msgBox.setText(ex.what());
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
 }
 
-bool ProfilesTab::_loadPrintProfile()
+void ProfilesTab::_loadPrintProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
-    return _printProfileManager->setActiveProfile(itemText);
+
+    try {
+        _printProfileManager->setActiveProfile(itemText);
+    } catch (const std::exception &ex) {
+        msgBox.setText(ex.what());
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
 }
 
-void ProfilesTab::_loadProfiles()
+void ProfilesTab::loadProfiles()
 {
-    QVector<QSharedPointer<PrintProfile>>* profiles;
     QStandardItem* item = nullptr;
+    auto origFont = font();
+    auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
+    auto boldFont = ModifyFont(fontAwesome, QFont::Bold);
 
-    bool findDefaultProfile = false;
-    int listItemIndex = 0;
+    _model->removeRows(0, _model->rowCount());
 
-    profiles = ProfilesJsonParser::loadProfiles();
-
-    foreach (QSharedPointer<PrintProfile> profile, *profiles) {
-        _printProfileManager->addProfile(profile);
-
+    foreach (const auto profile, _printProfileManager->profiles()) {
         item = new QStandardItem(profile->profileName());
         item->setEditable(false);
+        item->setFont(profile->isActive() ? boldFont : fontAwesome);
 
-        findDefaultProfile = false;
-        if (profile->isDefault()) {
-            findDefaultProfile = true;
-            _printProfileManager->setActiveProfile(profile->profileName());
-            _profilesList->setCurrentIndex(_model->indexFromItem(item));
-            _enableButtonProfile(true);
-        }
-
-        if (!findDefaultProfile) {
-           _model->setItem( listItemIndex, 0, item );
-           listItemIndex++;
-        }
+        _profilesList->setCurrentIndex(_model->indexFromItem(item));
+        _model->appendRow(item);
     }
-
-    if (findDefaultProfile)
-        qDebug() << "Find default profile";
-    else
-    {
-        // TODO: create default profile ?
-        qDebug() << "Not find default profile";
-    }
-
-    delete profiles;
 }
 
 void ProfilesTab::_connectUsbMountManager()
@@ -496,10 +469,17 @@ void ProfilesTab::_filesystemUnmounted(const QString& mountPoint)
     _usbMountPoint = "";
 }
 
-void ProfilesTab::_setEnabled( bool enabled ) {
-    _loadProfile->setEnabled( enabled );
-    _deleteProfile->setEnabled( enabled );
-    _newProfile->setEnabled( enabled );
-    _renameProfile->setEnabled( enabled );
-    _overwriteProfile->setEnabled( enabled );
+void ProfilesTab::_setEnabled(bool enabled)
+{
+    _loadProfile->setEnabled(enabled);
+    _deleteProfile->setEnabled(enabled);
+    _newProfile->setEnabled(enabled);
+    _renameProfile->setEnabled(enabled);
+    _overwriteProfile->setEnabled(enabled);
+}
+
+void ProfilesTab::_activeProfileChanged(QSharedPointer<PrintProfile> newProfile)
+{
+    if (!_printJob.isNull())
+        _printJob->printProfile = newProfile;
 }

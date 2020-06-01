@@ -68,7 +68,8 @@ void TabBase::setPrintManager( PrintManager* printManager ) {
     _connectPrintManager( );
 }
 
-void TabBase::setPrintProfileManager( PrintProfileManager* printProfileManager ) {
+void TabBase::setPrintProfileManager(PrintProfileManager* printProfileManager)
+{
     _disconnectPrintProfileManager( );
     _printProfileManager = printProfileManager;
     _connectPrintProfileManager( );

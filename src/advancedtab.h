@@ -11,23 +11,23 @@
 #include "printprofilemanager.h"
 class PngDisplayer;
 
-class AdvancedTab: public TabBase {
-
+class AdvancedTab: public TabBase
+{
     Q_OBJECT
 
 public:
 
-    AdvancedTab( QWidget* parent = nullptr );
-    virtual ~AdvancedTab( ) override;
+    AdvancedTab(QWidget* parent = nullptr);
+    virtual ~AdvancedTab() override;
+    virtual TabIndex tabIndex() const override
+    {
+        return TabIndex::Advanced;
+    }
 
-    virtual TabIndex    tabIndex( ) const override { return TabIndex::Advanced; }
-    void setPrintProfileManager(PrintProfileManager* profileManager);
 protected:
-
-    virtual void _connectShepherd( ) override;
+    virtual void _connectShepherd() override;
 
 private:
-    PrintProfileManager* _printProfileManager;
     QLabel*       _offsetLabel                        { new QLabel      };
     QLabel*       _offsetValue                        { new QLabel      };
     QSlider*      _offsetSlider                       { new QSlider     };

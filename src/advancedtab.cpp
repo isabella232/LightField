@@ -679,7 +679,6 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     _bodyPumpEveryNthLayer->setValue( bodyParams.pumpEveryNthLayer( ) );
 
     _loadingPrintProfile = false;
-    printJob()->printProfile = profile;
 }
 
 void AdvancedTab::_setEnabled( bool enabled ) {
@@ -690,12 +689,6 @@ void AdvancedTab::_setEnabled( bool enabled ) {
     _bodyPumpForm->setEnabled( enabled );
     _layersForm->setEnabled( enabled );
 }
-
-void AdvancedTab::setPrintProfileManager(PrintProfileManager* profileManager)
-{
-    _printProfileManager = profileManager;
-}
-
 
 void AdvancedTab::setLayersSettingsEnabled(bool enabled) {
     _baseExposureTimeSlider->setEnabled(enabled);
