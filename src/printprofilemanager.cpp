@@ -43,6 +43,7 @@ bool PrintProfileManager::setActiveProfile(const QString& profileName)
     if (profile == _profiles.end())
         return false;
 
+    _activeProfile->setActive(false);
     (*profile)->setActive(true);
 
     ProfilesJsonParser::saveProfiles(_profiles);

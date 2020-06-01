@@ -55,13 +55,13 @@ private:
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
 
-    void importParams_clicked(bool);
-    void exportParams_clicked(bool);
-    void newProfile_clicked(bool);
-    void renamePProfile_clicked(bool);
-    void updateProfile_clicked(bool);
-    void deleteProfile_clicked(bool);
-    void loadProfile_clicked(bool);
+    void importParamsClicked(bool);
+    void exportParamsClicked(bool);
+    void newProfileClicked(bool);
+    void renamePProfileClicked(bool);
+    void updateProfileClicked(bool);
+    void deleteProfileClicked(bool);
+    void loadProfileClicked(bool);
     void itemClicked(const QModelIndex &index);
 
     void loadProfiles();
