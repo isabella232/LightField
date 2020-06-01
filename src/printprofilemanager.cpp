@@ -20,45 +20,52 @@ bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
     return true;
 }
 
-bool PrintProfileManager::removeProfile(const QString& name)
+void PrintProfileManager::removeProfile(const QString& name)
 {
     auto profile = _profiles.find(name);
 
     if (profile == _profiles.end())
-        return false;
+        throw std::runtime_error("Profile not found");
 
-    if ((*profile)->isDefault() || (*profile)->isActive())
-        return false;
+    if ((*profile)->isDefault())
+        throw std::runtime_error("Cannot remove default profile");
+
+    if ((*profile)->isActive())
+        throw std::runtime_error("Cannot remove active profile");
 
     _profiles.remove(name);
     ProfilesJsonParser::saveProfiles(_profiles);
     emit reloadProfiles(_profiles);
-    return true;
 }
 
-bool PrintProfileManager::setActiveProfile(const QString& profileName)
+void PrintProfileManager::setActiveProfile(const QString& profileName)
 {
     auto profile = _profiles.find(profileName);
 
     if (profile == _profiles.end())
-        return false;
+        throw std::runtime_error("Profile not found");
 
     _activeProfile->setActive(false);
     (*profile)->setActive(true);
+    _activeProfile = *profile;
 
     ProfilesJsonParser::saveProfiles(_profiles);
     emit reloadProfiles(_profiles);
-    return true;
 }
 
 void PrintProfileManager::reload()
 {
     _profiles = ProfilesJsonParser::loadProfiles();
-    QSharedPointer<PrintProfile> activeProfile;
-    QSharedPointer<PrintProfile> defaultProfile;
+    QSharedPointer<PrintProfile> activeProfile = nullptr;
+    QSharedPointer<PrintProfile> defaultProfile = nullptr;
 
     foreach (QSharedPointer<PrintProfile> profile, _profiles.values())
     {
+        if (!activeProfile.isNull()) {
+            /* We already have one active profile, so deactivate this one */
+            profile->setActive(false);
+        }
+
         if (profile->isActive())
             activeProfile = profile;
 
@@ -104,7 +111,7 @@ bool PrintProfileManager::exportProfiles(const QString& mountPoint)
     return sourceFile.copy(destPath);
 }
 
-bool PrintProfileManager::saveProfiles()
+void PrintProfileManager::saveProfiles()
 {
     ProfilesJsonParser::saveProfiles(_profiles);
 }

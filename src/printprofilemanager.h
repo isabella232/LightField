@@ -28,18 +28,18 @@ public:
         return _activeProfile;
     }
 
-    QSharedPointer<PrintProfile> getProfile(const QString &name)
+    QSharedPointer<PrintProfile> getProfile(const QString& name)
     {
         auto iter = _profiles.find(name);
-        return iter != _profiles.end() ? QSharedPointer<PrintProfile>() : *iter;
+        return iter == _profiles.end() ? QSharedPointer<PrintProfile>() : *iter;
     }
 
     bool addProfile(QSharedPointer<PrintProfile> newProfile);
-    bool removeProfile(QString const& name);
-    bool setActiveProfile(QString const& profileName);
+    void removeProfile(QString const& name);
+    void setActiveProfile(QString const& profileName);
     bool importProfiles(QString const& fileName);
     bool exportProfiles(QString const& fileName);
-    bool saveProfiles();
+    void saveProfiles();
     void reload();
 
 private:

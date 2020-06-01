@@ -43,9 +43,9 @@ private:
     void _setupProfilesList(QFont font);
     bool _createNewProfile(QString profileName);
     bool _renamePProfile(QString profileName);
-    bool _updateProfile();
-    bool _deletePrintProfile();
-    bool _loadPrintProfile();
+    void _updateProfile();
+    void _deletePrintProfile();
+    void _loadPrintProfile();
     void _enableButtonProfile(bool enabled);
     void _usbRemounted(const bool succeeded, const bool writable);
     void _setEnabled(bool enabled);
@@ -53,7 +53,7 @@ private:
     virtual void _connectPrintProfileManager() override;
 
 public slots:
-    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void tab_uiStateChanged(TabIndex const sender, UiState const state) override;
 
     void importParamsClicked(bool);
     void exportParamsClicked(bool);
@@ -62,7 +62,7 @@ public slots:
     void updateProfileClicked(bool);
     void deleteProfileClicked(bool);
     void loadProfileClicked(bool);
-    void itemClicked(const QModelIndex &index);
+    void itemClicked(const QModelIndex& index);
 
     void loadProfiles();
 

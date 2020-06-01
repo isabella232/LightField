@@ -271,11 +271,7 @@ void ProfilesTab::updateProfileClicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            if (!_updateProfile()) {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
+            _updateProfile();
             break;
         default:
             break;
@@ -292,11 +288,7 @@ void ProfilesTab::deleteProfileClicked(bool)
 
     switch (ret) {
         case QMessageBox::Yes:
-            if(!_deletePrintProfile()) {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
+            _deletePrintProfile();
             break;
         default:
             break;
@@ -308,17 +300,12 @@ void ProfilesTab::loadProfileClicked(bool)
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setFont(*_fontAwesome);
-    msgBox.setText("Are You sure to load selected profile. All local changes will discard?");
+    msgBox.setText("Are You sure to load selected profile. All local changes will discarded?");
     int ret = msgBox.exec();
 
     switch (ret) {
         case QMessageBox::Yes:
-            if(!_loadPrintProfile())
-            {
-               msgBox.setText("Something went wrong.");
-               msgBox.setStandardButtons(QMessageBox::Ok);
-               msgBox.exec();
-            }
+            _loadPrintProfile();
             break;
         default:
             break;
@@ -349,13 +336,25 @@ bool ProfilesTab::_renamePProfile(QString profileName)
     return true;
 }
 
-bool ProfilesTab::_updateProfile()
+void ProfilesTab::_updateProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString profileName = index.data(Qt::DisplayRole).toString();
+    auto activeProfile = _printProfileManager->activeProfile();
+
+    if (profileName.isEmpty()) {
+        msgBox.setText("Please select a profile to update");
+        msgBox.exec();
+        return;
+    }
 
     auto profile = _printProfileManager->getProfile(profileName);
-    auto activeProfile = _printProfileManager->activeProfile();
+    if (profile.isNull()) {
+        msgBox.setText("Profile not found");
+        msgBox.exec();
+        return;
+    }
 
     profile->setBaseLayerCount(activeProfile->baseLayerCount());
 
@@ -395,30 +394,36 @@ bool ProfilesTab::_updateProfile()
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
     profile->debugPrint();
-
-    return true;
 }
 
-bool ProfilesTab::_deletePrintProfile()
+void ProfilesTab::_deletePrintProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
-    if( _printProfileManager->removeProfile(itemText) ) {
-        _model->removeRows(index.row(), 1);
 
-        _enableButtonProfile(false); // Because no item is selected after deleted
-
-        return true;
-    } else {
-        return false;
+    try {
+        _printProfileManager->removeProfile(itemText);
+    } catch (const std::exception &ex) {
+        msgBox.setText(ex.what());
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
     }
 }
 
-bool ProfilesTab::_loadPrintProfile()
+void ProfilesTab::_loadPrintProfile()
 {
+    QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
-    return _printProfileManager->setActiveProfile(itemText);
+
+    try {
+        _printProfileManager->setActiveProfile(itemText);
+    } catch (const std::exception &ex) {
+        msgBox.setText(ex.what());
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
 }
 
 void ProfilesTab::loadProfiles()

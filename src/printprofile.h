@@ -21,11 +21,13 @@ public:
     {
         _name = profile._name;
         _baseLayerCount = profile._baseLayerCount;
+        _buildPlatformOffset = profile._buildPlatformOffset;
         _baseLayerParameters = profile._baseLayerParameters;
         _bodyLayerParameters = profile._bodyLayerParameters;
     }
 
-    virtual ~PrintProfile( ) override {
+    virtual ~PrintProfile() override
+    {
         /*empty*/
     }
 
@@ -73,98 +75,100 @@ public:
         debug("#############################################\n");
     }
 
-    //
-    // Accessors
-    //
-
-    QString const& profileName( ) const {
+    const QString& profileName() const
+    {
         return _name;
     }
 
-    bool isDefault() {
+    bool isDefault() const
+    {
         return _default;
     }
 
-    bool isActive() {
+    bool isActive() const
+    {
         return _active;
     }
 
-    int baseLayerCount( ) const {
+    int buildPlatformOffset() const
+    {
+        return _buildPlatformOffset;
+    }
+
+    int baseLayerCount() const
+    {
         return _baseLayerCount;
     }
 
-    PrintParameters& baseLayerParameters( ) {
+    PrintParameters& baseLayerParameters()
+    {
         return _baseLayerParameters;
     }
 
-    PrintParameters const& baseLayerParameters( ) const {
+    const PrintParameters& baseLayerParameters() const
+    {
         return _baseLayerParameters;
     }
 
-    PrintParameters& bodyLayerParameters( ) {
+    PrintParameters& bodyLayerParameters()
+    {
         return _bodyLayerParameters;
     }
 
-    PrintParameters const& bodyLayerParameters( ) const {
+    const PrintParameters& bodyLayerParameters() const
+    {
         return _bodyLayerParameters;
     }
-    
 
-    //
-    // Mutators
-    //
-
-    void setProfileName( QString const& newName ) {
-        emit profileNameChanged( newName );
+    void setProfileName(const QString& newName)
+    {
+        emit profileNameChanged(newName);
         _name = newName;
     }
 
-    void setDefault(bool isDefault) {
+    void setDefault(bool isDefault)
+    {
         _default = isDefault;
     }
 
-    void setActive(bool isActive) {
+    void setActive(bool isActive)
+    {
         _active = isActive;
     }
 
-    void setBaseLayerCount( int const newCount ) {
+    void setBuildPlatformOffset(int newOffset)
+    {
+        _buildPlatformOffset = newOffset;
+    }
+
+    void setBaseLayerCount(int newCount)
+    {
         _baseLayerCount = newCount;
     }
 
-    void setBaseLayerParameters( PrintParameters const& newParameters ) {
+    void setBaseLayerParameters(const PrintParameters& newParameters)
+    {
         _baseLayerParameters = newParameters;
     }
 
-    void setBodyLayerParameters( PrintParameters const& newParameters ) {
+    void setBodyLayerParameters(const PrintParameters& newParameters)
+    {
         _bodyLayerParameters = newParameters;
     }
-
-protected:
 
 private:
 
     QString         _name;
     bool            _default;
     bool            _active;
-    int             _baseLayerCount       { };
+    int             _baseLayerCount;
+    int             _buildPlatformOffset;
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
     bool            _defaultProfile;    
 
 signals:
-    ;
-
-    void profileNameChanged( QString const& newName );
-
-public slots:
-    ;
-
-protected slots:
-    ;
-
-private slots:
-    ;
-
+    void profileNameChanged(const QString& newName);
 };
 
 #endif // !__PRINTPROFILE_H__
