@@ -316,7 +316,7 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
 
     case UiState::TilingClicked:
         _setEnabled(!_printJob->isTiled());
-        this->_setupTiling->setEnabled( false );
+        _setupTiling->setEnabled(false);
         setStepValue();
         break;
 
