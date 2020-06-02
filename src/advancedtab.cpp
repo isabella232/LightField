@@ -271,7 +271,6 @@ void AdvancedTab::shepherd_sendComplete( bool const success ) {
 }
 
 void AdvancedTab::_updateControlGroups( ) {
-    _bedHeatingGroup         ->setEnabled(                     _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr )                                   );
     _projectImageButtonsGroup->setEnabled( _isProjectorOn || ( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) ) );
 
     update( );
