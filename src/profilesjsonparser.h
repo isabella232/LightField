@@ -84,6 +84,7 @@ public:
                 {"active", profile->isActive()},
                 {"buildPlatformOffset", profile->buildPlatformOffset()},
                 {"disregardFirstLayerHeight", profile->disregardFirstLayerHeight()},
+                {"heatingTemperature", profile->heatingTemperature()},
                 {"baseLayerCount", profile->baseLayerCount()},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
                 {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())}

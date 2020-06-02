@@ -102,6 +102,11 @@ public:
         return _disregardFirstLayerHeight;
     }
 
+    int heatingTemperature() const
+    {
+        return _heatingTemperature;
+    }
+
     int baseLayerCount() const
     {
         return _baseLayerCount;
@@ -153,6 +158,11 @@ public:
         _disregardFirstLayerHeight = value;
     }
 
+    void setHeatingTemperature(int temperature)
+    {
+        _heatingTemperature = temperature;
+    }
+
     void setBaseLayerCount(int newCount)
     {
         _baseLayerCount = newCount;
@@ -170,15 +180,16 @@ public:
 
 private:
 
-    QString         _name;
-    bool            _default;
-    bool            _active;
-    int             _baseLayerCount;
-    int             _buildPlatformOffset;
-    bool            _disregardFirstLayerHeight;
+    QString _name;
+    bool _default;
+    bool _active;
+    int _baseLayerCount;
+    int _buildPlatformOffset;
+    bool _disregardFirstLayerHeight;
+    int _heatingTemperature;
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
-    bool            _defaultProfile;    
+    bool _defaultProfile;
 
 signals:
     void profileNameChanged(const QString& newName);

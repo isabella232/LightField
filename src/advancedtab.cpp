@@ -610,6 +610,10 @@ void AdvancedTab::updatePrintProfile()
 
     debug("+ AdvancedTab::updatePrintProfile\n");
 
+    profile->setBuildPlatformOffset(_offsetSlider->getValue());
+    profile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
+    profile->setHeatingTemperature(_bedTemperatureSlider->value());
+
     PrintParameters baseParams;
     baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
