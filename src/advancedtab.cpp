@@ -677,6 +677,7 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
 
 void AdvancedTab::_setEnabled(bool enabled)
 {
+    _offsetDisregardFirstLayer->setEnabled(enabled);
     _offsetSlider->setEnabled(enabled);
     _basePumpForm->setEnabled(enabled);
     _bodyPumpForm->setEnabled(enabled);

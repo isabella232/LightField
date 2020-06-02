@@ -172,7 +172,7 @@ void TilingTab::setStepValue()
 
     painter.fillRect(0,0, _currentLayerImage->width( ), _currentLayerImage->height( ), QBrush("#000000"));
 
-    painter.setFont(QFont( "Arial", 12));
+    painter.setFont(QFont("Arial", 10));
     painter.setPen(Qt::red);
 
 #if 0

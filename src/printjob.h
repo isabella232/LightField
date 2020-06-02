@@ -66,6 +66,15 @@ public:
     SliceInformation baseSlices { SliceType::SliceBase };
     SliceInformation bodySlices { SliceType::SliceBody };
 
+    void resetTiling()
+    {
+        if (isTiled()) {
+            baseSlices.layerCount = 2;
+            baseSlices.layerThickness = 100;
+            bodySlices.layerThickness = 100;
+        }
+    }
+
     bool isTiled() const
     {
         if(_bodyManager)
