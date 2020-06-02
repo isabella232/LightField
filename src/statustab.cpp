@@ -280,6 +280,8 @@ void StatusTab::pauseButton_clicked( bool ) {
     auto paused = _isPaused;
     _isPaused = !_isPaused;
     _pauseButton->setEnabled( false );
+    _pauseButton->setText("Pausing...");
+
     update( );
 
     if ( !paused ) {
