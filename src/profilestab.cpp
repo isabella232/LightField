@@ -227,7 +227,13 @@ void ProfilesTab::newProfileClicked(bool)
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
 
-    QString filename = inputDialog->getValue();
+    QString filename = inputDialog->getValue().trimmed();
+
+    if (filename.isEmpty()) {
+        msgBox.setText("Profile name cannot be empty");
+        msgBox.exec();
+        return;
+    }
 
     if (ret && !filename.isEmpty()) {
         if (!_createNewProfile(filename)) {
@@ -356,41 +362,12 @@ void ProfilesTab::_updateProfile()
         return;
     }
 
-    profile->setBaseLayerCount(activeProfile->baseLayerCount());
-
-    PrintParameters baseParams = activeProfile->baseLayerParameters();
-    PrintParameters newBaseParams;
-
-    newBaseParams.setPumpUpDistance( baseParams.pumpUpDistance() );
-    newBaseParams.setPumpUpVelocity( baseParams.pumpUpVelocity_Effective() );
-    newBaseParams.setPumpUpPause( baseParams.pumpUpPause() );
-    newBaseParams.setPumpDownVelocity( baseParams.pumpDownVelocity_Effective() );
-    newBaseParams.setPumpDownPause( baseParams.pumpDownPause() );
-    newBaseParams.setNoPumpUpVelocity( baseParams.noPumpUpVelocity() );
-    newBaseParams.setPumpEveryNthLayer( baseParams.pumpEveryNthLayer() );
-    newBaseParams.setLayerThickness( baseParams.layerThickness() );
-    newBaseParams.setLayerExposureTime( baseParams.layerExposureTime() );
-    newBaseParams.setPowerLevel( baseParams.powerLevel() );
-    newBaseParams.setPumpingEnabled( baseParams.isPumpingEnabled() );
-
-    profile->setBaseLayerParameters( newBaseParams );
-
-    PrintParameters bodyParams = activeProfile->bodyLayerParameters();
-    PrintParameters newBodyParams;
-
-    newBodyParams.setPumpUpDistance( bodyParams.pumpUpDistance() );
-    newBodyParams.setPumpUpVelocity( bodyParams.pumpUpVelocity_Effective() );
-    newBodyParams.setPumpUpPause( bodyParams.pumpUpPause() );
-    newBodyParams.setPumpDownVelocity( bodyParams.pumpDownVelocity_Effective() );
-    newBodyParams.setPumpDownPause( bodyParams.pumpDownPause() );
-    newBodyParams.setNoPumpUpVelocity( bodyParams.noPumpUpVelocity() );
-    newBodyParams.setPumpEveryNthLayer( bodyParams.pumpEveryNthLayer() );
-    newBodyParams.setLayerThickness( bodyParams.layerThickness() );
-    newBodyParams.setLayerExposureTime( bodyParams.layerExposureTime() );
-    newBodyParams.setPowerLevel( bodyParams.powerLevel() );
-    newBodyParams.setPumpingEnabled( bodyParams.isPumpingEnabled() );
-
-    profile->setBodyLayerParameters( newBodyParams );
+    profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
+    profile->setBuildPlatformOffset(_printJob->buildPlatformOffset);
+    profile->setDisregardFirstLayerHeight(_printJob->disregardFirstLayerHeight);
+    profile->setHeatingTemperature(_printJob->heatingTemperature);
+    profile->setBaseLayerParameters(_printJob->baseLayerParameters);
+    profile->setBodyLayerParameters(_printJob->bodyLayerParameters);
 
     ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
     profile->debugPrint();
@@ -476,10 +453,4 @@ void ProfilesTab::_setEnabled(bool enabled)
     _newProfile->setEnabled(enabled);
     _renameProfile->setEnabled(enabled);
     _overwriteProfile->setEnabled(enabled);
-}
-
-void ProfilesTab::_activeProfileChanged(QSharedPointer<PrintProfile> newProfile)
-{
-    if (!_printJob.isNull())
-        _printJob->printProfile = newProfile;
 }

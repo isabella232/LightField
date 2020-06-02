@@ -97,8 +97,9 @@ void AdvancedTab::chbox_addBasePumpCheckChanged(int state)
     _baseNoPumpUpVelocitySlider->setEnabled(state);
 }
 
-void AdvancedTab::_connectShepherd( ) {
-    if ( _shepherd ) {
+void AdvancedTab::_connectShepherd()
+{
+    if (_shepherd) {
         QObject::connect( _shepherd, &Shepherd::printer_online,            this, &AdvancedTab::printer_online            );
         QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &AdvancedTab::printer_offline           );
         QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &AdvancedTab::printer_positionReport    );
@@ -250,12 +251,12 @@ void AdvancedTab::powerLevelSlider_sliderReleased( ) {
     emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
 
-void AdvancedTab::powerLevelSlider_valueChanged( int percentage ) {
-    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( percentage );
-    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( percentage );
-    _powerLevelValue->setText( QString { "%1%" }.arg( percentage ) );
-
-    update( );
+void AdvancedTab::powerLevelSlider_valueChanged(int percentage)
+{
+    _printJob->baseLayerParameters.setPowerLevel(percentage);
+    _printJob->bodyLayerParameters.setPowerLevel(percentage);
+    _powerLevelValue->setText(QString { "%1%" }.arg( percentage));
+    update();
 }
 
 void AdvancedTab::projectorPowerLevel_changed( int const percentage ) {
@@ -603,16 +604,14 @@ void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
 
 void AdvancedTab::updatePrintProfile()
 {
-    QSharedPointer<PrintProfile> profile = _printJob->printProfile;
-
     if (_loadingPrintProfile)
         return;
 
     debug("+ AdvancedTab::updatePrintProfile\n");
 
-    profile->setBuildPlatformOffset(_offsetSlider->getValue());
-    profile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
-    profile->setHeatingTemperature(_bedTemperatureSlider->value());
+    _printJob->buildPlatformOffset = _offsetSlider->getValue();
+    _printJob->disregardFirstLayerHeight = _offsetDisregardFirstLayer->isChecked();
+    _printJob->heatingTemperature = _bedTemperatureSlider->value();
 
     PrintParameters baseParams;
     baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
@@ -625,7 +624,7 @@ void AdvancedTab::updatePrintProfile()
     baseParams.setPumpEveryNthLayer(0);
     baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
     baseParams.setPowerLevel(_powerLevelSlider->value());
-    profile->setBaseLayerParameters(baseParams);
+    _printJob->baseLayerParameters = baseParams;
 
     PrintParameters bodyParams;
     bodyParams.setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
@@ -638,15 +637,18 @@ void AdvancedTab::updatePrintProfile()
     bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
     bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
     bodyParams.setPowerLevel(_powerLevelSlider->value());
-    profile->setBodyLayerParameters(bodyParams);
+    _printJob->bodyLayerParameters = bodyParams;
 }
 
 void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
 {
-    PrintParameters const& baseParams = profile->baseLayerParameters( );
-    PrintParameters const& bodyParams = profile->bodyLayerParameters( );
+    PrintParameters& baseParams = _printJob->baseLayerParameters;
+    PrintParameters& bodyParams = _printJob->bodyLayerParameters;
 
     _loadingPrintProfile = true;
+    _offsetSlider->setValue(profile->buildPlatformOffset());
+    _offsetDisregardFirstLayer->setChecked(profile->disregardFirstLayerHeight());
+    _bedTemperatureSlider->setValue(profile->heatingTemperature());
     _addBasePumpCheckbox->setChecked(profile->baseLayerParameters().isPumpingEnabled());
     _addBodyPumpCheckbox->setChecked(profile->bodyLayerParameters().isPumpingEnabled());
 

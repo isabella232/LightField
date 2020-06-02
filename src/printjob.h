@@ -34,6 +34,7 @@ public:
 
     SliceType type;
     QString sliceDirectory;
+    PrintParameters params;
     bool isPreSliced;
     int layerCount;
     int layerThickness;
@@ -50,20 +51,20 @@ public:
     QString directoryPath;
     QString modelHash;
     QString currentImageFile;
-    
-    size_t                  vertexCount     { };
-    Coordinate              x               { };
-    Coordinate              y               { };
-    Coordinate              z               { };
-    double                  estimatedVolume { }; // unit: µL
-    int             buildPlatformOffset;
-    bool            disregardFirstLayerHeight;
-    bool            directoryMode;
+    size_t vertexCount { };
+    Coordinate x { };
+    Coordinate y { };
+    Coordinate z { };
+    double estimatedVolume { }; // unit: µL
+    int buildPlatformOffset;
+    bool disregardFirstLayerHeight;
+    int heatingTemperature;
+    bool directoryMode;
 
-    SliceInformation        baseSlices { SliceType::SliceBase };
-    SliceInformation        bodySlices { SliceType::SliceBody };
-
-    QSharedPointer<PrintProfile>    printProfile    { };
+    PrintParameters baseLayerParameters;
+    PrintParameters bodyLayerParameters;
+    SliceInformation baseSlices { SliceType::SliceBase };
+    SliceInformation bodySlices { SliceType::SliceBody };
 
     bool isTiled() const
     {

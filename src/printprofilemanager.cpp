@@ -50,6 +50,7 @@ void PrintProfileManager::setActiveProfile(const QString& profileName)
     _activeProfile = *profile;
 
     ProfilesJsonParser::saveProfiles(_profiles);
+    emit activeProfileChanged(*profile);
     emit reloadProfiles(_profiles);
 }
 

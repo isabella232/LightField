@@ -74,10 +74,11 @@ PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::_connectPrintJob( ) {
+void PrintTab::_connectPrintJob()
+{
     debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
 
-    int powerLevelValue = _printJob->printProfile->baseLayerParameters( ).powerLevel( );
+    int powerLevelValue = _printJob->baseLayerParameters.powerLevel();
 
     _powerLevelSlider->setValue( powerLevelValue );
     update( );
@@ -122,16 +123,18 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     update( );
 }
 
-void PrintTab::powerLevelSlider_valueChanged( ) {
-    _printJob->printProfile->baseLayerParameters( ).setPowerLevel( _powerLevelSlider->getValue( ) );
-    _printJob->printProfile->bodyLayerParameters( ).setPowerLevel( _powerLevelSlider->getValue( ) );
+void PrintTab::powerLevelSlider_valueChanged()
+{
+    _printJob->baseLayerParameters.setPowerLevel(_powerLevelSlider->getValue());
+    _printJob->bodyLayerParameters.setPowerLevel(_powerLevelSlider->getValue());
 
-    update( );
+    update();
 }
 
-void PrintTab::projectorPowerLevel_changed( int const percentage ) {
-    _powerLevelSlider->setValue( percentage );
-    update( );
+void PrintTab::projectorPowerLevel_changed(int percentage)
+{
+    _powerLevelSlider->setValue(percentage);
+    update();
 }
 
 
@@ -176,7 +179,9 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
             _buildPlatformState = BuildPlatformState::Lowering;
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( std::max( 100, ( ( _printJob->printProfile->baseLayerCount( ) > 0 ) ? _printJob->printProfile->baseLayerParameters( ) : _printJob->printProfile->bodyLayerParameters( ) ).layerThickness( ) ) / 1000.0, PrinterDefaultHighSpeed );
+
+            _shepherd->doMoveAbsolute(std::max(100, _printJob->getLayerThicknessAt(0)) / 1000.0,
+                PrinterDefaultHighSpeed);
             break;
     }
 

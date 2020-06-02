@@ -66,7 +66,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _usbMountManager     = new UsbMountManager;
 
     _printProfileManager->reload();
-    _printJob->printProfile = _printProfileManager->activeProfile();
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -310,15 +309,15 @@ void Window::terminate( ) {
     update( );
 }
 
-void Window::startPrinting( ) {
-    _tabWidget->setCurrentIndex( +TabIndex::Status );
-    update( );
+void Window::startPrinting()
+{
+    _tabWidget->setCurrentIndex(+TabIndex::Status);
+    update();
 
-    auto const  printProfile         { _printJob->printProfile               };
-    auto const& baseSlices           { _printJob->baseSlices                 };
-    auto const& bodySlices           { _printJob->bodySlices                 };
-    auto const& baseLayerParameters { printProfile->baseLayerParameters( ) };
-    auto const& bodyLayerParameters { printProfile->bodyLayerParameters( ) };
+    const auto& baseSlices = _printJob->baseSlices;
+    const auto& bodySlices = _printJob->bodySlices;
+    const auto& baseLayerParameters = _printJob->baseLayerParameters;
+    const auto& bodyLayerParameters = _printJob->bodyLayerParameters;
 
     debug(
         "+ Window::startPrinting: print job %p:\n"
@@ -339,8 +338,7 @@ void Window::startPrinting( ) {
         "    + layerThickness:           %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
-        "  + print profile: (calculated parameters are marked with *)\n"
-        "    + profileName:              '%s'\n"
+        "  + layer parameters: (calculated parameters are marked with *)\n"
 
         "",
 
@@ -361,12 +359,8 @@ void Window::startPrinting( ) {
         bodySlices.layerCount,
         bodySlices.layerThickness,
         _printJob->bodyLayerStart(),
-        _printJob->bodyLayerEnd(),
-
-        printProfile->profileName().toUtf8().data()
-
+        _printJob->bodyLayerEnd()
     );
-
 
     debug(
         "    + baseLayerCount:           %d\n"
@@ -385,8 +379,7 @@ void Window::startPrinting( ) {
         "      + powerLevel:             %.1f%%\n"
         "",
 
-        printProfile->baseLayerCount( ),
-
+        _printJob->baseSlices.layerCount,
         ToString( baseLayerParameters.isPumpingEnabled( ) ),
         baseLayerParameters.pumpUpDistance( ),
         baseLayerParameters.pumpUpVelocity_Effective( ),
@@ -399,8 +392,6 @@ void Window::startPrinting( ) {
         baseLayerParameters.layerThickness( ),
         baseSlices.exposureTime,
         baseLayerParameters.powerLevel( )
-
-
     );
 
 

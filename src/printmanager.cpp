@@ -280,7 +280,7 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    auto powerLevel { _printJob->printProfile->baseLayerParameters( ).powerLevel( ) };
+    auto powerLevel = _printJob->baseLayerParameters.powerLevel();
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -406,7 +406,7 @@ void PrintManager::stepB3_completed( ) {
     _lampOn = false;
     emit lampStatusChange( false );
 
-    if ( _printJob->printProfile->baseLayerParameters( ).isPumpingEnabled( ) ) {
+    if ( _printJob->baseLayerParameters.isPumpingEnabled( ) ) {
         stepB4a1_start( );
     } else {
         stepB4b1_start( );
@@ -440,24 +440,28 @@ void PrintManager::stepB4a1_completed( ) {
 }
 
 // B4a2. Perform the "pumping" manoeuvre.
-void PrintManager::stepB4a2_start( ) {
+void PrintManager::stepB4a2_start()
+{
     _step = PrintStep::B4a2;
 
     ++_currentLayer;
     ++_currentBaseLayer;
-    if ( _currentLayer == _printJob->totalLayerCount() ) {
+    if (_currentLayer == _printJob->totalLayerCount()) {
         debug( "+ PrintManager::stepB4a2_start: print complete\n" );
 
         _printResult = PrintResult::Success;
 
-        stepD1_start( );
+        stepD1_start();
         return;
     }
 
     debug( "+ PrintManager::stepB4a2_start: performing 'pumping' manoeuvre\n" );
 
-    QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepB4a2_completed );
-    const auto& baseParameters = _printJob->printProfile->baseLayerParameters();
+    QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
+         &PrintManager::stepB4a2_completed);
+
+    const auto& baseParameters = _printJob->baseLayerParameters;
+
     QList<MovementInfo> movements = {
         {
             MoveType::Relative,
@@ -582,7 +586,7 @@ void PrintManager::stepC1_start( ) {
         return;
     }
 
-    auto powerLevel { _printJob->printProfile->bodyLayerParameters( ).powerLevel( ) };
+    auto powerLevel = _printJob->bodyLayerParameters.powerLevel();
     debug( "+ PrintManager::stepC1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -698,19 +702,18 @@ void PrintManager::stepC3_completed( ) {
 
     QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
 
-    if ( IsBadPrintResult( _printResult ) ) {
-        stepD1_start( );
+    if (IsBadPrintResult(_printResult)) {
+        stepD1_start();
         return;
     }
 
     _lampOn = false;
-    emit lampStatusChange( false );
+    emit lampStatusChange(false);
 
-    if ( _printJob->printProfile->bodyLayerParameters( ).isPumpingEnabled( ) ) {
-        stepC4a1_start( );
-    } else {
-        stepC4b1_start( );
-    }
+    if (_printJob->bodyLayerParameters.isPumpingEnabled())
+        stepC4a1_start();
+    else
+        stepC4b1_start();
 }
 
 void PrintManager::stepC3_failed( int const, QProcess::ProcessError const ) {
@@ -740,31 +743,22 @@ void PrintManager::stepC4a1_completed( ) {
 }
 
 // C4a2. Perform the "pumping" manoeuvre.
-void PrintManager::stepC4a2_start( ) {
-    _step = PrintStep::C4a2;
+void PrintManager::stepC4a2_start( )
+{
+    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    double pumpDownDistance = -bodyParameters.pumpDownDistance_Effective() +
+        (_printJob->getLayerThicknessAt(_currentLayer - _elementsOnLayer + 1) / 1000.0);
 
-    const auto& bodyParameters = _printJob->printProfile->bodyLayerParameters();
     QList<MovementInfo> movements = {
-        {
-            MoveType::Relative,
-            bodyParameters.pumpUpDistance(),
-            bodyParameters.pumpUpVelocity_Effective()
-        },
-        {
-            bodyParameters.pumpUpPause()
-        },
-        {
-            MoveType::Relative,
-            -bodyParameters.pumpDownDistance_Effective() +
-                (_printJob->getLayerThicknessAt(_currentLayer - _elementsOnLayer + 1) / 1000.0),
-            bodyParameters.pumpDownVelocity_Effective()
-        },
-        {
-            bodyParameters.pumpDownPause()
-        }
+        { MoveType::Relative, bodyParameters.pumpUpDistance(), bodyParameters.pumpUpVelocity_Effective() },
+        { bodyParameters.pumpUpPause() },
+        { MoveType::Relative, pumpDownDistance, bodyParameters.pumpDownVelocity_Effective() },
+        {  bodyParameters.pumpDownPause() }
     };
 
+    _step = PrintStep::C4a2;
     ++_currentLayer;
+
     if ( _currentLayer == _printJob->totalLayerCount() ) {
         debug( "+ PrintManager::stepC4a2_start: print complete\n" );
 
@@ -873,7 +867,8 @@ void PrintManager::stepC4b2_completed( bool const success ) {
 // ===============================
 
 // D1. Raise the build platform to maximum Z, first at low speed to the high-speed threshold Z, then high speed.
-void PrintManager::stepD1_start( ) {
+void PrintManager::stepD1_start()
+{
     _step = PrintStep::D1;
     emit printPausable( false );
 
@@ -891,15 +886,20 @@ void PrintManager::stepD1_start( ) {
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
 
-    auto lowSpeed { ( _printJob->isBaseLayer( _currentLayer ) ? _printJob->printProfile->baseLayerParameters( ) : _printJob->printProfile->bodyLayerParameters( ) ).noPumpUpVelocity( ) };
-    _movementSequencer->setMovements( {
-        { MoveType::Absolute, _threshold,      lowSpeed                },
+    const auto& parameters = _printJob->isBaseLayer(_currentLayer)
+        ? _printJob->baseLayerParameters
+        : _printJob->bodyLayerParameters;
+
+    _movementSequencer->setMovements({
+        { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
         { MoveType::Absolute, PrinterMaximumZ, PrinterDefaultHighSpeed }
-    } );
-    _movementSequencer->execute( );
+    });
+
+    _movementSequencer->execute();
 }
 
-void PrintManager::stepD1_completed( bool const success ) {
+void PrintManager::stepD1_completed(bool  success)
+{
     TimingLogger::stopTiming( TimingId::Printing );
     debug( "+ PrintManager::stepD1_completed: action %s\n", SucceededString( success ) );
 
@@ -930,18 +930,24 @@ void PrintManager::stepE1_start( ) {
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE1_completed );
 
-    auto lowSpeed { ( _printJob->isBaseLayer( _currentLayer ) ? _printJob->printProfile->baseLayerParameters( ) : _printJob->printProfile->bodyLayerParameters( ) ).noPumpUpVelocity( ) };
-    _movementSequencer->setMovements( {
-        { MoveType::Absolute, _threshold,      lowSpeed                },
+    const auto& parameters = _printJob->isBaseLayer(_currentLayer)
+        ? _printJob->baseLayerParameters
+        : _printJob->bodyLayerParameters;
+
+    _movementSequencer->setMovements({
+        { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
         { MoveType::Absolute, PrinterMaximumZ, PrinterDefaultHighSpeed }
-    } );
-    _movementSequencer->execute( );
+    });
+
+    _movementSequencer->execute();
 }
 
-void PrintManager::stepE1_completed( bool const success ) {
+void PrintManager::stepE1_completed(bool success)
+{
     debug( "+ PrintManager::stepE1_completed: action %s\n", SucceededString( success ) );
 
-    QObject::disconnect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE1_completed );
+    QObject::disconnect(_movementSequencer, &MovementSequencer::movementComplete, this,
+        &PrintManager::stepE1_completed );
 
     if ( !success && ( _printResult != PrintResult::Abort ) ) {
         _printResult = PrintResult::Failure;
@@ -961,14 +967,19 @@ void PrintManager::stepE2_start( ) {
 
     debug( "+ PrintManager::stepE2_start: lowering build platform to paused Z position\n" );
 
-    QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE2_completed );
+    QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
+        &PrintManager::stepE2_completed);
 
-    auto lowSpeed { ( _printJob->isBaseLayer( _currentLayer ) ? _printJob->printProfile->baseLayerParameters( ) : _printJob->printProfile->bodyLayerParameters( ) ).noPumpUpVelocity( ) };
-    _movementSequencer->setMovements( {
-        { MoveType::Absolute, _threshold,      PrinterDefaultHighSpeed },
-        { MoveType::Absolute, _pausedPosition, lowSpeed                }
-    } );
-    _movementSequencer->execute( );
+    const auto& parameters = _printJob->isBaseLayer(_currentLayer)
+        ? _printJob->baseLayerParameters
+        : _printJob->bodyLayerParameters;
+
+    _movementSequencer->setMovements({
+        { MoveType::Absolute, _threshold, PrinterDefaultHighSpeed },
+        { MoveType::Absolute, _pausedPosition, parameters.noPumpUpVelocity() }
+    });
+
+    _movementSequencer->execute();
 }
 
 void PrintManager::stepE2_completed( bool const success ) {
@@ -1024,14 +1035,12 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     _pngDisplayer->clear();
 
-    auto const profile { _printJob->printProfile };
-    auto const& baseParameters { profile->baseLayerParameters() };
-    auto const& bodyParameters { profile->bodyLayerParameters() };
-    auto const& firstParameters { (profile->baseLayerCount() > 0) ? baseParameters : bodyParameters };
-    auto const firstLayerHeight { _printJob->getBuildPlatformOffset() / 1000.0 };
+    const auto& baseParameters = _printJob->baseLayerParameters;
+    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    const auto& firstParameters = _printJob->hasBaseLayers() ? baseParameters : bodyParameters;
+    const auto firstLayerHeight = _printJob->getBuildPlatformOffset() / 1000.0;
 
     _stepA1_movements.push_back({MoveType::Absolute, PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed});
-
     _stepA3_movements.push_back({MoveType::Absolute, PrinterHighSpeedThresholdZ, PrinterDefaultHighSpeed});
     _stepA3_movements.push_back({MoveType::Absolute, firstLayerHeight, firstParameters.noPumpDownVelocity_Effective()});
     _stepA3_movements.push_back({PauseAfterPrintSolutionDispensed});
