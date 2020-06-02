@@ -1,0 +1,37 @@
+* {
+    font-family: "FontAwesome";
+}
+
+QWindow {
+    border-width: 2px;
+    border-color: white;
+    border-style: solid;
+    margin: 3px;
+}
+
+QPushButton {
+    font-size: 22pt;
+}
+
+QRadioButton {
+    spacing: 5px;
+}
+
+QRadioButton::indicator {
+    width: 30px;
+    height: 30px;
+}
+
+
+QCheckBox {
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 30px;
+    height: 30px;
+}
+
+QMessageBox QLabel {
+    font-size: 22pt;
+}

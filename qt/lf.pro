@@ -131,7 +131,8 @@ PRECOMPILED_HEADER = ../src/pch.h
 RESOURCES += \
     ../gl/gl.qrc         \
     ../images/images.qrc \
-    ../text/text.qrc
+    ../text/text.qrc \
+    ../styles.qrc
 
 linux {
     target.path = /usr/bin
@@ -166,3 +167,6 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+
+DISTFILES += \
+    ../src/stylesheet.qss

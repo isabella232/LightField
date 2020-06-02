@@ -264,6 +264,10 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     QCoreApplication::setApplicationVersion( LIGHTFIELD_VERSION_STRING );
     QGuiApplication::setFont( ModifyFont( QGuiApplication::font( ), "Montserrat", NormalFontSize ) );
 
+    QFile stylesheet(":/src/stylesheet.qss");
+    stylesheet.open(QFile::ReadOnly);
+    setStyleSheet(QString(stylesheet.readAll()));
+
     _parseCommandLine( );
 
     if ( !_isAlreadyRunning( ) ) {

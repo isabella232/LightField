@@ -25,35 +25,19 @@ ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
     cpyStlFilesUsbBox->setContentsMargins( { } );
 
 
-    _cpyProfilesUsb->setFont(fontAwesome);
-    _cpyStlFilesUsb->setFont(fontAwesome);
-
-    _importParams->setFont(fontAwesome);
     _importParams->setEnabled(false);
     _importParams->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _exportParams->setFont(fontAwesome);
     _exportParams->setEnabled(false);
     _exportParams->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _newProfile->setFont(fontAwesome);
     _newProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _renameProfile->setFont(fontAwesome);
     _renameProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _overwriteProfile->setFont(fontAwesome);
     _overwriteProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _deleteProfile->setFont(fontAwesome);
     _deleteProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    _loadProfile->setFont(fontAwesome);
     _loadProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Default disabled all button  no profile is selected
     _enableButtonProfile(false);
-    _setupProfilesList(fontAwesome);
+    _setupProfilesList();
 
     QObject::connect(_importParams, &QPushButton::clicked, this,&ProfilesTab::importParamsClicked);
     QObject::connect(_exportParams, &QPushButton::clicked, this, &ProfilesTab::exportParamsClicked);
@@ -118,12 +102,11 @@ void ProfilesTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
     }
 }
 
-void ProfilesTab::_setupProfilesList(QFont font)
+void ProfilesTab::_setupProfilesList()
 {
     QItemSelectionModel* selectionModel = new QItemSelectionModel(_model);
     _profilesList->setModel(_model);
     _profilesList->setSelectionModel(selectionModel);
-    _profilesList->setFont(font);
     _profilesList->setVisible(true);
     _profilesList->setSelectionBehavior(QAbstractItemView::SelectRows);
     _profilesList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -142,8 +125,6 @@ void ProfilesTab::_connectPrintProfileManager()
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
 {
     QMessageBox msgBox { this };
-    msgBox.setFont(*_fontAwesome);
-
     QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
         &ProfilesTab::_usbRemounted);
 
@@ -175,7 +156,6 @@ void ProfilesTab::importParamsClicked(bool)
     msgBox.setText("<center><nobr>Are You sure to import all profiles <br>from USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
-    msgBox.setFont(*_fontAwesome);
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -204,7 +184,6 @@ void ProfilesTab::exportParamsClicked(bool)
     msgBox.setText("<center><nobr>Are You sure to export all profiles <br>to USB memory stick?</nobr></center>");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
-    msgBox.setFont(*_fontAwesome);
     int ret = msgBox.exec();
 
     switch (ret) {
@@ -222,7 +201,6 @@ void ProfilesTab::newProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setFont(*_fontAwesome);
 
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
@@ -250,7 +228,6 @@ void ProfilesTab::renamePProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setFont(*_fontAwesome);
     InputDialog* inputDialog = new InputDialog(QString("Entry profile name: "));
     int ret = inputDialog->exec();
 
@@ -271,7 +248,6 @@ void ProfilesTab::updateProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to update selected profile?");
     int ret = msgBox.exec();
 
@@ -288,7 +264,6 @@ void ProfilesTab::deleteProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to delete selected profile?");
     int ret = msgBox.exec();
 
@@ -305,7 +280,6 @@ void ProfilesTab::loadProfileClicked(bool)
 {
     QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.setFont(*_fontAwesome);
     msgBox.setText("Are You sure to load selected profile. All local changes will discarded?");
     int ret = msgBox.exec();
 

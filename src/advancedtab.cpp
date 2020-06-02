@@ -190,7 +190,8 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
 }
 
 #if defined ENABLE_TEMPERATURE_SETTING
-void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
+void AdvancedTab::printBedTemperatureSlider_sliderReleased()
+{
     QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
     _shepherd->doSend( QString { "M140 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
 }
@@ -198,7 +199,7 @@ void AdvancedTab::printBedTemperatureSlider_sliderReleased( ) {
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
-
+    _printJob->heatingTemperature = value;
     update( );
 }
 #endif

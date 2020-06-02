@@ -39,7 +39,7 @@ private:
     QListView* _profilesList { new QListView };
     QStandardItemModel* _model { new QStandardItemModel };
     QFont* _fontAwesome;
-    void _setupProfilesList(QFont font);
+    void _setupProfilesList();
     bool _createNewProfile(QString profileName);
     bool _renamePProfile(QString profileName);
     void _updateProfile();
