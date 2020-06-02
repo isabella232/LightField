@@ -71,7 +71,8 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     );
 }
 
-AdvancedTab::~AdvancedTab( ) {
+AdvancedTab::~AdvancedTab()
+{
     /*empty*/
 }
 
@@ -105,8 +106,10 @@ void AdvancedTab::_connectShepherd( ) {
     }
 }
 
-void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
-    debug( "+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+void AdvancedTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
+{
+    debug("+ AdvancedTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString(sender),
+        ToString(_uiState), ToString(state));
     _uiState = state;
 
     switch (_uiState) {
@@ -115,20 +118,20 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
         break;
 
     case UiState::PrintStarted:
-        setPrinterAvailable( false );
-        _setEnabled( false );
-        emit printerAvailabilityChanged( false );
+        setPrinterAvailable(false);
+        _setEnabled(false);
+        emit printerAvailabilityChanged(false);
         break;
 
     case UiState::PrintCompleted:
-        setPrinterAvailable( true );
-        _setEnabled( true );
-        emit printerAvailabilityChanged( true );
+        setPrinterAvailable(true);
+        _setEnabled(true);
+        emit printerAvailabilityChanged(true);
         break;
 
     case UiState::PrintJobReady:
-        setLayersSettingsEnabled(_printJob->hasAdvancedControlsEnabled());
-        _offsetSlider->setValue(_printJob->firstLayerOffset);
+        //setLayersSettingsEnabled(_printJob->hasAdvancedControlsEnabled());
+        //_offsetSlider->setValue(_printJob->firstLayerOffset);
         break;
 
     default:
@@ -136,14 +139,17 @@ void AdvancedTab::tab_uiStateChanged( TabIndex const sender, UiState const state
     }
 }
 
-void AdvancedTab::printer_positionReport( double const px, int const cx ) {
+void AdvancedTab::printer_positionReport(double const px, int const cx)
+{
     debug( "+ AdvancedTab::printer_positionReport: px %.2f mm, cx %d\n", px, cx );
     _zPosition->setText( QString { "%1 mm" }.arg( px, 0, 'f', 2 ) );
 
     update( );
 }
 
-void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm ) {
+void AdvancedTab::printer_temperatureReport(double bedCurrentTemperature,
+    double bedTargetTemperature, int const bedPwm)
+{
     _currentTemperature->setText(QString("%1 °C").arg(bedCurrentTemperature, 0, 'f', 2));
     if (bedTargetTemperature < 30) {
         _targetTemperature->setText(QString("OFF"));
@@ -155,17 +161,11 @@ void AdvancedTab::printer_temperatureReport( double const bedCurrentTemperature,
     update( );
 }
 
-void AdvancedTab::offsetSlider_sliderReleased( ) {
-    auto offset = _offsetSlider->value( ) * 25;
-    debug( "+ AdvancedTab::offsetSlider_sliderReleased: new value %d µm\n", offset );
-    g_settings.buildPlatformOffset = offset;
-}
 
-void AdvancedTab::offsetSlider_valueChanged( int value ) {
-    debug( "+ AdvancedTab::offsetSlider_valueChanged: new value %d µm\n", value * 25 );
-    _offsetValue->setText( QString { "%1 µm" }.arg( value * 25 ) );
-
-    update( );
+void AdvancedTab::offsetSliderValueChanged()
+{
+    _printJob->buildPlatformOffset = _offsetSlider->getValue();
+    update();
 }
 
 void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
@@ -332,31 +332,12 @@ void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
     _leftMenu->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding );
 }
 
-void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome) {
-    _offsetLabel->setText( "Build platform offset:" );
-
-    _offsetValue->setAlignment( Qt::AlignRight );
-    _offsetValue->setFont( boldFont );
-    _offsetValue->setText( QString { "%1 µm" }.arg( g_settings.buildPlatformOffset ) );
-
-    _offsetSlider->setMinimum( 0 );
-    _offsetSlider->setMaximum( 40 );
-    _offsetSlider->setOrientation( Qt::Horizontal );
-    _offsetSlider->setPageStep( 4 );
-    _offsetSlider->setSingleStep( 1 );
-    _offsetSlider->setTickInterval( 4 );
-    _offsetSlider->setTickPosition( QSlider::TicksBothSides );
-    QObject::connect( _offsetSlider, &QSlider::sliderReleased, this, &AdvancedTab::offsetSlider_sliderReleased );
-    QObject::connect( _offsetSlider, &QSlider::valueChanged,   this, &AdvancedTab::offsetSlider_valueChanged   );
-    _offsetSlider->setValue( g_settings.buildPlatformOffset / 25 );
-
-
-    _buildPlatformOffsetGroup->setContentsMargins( { } );
-    _buildPlatformOffsetGroup->setLayout( WrapWidgetsInVBoxDM(
-        WrapWidgetsInHBox( _offsetLabel, nullptr, _offsetValue ),
-        _offsetSlider
-    ) );
-
+void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome)
+{
+    QObject::connect(_offsetSlider, &ParamSlider::valueChanged, this,
+        &AdvancedTab::offsetSliderValueChanged);
+    QObject::connect(_offsetDisregardFirstLayer, &QCheckBox::stateChanged, this,
+        &AdvancedTab::offsetDisregardFirstLayerStateChanged);
 
     _bedHeatingButton->setCheckable( true );
     _bedHeatingButton->setChecked( false );
@@ -462,19 +443,21 @@ void AdvancedTab::_setUpGeneralForm(QFont boldFont, QFont fontAwesome) {
     _generalForm->setContentsMargins( { } );
     _generalForm->setMinimumSize( MaximalRightHandPaneSize );
     _generalForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _generalForm->setLayout( WrapWidgetsInVBoxDM(
-        _buildPlatformOffsetGroup,
+    _generalForm->setLayout(WrapWidgetsInVBoxDM(
+        _offsetDisregardFirstLayer,
+        _offsetSlider,
         _bedHeatingGroup,
         _projectImageButtonsGroup,
         nullptr
-    ) );
+    ));
 }
 
-void AdvancedTab::_setUpTemperaturelForm(QFont boldFont) {
-    _currentTemperatureLabel->setText( "Current temperature:" );
-    _targetTemperatureLabel ->setText( "Target temperature:"  );
-    _heatingElementLabel    ->setText( "Heating element:"     );
-    _zPositionLabel         ->setText( "Z position:"          );
+void AdvancedTab::_setUpTemperaturelForm(QFont boldFont)
+{
+    _currentTemperatureLabel->setText("Current temperature:");
+    _targetTemperatureLabel->setText("Target temperature:");
+    _heatingElementLabel->setText("Heating element:");
+    _zPositionLabel->setText("Z position:");
 
 
     _currentTemperature->setAlignment( Qt::AlignRight );
@@ -573,6 +556,11 @@ void AdvancedTab::expoTimeEnabled_changed(int state)
     }
 
     emit advancedExposureTimeChanged();
+}
+
+void AdvancedTab::offsetDisregardFirstLayerStateChanged(int state)
+{
+    _printJob->disregardFirstLayerHeight = static_cast<bool>(state);
 }
 
 void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
@@ -681,16 +669,17 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     _loadingPrintProfile = false;
 }
 
-void AdvancedTab::_setEnabled( bool enabled ) {
-
-    _buildPlatformOffsetGroup->setEnabled( enabled );
-    _bedHeatingGroup->setEnabled( enabled );
-    _basePumpForm->setEnabled( enabled );
-    _bodyPumpForm->setEnabled( enabled );
-    _layersForm->setEnabled( enabled );
+void AdvancedTab::_setEnabled(bool enabled)
+{
+    _offsetSlider->setEnabled(enabled);
+    _bedHeatingGroup->setEnabled(enabled);
+    _basePumpForm->setEnabled(enabled);
+    _bodyPumpForm->setEnabled(enabled);
+    _layersForm->setEnabled(enabled);
 }
 
-void AdvancedTab::setLayersSettingsEnabled(bool enabled) {
+void AdvancedTab::setLayersSettingsEnabled(bool enabled)
+{
     _baseExposureTimeSlider->setEnabled(enabled);
     _bodyExposureTimeSlider->setEnabled(enabled);
 }

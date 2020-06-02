@@ -48,6 +48,8 @@ public:
                 printProfile->setProfileName(obj["name"].toString("Unknown"));
                 printProfile->setDefault(obj["default"].toBool(false));
                 printProfile->setActive(obj["active"].toBool(false));
+                printProfile->setBuildPlatformOffset(obj["buildPlatformOffset"].toInt());
+                printProfile->setDisregardFirstLayerHeight(obj["disregardFirstLayerHeight"].toBool());
                 printProfile->setBaseLayerCount(obj["baseLayerCount"].toInt(2));
                 printProfile->setBaseLayerParameters(_parsePrintParameters(
                     obj["baseLayerParameters"]));
@@ -80,6 +82,8 @@ public:
                 {"name", profile->profileName()},
                 {"default", profile->isDefault()},
                 {"active", profile->isActive()},
+                {"buildPlatformOffset", profile->buildPlatformOffset()},
+                {"disregardFirstLayerHeight", profile->disregardFirstLayerHeight()},
                 {"baseLayerCount", profile->baseLayerCount()},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
                 {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())}

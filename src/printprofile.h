@@ -20,6 +20,8 @@ public:
         QObject(profile.parent())
     {
         _name = profile._name;
+        _buildPlatformOffset = profile._buildPlatformOffset;
+        _disregardFirstLayerHeight = profile._disregardFirstLayerHeight;
         _baseLayerCount = profile._baseLayerCount;
         _buildPlatformOffset = profile._buildPlatformOffset;
         _baseLayerParameters = profile._baseLayerParameters;
@@ -95,6 +97,11 @@ public:
         return _buildPlatformOffset;
     }
 
+    bool disregardFirstLayerHeight() const
+    {
+        return _disregardFirstLayerHeight;
+    }
+
     int baseLayerCount() const
     {
         return _baseLayerCount;
@@ -141,6 +148,11 @@ public:
         _buildPlatformOffset = newOffset;
     }
 
+    void setDisregardFirstLayerHeight(bool value)
+    {
+        _disregardFirstLayerHeight = value;
+    }
+
     void setBaseLayerCount(int newCount)
     {
         _baseLayerCount = newCount;
@@ -163,6 +175,7 @@ private:
     bool            _active;
     int             _baseLayerCount;
     int             _buildPlatformOffset;
+    bool            _disregardFirstLayerHeight;
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
     bool            _defaultProfile;    

@@ -56,7 +56,8 @@ public:
     Coordinate              y               { };
     Coordinate              z               { };
     double                  estimatedVolume { }; // unit: µL
-    int             firstLayerOffset;
+    int             buildPlatformOffset;
+    bool            disregardFirstLayerHeight;
     bool            directoryMode;
 
     SliceInformation        baseSlices { SliceType::SliceBase };
@@ -64,7 +65,7 @@ public:
 
     QSharedPointer<PrintProfile>    printProfile    { };
 
-    bool isTiled()
+    bool isTiled() const
     {
         if(_bodyManager)
             return _bodyManager->tiled();
@@ -72,7 +73,7 @@ public:
         return false;
     }
 
-    bool hasBasicControlsEnabled()
+    bool hasBasicControlsEnabled() const
     {
         if (isTiled())
             return false;
@@ -80,7 +81,7 @@ public:
         return !_advancedControlsEnabled;
     }
 
-    bool hasAdvancedControlsEnabled()
+    bool hasAdvancedControlsEnabled() const
     {
         if (isTiled())
             return false;
@@ -91,6 +92,16 @@ public:
     void enableAdvancedControls(bool enable)
     {
         _advancedControlsEnabled = enable;
+    }
+
+    int getBuildPlatformOffset() const
+    {
+        int result = buildPlatformOffset;
+
+        if (!disregardFirstLayerHeight)
+            result += getLayerThicknessAt(0);
+
+        return result;
     }
 
     bool hasBaseLayers() const
@@ -128,7 +139,7 @@ public:
             : bodySlices.layerThickness;
     }
 
-    int getLayerThicknessAt(int layerNo)
+    int getLayerThicknessAt(int layerNo) const
     {
         if (isTiled()) {
             if (hasBaseLayers()) {

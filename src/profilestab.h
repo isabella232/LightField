@@ -27,19 +27,18 @@ protected:
 
 private:
     QString _usbMountPoint { "" };
-
-    QPushButton*        _importParams                    { new QPushButton("Import")              };
-    QPushButton*        _exportParams                    { new QPushButton("Export")              };
-    QPushButton*        _newProfile                      { new QPushButton("Create profile")      };
-    QPushButton*        _renameProfile                   { new QPushButton("Rename profile")      };
-    QPushButton*        _overwriteProfile                { new QPushButton("Save profile")        };
-    QPushButton*        _deleteProfile                   { new QPushButton("Delete selected")     };
-    QPushButton*        _loadProfile                     { new QPushButton("Load selected")       };
-    QCheckBox*          _cpyProfilesUsb                  { new QCheckBox("Copy profiles from/to USB")  };
-    QCheckBox*          _cpyStlFilesUsb                  { new QCheckBox("Copy STL files from/to USB") };
-    QListView*          _profilesList                    { new QListView                          };
-    QStandardItemModel* _model                           { new QStandardItemModel                 };
-    QFont*              _fontAwesome;
+    QPushButton* _importParams { new QPushButton("Import") };
+    QPushButton* _exportParams { new QPushButton("Export") };
+    QPushButton* _newProfile { new QPushButton("Create profile") };
+    QPushButton* _renameProfile { new QPushButton("Rename profile") };
+    QPushButton* _overwriteProfile { new QPushButton("Save profile") };
+    QPushButton* _deleteProfile { new QPushButton("Delete selected") };
+    QPushButton* _loadProfile { new QPushButton("Load selected") };
+    QCheckBox* _cpyProfilesUsb { new QCheckBox("Copy profiles from/to USB") };
+    QCheckBox* _cpyStlFilesUsb { new QCheckBox("Copy STL files from/to USB") };
+    QListView* _profilesList { new QListView };
+    QStandardItemModel* _model { new QStandardItemModel };
+    QFont* _fontAwesome;
     void _setupProfilesList(QFont font);
     bool _createNewProfile(QString profileName);
     bool _renamePProfile(QString profileName);

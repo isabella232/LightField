@@ -1024,12 +1024,11 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     _pngDisplayer->clear();
 
-    auto const profile {_printJob->printProfile};
-    auto const& baseParameters {profile->baseLayerParameters()};
-    auto const& bodyParameters {profile->bodyLayerParameters()};
-    auto const& firstParameters {(profile->baseLayerCount() > 0) ? baseParameters : bodyParameters};
-    auto const firstLayerHeight {(_printJob->getLayerThicknessAt(0) + g_settings.buildPlatformOffset ) / 1000.0};
-    auto const baseMoveDownDistance {-baseParameters.pumpDownDistance_Effective() + (_printJob->baseSlices.layerThickness / 1000.0)};
+    auto const profile { _printJob->printProfile };
+    auto const& baseParameters { profile->baseLayerParameters() };
+    auto const& bodyParameters { profile->bodyLayerParameters() };
+    auto const& firstParameters { (profile->baseLayerCount() > 0) ? baseParameters : bodyParameters };
+    auto const firstLayerHeight { _printJob->getBuildPlatformOffset() / 1000.0 };
 
     _stepA1_movements.push_back({MoveType::Absolute, PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed});
 

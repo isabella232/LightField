@@ -28,11 +28,8 @@ protected:
     virtual void _connectShepherd() override;
 
 private:
-    QLabel*       _offsetLabel                        { new QLabel      };
-    QLabel*       _offsetValue                        { new QLabel      };
-    QSlider*      _offsetSlider                       { new QSlider     };
-
-    QGroupBox*    _buildPlatformOffsetGroup           { new QGroupBox   };
+    QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
+    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um",0, 1000, 50) };             ;
 
     QPushButton*  _bedHeatingButton                   { new QPushButton };
     QLabel*       _bedHeatingButtonLabel              { new QLabel      };
@@ -156,8 +153,7 @@ private slots:
     void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
-    void offsetSlider_sliderReleased( );
-    void offsetSlider_valueChanged( int value);
+    void offsetSliderValueChanged();
 
     void printBedHeatingButton_clicked( bool checked );
 #if defined ENABLE_TEMPERATURE_SETTING
@@ -180,6 +176,8 @@ private slots:
     void setLayersSettingsEnabled(bool enabled);
 
     void expoTimeEnabled_changed(int state);
+
+    void offsetDisregardFirstLayerStateChanged(int state);
 };
 
 #endif // __ADVANCEDTAB_H__
