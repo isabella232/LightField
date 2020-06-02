@@ -141,10 +141,10 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
         pixmap.save( &file, "PNG" );
 
         if( sequence < _printJob->baseSlices.layerCount ) {
-            _expoTimeList.push_back(e == 1 ? _baseExpoTime : _baseStep);
+            _expoTimeList.push_back(e == _wCount ? _baseExpoTime : _baseStep );
             _layerThicknessList.push_back(e == 1 ? _printJob->baseSlices.layerThickness : 0);
         } else {
-            _expoTimeList.push_back(e == 1 ? _bodyExpoTime : _bodyStep);
+            _expoTimeList.push_back(e == _wCount ? _bodyExpoTime : _bodyStep );
             _layerThicknessList.push_back(e == 1 ? _printJob->bodySlices.layerThickness : 0);
         }
 
