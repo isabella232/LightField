@@ -721,19 +721,12 @@ void PrepareTab::_restartPreview()
         _setNavigationButtonsEnabled(true);
 }
 
-void PrepareTab::_showWarning(QString content) {
-    auto origFont    = font( );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
-
-    Window* w = App::mainWindow();
-    QRect r = w->geometry();
-
-    QMessageBox msgBox;
+void PrepareTab::_showWarning(const QString& content)
+{
+    QMessageBox msgBox { this } ;
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setFont(fontAwesome);
     msgBox.setText(content);
     msgBox.show();
-    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
     msgBox.exec();
 }
 

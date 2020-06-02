@@ -102,7 +102,7 @@ private:
     void _setSliceControlsEnabled( bool const enabled );
     void _updateSliceControls();
     void _updatePrepareButtonState( );
-    void _showWarning( QString content );
+    void _showWarning(const QString& content);
     void _handlePrepareFailed( );
     void _loadDirectoryManifest();
     void _restartPreview();

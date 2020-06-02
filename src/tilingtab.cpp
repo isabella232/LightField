@@ -7,15 +7,14 @@
 #include "window.h"
 
 
-TilingExpoTimePopup::TilingExpoTimePopup( ) {
+TilingExpoTimePopup::TilingExpoTimePopup()
+{
     auto origFont    = font( );
     auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
     auto font22pt    = ModifyFont( origFont, LargeFontSize );
 
     this->setModal(true);
-    this->_okButton->setFont(font22pt);
-    this->_cancelButton->setFont(font22pt);
 
     QGroupBox* baseLr = new QGroupBox("Base layer");
     baseLr->setLayout(
@@ -33,29 +32,31 @@ TilingExpoTimePopup::TilingExpoTimePopup( ) {
         )
     );
 
-    QObject::connect( _okButton, &QPushButton::clicked, this, &TilingExpoTimePopup::confirm );
-    QObject::connect( _cancelButton, &QPushButton::clicked, this, &TilingExpoTimePopup::cancel );
+    QObject::connect(_okButton, &QPushButton::clicked, this, &TilingExpoTimePopup::confirm);
+    QObject::connect(_cancelButton, &QPushButton::clicked, this, &TilingExpoTimePopup::cancel);
 
     setLayout(
         WrapWidgetsInVBox(
             baseLr,
             bodyLr,
             nullptr,
-            WrapWidgetsInHBox( _okButton, _cancelButton )
+            WrapWidgetsInHBox(_okButton, _cancelButton)
         )
     );
 }
 
-void TilingExpoTimePopup::confirm( bool ) {
-    this->setResult( QDialog::Accepted );
-    this->accept( );
-    this->close( );
+void TilingExpoTimePopup::confirm(bool)
+{
+    this->setResult(QDialog::Accepted);
+    this->accept();
+    this->close();
 }
 
-void TilingExpoTimePopup::cancel( bool ) {
-    this->setResult( QDialog::Rejected );
-    this->reject( );
-    this->close( );
+void TilingExpoTimePopup::cancel(bool)
+{
+    this->setResult(QDialog::Rejected);
+    this->reject();
+    this->close();
 }
 
 TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
@@ -63,7 +64,6 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
-    auto font22pt    = ModifyFont( origFont, LargeFontSize );
 
     QGroupBox* all { new QGroupBox };
 
@@ -78,7 +78,6 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
 
     _setupTiling->setEnabled( false );
     _setupTiling->setMinimumWidth( MainButtonSize.width() );
-    _setupTiling->setFont( font22pt );
     _setupTiling->setText( "Setup tiling" );
     QObject::connect( _setupTiling, &QPushButton::clicked, this, &TilingTab::setupTilingClicked );
 
@@ -87,12 +86,9 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
     );
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
-
-    _confirm->setFont( fontAwesome );
     _confirm->setMinimumWidth( MainButtonSize.width() );
     _confirm->setEnabled( false );
 
-    _setupExpoTimeBt->setFont(font22pt);
     _setupExpoTimeBt->setMinimumWidth( MainButtonSize.width() );
 
     QGroupBox* lrInfo     = new QGroupBox();
@@ -176,8 +172,8 @@ void TilingTab::setStepValue()
 
     painter.fillRect(0,0, _currentLayerImage->width( ), _currentLayerImage->height( ), QBrush("#000000"));
 
-    painter.setFont( QFont( "Arial", 15 ) );
-    painter.setPen( Qt::red );
+    painter.setFont(QFont( "Arial", 12));
+    painter.setPen(Qt::red);
 
 #if 0
     // multi row tilling
@@ -242,27 +238,16 @@ void TilingTab::setStepValue()
     update( );
 }
 
-void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase, double expoBody)
+void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase,
+    double expoBody)
 {
-    QFontMetrics fm( painter->font() );
-    QString text = QString( "Exposure %1/%2 sec" ).arg( expoBase ).arg(expoBody);
+    QFontMetrics fm(painter->font());
+    QString baseText = QString("Base %1s").arg(expoBase);
+    QString bodyText = QString("Body %2s").arg(expoBody);
+    int textHeight = fm.height();
 
-    int textWidth=fm.horizontalAdvance(text);
-
-    if(textWidth > tileWidth)
-    {
-        int textHeight = fm.height();
-
-        text = QString( "Expo." );
-        QString text2 = QString( "%1/%2 s" ).arg(expoBase).arg(expoBody);
-
-        painter->drawText( QPoint(pos.x(), pos.y() - textHeight - 2), text );
-        painter->drawText( pos, text2 );
-    }
-    else
-    {
-        painter->drawText( pos, text );
-    }
+    painter->drawText(QPoint(pos.x(), pos.y() - textHeight - 2), baseText);
+    painter->drawText(pos, bodyText);
 }
 
 void TilingTab::_showLayerImage( ) {
@@ -391,14 +376,9 @@ int TilingTab::_getMaxCount()
 
 void TilingTab::_showWarningAndClose ()
 {
-    auto origFont    = font( );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
-
-
-    QMessageBox msgBox;
+    QMessageBox msgBox { this };
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setFont(fontAwesome);
-    msgBox.setText( "Slices are too wide to be tiled." );
+    msgBox.setText("Slices are too wide to be tiled.");
     msgBox.exec();
 }
 
