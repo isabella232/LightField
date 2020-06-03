@@ -1079,9 +1079,10 @@ void PrintManager::abort( ) {
 
     _printResult = PrintResult::Abort;
 
-    if ( _paused ) {
+    if (_paused) {
         debug( "  + Printer is paused, going directly to step D1\n" );
-        stepD1_start( );
+        stepD1_start();
+        return;
     }
 
     if ( _movementSequencer->isActive( ) ) {
