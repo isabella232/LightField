@@ -336,6 +336,12 @@ void ProfilesTab::_updateProfile()
         return;
     }
 
+    if (profile->isDefault()) {
+        msgBox.setText("Cannot overwrite default profile");
+        msgBox.exec();
+        return;
+    }
+
     profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
     profile->setBuildPlatformOffset(_printJob->buildPlatformOffset);
     profile->setDisregardFirstLayerHeight(_printJob->disregardFirstLayerHeight);
