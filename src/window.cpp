@@ -56,16 +56,20 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
 
+    _printProfileManager = new PrintProfileManager;
+    _printProfileManager->reload();
+
     _printJob = QSharedPointer<PrintJob>(new PrintJob);
+    _printJob->baseLayerParameters = _printProfileManager->activeProfile()->baseLayerParameters();
+    _printJob->bodyLayerParameters = _printProfileManager->activeProfile()->bodyLayerParameters();
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
 
-    _printProfileManager = new PrintProfileManager;
+
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
-    _printProfileManager->reload();
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );

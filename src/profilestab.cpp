@@ -381,6 +381,9 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
     }
+
+    _printJob->baseLayerParameters = _printProfileManager->activeProfile()->baseLayerParameters();
+    _printJob->bodyLayerParameters = _printProfileManager->activeProfile()->bodyLayerParameters();
 }
 
 void ProfilesTab::loadProfiles()
