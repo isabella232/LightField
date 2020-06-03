@@ -29,7 +29,7 @@ protected:
 
 private:
     QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
-    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um",0, 1000, 50) };             ;
+    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um", 0, 1000, 50, 100) };
 
     QPushButton*  _bedHeatingButton                   { new QPushButton };
     QLabel*       _bedHeatingButtonLabel              { new QLabel      };
@@ -85,8 +85,8 @@ private:
     ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
     ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5, 5 ) };
     ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5, 5 ) };
-    ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   1 ) };
+    ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   50, 50 ) };
+    ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   50, 50 ) };
     ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5, 5 ) };
 
 
@@ -105,8 +105,8 @@ private:
     ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
     ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5,      5 ) };
-    ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
+    ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   50, 50 ) };
+    ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   50, 50) };
     ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5,      5 ) };
 
     static const int FORMS_COUNT                      { 4 };
