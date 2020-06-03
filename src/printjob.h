@@ -75,6 +75,15 @@ public:
         }
     }
 
+    void copyFromProfile(QSharedPointer<PrintProfile> profile)
+    {
+        baseLayerParameters = profile->baseLayerParameters();
+        bodyLayerParameters = profile->bodyLayerParameters();
+        buildPlatformOffset = profile->buildPlatformOffset();
+        disregardFirstLayerHeight = profile->disregardFirstLayerHeight();
+        heatingTemperature = profile->heatingTemperature();
+    }
+
     bool isTiled() const
     {
         if(_bodyManager)

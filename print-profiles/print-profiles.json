@@ -2,6 +2,9 @@
     {
         "name": "default",
 	"default": true,
+        "buildPlatformOffset": 300,
+        "disregardFirstLayerHeight": false,
+        "heatingTemperature": 50,
         "baseLayerCount": 2,
         "baseLayerParameters": {
             "pumpingEnabled": true,

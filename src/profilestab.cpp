@@ -382,8 +382,7 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.exec();
     }
 
-    _printJob->baseLayerParameters = _printProfileManager->activeProfile()->baseLayerParameters();
-    _printJob->bodyLayerParameters = _printProfileManager->activeProfile()->bodyLayerParameters();
+    _printJob->copyFromProfile(_printProfileManager->activeProfile());
 }
 
 void ProfilesTab::loadProfiles()
