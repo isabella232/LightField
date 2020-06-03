@@ -107,6 +107,7 @@ private:
         if (!value.isObject())
             return params;
 
+        obj = value.toObject();
         params.setLayerThickness(obj["layerThickness"].toInt(100));
         params.setLayerExposureTime(obj["layerExposureTime"].toInt());
         params.setPowerLevel(obj["powerLevel"].toInt());
