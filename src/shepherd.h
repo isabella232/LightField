@@ -45,6 +45,7 @@ private:
     PendingCommand _pendingCommand        { PendingCommand::none };
     int            _okCount               { };
     int            _expectedOkCount       { };
+    double         _zPosition             { };
     bool           _isTerminationExpected { };
 
     QString        _stdoutBuffer;
