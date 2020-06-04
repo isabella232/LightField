@@ -37,7 +37,7 @@ const BuildType LIGHTFIELD_VERSION_BUILD_TYPE = BuildType::Release;
 #error Unknown build type: Neither _DEBUG nor NDEBUG are #defined
 #endif
 
-const char* LIGHTFIELD_VERSION_GITHASH __attribute__((weak)) = "@@VERSION_GITHASH@@"
+const char* LIGHTFIELD_VERSION_GITHASH __attribute__((weak)) = "@@VERSION_GITHASH@@";
 const char* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__((weak)) = "@@RELEASE_TRAIN@@";
 
 #endif // __VERSION_H__
