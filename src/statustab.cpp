@@ -304,7 +304,13 @@ void StatusTab::stopButton_clicked( bool ) {
 
     _pauseButton->setEnabled( false );
     _stopButton->setEnabled( false );
-    _stopButton->setText( "Stopping…" );
+
+    if(_printJob->isTiled()) {
+        _stopButton->setText("Finishing Layer...");
+    } else {
+        _stopButton->setText( "Stopping…" );
+    }
+
     _updatePrintTimeInfo->stop( );
 
     if ( _printManager ) {

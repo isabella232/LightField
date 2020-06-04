@@ -360,7 +360,7 @@ void PrintManager::stepB2a_start( ){
 
     // abort would be serviced during B3_completed
 
-    if(_hasLayerMoreElements()){
+    if(_hasLayerMoreElements()) {
         debug( "+ PrintManager::stepB2a_start: current layer has still more tiled elements to loop over'\n" );
         _currentLayer++;
         _pngDisplayer->clear( );
@@ -372,7 +372,7 @@ void PrintManager::stepB2a_start( ){
             return;
         }
         stepB2_start( );
-    }else{
+    } else {
         debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
         _duringTiledLayer = false;
         stepB3_start( );
