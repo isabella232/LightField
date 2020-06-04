@@ -276,9 +276,17 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
             this->_minExposureBase = 10.0;
             this->_minExposureBody = 20.0;
             this->_space->setValue(1);
+            this->_count->setValue(1);
             this->_currentLayerImage->clear();
+
+            _minExposureBaseValue->setText ( QString("%1s").arg( 10.0 ) );
+            _stepBaseValue->setText ( QString("%1s").arg(  2.0 ) );
+            _minExposureBodyValue->setText ( QString("%1s").arg( 20.0 ) );
+            _stepBodyValue->setText ( QString("%1s").arg( 2.0 ) );
+
             _setEnabled(false);
             _setupTiling->setEnabled(false);
+            setStepValue();
         }
         break;
 
