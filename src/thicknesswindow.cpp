@@ -45,7 +45,7 @@ ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, 
 
         _baseLayerThickness->setStep( 20 );
         _baseLayerThickness->setMinValue( 20 );
-        _baseLayerThickness->setMaxValue( 40 );
+        _baseLayerThickness->setMaxValue( 100 );
         _baseLayerThickness->setValue( 20 );
     }
 
