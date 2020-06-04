@@ -653,7 +653,7 @@ void PrintManager::stepC2_completed( ) {
 
     _stopAndCleanUpTimer( _layerExposureTimer );
 
-    if ( IsBadPrintResult( _printResult ) ) {
+    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
         stepD1_start( );
         return;
     }
