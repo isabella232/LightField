@@ -4,14 +4,13 @@
 #include "constants.h"
 #include "utils.h"
 
-ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, QWidget *parent):
+ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, QWidget *parent):
     QDialog(parent), _printJob(job)
 {
     QVBoxLayout *layout;
     QHBoxLayout *buttons = new QHBoxLayout;
     auto origFont = font();
     auto font22pt = ModifyFont(origFont, LargeFontSize);
-    int step = static_cast<int>( ceil(100.0 / job->bodySlices.layerThickness) );
 
     this->setModal( true );
 
@@ -24,18 +23,32 @@ ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, QWidget *parent):
 
     QWidget::connect(_cancel, &QPushButton::clicked, this, &ThicknessWindow::cancel_clicked);
 
-    _baseLayerCount->setValue(job->baseSlices.layerCount);
+    if(!initValues) {
+        int step = static_cast<int>( ceil(100.0 / job->bodySlices.layerThickness) );
 
-    _baseLayerThickness->setMinValue(job->bodySlices.layerThickness);
-    if (100 % job->bodySlices.layerThickness) {
-        _baseLayerThickness->setMaxValue((step - 1) * job->bodySlices.layerThickness);
+        _baseLayerCount->setValue(job->baseSlices.layerCount);
+
+        _baseLayerThickness->setMinValue(job->bodySlices.layerThickness);
+        if (100 % job->bodySlices.layerThickness) {
+            _baseLayerThickness->setMaxValue((step - 1) * job->bodySlices.layerThickness);
+        } else {
+            _baseLayerThickness->setMaxValue(step * job->bodySlices.layerThickness);
+        }
+        _baseLayerThickness->setStep(job->bodySlices.layerThickness);
+        _baseLayerThickness->setValue(job->baseSlices.layerThickness);
+
+        _bodyLayerThickness->setValue(job->bodySlices.layerThickness);
     } else {
-        _baseLayerThickness->setMaxValue(step * job->bodySlices.layerThickness);
-    }
-    _baseLayerThickness->setStep(job->bodySlices.layerThickness);
-    _baseLayerThickness->setValue(job->baseSlices.layerThickness);
+        _bodyLayerThickness->setValue( 20 );
 
-    _bodyLayerThickness->setValue(job->bodySlices.layerThickness);
+        _baseLayerCount->setValue( 2 );
+
+        _baseLayerThickness->setStep( 20 );
+        _baseLayerThickness->setMinValue( 20 );
+        _baseLayerThickness->setMaxValue( 40 );
+        _baseLayerThickness->setValue( 20 );
+    }
+
 
     if (_printJob->directoryMode) {
         QObject::connect(_baseLayerThickness, &ParamSlider::valueChanged, [=]() {
