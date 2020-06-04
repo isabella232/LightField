@@ -320,6 +320,7 @@ void PrintManager::stepB1_failed( int const exitCode, QProcess::ProcessError con
 
 // B2. Pause for layer projection time.
 void PrintManager::stepB2_start( ) {
+    debug( "+ PrintManager::stepB2_start\n" );
     _step = PrintStep::B2;
 
     int layerExposureTime;
@@ -341,7 +342,7 @@ void PrintManager::stepB2_completed( ) {
     _stopAndCleanUpTimer( _layerExposureTimer );
 
 
-    if ( IsBadPrintResult( _printResult ) ) {
+    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
         stepD1_start( );
 
         return;
@@ -356,6 +357,8 @@ void PrintManager::stepB2_completed( ) {
 }
 
 void PrintManager::stepB2a_start( ){
+    debug( "+ PrintManager::stepB2a_start\n" );
+
     _step = PrintStep::B2a;
 
     // abort would be serviced during B3_completed
@@ -382,6 +385,7 @@ void PrintManager::stepB2a_start( ){
 
 // B3. Stop projection: "set-projector-power 0".
 void PrintManager::stepB3_start( ) {
+    debug( "+ PrintManager::stepB3_start\n" );
     _step = PrintStep::B3;
 
     debug( "+ PrintManager::stepB3_start: running 'set-projector-power 0'\n" );
@@ -419,6 +423,8 @@ void PrintManager::stepB3_failed( int const, QProcess::ProcessError const ) {
 
 // B4a1. Pause before "pumping" manoeuvre.
 void PrintManager::stepB4a1_start( ) {
+    debug( "+ PrintManager::stepB4a1_start\n" );
+
     _step = PrintStep::B4a1;
 
     debug( "+ PrintManager::stepB4a1_start: pausing for %d ms before raising build platform\n", PauseBeforeLift );
@@ -442,6 +448,7 @@ void PrintManager::stepB4a1_completed( ) {
 // B4a2. Perform the "pumping" manoeuvre.
 void PrintManager::stepB4a2_start()
 {
+    debug( "+ PrintManager::stepB4a2_start\n" );
     _step = PrintStep::B4a2;
 
     ++_currentLayer;
