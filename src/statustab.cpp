@@ -179,7 +179,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
-    _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
+    _dispensePrintSolutionGroup->setTitle( "Dispense PhotoInk<span style='font-family: arial'>™</span>" );
     _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
         nullptr,
         _dispensePrintSolutionLabel,
@@ -464,9 +464,9 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_requestDispensePrintSolution( ) {
     double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
 
-    QString dispenseText = QString("Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
+    QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
     if(solutionRequired > 10.0){
-     dispenseText.append(QString("<br>Total print solution needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
+     dispenseText.append(QString("<br>Total PhotoInk<span style='font-family: arial'>™</span> needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
     }
     _dispensePrintSolutionLabel->setText(dispenseText);
 
@@ -549,7 +549,7 @@ void StatusTab::printerOnlineTimer_timeout( ) {
 void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
     _currentLayerGroup->setVisible( true );
-    _printerStateDisplay->setText( "Print solution is settling" );
+    _printerStateDisplay->setText( "PhotoInk<span style='font-family: arial'>™</span> is settling" );
 
     _printManager->printSolutionDispensed( );
 
