@@ -1,7 +1,7 @@
 variables:
   GIT_STRATEGY: fetch
   GIT_SUBMODULE_STRATEGY: recursive
-  VERSION: 1.0.12.
+  VERSION: 1.0.12
 
 stages:
   - build_xdlp4710
@@ -13,7 +13,7 @@ build_base:
   stage: build_base
   script:
     - rm -rf packaging
-    - bash change-version-number.sh -t base ${VERSION}.$(git rev-list --count HEAD)
+    - bash change-version-number.sh -t base ${VERSION}
     - bash make-deb-package.sh release
     - bash make-deb-package.sh debug
   tags:
@@ -26,7 +26,7 @@ build_xbase:
   stage: build_xbase
   script:
     - rm -rf packaging
-    - bash change-version-number.sh -t xbase ${VERSION}.$(git rev-list --count HEAD)
+    - bash change-version-number.sh -t xbase ${VERSION}
     - bash make-deb-package.sh release
     - bash make-deb-package.sh debug
   tags:
@@ -39,7 +39,7 @@ build_dlp4710:
   stage: build_dlp4710
   script:
     - rm -rf packaging
-    - bash change-version-number.sh -t dlp4710 ${VERSION}.$(git rev-list --count HEAD)
+    - bash change-version-number.sh -t dlp4710 ${VERSION}
     - bash make-deb-package.sh release
     - bash make-deb-package.sh debug
   tags:
@@ -52,7 +52,7 @@ build_xdlp4710:
   stage: build_xdlp4710
   script:
     - rm -rf packaging
-    - bash change-version-number.sh -t xdlp4710 ${VERSION}.$(git rev-list --count HEAD)
+    - bash change-version-number.sh -t xdlp4710 ${VERSION}
     - bash make-deb-package.sh release
     - bash make-deb-package.sh debug
   tags:
