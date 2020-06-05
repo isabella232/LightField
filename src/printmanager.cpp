@@ -1081,6 +1081,8 @@ void PrintManager::abort( ) {
 
     if (_paused) {
         debug( "  + Printer is paused, going directly to step D1\n" );
+        _paused = false;
+        emit printResumed();
         stepD1_start();
         return;
     }
