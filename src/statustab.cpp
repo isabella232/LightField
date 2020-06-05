@@ -465,40 +465,43 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
     double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
 
     QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>."
-                                   "<br/><br/>The file:<br/><b>%2</b><br/>will be printed at <b>%3 µm</b> %4 base layers (<b>%5 sec</b>) and then <b>%6 µm</b> at %7 body layers (<b>%8 sec</b>)" )
+                                   "<br/><br/>The file:<br/><b>%2</b><br/>")
             .arg( std::clamp(solutionRequired, 1.0, 10.0 ) )
-            .arg( GetFileBaseName( _printJob->modelFileName ) )
-            .arg( _printJob->baseSlices.layerThickness)
-            .arg( _printJob->baseSlices.layerCount )
-            .arg( _printJob->baseSlices.exposureTime )
-            .arg( _printJob->bodySlices.layerThickness )
-            .arg( _printJob->bodySlices.layerCount )
-            .arg( _printJob->bodySlices.exposureTime );
+            .arg( GetFileBaseName( _printJob->modelFileName ) );
 
-    QString tilingInfoText = QString("Tiling will range from <b>%1 sec</b> miniumum exposure and <b>%2 µm</b> thickness with <b>%3 sec and %4µm</b> step at %5 base layers<br/>"
-                                     "and from <b>%1 sec</b> miniumum exposure and <b>%6 µm</b> thickness with <b>%7 sec and %8µm</b> step at %9 body layers<br/>"
-                                     "for %10 tiles per layer and %11 mm space.")
+    if(!_printJob->isTiled()) {
+        QString pjInfo =  QString("will be printed at <b>%3 µm</b> %4 base layers (<b>%5 sec</b>) and then <b>%6 µm</b> at %7 body layers (<b>%8 sec</b>)" )
+
+                .arg( _printJob->baseSlices.layerThickness)
+                .arg( _printJob->baseSlices.layerCount )
+                .arg( _printJob->baseSlices.exposureTime )
+                .arg( _printJob->bodySlices.layerThickness )
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->bodySlices.exposureTime );
+
+        dispenseText.append(pjInfo);
+    } else {
+        QString tilingInfoText = QString("Tiling will range from <b>%1 sec</b> miniumum exposure and <b>%2 µm</b> thickness <br/>with <b>%3 sec</b> and <b>%4µm</b> step for base layers"
+                                     "and <b>%5 sec</b> miniumum exposure<br/><b>%6 µm</b> thickness with <b>%7 sec and %8µm</b> step for body layers<br/>"
+                                     "at <b>%9</b> tiles per layer and <b>%10 mm</b> space.")
             .arg(_printJob->getTimeForElementAt(_printJob->baseLayerStart()))
             .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerStart()))
             .arg(_printJob->getTimeForElementAt(_printJob->baseLayerEnd()))
             .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerEnd()))
-            .arg( 2 )
             .arg(_printJob->getTimeForElementAt(_printJob->baseLayerStart()))
             .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerStart()))
             .arg(_printJob->getTimeForElementAt(_printJob->baseLayerEnd()))
             .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerEnd()))
-            .arg(_printJob->getBodyManager()->getSize() - 2)
             .arg(_printJob->getBodyManager()->tilingCount())
-            .arg(_printJob->getBodyManager()->tilingStep())
             .arg(_printJob->getBodyManager()->tilingSpace());
 
-
+        _tilingInfoLabel->setText(tilingInfoText);
+    }
 
     if(solutionRequired > 10.0){
      dispenseText.append(QString("<br>Total PhotoInk<span style='font-family: arial'>™</span> needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
     }
     _dispensePrintSolutionLabel->setText(dispenseText);
-    _tilingInfoLabel->setText(tilingInfoText);
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
