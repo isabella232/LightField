@@ -179,21 +179,21 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
-    _dispensePrintSolutionGroup->setTitle( "Dispense PhotoInk<span style='font-family: arial'>™</span>" );
     _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
         nullptr,
         _dispensePrintSolutionLabel,
+        _tilingInfoLabel,
         nullptr,
         WrapWidgetsInHBox( nullptr, _startThePrintButton, nullptr ),
         nullptr
     ) );
-
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
         _currentLayerGroup,
+        new QLabel("Dispense PhotoInk<span style='font-family: arial'>™</span>"),
         _dispensePrintSolutionGroup,
         nullptr
     ) );
@@ -464,12 +464,41 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_requestDispensePrintSolution( ) {
     double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
 
-    QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
+    QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>."
+                                   "<br/><br/>The file:<br/><b>%2</b><br/>will be printed at <b>%3 µm</b> %4 base layers (<b>%5 sec</b>) and then <b>%6 µm</b> at %7 body layers (<b>%8 sec</b>)" )
+            .arg( std::clamp(solutionRequired, 1.0, 10.0 ) )
+            .arg( GetFileBaseName( _printJob->modelFileName ) )
+            .arg( _printJob->baseSlices.layerThickness)
+            .arg( _printJob->baseSlices.layerCount )
+            .arg( _printJob->baseSlices.exposureTime )
+            .arg( _printJob->bodySlices.layerThickness )
+            .arg( _printJob->bodySlices.layerCount )
+            .arg( _printJob->bodySlices.exposureTime );
+
+    QString tilingInfoText = QString("Tiling will range from <b>%1 sec</b> miniumum exposure and <b>%2 µm</b> thickness with <b>%3 sec and %4µm</b> step at %5 base layers<br/>"
+                                     "and from <b>%1 sec</b> miniumum exposure and <b>%6 µm</b> thickness with <b>%7 sec and %8µm</b> step at %9 body layers<br/>"
+                                     "for %10 tiles per layer and %11 mm space.")
+            .arg(_printJob->getTimeForElementAt(_printJob->baseLayerStart()))
+            .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerStart()))
+            .arg(_printJob->getTimeForElementAt(_printJob->baseLayerEnd()))
+            .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerEnd()))
+            .arg( 2 )
+            .arg(_printJob->getTimeForElementAt(_printJob->baseLayerStart()))
+            .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerStart()))
+            .arg(_printJob->getTimeForElementAt(_printJob->baseLayerEnd()))
+            .arg(_printJob->getLayerThicknessAt(_printJob->baseLayerEnd()))
+            .arg(_printJob->getBodyManager()->getSize() - 2)
+            .arg(_printJob->getBodyManager()->tilingCount())
+            .arg(_printJob->getBodyManager()->tilingStep())
+            .arg(_printJob->getBodyManager()->tilingSpace());
+
+
+
     if(solutionRequired > 10.0){
      dispenseText.append(QString("<br>Total PhotoInk<span style='font-family: arial'>™</span> needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
     }
     _dispensePrintSolutionLabel->setText(dispenseText);
-
+    _tilingInfoLabel->setText(tilingInfoText);
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
@@ -590,6 +619,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     case UiState::SliceCompleted:
         _modelFileNameLabel->clear( );
         _imageFileNameLabel->clear();
+        _tilingInfoLabel->clear();
         _stopButton->setVisible( false );
         _reprintButton->setVisible( true );
         break;

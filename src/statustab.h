@@ -57,6 +57,8 @@ private:
     QGroupBox*          _currentLayerGroup          { new QGroupBox   };
 
     QLabel*             _dispensePrintSolutionLabel { new QLabel      };
+    QLabel*             _tilingInfoLabel            { new QLabel      };
+    QLabel*             _printInfoLabel             { new QLabel      };
     QPushButton*        _startThePrintButton        { new QPushButton };
     QGroupBox*          _dispensePrintSolutionGroup { new QGroupBox   };
 
