@@ -284,9 +284,9 @@ public:
     PrintParameters& getLayerProfileParams(int layerNum)
     {
         if(isBaseLayer(layerNum)){
-            return printProfile->baseLayerParameters();
+            return baseLayerParameters;
         } else {
-            return printProfile->bodyLayerParameters();
+            return bodyLayerParameters;
         }
     }
 

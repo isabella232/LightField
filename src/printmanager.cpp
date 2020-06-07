@@ -18,24 +18,7 @@
 // A3. Lower to high-speed threshold Z at high speed, then first layer height at low speed, and wait for ${PauseAfterPrintSolutionDispensed} ms.
 //
 // ====================================
-// == Section B: For each base layer ==
-// ====================================
-//
-// B1. Start projection: "set-projector-power ${_printJob->powerLevel}".
-// B2. Pause for layer projection time.
-//     -> if current job has multi-tiled elements
-//     B2a. change image - loop over tiled variants
-//     -> end if
-// B3. Stop projection: "set-projector-power 0".
-// B4a1. Pause before "pumping" manoeuvre.
-// B4a2. Perform the "pumping" manoeuvre.
-// B4b1. Pause before projection.
-// TODO what about pause??
-// --- pause is disabled
-// --- pause is re-enabled
-//
-// ====================================
-// == Section C: For each body layer ==
+// == Section C: For each layer ==
 // ====================================
 //
 // C1. Start projection: "set-projector-power ${_printJob->powerLevel}".
@@ -44,9 +27,9 @@
 //     C2a. change image - loop over tiled variants
 //     -> end if
 // C3. Stop projection: "set-projector-power 0".
-// C4a1. Pause before "pumping" manoeuvre.
-// C4a2. Perform the "pumping" manoeuvre.
-// C4b1. Pause before projection.
+// C4. Pause before "pumping" manoeuvre or lift
+// C5. Perform the Z move.
+
 // TODO what about pause??
 // --- pause is disabled
 // --- pause is re-enabled
@@ -471,12 +454,6 @@ void PrintManager::stepC5_completed( bool const success ) {
         return;
     }
 
-    //TODO rework pause support
-    if ( _paused ) {
-        _pausePrinting( );
-        return;
-    }
-
     stepC1_start( );
 }
 
@@ -548,9 +525,7 @@ void PrintManager::stepE1_start( ) {
 
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE1_completed );
 
-    const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+    const auto& parameters = _printJob->getLayerProfileParams(_currentLayer);
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
@@ -588,9 +563,7 @@ void PrintManager::stepE2_start( ) {
     QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
         &PrintManager::stepE2_completed);
 
-    const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+    const auto& parameters = _printJob->getLayerProfileParams(_currentLayer);
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, PrinterDefaultHighSpeed },
@@ -616,7 +589,6 @@ void PrintManager::stepE2_completed( bool const success ) {
     emit printResumed( );
     switch ( _pausedStep ) {
         case PrintStep::C1:   stepC1_start( );   break;
-        case PrintStep::C4:   stepC4_start( );   break;
 
         default:
             debug( "+ PrintManager::stepE4_completed: paused at invalid step %s?\n", ToString( _pausedStep ) );
