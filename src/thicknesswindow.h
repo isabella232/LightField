@@ -11,7 +11,7 @@ class ThicknessWindow: public QDialog
     Q_OBJECT
 
 public:
-    ThicknessWindow(QSharedPointer<PrintJob> job, QWidget *parent = nullptr);
+    ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, QWidget *parent = nullptr);
 
 protected:
     QSharedPointer<PrintJob> _printJob;

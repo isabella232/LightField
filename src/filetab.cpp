@@ -619,6 +619,7 @@ void FileTab::selectButton_clicked(bool)
 
     if (_modelsLocation == ModelsLocation::Library) {
         if (_modelSelection.type == ModelFileType::File) {
+            _printJob->resetTiling();
             emit modelSelected(&_modelSelection);
             emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {

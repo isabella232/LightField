@@ -1,7 +1,10 @@
 [
     {
-        "name": "16adda77-9020-45c4-ba01-622488a67d2a",
+        "name": "default",
 	"default": true,
+        "buildPlatformOffset": 300,
+        "disregardFirstLayerHeight": false,
+        "heatingTemperature": 50,
         "baseLayerCount": 2,
         "baseLayerParameters": {
             "pumpingEnabled": true,

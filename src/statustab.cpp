@@ -276,40 +276,41 @@ void StatusTab::printer_offline( ) {
     update( );
 }
 
-void StatusTab::pauseButton_clicked( bool ) {
-    auto paused = _isPaused;
-    _isPaused = !_isPaused;
-    _pauseButton->setEnabled( false );
-    update( );
+void StatusTab::pauseButton_clicked(bool)
+{
+    debug("+ StatusTab::pauseButton_clicked\n");
+    _pauseButton->setEnabled(false);
+    _stopButton->setEnabled(false);
 
-    if ( !paused ) {
-        _currentPauseStartTime = GetBootTimeClock( );
-        _printManager->pause( );
+    if (!_printManager->isPaused()) {
+        _currentPauseStartTime = GetBootTimeClock();
+        _printManager->pause();
+        _pauseButton->setText("Pausing...");
     } else {
-        auto pausedTime = GetBootTimeClock( ) - _currentPauseStartTime;
-
-        _totalPausedTime        += pausedTime;
+        auto pausedTime = GetBootTimeClock() - _currentPauseStartTime;
+        _totalPausedTime += pausedTime;
         _previousLayerStartTime += pausedTime;
-        _currentLayerStartTime  += pausedTime;
-        _printJobStartTime      += pausedTime;
-
-        _printManager->resume( );
+        _currentLayerStartTime += pausedTime;
+        _printJobStartTime += pausedTime;
+        _printManager->resume();
     }
+
+    update();
 }
 
-void StatusTab::stopButton_clicked( bool ) {
-    debug( "+ StatusTab::stopButton_clicked\n" );
+void StatusTab::stopButton_clicked(bool)
+{
+    debug("+ StatusTab::stopButton_clicked\n");
 
-    _pauseButton->setEnabled( false );
-    _stopButton->setEnabled( false );
-    _stopButton->setText( "Stopping…" );
-    _updatePrintTimeInfo->stop( );
-
-    if ( _printManager ) {
-        _printManager->abort( );
+    if (_printManager) {
+        _pauseButton->setEnabled(false);
+        _stopButton->setEnabled(false);
+        _stopButton->setText("Stopping…");
+        _updatePrintTimeInfo->stop();
+        _printManager->abort();
     }
 
-    update( );
+    update();
 }
 
 void StatusTab::reprintButton_clicked( bool ) {
@@ -347,54 +348,60 @@ void StatusTab::printManager_printComplete( bool const success ) {
     update( );
 }
 
-void StatusTab::printManager_printAborted( ) {
-    debug( "+ StatusTab::printManager_printAborted\n" );
+void StatusTab::printManager_printAborted()
+{
+    debug("+ StatusTab::printManager_printAborted\n");
 
-    _dispensePrintSolutionGroup->setVisible( false );
-    _currentLayerGroup->setVisible( true );
+    _dispensePrintSolutionGroup->setVisible(false);
+    _currentLayerGroup->setVisible(true);
 
-    _updatePrintTimeInfo->stop( );
+    _updatePrintTimeInfo->stop();
 
-    _printerStateDisplay->setText( "Print was canceled" );
-    _HideAndClear( _currentLayerDisplay       );
-    _HideAndClear( _estimatedTimeLeftDisplay  );
-    _HideAndClear( _percentageCompleteDisplay );
-    _currentLayerImage->clear( );
+    _printerStateDisplay->setText("Print was canceled");
+    _HideAndClear(_currentLayerDisplay);
+    _HideAndClear(_estimatedTimeLeftDisplay);
+    _HideAndClear(_percentageCompleteDisplay);
+    _currentLayerImage->clear();
 
-    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+    emit uiStateChanged(TabIndex::Status, UiState::PrintCompleted);
+    update();
+}
+
+void StatusTab::printManager_printPausable(bool const pausable)
+{
+    debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString(pausable));
+
+    _pauseButton->setEnabled(pausable);
 
     update( );
 }
 
-void StatusTab::printManager_printPausable( bool const pausable ) {
-    debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString( pausable ) );
+void StatusTab::printManager_printPaused()
+{
+    debug("+ StatusTab::printManager_printPaused\n");
 
-    _pauseButton->setEnabled( pausable );
+    _printerStateDisplay->setText("Print is paused");
+    _stopButton->setEnabled(true);
+    _pauseButton->setEnabled(true);
+    _pauseButton->setText("Resume");
 
-    update( );
+    update();
 }
 
-void StatusTab::printManager_printPaused( ) {
-    debug( "+ StatusTab::printManager_printPaused\n" );
-
-    _printerStateDisplay->setText( "Print is paused" );
-    _pauseButton->setEnabled( true );
-    _pauseButton->setText( "Resume" );
-
-    update( );
-}
-
-void StatusTab::printManager_printResumed( ) {
+void StatusTab::printManager_printResumed()
+{
     debug( "+ StatusTab::printManager_printResumed\n" );
 
-    _printerStateDisplay->setText( "Printing" );
-    _pauseButton->setEnabled( true );
-    _pauseButton->setText( "Pause" );
+    _printerStateDisplay->setText("Printing");
+    _stopButton->setEnabled(true);
+    _pauseButton->setEnabled(true);
+    _pauseButton->setText("Pause");
 
-    update( );
+    update();
 }
 
-void StatusTab::printManager_startingLayer( int const layer ) {
+void StatusTab::printManager_startingLayer(int const layer)
+{
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount());
     if(_printJob->isTiled()){
         int realLayer = (layer+_printJob->tilingCount())/_printJob->tilingCount();
@@ -518,25 +525,26 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     auto const estimatedTimeLeft = _estimatedPrintJobTime - delta;
     auto const currentLayer      = _printManager->currentLayer( );
 
-    debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n", delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString( _isPaused ), currentLayer );
+    debug("+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n",
+        delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString(_printManager->isPaused()),
+          currentLayer);
 
     _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) % " elapsed" );
 
-    update( );
+    update();
 
-    if ( _isPaused || ( currentLayer < 4 ) || ( estimatedTimeLeft < 0.5 ) ) {
+    if (_printManager->isPaused() || (currentLayer < 4) || (estimatedTimeLeft < 0.5))
         return;
-    }
 
-    if ( currentLayer == 4 ) {
-        _estimatedTimeLeftDisplay->setFont( _boldFont );
-    }
-    _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) % " remaining" );
+    if (currentLayer == 4)
+        _estimatedTimeLeftDisplay->setFont(_boldFont);
 
-    update( );
+    _SetTextAndShow(_estimatedTimeLeftDisplay, TimeDeltaToString(estimatedTimeLeft) % " remaining");
+    update();
 }
 
-void StatusTab::printerOnlineTimer_timeout( ) {
+void StatusTab::printerOnlineTimer_timeout()
+{
     _printerOnlineTimer->stop( );
 
     debug( "+ StatusTab::printerOnlineTimer_timeout: sending initialization commands\n" );

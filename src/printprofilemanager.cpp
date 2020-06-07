@@ -4,46 +4,85 @@
 #include "profilesjsonparser.h"
 #include "printprofilemanager.h"
 
-QSharedPointer<PrintProfile> PrintProfileManager::_findProfile( QString const& profileName ) {
-    auto iter = std::find_if( _profiles->begin( ), _profiles->end( ), [&profileName] ( auto p ) { return profileName == p->profileName( ); } );
-    return ( iter != _profiles->end( ) ) ? *iter : nullptr;
+PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent)
+{
 }
-
 
 bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
 {
-    auto profile = _findProfile( newProfile->profileName( ) );
-    if ( !profile ) {
-        _profiles->append( newProfile );
-        return true;
-    } else {
-        debug( "PrintProfileManager::addProfile: can't add profile %p: already have a profile named '%s'\n", newProfile, newProfile->profileName( ).toUtf8( ).data( ) );
-        return false;
-    }
+    _profiles.insert(newProfile->profileName(), newProfile);
+    ProfilesJsonParser::saveProfiles(_profiles);
+
+    if (newProfile->isActive())
+        emit activeProfileChanged(newProfile);
+
+    emit reloadProfiles(_profiles);
+    return true;
 }
 
-bool PrintProfileManager::removeProfile(const QString& name)
+void PrintProfileManager::removeProfile(const QString& name)
 {
-    auto profile = _findProfile( name );
-    if ( profile ) {
-        _profiles->removeOne( profile );
-        return true;
-    } else {
-        debug( "PrintProfileManager::removeProfile: can't remove profile named '%s': not in collection\n", name.toUtf8( ).data( ) );
-        return false;
-    }
+    auto profile = _profiles.find(name);
+
+    if (profile == _profiles.end())
+        throw std::runtime_error("Profile not found");
+
+    if ((*profile)->isDefault())
+        throw std::runtime_error("Cannot remove default profile");
+
+    if ((*profile)->isActive())
+        throw std::runtime_error("Cannot remove active profile");
+
+    _profiles.remove(name);
+    ProfilesJsonParser::saveProfiles(_profiles);
+    emit reloadProfiles(_profiles);
 }
 
-bool PrintProfileManager::setActiveProfile(const QString& profileName)
+void PrintProfileManager::setActiveProfile(const QString& profileName)
 {
-    auto newProfile = _findProfile( profileName );
-    if ( newProfile ) {
-        emit activeProfileChanged( newProfile );
-        _activeProfile = newProfile;
-        return true;
+    auto profile = _profiles.find(profileName);
+
+    if (profile == _profiles.end())
+        throw std::runtime_error("Profile not found");
+
+    _activeProfile->setActive(false);
+    (*profile)->setActive(true);
+    _activeProfile = *profile;
+
+    ProfilesJsonParser::saveProfiles(_profiles);
+    emit activeProfileChanged(*profile);
+    emit reloadProfiles(_profiles);
+}
+
+void PrintProfileManager::reload()
+{
+    _profiles = ProfilesJsonParser::loadProfiles();
+    QSharedPointer<PrintProfile> activeProfile = nullptr;
+    QSharedPointer<PrintProfile> defaultProfile = nullptr;
+
+    foreach (QSharedPointer<PrintProfile> profile, _profiles.values())
+    {
+        if (!activeProfile.isNull()) {
+            /* We already have one active profile, so deactivate this one */
+            profile->setActive(false);
+        }
+
+        if (profile->isActive())
+            activeProfile = profile;
+
+        if (profile->isDefault())
+            defaultProfile = profile;
+    }
+
+    emit reloadProfiles(_profiles);
+
+    if (!activeProfile.isNull()) {
+        _activeProfile = activeProfile;
+        emit activeProfileChanged(activeProfile);
     } else {
-        debug( "PrintProfileManager::setActiveProfile: couldn't find profile named '%s' in collection\n", profileName.toUtf8( ).data( ) );
-        return false;
+        _activeProfile = defaultProfile;
+        defaultProfile->setActive(true );
+        emit activeProfileChanged(defaultProfile);
     }
 }
 
@@ -60,7 +99,7 @@ bool PrintProfileManager::importProfiles(const QString& mountPoint)
     return sourceFile.copy(PrintProfilesPath);
 }
 
-bool PrintProfileManager::exportProfiles(const QString& mountPoint )
+bool PrintProfileManager::exportProfiles(const QString& mountPoint)
 {
     QString destPath { QString("%1/print-profiles.json").arg(mountPoint) };
     QFile sourceFile(PrintProfilesPath);
@@ -71,4 +110,9 @@ bool PrintProfileManager::exportProfiles(const QString& mountPoint )
 
     QFile::remove(destPath);
     return sourceFile.copy(destPath);
+}
+
+void PrintProfileManager::saveProfiles()
+{
+    ProfilesJsonParser::saveProfiles(_profiles);
 }

@@ -45,6 +45,7 @@ private:
     bool              _isPrinterOnline             { false };
     bool              _isPrinterAvailable          { true  };
     bool              _reslice                     { false };
+    bool              _initAfterSelect             { true  };
 
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };
@@ -102,7 +103,7 @@ private:
     void _setSliceControlsEnabled( bool const enabled );
     void _updateSliceControls();
     void _updatePrepareButtonState( );
-    void _showWarning( QString content );
+    void _showWarning(const QString& content);
     void _handlePrepareFailed( );
     void _loadDirectoryManifest();
     void _restartPreview();

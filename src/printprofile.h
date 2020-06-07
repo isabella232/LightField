@@ -20,12 +20,16 @@ public:
         QObject(profile.parent())
     {
         _name = profile._name;
+        _buildPlatformOffset = profile._buildPlatformOffset;
+        _disregardFirstLayerHeight = profile._disregardFirstLayerHeight;
         _baseLayerCount = profile._baseLayerCount;
+        _buildPlatformOffset = profile._buildPlatformOffset;
         _baseLayerParameters = profile._baseLayerParameters;
         _bodyLayerParameters = profile._bodyLayerParameters;
     }
 
-    virtual ~PrintProfile( ) override {
+    virtual ~PrintProfile() override
+    {
         /*empty*/
     }
 
@@ -73,84 +77,122 @@ public:
         debug("#############################################\n");
     }
 
-    //
-    // Accessors
-    //
-
-    QString const& profileName( ) const {
+    const QString& profileName() const
+    {
         return _name;
     }
 
-    bool isDefault() {
+    bool isDefault() const
+    {
         return _default;
     }
 
-    int baseLayerCount( ) const {
+    bool isActive() const
+    {
+        return _active;
+    }
+
+    int buildPlatformOffset() const
+    {
+        return _buildPlatformOffset;
+    }
+
+    bool disregardFirstLayerHeight() const
+    {
+        return _disregardFirstLayerHeight;
+    }
+
+    int heatingTemperature() const
+    {
+        return _heatingTemperature;
+    }
+
+    int baseLayerCount() const
+    {
         return _baseLayerCount;
     }
 
-    PrintParameters& baseLayerParameters( ) {
+    PrintParameters& baseLayerParameters()
+    {
         return _baseLayerParameters;
     }
 
-    PrintParameters const& baseLayerParameters( ) const {
+    const PrintParameters& baseLayerParameters() const
+    {
         return _baseLayerParameters;
     }
 
-    PrintParameters& bodyLayerParameters( ) {
+    PrintParameters& bodyLayerParameters()
+    {
         return _bodyLayerParameters;
     }
 
-    PrintParameters const& bodyLayerParameters( ) const {
+    const PrintParameters& bodyLayerParameters() const
+    {
         return _bodyLayerParameters;
     }
-    
 
-    //
-    // Mutators
-    //
-
-    void setProfileName( QString const& newName ) {
-        emit profileNameChanged( newName );
+    void setProfileName(const QString& newName)
+    {
+        emit profileNameChanged(newName);
         _name = newName;
     }
 
-    void setDefault(bool isDefault) {
+    void setDefault(bool isDefault)
+    {
         _default = isDefault;
     }
 
-    void setBaseLayerCount( int const newCount ) {
+    void setActive(bool isActive)
+    {
+        _active = isActive;
+    }
+
+    void setBuildPlatformOffset(int newOffset)
+    {
+        _buildPlatformOffset = newOffset;
+    }
+
+    void setDisregardFirstLayerHeight(bool value)
+    {
+        _disregardFirstLayerHeight = value;
+    }
+
+    void setHeatingTemperature(int temperature)
+    {
+        _heatingTemperature = temperature;
+    }
+
+    void setBaseLayerCount(int newCount)
+    {
         _baseLayerCount = newCount;
     }
 
-    void setBaseLayerParameters( PrintParameters const& newParameters ) {
+    void setBaseLayerParameters(const PrintParameters& newParameters)
+    {
         _baseLayerParameters = newParameters;
     }
 
-    void setBodyLayerParameters( PrintParameters const& newParameters ) {
+    void setBodyLayerParameters(const PrintParameters& newParameters)
+    {
         _bodyLayerParameters = newParameters;
     }
 
-protected:
-
 private:
 
-    QString         _name;
-    bool            _default;
-    int             _baseLayerCount       { };
+    QString _name;
+    bool _default;
+    bool _active;
+    int _baseLayerCount;
+    int _buildPlatformOffset;
+    bool _disregardFirstLayerHeight;
+    int _heatingTemperature;
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
-    bool            _defaultProfile;    
+    bool _defaultProfile;
 
 signals:
-    void profileNameChanged( QString const& newName );
-
-public slots:
-
-protected slots:
-
-private slots:
-
+    void profileNameChanged(const QString& newName);
 };
 
 #endif // !__PRINTPROFILE_H__

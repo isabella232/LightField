@@ -41,6 +41,7 @@ public:
 
     SliceType type;
     QString sliceDirectory;
+    PrintParameters params;
     bool isPreSliced;
     int layerCount;
     int layerThickness;
@@ -57,22 +58,40 @@ public:
     QString directoryPath;
     QString modelHash;
     QString currentImageFile;
-    
-    size_t                  vertexCount     { };
-    Coordinate              x               { };
-    Coordinate              y               { };
-    Coordinate              z               { };
-    double                  estimatedVolume { }; // unit: µL
-    int             firstLayerOffset;
-    bool            directoryMode;
+    size_t vertexCount { };
+    Coordinate x { };
+    Coordinate y { };
+    Coordinate z { };
+    double estimatedVolume { }; // unit: µL
+    int buildPlatformOffset;
+    bool disregardFirstLayerHeight;
+    int heatingTemperature;
+    bool directoryMode;
 
-    SliceInformation        baseSlices { SliceType::SliceBase };
-    SliceInformation        bodySlices { SliceType::SliceBody };
+    PrintParameters baseLayerParameters;
+    PrintParameters bodyLayerParameters;
+    SliceInformation baseSlices { SliceType::SliceBase };
+    SliceInformation bodySlices { SliceType::SliceBody };
 
-    //TODO copy over all profile data exactly on printtab print button clicked
-    QSharedPointer<PrintProfile>    printProfile    { };
+    void resetTiling()
+    {
+        if (isTiled()) {
+            baseSlices.layerCount = 2;
+            baseSlices.layerThickness = 100;
+            bodySlices.layerThickness = 100;
+        }
+    }
 
-    bool isTiled()
+    void copyFromProfile(QSharedPointer<PrintProfile> profile)
+    {
+        baseLayerParameters = profile->baseLayerParameters();
+        bodyLayerParameters = profile->bodyLayerParameters();
+        buildPlatformOffset = profile->buildPlatformOffset();
+        disregardFirstLayerHeight = profile->disregardFirstLayerHeight();
+        heatingTemperature = profile->heatingTemperature();
+    }
+
+    bool isTiled() const
     {
         if(_bodyManager)
             return _bodyManager->tiled();
@@ -149,7 +168,7 @@ public:
 
 
 
-    bool hasBasicControlsEnabled()
+    bool hasBasicControlsEnabled() const
     {
         if (isTiled())
             return false;
@@ -157,7 +176,7 @@ public:
         return !_advancedControlsEnabled;
     }
 
-    bool hasAdvancedControlsEnabled()
+    bool hasAdvancedControlsEnabled() const
     {
         if (isTiled())
             return false;
@@ -168,6 +187,16 @@ public:
     void enableAdvancedControls(bool enable)
     {
         _advancedControlsEnabled = enable;
+    }
+
+    int getBuildPlatformOffset() const
+    {
+        int result = buildPlatformOffset;
+
+        if (!disregardFirstLayerHeight)
+            result += getLayerThicknessAt(0);
+
+        return result;
     }
 
     bool hasBaseLayers() const
@@ -205,7 +234,7 @@ public:
             : bodySlices.layerThickness;
     }
 
-    int getLayerThicknessAt(int layerNo)
+    int getLayerThicknessAt(int layerNo) const
     {
         if (isTiled()) {
             if (hasBaseLayers()) {

@@ -56,15 +56,18 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
 
+    _printProfileManager = new PrintProfileManager;
+    _printProfileManager->reload();
+
     _printJob = QSharedPointer<PrintJob>(new PrintJob);
+    _printJob->copyFromProfile(_printProfileManager->activeProfile());
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
 
-    _printProfileManager = new PrintProfileManager;
+
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
-
 
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
@@ -83,15 +86,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
-    _prepareTab->setPrintJob(_printJob);
-    _advancedTab->setPrintJob(_printJob);
-
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
+        tabA->setPrintJob(_printJob);
         QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
         QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
@@ -311,15 +312,15 @@ void Window::terminate( ) {
     update( );
 }
 
-void Window::startPrinting( ) {
-    _tabWidget->setCurrentIndex( +TabIndex::Status );
-    update( );
+void Window::startPrinting()
+{
+    _tabWidget->setCurrentIndex(+TabIndex::Status);
+    update();
 
-    auto const  printProfile         { _printJob->printProfile               };
-    auto const& baseSlices           { _printJob->baseSlices                 };
-    auto const& bodySlices           { _printJob->bodySlices                 };
-    auto const& baseLayerParameters { printProfile->baseLayerParameters( ) };
-    auto const& bodyLayerParameters { printProfile->bodyLayerParameters( ) };
+    const auto& baseSlices = _printJob->baseSlices;
+    const auto& bodySlices = _printJob->bodySlices;
+    const auto& baseLayerParameters = _printJob->baseLayerParameters;
+    const auto& bodyLayerParameters = _printJob->bodyLayerParameters;
 
     debug(
         "+ Window::startPrinting: print job %p:\n"
@@ -340,8 +341,7 @@ void Window::startPrinting( ) {
         "    + layerThickness:           %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
-        "  + print profile: (calculated parameters are marked with *)\n"
-        "    + profileName:              '%s'\n"
+        "  + layer parameters: (calculated parameters are marked with *)\n"
 
         "",
 
@@ -362,12 +362,8 @@ void Window::startPrinting( ) {
         bodySlices.layerCount,
         bodySlices.layerThickness,
         _printJob->bodyLayerStart(),
-        _printJob->bodyLayerEnd(),
-
-        printProfile->profileName().toUtf8().data()
-
+        _printJob->bodyLayerEnd()
     );
-
 
     debug(
         "    + baseLayerCount:           %d\n"
@@ -386,8 +382,7 @@ void Window::startPrinting( ) {
         "      + powerLevel:             %.1f%%\n"
         "",
 
-        printProfile->baseLayerCount( ),
-
+        _printJob->baseSlices.layerCount,
         ToString( baseLayerParameters.isPumpingEnabled( ) ),
         baseLayerParameters.pumpUpDistance( ),
         baseLayerParameters.pumpUpVelocity_Effective( ),
@@ -400,8 +395,6 @@ void Window::startPrinting( ) {
         baseLayerParameters.layerThickness( ),
         baseSlices.exposureTime,
         baseLayerParameters.powerLevel( )
-
-
     );
 
 

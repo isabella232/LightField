@@ -300,41 +300,30 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
-    // check that the layer SVG files are newer than the sliced SVG file,
-    //   and that the layer PNG files are newer than the layer SVG files,
-    //   and that there are no gaps in the numbering.
     while (iter.hasNext()) {
-
-        QFileInfo entry ( sliceInfo.sliceDirectory % Slash % *iter);
+        QFileInfo entry(sliceInfo.sliceDirectory % Slash % *iter);
         ++iter;
 
         if (!entry.exists()) {
             debug( "  + Fail: layer PNG file %s does not exist\n", entry.fileName().toUtf8().data());
             return false;
         }
-        if (slicedSvgFileLastModified > entry.lastModified()) {
-            debug("  + Fail: layer PNG file %s is newer than SVG file\n", entry.fileName().toUtf8().data());
-            debug("    + SVG file timestamp: %s\n", slicedSvgFileLastModified.toString().toUtf8().data());
-            debug("    + layer PNG file timestamp: %s\n", entry.lastModified().toString().toUtf8().data());
+
+        layerNumber = RemoveFileExtension(entry.baseName()).toInt();
+        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
+            debug("  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber);
             return false;
         }
 
-        layerNumber = RemoveFileExtension( entry.baseName( ) ).toInt( );
-        if ( layerNumber != ( prevLayerNumber + 1 ) ) {
-            debug( "  + Fail: gap in layer numbers between %d and %d\n", prevLayerNumber, layerNumber );
-            return false;
-        }
         prevLayerNumber = layerNumber;
     }
 
-    if(isBody) {
+    if(isBody)
         _printJob->setBodyManager( manifestMgr );
-    } else {
+    else
         _printJob->setBaseManager( manifestMgr );
-    }
 
-    debug( "  + Success: %d layers\n", sliceInfo.layerCount );
-
+    debug("  + Success: %d layers\n", sliceInfo.layerCount);
     return true;
 }
 
@@ -446,13 +435,14 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob, _initAfterSelect, this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
         _layerThickness100Button->setChecked(true);
     }
 
+    _initAfterSelect = false;
     _checkSliceDirectories();
 }
 
@@ -732,19 +722,12 @@ void PrepareTab::_restartPreview()
         _setNavigationButtonsEnabled(true);
 }
 
-void PrepareTab::_showWarning(QString content) {
-    auto origFont    = font( );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
-
-    Window* w = App::mainWindow();
-    QRect r = w->geometry();
-
-    QMessageBox msgBox;
+void PrepareTab::_showWarning(const QString& content)
+{
+    QMessageBox msgBox { this } ;
     msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setFont(fontAwesome);
     msgBox.setText(content);
     msgBox.show();
-    msgBox.move(r.x() + ((r.width() - msgBox.width())/2), r.y() + ((r.height() - msgBox.height())/2) );
     msgBox.exec();
 }
 
@@ -881,6 +864,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _currentLayerImage->clear();
             _navigateCurrentLabel->setText("0/0");
             _setNavigationButtonsEnabled(false);
+            _initAfterSelect = true;
 
             if (_hasher)
                 _hasher->deleteLater();
