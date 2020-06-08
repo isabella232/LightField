@@ -280,7 +280,7 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    auto powerLevel = _printJob->baseLayerParameters.powerLevel();
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->baseLayerParameters.powerLevel());
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -586,7 +586,7 @@ void PrintManager::stepC1_start( ) {
         return;
     }
 
-    auto powerLevel = _printJob->bodyLayerParameters.powerLevel();
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->bodyLayerParameters.powerLevel());
     debug( "+ PrintManager::stepC1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
