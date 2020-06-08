@@ -59,7 +59,7 @@ private:
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
-
+    QLabel*            _expoDisabledTilingWarning          { new QLabel("<font color='red'>Exposure controls disabled by tiling.</font>") };
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
     QGridLayout*       _layout                             { new QGridLayout };
