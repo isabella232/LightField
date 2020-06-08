@@ -250,12 +250,14 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
         "  + Release train:   %s\n"
         "  + Build type:      %s\n"
         "  + Build date/time: %s\n"
+        "  + Build git hash:  %s\n"
         "",
-        QDateTime::currentDateTime( ).toString( Qt::ISODate ).toUtf8( ).data( ), getpid( ),
+        QDateTime::currentDateTime().toString(Qt::ISODate).toUtf8().data(), getpid(),
         LIGHTFIELD_VERSION_STRING,
         LIGHTFIELD_VERSION_RELEASE_TRAIN,
-        ToString( LIGHTFIELD_VERSION_BUILD_TYPE ),
-        g_BuildTimestamp.toUtf8( ).data( )
+        ToString(LIGHTFIELD_VERSION_BUILD_TYPE),
+        g_BuildTimestamp.toUtf8().data(),
+        LIGHTFIELD_VERSION_GITHASH
     );
 
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );

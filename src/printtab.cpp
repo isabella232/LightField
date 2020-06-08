@@ -31,11 +31,14 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelSlider->innerSlider()->setSingleStep( 1 );
     _powerLevelSlider->innerSlider()->setTickInterval( 5 );
 
+    _expoDisabledTilingWarning->setMinimumSize(400, 50);
+
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
         _powerLevelSlider,
         _bodyExposureTimeSlider,
         _baseExposureTimeSlider,
+        _expoDisabledTilingWarning,
         nullptr
     ) );
     _optionsGroup->setTitle( "Print settings" );
@@ -117,6 +120,7 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
     _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
     _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
+    _expoDisabledTilingWarning->setVisible(_printJob->isTiled());
 
     event->accept( );
 
@@ -256,6 +260,13 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
             _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+
+            if(!_printJob->isTiled()) {
+                _expoDisabledTilingWarning->hide();
+            } else {
+                _expoDisabledTilingWarning->show();
+            }
+
             _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
             _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
                 _printJob->bodySlices.exposureTime);
@@ -264,6 +275,13 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::PrintJobReady:
             _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+
+            if(!_printJob->isTiled()) {
+                _expoDisabledTilingWarning->hide();
+            } else {
+                _expoDisabledTilingWarning->show();
+            }
+
             break;
 
         case UiState::PrintStarted:

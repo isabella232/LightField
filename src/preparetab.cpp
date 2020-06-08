@@ -435,13 +435,14 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob, _initAfterSelect, this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
         _layerThickness100Button->setChecked(true);
     }
 
+    _initAfterSelect = false;
     _checkSliceDirectories();
 }
 
@@ -863,6 +864,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _currentLayerImage->clear();
             _navigateCurrentLabel->setText("0/0");
             _setNavigationButtonsEnabled(false);
+            _initAfterSelect = true;
 
             if (_hasher)
                 _hasher->deleteLater();

@@ -79,7 +79,7 @@ private:
     void _showLayerImage ( );
     void _showWarningAndClose ( );
     int  _getMaxCount();
-    void _renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase, double expoBody);
+    void _renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody);
     void _setEnabled(bool enabled);
 signals:
     ;
