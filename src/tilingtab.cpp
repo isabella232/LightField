@@ -278,7 +278,6 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
 
             _setEnabled(false);
             _setupTiling->setEnabled(false);
-            setStepValue();
         }
         break;
 
