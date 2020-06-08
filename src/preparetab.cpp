@@ -897,7 +897,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::PrintCompleted:
-        _setSliceControlsEnabled(true);
+        _setSliceControlsEnabled(!_printJob->directoryMode && !_printJob->isTiled());
         _orderButton->setEnabled( _printJob->directoryMode );
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
