@@ -45,7 +45,7 @@ private:
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
     ParamSlider*       _powerLevelSlider                   { new ParamSlider( "Projector power level",
-                                                                              "%",    50, ProjectorMaxPercent,   ProjectorMinPercent, 1 ) };
+                                                                              "%",    50, ProjectorMaxPercent, 1, ProjectorMinPercent ) };
 
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
