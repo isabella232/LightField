@@ -120,8 +120,8 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     //TODO: debug slider itself instead of overwriting it
     _bodyExposureTimeSlider->setValue(1000);
 
-    _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
-    _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
+    _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+    _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
     _expoDisabledTilingWarning->setVisible(_printJob->isTiled());
     _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
