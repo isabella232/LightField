@@ -11,10 +11,18 @@ PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent)
 bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
 {
     _profiles.insert(newProfile->profileName(), newProfile);
-    ProfilesJsonParser::saveProfiles(_profiles);
 
-    if (newProfile->isActive())
-        emit activeProfileChanged(newProfile);
+
+    newProfile->setDefault(false);
+
+    foreach (QSharedPointer<PrintProfile> profile, _profiles.values()) {
+        profile->setActive(false);
+    }
+
+    newProfile->setActive(true);
+
+    ProfilesJsonParser::saveProfiles(_profiles);
+    emit activeProfileChanged(newProfile);
 
     emit reloadProfiles(_profiles);
     return true;
