@@ -131,8 +131,12 @@ void AdvancedTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         break;
 
     case UiState::PrintJobReady:
-        //setLayersSettingsEnabled(_printJob->hasAdvancedControlsEnabled());
-        //_offsetSlider->setValue(_printJob->firstLayerOffset);
+        if (_printJob->isTiled()) {
+            _expoTimeEnabled->setChecked(false);
+            _expoTimeEnabled->setEnabled(false);
+        } else if (!_expoTimeEnabled->isEnabled())
+            _expoTimeEnabled->setEnabled(true);
+
         break;
 
     default:

@@ -32,6 +32,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelSlider->innerSlider()->setTickInterval( 5 );
 
     _expoDisabledTilingWarning->setMinimumSize(400, 50);
+    _expoDisabledAdvancedWarning->setMinimumSize(400, 50);
 
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
@@ -39,6 +40,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
         _bodyExposureTimeSlider,
         _baseExposureTimeSlider,
         _expoDisabledTilingWarning,
+        _expoDisabledAdvancedWarning,
         nullptr
     ) );
     _optionsGroup->setTitle( "Print settings" );
@@ -121,6 +123,7 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     _baseExposureTimeSlider->setEnabled(!_printJob->isTiled());
     _bodyExposureTimeSlider->setEnabled(!_printJob->isTiled());
     _expoDisabledTilingWarning->setVisible(_printJob->isTiled());
+    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     event->accept( );
 
@@ -260,6 +263,7 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
         case UiState::SelectCompleted:
             _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
             if(!_printJob->isTiled()) {
                 _expoDisabledTilingWarning->hide();
@@ -270,11 +274,13 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
             _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
                 _printJob->bodySlices.exposureTime);
+
             break;
 
         case UiState::PrintJobReady:
             _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
             if(!_printJob->isTiled()) {
                 _expoDisabledTilingWarning->hide();
@@ -293,6 +299,7 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             setPrinterAvailable(true);
             emit printerAvailabilityChanged(true);
             break;
+
         default:
             break;
     }
@@ -305,6 +312,7 @@ void PrintTab::changeExpoTimeSliders()
     bool enable = _printJob->hasBasicControlsEnabled();
     _baseExposureTimeSlider->setEnabled(enable);
     _bodyExposureTimeSlider->setEnabled(enable);
+    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     if(enable) {
         this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
