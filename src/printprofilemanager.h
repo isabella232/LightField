@@ -40,6 +40,9 @@ public:
     bool importProfiles(QString const& fileName);
     bool exportProfiles(QString const& fileName);
     void saveProfiles();
+    void loadProfile(const QString& profileName);
+    void saveProfile(const QString& profileName);
+    void renameProfile(const QString& oldName, const QString& newName);
     void reload();
 
 private:

@@ -169,7 +169,8 @@ void AdvancedTab::printer_temperatureReport(double bedCurrentTemperature,
 
 void AdvancedTab::offsetSliderValueChanged()
 {
-    _printJob->buildPlatformOffset = _offsetSlider->getValue();
+    _printProfileManager->activeProfile()->setBuildPlatformOffset(_offsetSlider->getValue());
+
     update();
 }
 
@@ -203,7 +204,7 @@ void AdvancedTab::printBedTemperatureSlider_sliderReleased()
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
     debug( "+ AdvancedTab::printBedTemperatureSlider_valueChanged: new value %d °C\n", value );
     _bedTemperatureValue->setText( QString { "%1 °C" }.arg( value ) );
-    _printJob->heatingTemperature = value;
+    _printProfileManager->activeProfile()->setHeatingTemperature(value);
     update( );
 }
 #endif
@@ -258,8 +259,8 @@ void AdvancedTab::powerLevelSlider_sliderReleased( ) {
 
 void AdvancedTab::powerLevelSlider_valueChanged(int percentage)
 {
-    _printJob->baseLayerParameters.setPowerLevel(percentage);
-    _printJob->bodyLayerParameters.setPowerLevel(percentage);
+    _printProfileManager->activeProfile()->baseLayerParameters().setPowerLevel(percentage);
+    _printProfileManager->activeProfile()->bodyLayerParameters().setPowerLevel(percentage);
     _powerLevelValue->setText(QString { "%1%" }.arg( percentage));
     update();
 }
@@ -565,7 +566,7 @@ void AdvancedTab::expoTimeEnabled_changed(int state)
 
 void AdvancedTab::offsetDisregardFirstLayerStateChanged(int state)
 {
-    _printJob->disregardFirstLayerHeight = static_cast<bool>(state);
+    _printProfileManager->activeProfile()->setDisregardFirstLayerHeight(static_cast<bool>(state));
 }
 
 void AdvancedTab::_setUpBodyPumpForm(QFont boldFont)
@@ -613,11 +614,15 @@ void AdvancedTab::updatePrintProfile()
 
     debug("+ AdvancedTab::updatePrintProfile\n");
 
-    _printJob->buildPlatformOffset = _offsetSlider->getValue();
-    _printJob->disregardFirstLayerHeight = _offsetDisregardFirstLayer->isChecked();
-    _printJob->heatingTemperature = _bedTemperatureSlider->value();
+    auto activeProfile = _printProfileManager->activeProfile();
 
-    PrintParameters baseParams;
+    activeProfile->setBuildPlatformOffset(_offsetSlider->getValue());
+    activeProfile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
+    activeProfile->setHeatingTemperature(_bedTemperatureSlider->value());
+
+
+    PrintParameters baseParams = activeProfile->baseLayerParameters();
+
     baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
     baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
     baseParams.setPumpUpVelocity(_basePumpUpVelocitySlider->getValue());
@@ -628,9 +633,10 @@ void AdvancedTab::updatePrintProfile()
     baseParams.setPumpEveryNthLayer(0);
     baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
     baseParams.setPowerLevel(_powerLevelSlider->value());
-    _printJob->baseLayerParameters = baseParams;
 
-    PrintParameters bodyParams;
+    activeProfile->setBaseLayerParameters(baseParams);
+
+    PrintParameters bodyParams = activeProfile->bodyLayerParameters();
     bodyParams.setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
     bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
     bodyParams.setPumpUpVelocity(_bodyPumpUpVelocitySlider->getValue());
@@ -641,13 +647,14 @@ void AdvancedTab::updatePrintProfile()
     bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
     bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
     bodyParams.setPowerLevel(_powerLevelSlider->value());
-    _printJob->bodyLayerParameters = bodyParams;
+
+    activeProfile->setBodyLayerParameters(bodyParams);
 }
 
 void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
 {
-    PrintParameters& baseParams = _printJob->baseLayerParameters;
-    PrintParameters& bodyParams = _printJob->bodyLayerParameters;
+    PrintParameters& baseParams = profile->baseLayerParameters();
+    PrintParameters& bodyParams = profile->bodyLayerParameters();
 
     _loadingPrintProfile = true;
     _offsetSlider->setValue(profile->buildPlatformOffset());

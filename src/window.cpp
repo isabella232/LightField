@@ -60,7 +60,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _printProfileManager->reload();
 
     _printJob = QSharedPointer<PrintJob>(new PrintJob);
-    _printJob->copyFromProfile(_printProfileManager->activeProfile());
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
@@ -319,8 +319,8 @@ void Window::startPrinting()
 
     const auto& baseSlices = _printJob->baseSlices;
     const auto& bodySlices = _printJob->bodySlices;
-    const auto& baseLayerParameters = _printJob->baseLayerParameters;
-    const auto& bodyLayerParameters = _printJob->bodyLayerParameters;
+    const auto& baseLayerParameters = _printJob->baseLayerParameters();
+    const auto& bodyLayerParameters = _printJob->bodyLayerParameters();
 
     debug(
         "+ Window::startPrinting: print job %p:\n"

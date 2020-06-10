@@ -309,9 +309,7 @@ bool ProfilesTab::_renamePProfile(QString profileName)
     QString oldName = index.data(Qt::DisplayRole).toString();
     _model->setData(index, QVariant(profileName));
 
-    auto profile = _printProfileManager->getProfile(profileName);
-    profile->setProfileName(profileName);
-    _printProfileManager->saveProfiles();
+    _printProfileManager->renameProfile(oldName, profileName);
 
     return true;
 }
@@ -343,13 +341,7 @@ void ProfilesTab::_updateProfile()
     }
 
     profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
-    profile->setBuildPlatformOffset(_printJob->buildPlatformOffset);
-    profile->setDisregardFirstLayerHeight(_printJob->disregardFirstLayerHeight);
-    profile->setHeatingTemperature(_printJob->heatingTemperature);
-    profile->setBaseLayerParameters(_printJob->baseLayerParameters);
-    profile->setBodyLayerParameters(_printJob->bodyLayerParameters);
-
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+    _printProfileManager->saveProfile(profileName);
     profile->debugPrint();
 }
 
@@ -373,6 +365,7 @@ void ProfilesTab::_loadPrintProfile()
     QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
+    _printProfileManager->loadProfile(itemText);
 
     try {
         _printProfileManager->setActiveProfile(itemText);
@@ -382,7 +375,7 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.exec();
     }
 
-    _printJob->copyFromProfile(_printProfileManager->activeProfile());
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
 }
 
 void ProfilesTab::loadProfiles()
