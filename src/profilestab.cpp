@@ -207,7 +207,7 @@ void ProfilesTab::newProfileClicked(bool)
 
     QString filename = inputDialog->getValue().trimmed();
 
-    if (filename.isEmpty()) {
+    if (ret && filename.isEmpty()) {
         msgBox.setText("Profile name cannot be empty");
         msgBox.exec();
         return;
