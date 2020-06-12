@@ -36,7 +36,10 @@ ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
     _loadProfile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Default disabled all button  no profile is selected
-    _enableButtonProfile(false);
+    _overwriteProfile->setEnabled(false);
+    _deleteProfile->setEnabled(false);
+    _loadProfile->setEnabled(false);
+    _renameProfile->setEnabled(false);
     _setupProfilesList();
 
     QObject::connect(_importParams, &QPushButton::clicked, this,&ProfilesTab::importParamsClicked);
@@ -72,17 +75,21 @@ ProfilesTab::~ProfilesTab()
 
 void ProfilesTab::itemClicked(const QModelIndex& index)
 {
-    (void)index;
-    _enableButtonProfile(true);
+    QString name = index.data(Qt::DisplayRole).toString();
+    auto profile = _printProfileManager->getProfile(name);
+
+    _enableButtonProfile(true, *profile);
 }
 
 
-void ProfilesTab::_enableButtonProfile(bool enabled)
+void ProfilesTab::_enableButtonProfile(bool enabled, const PrintProfile& selected)
 {
+    bool enable = !selected.isActive() && !selected.isDefault();
+
     _overwriteProfile->setEnabled(enabled);
-    _deleteProfile->setEnabled(enabled);
+    _deleteProfile->setEnabled(enabled && enable);
     _loadProfile->setEnabled(enabled);
-    _renameProfile->setEnabled(enabled);
+    _renameProfile->setEnabled(enabled && enable);
 }
 
 void ProfilesTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
@@ -207,7 +214,7 @@ void ProfilesTab::newProfileClicked(bool)
 
     QString filename = inputDialog->getValue().trimmed();
 
-    if (filename.isEmpty()) {
+    if (ret && filename.isEmpty()) {
         msgBox.setText("Profile name cannot be empty");
         msgBox.exec();
         return;
@@ -234,10 +241,7 @@ void ProfilesTab::renamePProfileClicked(bool)
     QString filename = inputDialog->getValue();
     if (ret && !filename.isEmpty())
     {
-        if(!_renamePProfile(filename)) {
-            msgBox.setText("Something went wrong.");
-            msgBox.exec();
-        } else {
+        if(_renamePProfile(filename)) {
             msgBox.setText("Profile successfuly renamed.");
             msgBox.exec();
         }
@@ -305,13 +309,25 @@ bool ProfilesTab::_createNewProfile(QString profileName)
 bool ProfilesTab::_renamePProfile(QString profileName)
 {
     QModelIndex index = _profilesList->currentIndex();
-
+    QMessageBox msgBox { this };
     QString oldName = index.data(Qt::DisplayRole).toString();
-    _model->setData(index, QVariant(profileName));
 
-    auto profile = _printProfileManager->getProfile(profileName);
-    profile->setProfileName(profileName);
-    _printProfileManager->saveProfiles();
+    auto profile = _printProfileManager->getProfile(oldName);
+    if (profile.isNull()) {
+        msgBox.setText("Profile not found");
+        msgBox.exec();
+        return false;
+    }
+
+    try {
+        _printProfileManager->renameProfile(oldName, profileName);
+    } catch (std::runtime_error& e) {
+        msgBox.setText(e.what());
+        msgBox.exec();
+        return false;
+    }
+
+    _model->setData(index, QVariant(profileName));
 
     return true;
 }
@@ -343,13 +359,7 @@ void ProfilesTab::_updateProfile()
     }
 
     profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
-    profile->setBuildPlatformOffset(_printJob->buildPlatformOffset);
-    profile->setDisregardFirstLayerHeight(_printJob->disregardFirstLayerHeight);
-    profile->setHeatingTemperature(_printJob->heatingTemperature);
-    profile->setBaseLayerParameters(_printJob->baseLayerParameters);
-    profile->setBodyLayerParameters(_printJob->bodyLayerParameters);
-
-    ProfilesJsonParser::saveProfiles(_printProfileManager->profiles());
+    _printProfileManager->saveProfile(profileName);
     profile->debugPrint();
 }
 
@@ -373,6 +383,7 @@ void ProfilesTab::_loadPrintProfile()
     QMessageBox msgBox { this };
     QModelIndex index = _profilesList->currentIndex();
     QString itemText = index.data(Qt::DisplayRole).toString();
+    _printProfileManager->loadProfile(itemText);
 
     try {
         _printProfileManager->setActiveProfile(itemText);
@@ -382,7 +393,7 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.exec();
     }
 
-    _printJob->copyFromProfile(_printProfileManager->activeProfile());
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
 }
 
 void ProfilesTab::loadProfiles()

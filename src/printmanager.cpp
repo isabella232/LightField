@@ -280,7 +280,7 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->baseLayerParameters.powerLevel());
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->baseLayerParameters().powerLevel());
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -410,7 +410,7 @@ void PrintManager::stepB3_completed( ) {
     _lampOn = false;
     emit lampStatusChange( false );
 
-    if ( _printJob->baseLayerParameters.isPumpingEnabled( ) ) {
+    if ( _printJob->baseLayerParameters().isPumpingEnabled( ) ) {
         stepB4a1_start( );
     } else {
         stepB4b1_start( );
@@ -467,7 +467,7 @@ void PrintManager::stepB4a2_start()
     QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
          &PrintManager::stepB4a2_completed);
 
-    const auto& baseParameters = _printJob->baseLayerParameters;
+    const auto& baseParameters = _printJob->baseLayerParameters();
 
     QList<MovementInfo> movements = {
         {
@@ -593,7 +593,7 @@ void PrintManager::stepC1_start( ) {
         return;
     }
 
-    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->bodyLayerParameters.powerLevel());
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->bodyLayerParameters().powerLevel());
     debug( "+ PrintManager::stepC1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -717,7 +717,7 @@ void PrintManager::stepC3_completed( ) {
     _lampOn = false;
     emit lampStatusChange(false);
 
-    if (_printJob->bodyLayerParameters.isPumpingEnabled())
+    if (_printJob->bodyLayerParameters().isPumpingEnabled())
         stepC4a1_start();
     else
         stepC4b1_start();
@@ -752,7 +752,7 @@ void PrintManager::stepC4a1_completed( ) {
 // C4a2. Perform the "pumping" manoeuvre.
 void PrintManager::stepC4a2_start( )
 {
-    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    const auto& bodyParameters = _printJob->bodyLayerParameters();
     double pumpDownDistance = -bodyParameters.pumpDownDistance_Effective() +
         (_printJob->getLayerThicknessAt(_currentLayer - _elementsOnLayer + 1) / 1000.0);
 
@@ -894,8 +894,8 @@ void PrintManager::stepD1_start()
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
@@ -940,8 +940,8 @@ void PrintManager::stepE1_start( ) {
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE1_completed );
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
@@ -980,8 +980,8 @@ void PrintManager::stepE2_start( ) {
         &PrintManager::stepE2_completed);
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, PrinterDefaultHighSpeed },
@@ -1044,8 +1044,8 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     _pngDisplayer->clear();
 
-    const auto& baseParameters = _printJob->baseLayerParameters;
-    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    const auto& baseParameters = _printJob->baseLayerParameters();
+    const auto& bodyParameters = _printJob->bodyLayerParameters();
     const auto& firstParameters = _printJob->hasBaseLayers() ? baseParameters : bodyParameters;
     const auto firstLayerHeight = _printJob->getBuildPlatformOffset() / 1000.0;
 
