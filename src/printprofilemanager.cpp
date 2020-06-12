@@ -40,6 +40,20 @@ void PrintProfileManager::renameProfile(const QString& oldName, const QString& n
     if (profile == _profiles.end())
         throw std::runtime_error("Profile not found");
 
+    if((*profile)->isActive()) {
+        throw std::runtime_error("Cannot rename active profile");
+    }
+
+    if((*profile)->isDefault()) {
+        throw std::runtime_error("Cannot rename default profile");
+    }
+
+    foreach (QSharedPointer<PrintProfile> iter, _profiles.values()) {
+        if (iter->profileName() == newName) {
+            throw std::runtime_error("A profile with the same name already exists.");
+        }
+    }
+
     (*profile)->setProfileName(newName);
 
     ProfilesJsonParser::saveProfiles(profiles);

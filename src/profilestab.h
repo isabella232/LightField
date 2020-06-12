@@ -45,7 +45,7 @@ private:
     void _updateProfile();
     void _deletePrintProfile();
     void _loadPrintProfile();
-    void _enableButtonProfile(bool enabled);
+    void _enableButtonProfile(bool enabled, const PrintProfile& selected);
     void _usbRemounted(const bool succeeded, const bool writable);
     void _setEnabled(bool enabled);
     void _activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
