@@ -112,7 +112,7 @@ private:
         params.setLayerExposureTime(obj["layerExposureTime"].toInt());
         params.setPowerLevel(obj["powerLevel"].toInt());
         params.setPumpingEnabled(obj["pumpingEnabled"].toBool(false));
-        params.setPumpUpDistance(obj["pumpUpDistance"].toInt(100));
+        params.setPumpUpDistance(obj["pumpUpDistance"].toInt(1));
         params.setPumpUpVelocity( obj["pumpUpVelocity"].toInt(50));
         params.setPumpUpPause(obj["pumpUpPause"].toInt());
         params.setPumpDownVelocity(obj["pumpDownVelocity"].toInt(50));
