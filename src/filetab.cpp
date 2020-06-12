@@ -10,6 +10,7 @@
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
+#include "printmanager.h"
 #include "processrunner.h"
 #include "shepherd.h"
 #include "timinglogger.h"
@@ -172,6 +173,53 @@ void FileTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
+void FileTab::_connectPrintManager()
+{
+
+    if (_printManager) {
+        QObject::connect(_printManager, &PrintManager::printStarting, this,
+           &FileTab::printManager_printStarting);
+        QObject::connect(_printManager, &PrintManager::printComplete, this,
+           &FileTab::printManager_printComplete);
+        QObject::connect(_printManager, &PrintManager::printAborted, this,
+           &FileTab::printManager_printAborted);
+    }
+}
+
+void FileTab::printManager_printStarting()
+{
+
+    debug("+ FileTab::printManager_printStarting\n");
+
+    _selectButton->setEnabled(false);
+    _deleteButton->setEnabled(false);
+
+    update();
+}
+
+void FileTab::printManager_printComplete(const bool success)
+{
+
+    debug("+ FileTab::printManager_printComplete\n");
+    (void)success;
+
+    _selectButton->setEnabled(true);
+    _deleteButton->setEnabled(true);
+
+    update();
+}
+
+void FileTab::printManager_printAborted()
+{
+
+    debug("+ FileTab::printManager_printAborted\n");
+
+    _selectButton->setEnabled(true);
+    _deleteButton->setEnabled(true);
+
+    update();
+}
+
 void FileTab::_connectUsbMountManager( ) {
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &FileTab::usbMountManager_filesystemMounted   );
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &FileTab::usbMountManager_filesystemUnmounted );
@@ -302,7 +350,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         }
         break;
 
-   default:
+    default:
         break;
     }
 }
@@ -528,9 +576,9 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
     if ( _modelSelection.type == ModelFileType::File ) {
         _availableFilesListView->setEnabled( false );
-        _selectButton->setEnabled( false );
         _viewSolid->setEnabled( false );
         _viewWireframe->setEnabled( false );
+        _selectButton->setEnabled( false );
         _deleteButton->setEnabled( false );
         update( );
 
@@ -543,13 +591,15 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
         _loadModel( _modelSelection.fileName );
     } else {
-        _selectButton->setEnabled( true );
-
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
         _viewSolid->setEnabled( false );
         _viewWireframe->setEnabled( false );
-        _deleteButton->setEnabled( true );
+
+        if (!_printManager->isRunning()) {
+            _selectButton->setEnabled(true);
+            _deleteButton->setEnabled(true);
+        }
 
         QTimer::singleShot( 1, [this] ( ) { _canvas->clear( ); } );
     }
@@ -749,7 +799,8 @@ void FileTab::deleteButton_clicked( bool ) {
 void FileTab::processRunner_succeeded( ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
-    _deleteButton->setEnabled( true );
+    if (!_printManager->isRunning())
+        _deleteButton->setEnabled(true);
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
         if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
@@ -771,7 +822,8 @@ void FileTab::processRunner_succeeded( ) {
                 unit = "mL";
             }
             _dimensionsLabel->setText( _dimensionsText % Comma % Space % GroupDigits( QString { "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit );
-            _selectButton->setEnabled( true );
+            if (!_printManager->isRunning())
+                _selectButton->setEnabled(true);
 
             update( );
             break;
@@ -784,7 +836,8 @@ void FileTab::processRunner_succeeded( ) {
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
-    _deleteButton->setEnabled( true );
+    if (!_printManager->isRunning())
+        _deleteButton->setEnabled(true);
 
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );

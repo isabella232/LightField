@@ -69,6 +69,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
+    _printManager = new PrintManager( _shepherd, this );
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -113,6 +114,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
+    emit printManagerChanged( _printManager );
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );

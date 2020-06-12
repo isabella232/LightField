@@ -912,6 +912,8 @@ void PrintManager::stepD1_completed(bool  success)
 
     QObject::disconnect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
 
+    _running = false;
+
     if ( PrintResult::None == _printResult ) {
         _printResult = PrintResult::Success;
     }
@@ -1057,6 +1059,7 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
     _currentBaseLayer = _printJob->baseLayerStart();
+    _running = true;
     emit printStarting( );
     stepA1_start( );
 }

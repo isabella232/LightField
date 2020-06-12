@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "tilingtab.h"
 #include "tilingmanager.h"
+#include "printmanager.h"
 #include "window.h"
 
 
@@ -138,6 +139,50 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
     setLayout(WrapWidgetsInHBox(all, _currentLayerImage));
 
     _setEnabled(false);
+    update();
+}
+
+void TilingTab::_connectPrintManager()
+{
+
+    if (_printManager) {
+        QObject::connect(_printManager, &PrintManager::printStarting, this,
+           &TilingTab::printManager_printStarting);
+        QObject::connect(_printManager, &PrintManager::printComplete, this,
+           &TilingTab::printManager_printComplete);
+        QObject::connect(_printManager, &PrintManager::printAborted, this,
+           &TilingTab::printManager_printAborted);
+    }
+}
+
+void TilingTab::printManager_printStarting()
+{
+
+    debug("+ TilingTab::printManager_printStarting\n");
+
+    _setupTiling->setEnabled(false);
+
+    update();
+}
+
+void TilingTab::printManager_printComplete(const bool success)
+{
+
+    debug("+ TilingTab::printManager_printComplete\n");
+    (void)success;
+
+    _setupTiling->setEnabled(!_printJob->isTiled());
+
+    update();
+}
+
+void TilingTab::printManager_printAborted()
+{
+
+    debug("+ TilingTab::printManager_printAborted\n");
+
+    _setupTiling->setEnabled(!_printJob->isTiled());
+
     update();
 }
 
@@ -294,7 +339,8 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         break;
 
     case UiState::PrintJobReady:
-        _setupTiling->setEnabled(!_printJob->isTiled());
+        if (!_printManager->isRunning())
+            _setupTiling->setEnabled(!_printJob->isTiled());
         _setEnabled(false);
         break;
 

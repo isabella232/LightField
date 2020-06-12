@@ -51,6 +51,11 @@ public:
         return _paused;
     }
 
+    bool isRunning() const
+    {
+        return _running;
+    }
+
     QString& currentLayerImage();
 
 private:
@@ -69,6 +74,7 @@ private:
     int                 _currentBaseLayer         { };
     int                 _elementsOnLayer          { };
     bool                _isTiled                  { false };
+    bool                _running                  { false };
     bool                _paused                   { false };
     double              _position                 { };
     double              _pausedPosition           { };
