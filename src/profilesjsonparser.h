@@ -55,6 +55,7 @@ public:
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
                     obj["bodyLayerParameters"]));
+                printProfile->setLayerSettingsEnabled(obj["layerSettingsEnabled"].toBool());
                 profilesList.insert(printProfile->profileName(), printProfile);
             }
             catch (const std::exception &ex)
@@ -86,6 +87,7 @@ public:
                 {"disregardFirstLayerHeight", profile->disregardFirstLayerHeight()},
                 {"heatingTemperature", profile->heatingTemperature()},
                 {"baseLayerCount", profile->baseLayerCount()},
+                {"layerSettingsEnabled", profile->layerSettingsEnabled() ? true : false},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
                 {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())}
             };

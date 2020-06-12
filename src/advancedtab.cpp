@@ -561,6 +561,8 @@ void AdvancedTab::expoTimeEnabled_changed(int state)
         this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
     }
 
+    auto activeProfile = _printProfileManager->activeProfile();
+    activeProfile->setLayerSettingsEnabled(enabled);
     emit advancedExposureTimeChanged();
 }
 
@@ -619,7 +621,7 @@ void AdvancedTab::updatePrintProfile()
     activeProfile->setBuildPlatformOffset(_offsetSlider->getValue());
     activeProfile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
     activeProfile->setHeatingTemperature(_bedTemperatureSlider->value());
-
+    activeProfile->setLayerSettingsEnabled(_expoTimeEnabled->isChecked());
 
     PrintParameters baseParams = activeProfile->baseLayerParameters();
 
@@ -683,6 +685,7 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
     _bodyPumpEveryNthLayer->setValue( bodyParams.pumpEveryNthLayer( ) );
 
+    _expoTimeEnabled->setChecked( profile->layerSettingsEnabled() );
     _loadingPrintProfile = false;
 }
 
