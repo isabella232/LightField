@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include "tabbase.h"
 #include "paramslider.h"
+#include "constants.h"
 
 enum class BuildPlatformState {
     Lowered,
