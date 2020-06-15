@@ -92,6 +92,7 @@ void ProfilesTab::_enableButtonProfile(bool enabled, const PrintProfile& selecte
         _deleteProfile->setEnabled(enabled && enable);
         _loadProfile->setEnabled(enabled);
         _renameProfile->setEnabled(enabled && enable);
+        _newProfile->setEnabled(enabled);
     }
 }
 
