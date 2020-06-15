@@ -479,6 +479,9 @@ void ProfilesTab::printManager_printComplete(const bool success)
     QString indexName = index.data(Qt::DisplayRole).toString();
 
     auto profile = _printProfileManager->getProfile(indexName);
+    if (!profile)
+        profile = _printProfileManager->activeProfile();
+
     _enableButtonProfile(true, *profile);
 
     update();
@@ -493,6 +496,9 @@ void ProfilesTab::printManager_printAborted()
     QString indexName = index.data(Qt::DisplayRole).toString();
 
     auto profile = _printProfileManager->getProfile(indexName);
+    if (!profile)
+        profile = _printProfileManager->activeProfile();
+
     _enableButtonProfile(true, *profile);
 
     update();
