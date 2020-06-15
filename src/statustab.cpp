@@ -596,7 +596,6 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     _uiState = state;
 
     switch (_uiState) {
-    case UiState::SelectStarted:
     case UiState::SelectCompleted:
     case UiState::SliceStarted:
     case UiState::SliceCompleted:

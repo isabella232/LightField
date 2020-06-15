@@ -849,11 +849,6 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     _uiState = state;
 
     switch (_uiState) {
-    case UiState::SelectStarted:
-        _setSliceControlsEnabled(false);
-        _orderButton->setEnabled(false);
-        break;
-
     case UiState::SelectCompleted:
 
         if( !_printJob->directoryMode ) {
