@@ -2,6 +2,7 @@
 
 #include "inputdialog.h"
 #include "profilestab.h"
+#include "printmanager.h"
 #include "profilesjsonparser.h"
 #include "usbmountmanager.h"
 #include "window.h"
@@ -86,10 +87,12 @@ void ProfilesTab::_enableButtonProfile(bool enabled, const PrintProfile& selecte
 {
     bool enable = !selected.isActive() && !selected.isDefault();
 
-    _overwriteProfile->setEnabled(enabled);
-    _deleteProfile->setEnabled(enabled && enable);
-    _loadProfile->setEnabled(enabled);
-    _renameProfile->setEnabled(enabled && enable);
+    if (!_printManager->isRunning()) {
+        _overwriteProfile->setEnabled(enabled);
+        _deleteProfile->setEnabled(enabled && enable);
+        _loadProfile->setEnabled(enabled);
+        _renameProfile->setEnabled(enabled && enable);
+    }
 }
 
 void ProfilesTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
@@ -98,12 +101,6 @@ void ProfilesTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
     _uiState = state;
 
     switch (_uiState) {
-    case UiState::PrintStarted:
-        _setEnabled(false);
-        break;
-    case UiState::PrintCompleted:
-        _setEnabled(true);
-        break;
     default:
         break;
     }
@@ -446,4 +443,56 @@ void ProfilesTab::_setEnabled(bool enabled)
     _newProfile->setEnabled(enabled);
     _renameProfile->setEnabled(enabled);
     _overwriteProfile->setEnabled(enabled);
+}
+
+void ProfilesTab::_connectPrintManager()
+{
+
+    if (_printManager) {
+        QObject::connect(_printManager, &PrintManager::printStarting, this,
+           &ProfilesTab::printManager_printStarting);
+        QObject::connect(_printManager, &PrintManager::printComplete, this,
+           &ProfilesTab::printManager_printComplete);
+        QObject::connect(_printManager, &PrintManager::printAborted, this,
+           &ProfilesTab::printManager_printAborted);
+    }
+}
+
+void ProfilesTab::printManager_printStarting()
+{
+
+    debug("+ ProfilesTab::printManager_printStarting\n");
+
+    _setEnabled(false);
+
+    update();
+}
+
+void ProfilesTab::printManager_printComplete(const bool success)
+{
+
+    debug("+ ProfilesTab::printManager_printComplete\n");
+    (void)success;
+
+    QModelIndex index = _profilesList->currentIndex();
+    QString indexName = index.data(Qt::DisplayRole).toString();
+
+    auto profile = _printProfileManager->getProfile(indexName);
+    _enableButtonProfile(true, *profile);
+
+    update();
+}
+
+void ProfilesTab::printManager_printAborted()
+{
+
+    debug("+ ProfilesTab::printManager_printAborted\n");
+
+    QModelIndex index = _profilesList->currentIndex();
+    QString indexName = index.data(Qt::DisplayRole).toString();
+
+    auto profile = _printProfileManager->getProfile(indexName);
+    _enableButtonProfile(true, *profile);
+
+    update();
 }

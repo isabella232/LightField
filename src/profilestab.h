@@ -24,6 +24,7 @@ protected:
     virtual void _connectUsbMountManager() override;
     void _filesystemMounted(QString const& mountPoint);
     void _filesystemUnmounted(QString const& mountPoint);
+    virtual void _connectPrintManager() override;
 
 private:
     QString _usbMountPoint { "" };
@@ -62,6 +63,10 @@ public slots:
     void deleteProfileClicked(bool);
     void loadProfileClicked(bool);
     void itemClicked(const QModelIndex& index);
+
+    void printManager_printStarting();
+    void printManager_printComplete(bool const success);
+    void printManager_printAborted();
 
     void loadProfiles();
 
