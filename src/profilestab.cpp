@@ -3,7 +3,6 @@
 #include "inputdialog.h"
 #include "profilestab.h"
 #include "printmanager.h"
-#include "profilesjsonparser.h"
 #include "usbmountmanager.h"
 #include "window.h"
 
