@@ -10,7 +10,7 @@
 #include <dirent.h>
 #include <iostream>
 
-ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
+ProfilesTab::ProfilesTab(QWidget* parent): InitialShowEventMixin<ProfilesTab, TabBase>(parent)
 {
     auto origFont    = font();
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
@@ -73,6 +73,25 @@ ProfilesTab::~ProfilesTab()
     /*empty*/
 }
 
+void ProfilesTab::_initialShowEvent(QShowEvent* event) {
+    auto activeProfile = _printProfileManager->activeProfile();
+
+    const QAbstractItemModel *model = _profilesList->model();
+    const QModelIndexList indexes = model->match(
+        model->index(0,0),
+        Qt::DisplayRole,
+        QVariant(activeProfile->profileName()),
+        1, // first hit only
+        Qt::MatchExactly
+    );
+
+    if(indexes.length() > 0) {
+        _profilesList->setCurrentIndex(indexes.at(0));
+        itemClicked(indexes.at(0));
+    }
+
+    event->accept( );
+}
 
 void ProfilesTab::itemClicked(const QModelIndex& index)
 {
