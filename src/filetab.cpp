@@ -237,7 +237,8 @@ void FileTab::_createUsbFsModel( ) {
         { "*-20"  },
 #endif
         { "*-50"  },
-        { "*-100" }
+        { "*-100" },
+        { "*tiled*" }
     } );
     (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
     _usbFsModel->setRootPath( _usbPath );
@@ -748,6 +749,7 @@ void FileTab::selectButton_clicked(bool)
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
                 if ( copiedFiles > 0 ) {
                     this->printJob()->directoryMode = true;
+                    this->printJob()->directoryPath = folderCpyPath;
                     emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
                 } else {
                     // TODO inform user of failure somehow
