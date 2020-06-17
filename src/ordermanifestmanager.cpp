@@ -172,8 +172,9 @@ bool OrderManifestManager::save() {
     int activeTreshold = QColor("white").value() / 2;
     int i = 0;
 
-    QDateTime dateTime;
-    const uint stamp1 = dateTime.toTime_t ();
+    std::chrono::milliseconds ms1 = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()
+            );
 
     foreach (fileName, _fileNameList) {
         QJsonObject entity;
@@ -200,17 +201,33 @@ bool OrderManifestManager::save() {
         jsonArray.append(entity);
     }
 
-    QDateTime dateTime2;
-    const uint timestamp = dateTime2.toTime_t () - stamp1;
-    debug( QString("+ OrderManifestManager::save volume calculation timestamp %1 s\n").arg(timestamp).toUtf8().data() );
+    std::chrono::milliseconds ms2 = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()
+            );
+
+    std::chrono::milliseconds timestamp = ms2 - ms1;
+
+    debug( QString("+ OrderManifestManager::save volume calculation timestamp %1 ms\n").arg(timestamp.count()).toUtf8().data() );
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
     jsonDocument.setObject(root);
 
+    std::chrono::milliseconds ms3 = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()
+            );
+
     bool result;
     result = jsonFile.open(QFile::WriteOnly);
     result = result && jsonFile.write(jsonDocument.toJson()) > 0;
+
+    std::chrono::milliseconds ms4 = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()
+            );
+
+    timestamp = ms4 - ms3;
+
+    debug( QString("+ OrderManifestManager::jsonFile save timestamp %1 ms\n").arg(timestamp.count()).toUtf8().data() );
 
     return result;
 }
