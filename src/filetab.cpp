@@ -237,7 +237,8 @@ void FileTab::_createUsbFsModel( ) {
         { "*-20"  },
 #endif
         { "*-50"  },
-        { "*-100" }
+        { "*-100" },
+        { "*tiled*" }
     } );
     (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
     _usbFsModel->setRootPath( _usbPath );
