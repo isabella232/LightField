@@ -748,6 +748,7 @@ void FileTab::selectButton_clicked(bool)
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
                 if ( copiedFiles > 0 ) {
                     this->printJob()->directoryMode = true;
+                    this->printJob()->directoryPath = folderCpyPath;
                     emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
                 } else {
                     // TODO inform user of failure somehow
