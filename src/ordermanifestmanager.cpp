@@ -172,6 +172,9 @@ bool OrderManifestManager::save() {
     int activeTreshold = QColor("white").value() / 2;
     int i = 0;
 
+    QDateTime dateTime;
+    const uint stamp1 = dateTime.toTime_t ();
+
     foreach (fileName, _fileNameList) {
         QJsonObject entity;
         entity.insert(ManifestKeys(ManifestKeys::FILE_NAME).toQString(), QJsonValue { fileName });
@@ -196,6 +199,9 @@ bool OrderManifestManager::save() {
 
         jsonArray.append(entity);
     }
+
+    const uint timestamp = dateTime.toTime_t () - stamp1;
+    debug( QString("+ OrderManifestManager::save volume calculation timestamp %1 s\n").arg(timestamp).toUtf8().data() );
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
     root.insert( ManifestKeys(ManifestKeys::ENTITIES).toQString(), jsonArray );
