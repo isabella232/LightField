@@ -200,7 +200,8 @@ bool OrderManifestManager::save() {
         jsonArray.append(entity);
     }
 
-    const uint timestamp = dateTime.toTime_t () - stamp1;
+    QDateTime dateTime2;
+    const uint timestamp = dateTime2.toTime_t () - stamp1;
     debug( QString("+ OrderManifestManager::save volume calculation timestamp %1 s\n").arg(timestamp).toUtf8().data() );
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
