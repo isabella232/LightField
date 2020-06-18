@@ -183,8 +183,9 @@ void SlicesOrderPopup::oklClicked_clicked( bool ) {
     _manifestManager->setFileList( filenames );
     _manifestManager->save();
 
-    dialog->exec();
-    dialog->close();
+    QTimer::singleShot(50, dialog, [dialog](){
+        dialog->hide(); //hide dialog
+    });
 
     this->setResult( QDialog::Accepted );
     this->accept( );
