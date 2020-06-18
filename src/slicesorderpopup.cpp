@@ -1,9 +1,11 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "constants.h"
+#include "progressdialog.h"
 #include "slicesorderpopup.h"
 #include "utils.h"
 #include "window.h"
+
 
 SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifestManager):
     _manifestManager(manifestManager)
@@ -152,6 +154,16 @@ void SlicesOrderPopup::fillModel( ) {
 
 void SlicesOrderPopup::oklClicked_clicked( bool ) {
     debug( "+ SlicesOrderPopup::oklClicked_clicked reading element \n" );
+
+    ProgressDialog* dialog = new ProgressDialog(this);
+
+    QObject::connect(_manifestManager.get(), &OrderManifestManager::statusUpdate, dialog,
+        &ProgressDialog::setMessage);
+    QObject::connect(_manifestManager.get(), &OrderManifestManager::progressUpdate, dialog,
+        &ProgressDialog::setProgress);
+
+    dialog->show();
+
     if( _alphaNum->isChecked() )
         _manifestManager->setSortType( ManifestSortType::ALPHANUMERIC );
     else if ( _numerical->isChecked() )
@@ -170,6 +182,9 @@ void SlicesOrderPopup::oklClicked_clicked( bool ) {
 
     _manifestManager->setFileList( filenames );
     _manifestManager->save();
+
+    dialog->exec();
+    dialog->close();
 
     this->setResult( QDialog::Accepted );
     this->accept( );

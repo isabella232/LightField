@@ -171,6 +171,7 @@ bool OrderManifestManager::save() {
     QImage calculationImage;
     int activeTreshold = QColor("white").value() / 2;
     int i = 0;
+    int total = _fileNameList.count();
 
     foreach (fileName, _fileNameList) {
         QJsonObject entity;
@@ -195,6 +196,11 @@ bool OrderManifestManager::save() {
         }
 
         jsonArray.append(entity);
+
+        emit statusUpdate(QString("Calculating volume of layer %1").arg(fileName));
+
+        debug( QString("order manifest manager volume i=%1 total=%s").arg( i ).arg( total ).toUtf8().data() );
+        emit progressUpdate( ((double)i / (double)total) * 100 );
     }
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );
