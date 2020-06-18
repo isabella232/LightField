@@ -171,25 +171,27 @@ void SlicesOrderPopup::oklClicked_clicked( bool ) {
     else if ( _custom->isChecked() )
         _manifestManager->setSortType( ManifestSortType::CUSTOM );
 
-    QStringList filenames { };
+    QStringList* filenames = new QStringList;
 
     for(int i=0; i<_model->rowCount(); ++i)
     {
         QString item = _model->item( i )->text();
         if ( _model->item( i, 1)->checkState() == Qt::CheckState::Checked )
-            filenames.push_back( item );
+            filenames->push_back( item );
     }
 
-    _manifestManager->setFileList( filenames );
-    _manifestManager->save();
+    QThread *thread = QThread::create([filenames, dialog, this]{
+        _manifestManager->setFileList( *filenames );
+        _manifestManager->save();
 
-    QTimer::singleShot(50, dialog, [dialog](){
-        dialog->hide(); //hide dialog
+        dialog->hide();
+
+        this->setResult( QDialog::Accepted );
+        this->accept( );
+        this->close( );
     });
 
-    this->setResult( QDialog::Accepted );
-    this->accept( );
-    this->close( );
+    thread->start();
 }
 
 void SlicesOrderPopup::arrowUp_clicked(bool) {
