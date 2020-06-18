@@ -6,7 +6,7 @@
 #include "tabbase.h"
 #include "printprofilemanager.h"
 
-class ProfilesTab: public InitialShowEventMixin<ProfilesTab, TabBase>
+class ProfilesTab: public TabBase
 {
     Q_OBJECT
 
@@ -25,7 +25,6 @@ protected:
     void _filesystemMounted(QString const& mountPoint);
     void _filesystemUnmounted(QString const& mountPoint);
     virtual void _connectPrintManager() override;
-    virtual void _initialShowEvent( QShowEvent* event ) override;
 
 private:
     QString _usbMountPoint { "" };

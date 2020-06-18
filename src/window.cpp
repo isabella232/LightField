@@ -106,9 +106,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
         for (const auto &tabB: tabs) {
             QObject::connect(tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged,
-                Qt::QueuedConnection);
-
-            tabA->setPrintProfileManager(_printProfileManager);
+                Qt::QueuedConnection);            
         }
     }
 
@@ -230,6 +228,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
         tab->setFont( fontNormalSize );
+
+        tab->setPrintProfileManager(_printProfileManager);
     }
 
     setCentralWidget( _tabWidget );
