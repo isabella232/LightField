@@ -704,7 +704,7 @@ void PrepareTab::_loadDirectoryManifest()
     if (manifestMgr->tiled())
         _printJob->bodySlices.layerCount = manifestMgr->getSize() - manifestMgr->baseLayerCount();
 
-    _orderButton->setEnabled(true);
+    _orderButton->setEnabled(!manifestMgr->tiled());
     _setSliceControlsEnabled(false);
 
     layerCountUpdate(_printJob->totalLayerCount());
