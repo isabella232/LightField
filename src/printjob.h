@@ -61,11 +61,11 @@ public:
     SliceInformation baseSlices { SliceType::SliceBase };
     SliceInformation bodySlices { SliceType::SliceBody };
 
-    PrintParameters baseLayerParameters() {
+    PrintParameters& baseLayerParameters() {
         return _printProfile->baseLayerParameters();
     }
 
-    PrintParameters bodyLayerParameters() {
+    PrintParameters& bodyLayerParameters() {
         return _printProfile->bodyLayerParameters();
     }
 

@@ -132,8 +132,13 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
 void PrintTab::powerLevelSlider_valueChanged()
 {
-    _printJob->baseLayerParameters().setPowerLevel(_powerLevelSlider->getValue());
-    _printJob->bodyLayerParameters().setPowerLevel(_powerLevelSlider->getValue());
+    double value = _powerLevelSlider->getValue();
+
+    PrintParameters& baseParams = _printJob->baseLayerParameters();
+    PrintParameters& bodyParams = _printJob->bodyLayerParameters();
+
+    baseParams.setPowerLevel( value );
+    bodyParams.setPowerLevel( value );
 
     update();
 }
