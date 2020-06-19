@@ -198,8 +198,6 @@ bool OrderManifestManager::save() {
         jsonArray.append(entity);
 
         emit statusUpdate(QString("Calculating volume of layer %1").arg(fileName));
-
-        debug( QString("order manifest manager volume i=%1 total=%s").arg( i ).arg( total ).toUtf8().data() );
         emit progressUpdate( ((double)i / (double)total) * 100 );
     }
 
