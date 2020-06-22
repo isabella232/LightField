@@ -56,15 +56,34 @@ public:
     Coordinate y { };
     Coordinate z { };
     double estimatedVolume { }; // unit: µL
-    int buildPlatformOffset;
-    bool disregardFirstLayerHeight;
-    int heatingTemperature;
     bool directoryMode;
 
-    PrintParameters baseLayerParameters;
-    PrintParameters bodyLayerParameters;
     SliceInformation baseSlices { SliceType::SliceBase };
     SliceInformation bodySlices { SliceType::SliceBody };
+
+    PrintParameters& baseLayerParameters() {
+        return _printProfile->baseLayerParameters();
+    }
+
+    PrintParameters& bodyLayerParameters() {
+        return _printProfile->bodyLayerParameters();
+    }
+
+    int buildPlatformOffset() const {
+        return _printProfile->buildPlatformOffset();
+    }
+
+    bool disregardFirstLayerHeight() const  {
+        return _printProfile->disregardFirstLayerHeight();
+    }
+
+    int heatingTemperature() const {
+        return _printProfile->heatingTemperature();
+    }
+
+    void setPrintProfile(QSharedPointer<PrintProfile> printProfile) {
+        this->_printProfile = printProfile;
+    }
 
     void resetTiling()
     {
@@ -73,15 +92,6 @@ public:
             baseSlices.layerThickness = 100;
             bodySlices.layerThickness = 100;
         }
-    }
-
-    void copyFromProfile(QSharedPointer<PrintProfile> profile)
-    {
-        baseLayerParameters = profile->baseLayerParameters();
-        bodyLayerParameters = profile->bodyLayerParameters();
-        buildPlatformOffset = profile->buildPlatformOffset();
-        disregardFirstLayerHeight = profile->disregardFirstLayerHeight();
-        heatingTemperature = profile->heatingTemperature();
     }
 
     bool isTiled() const
@@ -115,9 +125,9 @@ public:
 
     int getBuildPlatformOffset() const
     {
-        int result = buildPlatformOffset;
+        int result = buildPlatformOffset();
 
-        if (!disregardFirstLayerHeight)
+        if (!disregardFirstLayerHeight())
             result += getLayerThicknessAt(0);
 
         return result;
@@ -279,6 +289,7 @@ public:
 private:
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
+    QSharedPointer<PrintProfile>         _printProfile {};
     bool _advancedControlsEnabled;
 };
 

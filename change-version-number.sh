@@ -86,10 +86,11 @@ fi
 
 if [ "${COUNT}" -eq 3 ]
 then
-    VER[3]=0
+    VER[3]=$(git rev-list --count HEAD)
 fi
 
 STRINGVER="${VER[0]}.${VER[1]}.${VER[2]}.${VER[3]}"
+GITHASH="$(git rev-parse HEAD)"
 
 if [ -z "${RELEASE_TRAIN}" ]
 then
@@ -109,19 +110,20 @@ blue-bar 'Generating src/version.h from src/version.h.in'
 
 cp version.h.in version.h
 
-apply-atsign-substitution VERSION_STRING "${STRINGVER}"     version.h
-apply-atsign-substitution VERSION_MAJOR  "${VER[0]}"        version.h
-apply-atsign-substitution VERSION_MINOR  "${VER[1]}"        version.h
-apply-atsign-substitution VERSION_TEENY  "${VER[2]}"        version.h
-apply-atsign-substitution VERSION_BUILD  "${VER[3]}"        version.h
+apply-atsign-substitution VERSION_STRING "${STRINGVER}" version.h
+apply-atsign-substitution VERSION_MAJOR "${VER[0]}" version.h
+apply-atsign-substitution VERSION_MINOR "${VER[1]}" version.h
+apply-atsign-substitution VERSION_TEENY "${VER[2]}" version.h
+apply-atsign-substitution VERSION_BUILD "${VER[3]}" version.h
+apply-atsign-substitution VERSION_GITHASH "${GITHASH}" version.h
 apply-atsign-substitution RELEASE_TRAIN  "${RELEASE_TRAIN}" version.h
 
 cd "${LIGHTFIELD_ROOT}"
 
 blue-bar 'Updating build and packaging scripts'
 
-apply-assignment-substitution ARCHITECTURE  "${ARCHITECTURE}"  shared-stuff.sh
+apply-assignment-substitution ARCHITECTURE "${ARCHITECTURE}" shared-stuff.sh
 apply-assignment-substitution RELEASE_TRAIN "${RELEASE_TRAIN}" shared-stuff.sh
-apply-assignment-substitution VERSION       "${STRINGVER}"     shared-stuff.sh
+apply-assignment-substitution VERSION "${STRINGVER}" shared-stuff.sh
 
 blue-bar 'Done!'

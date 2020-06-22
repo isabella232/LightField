@@ -435,13 +435,14 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob, this);
+    ThicknessWindow *dialog = new ThicknessWindow(_printJob, _initAfterSelect, this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
         _layerThickness100Button->setChecked(true);
     }
 
+    _initAfterSelect = false;
     _checkSliceDirectories();
 }
 
@@ -703,7 +704,7 @@ void PrepareTab::_loadDirectoryManifest()
     if (manifestMgr->tiled())
         _printJob->bodySlices.layerCount = manifestMgr->getSize() - manifestMgr->baseLayerCount();
 
-    _orderButton->setEnabled(true);
+    _orderButton->setEnabled(!manifestMgr->tiled());
     _setSliceControlsEnabled(false);
 
     layerCountUpdate(_printJob->totalLayerCount());
@@ -848,11 +849,6 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     _uiState = state;
 
     switch (_uiState) {
-    case UiState::SelectStarted:
-        _setSliceControlsEnabled(false);
-        _orderButton->setEnabled(false);
-        break;
-
     case UiState::SelectCompleted:
 
         if( !_printJob->directoryMode ) {
@@ -863,6 +859,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
             _currentLayerImage->clear();
             _navigateCurrentLabel->setText("0/0");
             _setNavigationButtonsEnabled(false);
+            _initAfterSelect = true;
 
             if (_hasher)
                 _hasher->deleteLater();
@@ -895,7 +892,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::PrintCompleted:
-        _setSliceControlsEnabled(true);
+        _setSliceControlsEnabled(!_printJob->directoryMode && !_printJob->isTiled());
         _orderButton->setEnabled( _printJob->directoryMode );
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);

@@ -60,7 +60,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _printProfileManager->reload();
 
     _printJob = QSharedPointer<PrintJob>(new PrintJob);
-    _printJob->copyFromProfile(_printProfileManager->activeProfile());
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
@@ -69,6 +69,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
+    _printManager = new PrintManager( _shepherd, this );
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -105,14 +106,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
         for (const auto &tabB: tabs) {
             QObject::connect(tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged,
-                Qt::QueuedConnection);
-
-            tabA->setPrintProfileManager(_printProfileManager);
+                Qt::QueuedConnection);            
         }
     }
 
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
+    emit printManagerChanged( _printManager );
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
@@ -228,6 +228,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
         tab->setFont( fontNormalSize );
+
+        tab->setPrintProfileManager(_printProfileManager);
     }
 
     setCentralWidget( _tabWidget );
@@ -319,8 +321,8 @@ void Window::startPrinting()
 
     const auto& baseSlices = _printJob->baseSlices;
     const auto& bodySlices = _printJob->bodySlices;
-    const auto& baseLayerParameters = _printJob->baseLayerParameters;
-    const auto& bodyLayerParameters = _printJob->bodyLayerParameters;
+    const auto& baseLayerParameters = _printJob->baseLayerParameters();
+    const auto& bodyLayerParameters = _printJob->bodyLayerParameters();
 
     debug(
         "+ Window::startPrinting: print job %p:\n"

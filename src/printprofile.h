@@ -24,6 +24,7 @@ public:
         _disregardFirstLayerHeight = profile._disregardFirstLayerHeight;
         _baseLayerCount = profile._baseLayerCount;
         _buildPlatformOffset = profile._buildPlatformOffset;
+        _layerSettingsEnabled = profile._layerSettingsEnabled;
         _baseLayerParameters = profile._baseLayerParameters;
         _bodyLayerParameters = profile._bodyLayerParameters;
     }
@@ -178,6 +179,15 @@ public:
         _bodyLayerParameters = newParameters;
     }
 
+    int layerSettingsEnabled() const {
+        return _layerSettingsEnabled;
+    }
+
+    // unit: boolean (true/false)
+    void setLayerSettingsEnabled(bool value) {
+        _layerSettingsEnabled = value;
+    }
+
 private:
 
     QString _name;
@@ -187,6 +197,7 @@ private:
     int _buildPlatformOffset;
     bool _disregardFirstLayerHeight;
     int _heatingTemperature;
+    bool   _layerSettingsEnabled { false }; //boolean (true/false)
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
     bool _defaultProfile;

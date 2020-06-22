@@ -6,6 +6,7 @@
         "disregardFirstLayerHeight": false,
         "heatingTemperature": 50,
         "baseLayerCount": 2,
+        "layerSettingsEnabled": false,
         "baseLayerParameters": {
             "pumpingEnabled": true,
             "pumpUpDistance": 2.00,

@@ -44,7 +44,9 @@ public:
     virtual ~TilingTab( ) { }
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Tiling; }
+
 protected:
+    virtual void _connectPrintManager() override;
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
@@ -79,7 +81,7 @@ private:
     void _showLayerImage ( );
     void _showWarningAndClose ( );
     int  _getMaxCount();
-    void _renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase, double expoBody);
+    void _renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody);
     void _setEnabled(bool enabled);
 signals:
     ;
@@ -99,7 +101,10 @@ protected slots:
 
 private slots:
     void confirmButton_clicked( bool );
-    ;
+
+    void printManager_printStarting();
+    void printManager_printComplete(bool const success);
+    void printManager_printAborted();
 };
 
 #endif // __TILINGTAB_H__

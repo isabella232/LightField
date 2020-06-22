@@ -29,7 +29,7 @@ protected:
 
 private:
     QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
-    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um", 0, 1000, 50, 100) };
+    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um", 0, 1000, 50, 0) };
 
     QPushButton*  _bedHeatingButton                   { new QPushButton };
     QLabel*       _bedHeatingButtonLabel              { new QLabel      };
@@ -95,7 +95,7 @@ private:
 
     ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
     ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
-    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time controll") };
+    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time control") };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };

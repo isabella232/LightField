@@ -10,14 +10,57 @@ PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent)
 
 bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
 {
-    _profiles.insert(newProfile->profileName(), newProfile);
-    ProfilesJsonParser::saveProfiles(_profiles);
+    auto profiles = ProfilesJsonParser::loadProfiles();
+    QString activeProfileName = _activeProfile->profileName();
 
-    if (newProfile->isActive())
-        emit activeProfileChanged(newProfile);
+    loadProfile(activeProfileName);
+
+    _profiles.insert(newProfile->profileName(), newProfile);
+    profiles.insert(newProfile->profileName(), newProfile);
+
+    newProfile->setDefault(false);
+
+    foreach (QSharedPointer<PrintProfile> profile, _profiles.values()) {
+        profile->setActive(false);
+    }
+
+    newProfile->setActive(true);
+    _activeProfile = newProfile;
+
+    ProfilesJsonParser::saveProfiles(profiles);
+    emit activeProfileChanged(newProfile);
+
+    return true;
+}
+
+void PrintProfileManager::renameProfile(const QString& oldName, const QString& newName) {
+    auto profiles = ProfilesJsonParser::loadProfiles();
+    auto profile = profiles.find(oldName);
+
+    if (profile == _profiles.end())
+        throw std::runtime_error("Profile not found");
+
+    if((*profile)->isActive()) {
+        throw std::runtime_error("Cannot rename active profile");
+    }
+
+    if((*profile)->isDefault()) {
+        throw std::runtime_error("Cannot rename default profile");
+    }
+
+    foreach (QSharedPointer<PrintProfile> iter, _profiles.values()) {
+        if (iter->profileName() == newName) {
+            throw std::runtime_error("A profile with the same name already exists.");
+        }
+    }
+
+    (*profile)->setProfileName(newName);
+
+    ProfilesJsonParser::saveProfiles(profiles);
+    auto insideProfile = _profiles.find(oldName);
+    (*insideProfile)->setProfileName(newName);
 
     emit reloadProfiles(_profiles);
-    return true;
 }
 
 void PrintProfileManager::removeProfile(const QString& name)
@@ -33,23 +76,32 @@ void PrintProfileManager::removeProfile(const QString& name)
     if ((*profile)->isActive())
         throw std::runtime_error("Cannot remove active profile");
 
+    auto profiles = ProfilesJsonParser::loadProfiles();
+    profiles.remove(name);
     _profiles.remove(name);
-    ProfilesJsonParser::saveProfiles(_profiles);
+
+    ProfilesJsonParser::saveProfiles(profiles);
     emit reloadProfiles(_profiles);
 }
 
 void PrintProfileManager::setActiveProfile(const QString& profileName)
 {
     auto profile = _profiles.find(profileName);
+    auto profiles = ProfilesJsonParser::loadProfiles();
 
     if (profile == _profiles.end())
         throw std::runtime_error("Profile not found");
 
     _activeProfile->setActive(false);
     (*profile)->setActive(true);
+
+    (*profiles.find(profileName))->setActive(true);
+    (*profiles.find(_activeProfile->profileName()))->setActive(false);
+
     _activeProfile = *profile;
 
-    ProfilesJsonParser::saveProfiles(_profiles);
+    ProfilesJsonParser::saveProfiles(profiles);
+
     emit activeProfileChanged(*profile);
     emit reloadProfiles(_profiles);
 }
@@ -84,6 +136,34 @@ void PrintProfileManager::reload()
         defaultProfile->setActive(true );
         emit activeProfileChanged(defaultProfile);
     }
+}
+
+void PrintProfileManager::loadProfile(const QString& profileName)
+{
+    auto profiles = ProfilesJsonParser::loadProfiles();
+    auto profile = _profiles.find(profileName);
+
+    if (profile == _profiles.end())
+        throw std::runtime_error("Profile not found");
+
+    profile->swap(*profiles.find(profileName));
+}
+
+void PrintProfileManager::saveProfile(const QString& profileName)
+{
+    auto profiles = ProfilesJsonParser::loadProfiles();
+    auto profile = _profiles.find(profileName);
+
+    if (profile == _profiles.end())
+        throw std::runtime_error("Profile not found");
+
+    QSharedPointer<PrintProfile> profileCopy { new PrintProfile(*_activeProfile) };
+
+    profileCopy->setProfileName(profileName);
+    profileCopy->setDefault(false);
+
+    profiles.insert((*profile)->profileName(), profileCopy);
+    ProfilesJsonParser::saveProfiles(profiles);
 }
 
 bool PrintProfileManager::importProfiles(const QString& mountPoint)

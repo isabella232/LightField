@@ -38,17 +38,27 @@ class PrintManager: public QObject {
 
 public:
 
-    PrintManager( Shepherd* shepherd, QObject* parent = 0 );
-    virtual ~PrintManager( ) override;
+    PrintManager(Shepherd* shepherd, QObject* parent = nullptr);
+    virtual ~PrintManager() override;
 
-    int currentLayer( ) const { return _currentLayer; }
+    int currentLayer() const
+    {
+        return _currentLayer;
+    }
+
+    bool isPaused() const
+    {
+        return _paused;
+    }
+
+    bool isRunning() const
+    {
+        return _running;
+    }
 
     QString& currentLayerImage();
 
-protected:
-
 private:
-
     Shepherd*           _shepherd                 { };
     MovementSequencer*  _movementSequencer        { };
     QSharedPointer<PrintJob> _printJob;
@@ -64,6 +74,7 @@ private:
     int                 _currentBaseLayer         { };
     int                 _elementsOnLayer          { };
     bool                _isTiled                  { false };
+    bool                _running                  { false };
     bool                _paused                   { false };
     double              _position                 { };
     double              _pausedPosition           { };
@@ -98,10 +109,7 @@ signals:
     void lampStatusChange( bool const on );
 
 public slots:
-    ;
-
-    void setPngDisplayer( PngDisplayer* pngDisplayer );
-
+    void setPngDisplayer(PngDisplayer* pngDisplayer);
     void print(QSharedPointer<PrintJob> printJob);
     void pause( );
     void resume( );
@@ -112,12 +120,7 @@ public slots:
 
     void printer_positionReport( double px, int cx );
 
-protected slots:
-    ;
-
 private slots:
-    ;
-
     void stepA1_start( );
     void stepA1_completed( bool const success );
 

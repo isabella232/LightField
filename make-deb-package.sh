@@ -256,7 +256,7 @@ install     ${VERBOSE} -DT -m  644 Util/constants.py                            
 ##################################################
 cd ${PRINTPROFILES_SRC}
 
-install     ${VERBOSE} -DT -m  644 print-profiles.json		    "${LIGHTFIELD_FILES}/var/lib/lightfield/print-profiles.json"
+install     ${VERBOSE} -DT -m  666 print-profiles.json		    "${LIGHTFIELD_FILES}/var/lib/lightfield/print-profiles.json"
 ##################################################
 
 blue-bar "• Building Debian packages"

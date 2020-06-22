@@ -75,7 +75,6 @@ private:
     bool                _isPrinterAvailable         { true  };
     bool                _isPrinterPrepared          { false };
     bool                _isModelRendered            { false };
-    bool                _isPaused                   { false };
 
     double              _printJobStartTime          { };
     double              _currentLayerStartTime      { };

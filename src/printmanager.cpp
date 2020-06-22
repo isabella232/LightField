@@ -280,7 +280,7 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    auto powerLevel = _printJob->baseLayerParameters.powerLevel();
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->baseLayerParameters().powerLevel());
     debug( "+ PrintManager::stepB1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -320,6 +320,7 @@ void PrintManager::stepB1_failed( int const exitCode, QProcess::ProcessError con
 
 // B2. Pause for layer projection time.
 void PrintManager::stepB2_start( ) {
+    debug( "+ PrintManager::stepB2_start\n" );
     _step = PrintStep::B2;
 
     int layerExposureTime;
@@ -341,7 +342,7 @@ void PrintManager::stepB2_completed( ) {
     _stopAndCleanUpTimer( _layerExposureTimer );
 
 
-    if ( IsBadPrintResult( _printResult ) ) {
+    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
         stepD1_start( );
 
         return;
@@ -356,11 +357,13 @@ void PrintManager::stepB2_completed( ) {
 }
 
 void PrintManager::stepB2a_start( ){
+    debug( "+ PrintManager::stepB2a_start\n" );
+
     _step = PrintStep::B2a;
 
     // abort would be serviced during B3_completed
 
-    if(_hasLayerMoreElements()){
+    if(_hasLayerMoreElements()) {
         debug( "+ PrintManager::stepB2a_start: current layer has still more tiled elements to loop over'\n" );
         _currentLayer++;
         _pngDisplayer->clear( );
@@ -372,7 +375,7 @@ void PrintManager::stepB2a_start( ){
             return;
         }
         stepB2_start( );
-    }else{
+    } else {
         debug( "+ PrintManager::stepB2a_start: current layer has no more tiled elements'\n" );
         _duringTiledLayer = false;
         stepB3_start( );
@@ -382,6 +385,7 @@ void PrintManager::stepB2a_start( ){
 
 // B3. Stop projection: "set-projector-power 0".
 void PrintManager::stepB3_start( ) {
+    debug( "+ PrintManager::stepB3_start\n" );
     _step = PrintStep::B3;
 
     debug( "+ PrintManager::stepB3_start: running 'set-projector-power 0'\n" );
@@ -406,7 +410,7 @@ void PrintManager::stepB3_completed( ) {
     _lampOn = false;
     emit lampStatusChange( false );
 
-    if ( _printJob->baseLayerParameters.isPumpingEnabled( ) ) {
+    if ( _printJob->baseLayerParameters().isPumpingEnabled( ) ) {
         stepB4a1_start( );
     } else {
         stepB4b1_start( );
@@ -419,6 +423,8 @@ void PrintManager::stepB3_failed( int const, QProcess::ProcessError const ) {
 
 // B4a1. Pause before "pumping" manoeuvre.
 void PrintManager::stepB4a1_start( ) {
+    debug( "+ PrintManager::stepB4a1_start\n" );
+
     _step = PrintStep::B4a1;
 
     debug( "+ PrintManager::stepB4a1_start: pausing for %d ms before raising build platform\n", PauseBeforeLift );
@@ -442,6 +448,7 @@ void PrintManager::stepB4a1_completed( ) {
 // B4a2. Perform the "pumping" manoeuvre.
 void PrintManager::stepB4a2_start()
 {
+    debug( "+ PrintManager::stepB4a2_start\n" );
     _step = PrintStep::B4a2;
 
     ++_currentLayer;
@@ -460,7 +467,7 @@ void PrintManager::stepB4a2_start()
     QObject::connect(_movementSequencer, &MovementSequencer::movementComplete, this,
          &PrintManager::stepB4a2_completed);
 
-    const auto& baseParameters = _printJob->baseLayerParameters;
+    const auto& baseParameters = _printJob->baseLayerParameters();
 
     QList<MovementInfo> movements = {
         {
@@ -586,7 +593,7 @@ void PrintManager::stepC1_start( ) {
         return;
     }
 
-    auto powerLevel = _printJob->bodyLayerParameters.powerLevel();
+    auto powerLevel = PercentagePowerLevelToRawLevel(_printJob->bodyLayerParameters().powerLevel());
     debug( "+ PrintManager::stepC1_start: running 'set-projector-power %d'\n", powerLevel );
 
     QString pngFileName = _printJob->getLayerPath( _currentLayer );
@@ -646,7 +653,7 @@ void PrintManager::stepC2_completed( ) {
 
     _stopAndCleanUpTimer( _layerExposureTimer );
 
-    if ( IsBadPrintResult( _printResult ) ) {
+    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
         stepD1_start( );
         return;
     }
@@ -710,7 +717,7 @@ void PrintManager::stepC3_completed( ) {
     _lampOn = false;
     emit lampStatusChange(false);
 
-    if (_printJob->bodyLayerParameters.isPumpingEnabled())
+    if (_printJob->bodyLayerParameters().isPumpingEnabled())
         stepC4a1_start();
     else
         stepC4b1_start();
@@ -745,7 +752,7 @@ void PrintManager::stepC4a1_completed( ) {
 // C4a2. Perform the "pumping" manoeuvre.
 void PrintManager::stepC4a2_start( )
 {
-    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    const auto& bodyParameters = _printJob->bodyLayerParameters();
     double pumpDownDistance = -bodyParameters.pumpDownDistance_Effective() +
         (_printJob->getLayerThicknessAt(_currentLayer - _elementsOnLayer + 1) / 1000.0);
 
@@ -887,8 +894,8 @@ void PrintManager::stepD1_start()
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
@@ -904,6 +911,8 @@ void PrintManager::stepD1_completed(bool  success)
     debug( "+ PrintManager::stepD1_completed: action %s\n", SucceededString( success ) );
 
     QObject::disconnect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepD1_completed );
+
+    _running = false;
 
     if ( PrintResult::None == _printResult ) {
         _printResult = PrintResult::Success;
@@ -931,8 +940,8 @@ void PrintManager::stepE1_start( ) {
     QObject::connect( _movementSequencer, &MovementSequencer::movementComplete, this, &PrintManager::stepE1_completed );
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, parameters.noPumpUpVelocity() },
@@ -971,8 +980,8 @@ void PrintManager::stepE2_start( ) {
         &PrintManager::stepE2_completed);
 
     const auto& parameters = _printJob->isBaseLayer(_currentLayer)
-        ? _printJob->baseLayerParameters
-        : _printJob->bodyLayerParameters;
+        ? _printJob->baseLayerParameters()
+        : _printJob->bodyLayerParameters();
 
     _movementSequencer->setMovements({
         { MoveType::Absolute, _threshold, PrinterDefaultHighSpeed },
@@ -1035,8 +1044,8 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
 
     _pngDisplayer->clear();
 
-    const auto& baseParameters = _printJob->baseLayerParameters;
-    const auto& bodyParameters = _printJob->bodyLayerParameters;
+    const auto& baseParameters = _printJob->baseLayerParameters();
+    const auto& bodyParameters = _printJob->bodyLayerParameters();
     const auto& firstParameters = _printJob->hasBaseLayers() ? baseParameters : bodyParameters;
     const auto firstLayerHeight = _printJob->getBuildPlatformOffset() / 1000.0;
 
@@ -1050,6 +1059,7 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
     _printResult = PrintResult::None;
     _currentBaseLayer = _printJob->baseLayerStart();
+    _running = true;
     emit printStarting( );
     stepA1_start( );
 }
@@ -1081,6 +1091,8 @@ void PrintManager::abort( ) {
 
     if (_paused) {
         debug( "  + Printer is paused, going directly to step D1\n" );
+        _paused = false;
+        emit printResumed();
         stepD1_start();
         return;
     }

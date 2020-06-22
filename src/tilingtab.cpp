@@ -4,15 +4,16 @@
 #include "utils.h"
 #include "tilingtab.h"
 #include "tilingmanager.h"
+#include "printmanager.h"
 #include "window.h"
 
 
 TilingExpoTimePopup::TilingExpoTimePopup()
 {
-    auto origFont    = font( );
-    auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
-    auto font22pt    = ModifyFont( origFont, LargeFontSize );
+    auto origFont = font();
+    auto normalFont = ModifyFont(origFont, "FontAwesome", NormalFontSize );
+    auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
+    auto font22pt = ModifyFont(origFont, LargeFontSize);
 
     this->setModal(true);
 
@@ -59,39 +60,39 @@ void TilingExpoTimePopup::cancel(bool)
     this->close();
 }
 
-TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
+TilingTab::TilingTab(QWidget* parent): TabBase(parent)
 {
-    auto origFont    = font( );
-    auto boldFont    = ModifyFont( origFont, QFont::Bold );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
+    auto origFont = font();
+    auto boldFont = ModifyFont(origFont, QFont::Bold);
+    auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
 
-    QGroupBox* all { new QGroupBox };
+    QGroupBox* all {new QGroupBox};
 
     QVBoxLayout* _currentLayerLayout;
-    _currentLayerImage->setAlignment( Qt::AlignCenter );
-    _currentLayerImage->setContentsMargins( { } );
-    _currentLayerImage->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _currentLayerImage->setStyleSheet( "QWidget { background: black }" );
-    _currentLayerImage->setMinimumSize( MaximalRightHandPaneSize );
-    _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
+    _currentLayerImage->setAlignment(Qt::AlignCenter);
+    _currentLayerImage->setContentsMargins({});
+    _currentLayerImage->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    _currentLayerImage->setStyleSheet("QWidget { background: black }");
+    _currentLayerImage->setMinimumSize(MaximalRightHandPaneSize);
+    _currentLayerImage->setFixedSize(_currentLayerImage->width(),
+        static_cast<int>(_currentLayerImage->width() / AspectRatio16to10 + 0.5));
 
-
-    _setupTiling->setEnabled( false );
-    _setupTiling->setMinimumWidth( MainButtonSize.width() );
-    _setupTiling->setText( "Setup tiling" );
-    QObject::connect( _setupTiling, &QPushButton::clicked, this, &TilingTab::setupTilingClicked );
+    _setupTiling->setEnabled(false);
+    _setupTiling->setMinimumWidth(MainButtonSize.width());
+    _setupTiling->setText("Setup tiling");
+    QObject::connect(_setupTiling, &QPushButton::clicked, this, &TilingTab::setupTilingClicked);
 
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage
     );
-    _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
+    _currentLayerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
-    _confirm->setMinimumWidth( MainButtonSize.width() );
-    _confirm->setEnabled( false );
+    _confirm->setMinimumWidth(MainButtonSize.width());
+    _confirm->setEnabled(false);
 
-    _setupExpoTimeBt->setMinimumWidth( MainButtonSize.width() );
+    _setupExpoTimeBt->setMinimumWidth(MainButtonSize.width());
 
-    QGroupBox* lrInfo     = new QGroupBox();
+    QGroupBox* lrInfo = new QGroupBox();
     QGroupBox* baseLrInfo = new QGroupBox("Base layer");
     QGroupBox* bodyLrInfo = new QGroupBox("Body layer");
 
@@ -110,9 +111,8 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
     );
 
     lrInfo->setLayout(
-        WrapWidgetsInVBox( baseLrInfo, nullptr, bodyLrInfo )
+        WrapWidgetsInVBox(baseLrInfo, nullptr, bodyLrInfo)
     );
-
 
     all->setLayout(
         WrapWidgetsInVBox(
@@ -128,49 +128,90 @@ TilingTab::TilingTab( QWidget* parent ): TabBase( parent )
         )
     );
 
-    QObject::connect( _space, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
-    QObject::connect( _count, &ParamSlider::valueChanged, this, &TilingTab::setStepValue );
+    QObject::connect(_space, &ParamSlider::valueChanged, this, &TilingTab::setStepValue);
+    QObject::connect(_count, &ParamSlider::valueChanged, this, &TilingTab::setStepValue);
+    QObject::connect(_setupExpoTimeBt, &QPushButton::clicked, this,
+        &TilingTab::setupExpoTimeClicked);
+    QObject::connect(_confirm, &QPushButton::clicked, this, &TilingTab::confirmButton_clicked);
 
+    all->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    QObject::connect( _setupExpoTimeBt, &QPushButton::clicked, this, &TilingTab::setupExpoTimeClicked);
+    setLayout(WrapWidgetsInHBox(all, _currentLayerImage));
 
-    QObject::connect( _confirm, &QPushButton::clicked, this, &TilingTab::confirmButton_clicked );
+    _setEnabled(false);
+    update();
+}
 
+void TilingTab::_connectPrintManager()
+{
 
-    all->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding );
+    if (_printManager) {
+        QObject::connect(_printManager, &PrintManager::printStarting, this,
+           &TilingTab::printManager_printStarting);
+        QObject::connect(_printManager, &PrintManager::printComplete, this,
+           &TilingTab::printManager_printComplete);
+        QObject::connect(_printManager, &PrintManager::printAborted, this,
+           &TilingTab::printManager_printAborted);
+    }
+}
 
-    setLayout( WrapWidgetsInHBox( all, _currentLayerImage ) );
+void TilingTab::printManager_printStarting()
+{
 
-    _setEnabled( false );
-    update( );
+    debug("+ TilingTab::printManager_printStarting\n");
+
+    _setupTiling->setEnabled(false);
+
+    update();
+}
+
+void TilingTab::printManager_printComplete(const bool success)
+{
+
+    debug("+ TilingTab::printManager_printComplete\n");
+    (void)success;
+
+    _setupTiling->setEnabled(!_printJob->isTiled());
+
+    update();
+}
+
+void TilingTab::printManager_printAborted()
+{
+
+    debug("+ TilingTab::printManager_printAborted\n");
+
+    _setupTiling->setEnabled(!_printJob->isTiled());
+
+    update();
 }
 
 void TilingTab::setStepValue()
 {
-    debug( "+ TilingTab::setStepValue\n");
+    debug("+ TilingTab::setStepValue\n");
 
-    auto area = QPixmap( _currentLayerImage->width( ), _currentLayerImage->height( ) );
-    int maxCount = _getMaxCount( );
-    debug( "+ TilingTab::setCount %d\n", maxCount);
-    _count->setMaxValue( maxCount );
+    auto area = QPixmap(_currentLayerImage->width(), _currentLayerImage->height());
+    int maxCount = _getMaxCount();
+    debug("+ TilingTab::setCount %d\n", maxCount);
+    _count->setMaxValue(maxCount);
 
     int wCount = _count->getValue();
-    int spacePx = ( (double)_space->getValue() ) / ProjectorPixelSize * _wRatio;
+    int spacePx = static_cast<int>(_space->getValue() / ProjectorPixelSize * _wRatio);
 
-    if( maxCount < 1 ) {
+    if (maxCount < 1) {
         _showWarningAndClose();
-        _space->setEnabled( false );
+        _space->setEnabled(false);
 
         return;
-    } else {
-        _space->setEnabled( true );
-    }
+    } else
+        _space->setEnabled(true);
 
     //int hCount =  floor( (_currentLayerImage->height( ) - pixmap.height() * value)  / (pixmap.height() + pixmap.height() * value) );
 
-    QPainter painter ( &area );
+    QPainter painter(&area);
 
-    painter.fillRect(0,0, _currentLayerImage->width( ), _currentLayerImage->height( ), QBrush("#000000"));
+    painter.fillRect(0,0, _currentLayerImage->width(), _currentLayerImage->height(),
+        QBrush("#000000"));
 
     painter.setFont(QFont("Arial", 10));
     painter.setPen(Qt::red);
@@ -193,16 +234,16 @@ void TilingTab::setStepValue()
 #endif
 
     // single row tiling
-    int y = ( _areaHeight - _pixmapHeight ) / 2;
+    int y = (_areaHeight - _pixmapHeight) / 2;
 
     // 3 mm Y offset for first element
-    int deltaY = ( 3 / ProjectorPixelSize ) * _hRatio;
+    int deltaY = static_cast<int>((3 / ProjectorPixelSize) * _hRatio);
     std::vector<int> tileSlots;
 
-    int deltax = (_areaWidth - (wCount*_pixmapWidth) - (wCount -1)*spacePx)/2 - TilingMargin;
+    int deltax = (_areaWidth - (wCount * _pixmapWidth) - (wCount - 1) * spacePx) / 2 - TilingMargin;
 
-    for(int i=0; i<wCount; ++i) {
-        int x1 = TilingMargin + ( _pixmapWidth * i ) + ( spacePx * i );
+    for (int i = 0; i < wCount; ++i) {
+        int x1 = TilingMargin + (_pixmapWidth * i) + (spacePx * i);
         tileSlots.push_back(x1 + deltax);
     }
 
@@ -211,35 +252,31 @@ void TilingTab::setStepValue()
                 tileSlots.end()-1, // this will be the new first element
                 tileSlots.end());
 
-    for(int i=0; i<wCount; ++i) {
-        int x = tileSlots[i];
+    for (int i = 0; i < wCount; ++i) {
+        int x = tileSlots[static_cast<unsigned int>(i)];
 
         double minExposureBase = _minExposureBase;
         double stepBase = _stepBase;
         double minExposureBody = _minExposureBody;
         double stepBody = _stepBody;
 
-        double eBase = minExposureBase + ( ( wCount - ( i + 1 ) ) * stepBase );
-        double eBody = minExposureBody + ( ( wCount - ( i + 1 ) ) * stepBody );
+        double eBase = minExposureBase + ((wCount - (i + 1)) * stepBase);
+        double eBody = minExposureBody + ((wCount - (i + 1)) * stepBody);
 
-        if(i==0) {
-            painter.drawPixmap( x, y - deltaY, *_pixmap );
-             _renderText( &painter, _pixmapWidth, QPoint(x, y - deltaY ), eBase, eBody );
-        }
-        else
-        {
-            painter.drawPixmap( x, y, *_pixmap );
-             _renderText( &painter, _pixmapWidth, QPoint(x, y), eBase, eBody  );
+        if (i == 0) {
+            painter.drawPixmap(x, y - deltaY, *_pixmap);
+             _renderText(&painter, QPoint(x, y - deltaY), eBase, eBody);
+        } else {
+            painter.drawPixmap(x, y, *_pixmap);
+             _renderText(&painter, QPoint(x, y), eBase, eBody);
         }
     }
 
-    _currentLayerImage->setPixmap( area );
-
-    update( );
+    _currentLayerImage->setPixmap(area);
+    update();
 }
 
-void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double expoBase,
-    double expoBody)
+void TilingTab::_renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody)
 {
     QFontMetrics fm(painter->font());
     QString baseText = QString("Base %1s").arg(expoBase);
@@ -250,19 +287,19 @@ void TilingTab::_renderText(QPainter* painter, int tileWidth, QPoint pos, double
     painter->drawText(pos, bodyText);
 }
 
-void TilingTab::_showLayerImage( ) {
-    debug( "+ TilingTab::_showLayerImage");
+void TilingTab::_showLayerImage()
+{
+    debug("+ TilingTab::_showLayerImage");
 
-    setStepValue ();
+    setStepValue();
 
-    update( );
+    update();
 }
-
-
 
 void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
 {
-    debug( "+ TilingTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString( sender ), ToString( _uiState ), ToString( state ) );
+    debug("+ TilingTab::tab_uiStateChanged: from %sTab: %s => %s\n", ToString(sender),
+        ToString(_uiState), ToString(state));
     _uiState = state;
 
     switch (state) {
@@ -276,7 +313,14 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
             this->_minExposureBase = 10.0;
             this->_minExposureBody = 20.0;
             this->_space->setValue(1);
+            this->_count->setValue(1);
             this->_currentLayerImage->clear();
+
+            _minExposureBaseValue->setText(QString("%1s").arg(10.0));
+            _stepBaseValue->setText(QString("%1s").arg(2.0));
+            _minExposureBodyValue->setText(QString("%1s").arg(20.0));
+            _stepBodyValue->setText(QString("%1s").arg(2.0));
+
             _setEnabled(false);
             _setupTiling->setEnabled(false);
         }
@@ -295,7 +339,8 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         break;
 
     case UiState::PrintJobReady:
-        _setupTiling->setEnabled(!_printJob->isTiled());
+        if (!_printManager->isRunning())
+            _setupTiling->setEnabled(!_printJob->isTiled());
         _setEnabled(false);
         break;
 
@@ -305,7 +350,6 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         setStepValue();
         break;
 
-
     default:
         break;
     }
@@ -314,29 +358,25 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
 }
 
 
-void TilingTab::confirmButton_clicked (bool)
+void TilingTab::confirmButton_clicked(bool)
 {
-    debug( "+ TilingTab::confirmButton_clicked\n" );
+    debug("+ TilingTab::confirmButton_clicked\n");
 
-    TilingManager* tilingMgr = new  TilingManager( printJob().get() );
+    TilingManager* tilingMgr = new TilingManager(printJob().get());
     ProgressDialog* dialog = new ProgressDialog(this);
 
     QObject::connect(tilingMgr, &TilingManager::statusUpdate, dialog, &ProgressDialog::setMessage);
-    QObject::connect(tilingMgr, &TilingManager::progressUpdate, dialog, &ProgressDialog::setProgress);
+    QObject::connect(tilingMgr, &TilingManager::progressUpdate, dialog,
+        &ProgressDialog::setProgress);
 
     dialog->show();
 
     QThread *thread = QThread::create(
         [this, tilingMgr, dialog]
         {
-            tilingMgr->processImages( ProjectorWindowSize.width(),
-                                      ProjectorWindowSize.height(),
-                                     _minExposureBase,
-                                     _stepBase,
-                                     _minExposureBody,
-                                     _stepBody,
-                                     _space->getValue(),
-                                     _count->getValue() );
+            tilingMgr->processImages(ProjectorWindowSize.width(), ProjectorWindowSize.height(),
+                _minExposureBase, _stepBase, _minExposureBody, _stepBody, _space->getValue(),
+                _count->getValue());
 
             printJob()->directoryMode = true;
             printJob()->directoryPath = tilingMgr->getPath();
@@ -344,30 +384,26 @@ void TilingTab::confirmButton_clicked (bool)
             dialog->close();
             delete dialog;
             delete tilingMgr;
-
         }
     );
 
     thread->start();
 
     dialog->exec();
-    emit uiStateChanged( TabIndex::Tiling, UiState::SelectCompleted );
+    emit uiStateChanged(TabIndex::Tiling, UiState::SelectCompleted);
 }
 
 int TilingTab::_getMaxCount()
 {
     int wCount=0;
-    int space = ((double)_space->getValue()) / ProjectorPixelSize * _wRatio;
+    int space = static_cast<int>(_space->getValue() / ProjectorPixelSize * _wRatio);
 
-    for (
-         int i = ( TilingMargin * _wRatio );
-         i < ( _areaWidth - ( TilingMargin * _wRatio ) );
-         i += _pixmapWidth, wCount++
-    ) {
-        if(wCount>0)
+    for (int i = static_cast<int>(TilingMargin * _wRatio);
+         i < (_areaWidth - (TilingMargin * _wRatio)); i += _pixmapWidth, wCount++) {
+        if (wCount > 0)
             i+=space;
 
-        debug( " i: %d wCount: %d \n", i, wCount );
+        debug(" i: %d wCount: %d \n", i, wCount);
     }
 
     wCount--;
@@ -377,7 +413,7 @@ int TilingTab::_getMaxCount()
 
 void TilingTab::_showWarningAndClose ()
 {
-    QMessageBox msgBox { this };
+    QMessageBox msgBox {this};
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setText("Slices are too wide to be tiled.");
     msgBox.exec();
@@ -385,37 +421,39 @@ void TilingTab::_showWarningAndClose ()
 
 void TilingTab::_setEnabled(bool enabled)
 {
-    this->_confirm->setEnabled( enabled );
-    this->_space->setEnabled( enabled );
-    this->_setupExpoTimeBt->setEnabled( enabled );
-    this->_count->setEnabled( enabled );
+    this->_confirm->setEnabled(enabled);
+    this->_space->setEnabled(enabled);
+    this->_setupExpoTimeBt->setEnabled(enabled);
+    this->_count->setEnabled(enabled);
 
     this->_currentLayerImage->clear();
 }
 
-void TilingTab::setupExpoTimeClicked(bool) {
-    debug( "+ TilingTab::setupExpoTimeClicked\n" );
-    _expoTimePopup.setMinExposureBase( _minExposureBase );
-    _expoTimePopup.setStepBase( _stepBase );
-    _expoTimePopup.setMinExposureBody( _minExposureBody );
-    _expoTimePopup.setStepBody( _stepBody );
+void TilingTab::setupExpoTimeClicked(bool)
+{
+    debug("+ TilingTab::setupExpoTimeClicked\n");
+    _expoTimePopup.setMinExposureBase(_minExposureBase);
+    _expoTimePopup.setStepBase(_stepBase);
+    _expoTimePopup.setMinExposureBody(_minExposureBody);
+    _expoTimePopup.setStepBody(_stepBody);
 
-    if(_expoTimePopup.exec() == QDialog::Accepted) {
+    if (_expoTimePopup.exec() == QDialog::Accepted) {
         _minExposureBase = _expoTimePopup.minExposureBase();
         _stepBase = _expoTimePopup.stepBase();
         _minExposureBody = _expoTimePopup.minExposureBody();
         _stepBody = _expoTimePopup.stepBody();
 
-        _minExposureBaseValue->setText ( QString("%1s").arg( _expoTimePopup.minExposureBase() ) );
-        _stepBaseValue->setText ( QString("%1s").arg( _expoTimePopup.stepBase() ) );
-        _minExposureBodyValue->setText ( QString("%1s").arg( _expoTimePopup.minExposureBody() ) );
-        _stepBodyValue->setText ( QString("%1s").arg( _expoTimePopup.stepBody() ) );
+        _minExposureBaseValue->setText(QString("%1s").arg(_expoTimePopup.minExposureBase()));
+        _stepBaseValue->setText(QString("%1s").arg(_expoTimePopup.stepBase()));
+        _minExposureBodyValue->setText(QString("%1s").arg(_expoTimePopup.minExposureBody()));
+        _stepBodyValue->setText(QString("%1s").arg(_expoTimePopup.stepBody()));
     }
 
     setStepValue();
 }
 
-void TilingTab::setupTilingClicked ( bool ) {
+void TilingTab::setupTilingClicked(bool)
+{
     debug("+ TilingTab::setupTilingClicked\n");
 
     this->_areaWidth = _currentLayerImage->width();
@@ -423,19 +461,19 @@ void TilingTab::setupTilingClicked ( bool ) {
     this->_wRatio = (static_cast<double>(_areaWidth)) / ProjectorWindowSize.width();
     this->_hRatio = (static_cast<double>(_areaHeight)) / ProjectorWindowSize.height();
 
-    QPixmap pixmap(QString("%1/%2")
-        .arg(printJob()->getLayerDirectory(0))
+    QPixmap pixmap(QString("%1/%2").arg(printJob()->getLayerDirectory(0))
         .arg(printJob()->getLayerFileName(0)));
 
-    if(this->_pixmap)
+    if (this->_pixmap)
         delete this->_pixmap;
 
-    this->_pixmap = new QPixmap ( pixmap.scaled( pixmap.width( ) * _wRatio, pixmap.height( ) * _hRatio) );
+    this->_pixmap = new QPixmap(pixmap.scaled(static_cast<int>(pixmap.width() * _wRatio),
+        static_cast<int>(pixmap.height() * _hRatio)));
 
-    this->_pixmapWidth = this->_pixmap->width( );
-    this->_pixmapHeight = this->_pixmap->height( );
+    this->_pixmapWidth = this->_pixmap->width();
+    this->_pixmapHeight = this->_pixmap->height();
 
-    if(_getMaxCount() < 1) {
+    if (_getMaxCount() < 1) {
             _showWarningAndClose();
             return;
     }
