@@ -179,21 +179,22 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
-    _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
+    _dispensePrintSolutionTitle->setVisible( false );
     _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
         nullptr,
         _dispensePrintSolutionLabel,
+        _tilingInfoLabel,
         nullptr,
         WrapWidgetsInHBox( nullptr, _startThePrintButton, nullptr ),
         nullptr
     ) );
-
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
         _currentLayerGroup,
+        _dispensePrintSolutionTitle,
         _dispensePrintSolutionGroup,
         nullptr
     ) );
@@ -475,15 +476,62 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_requestDispensePrintSolution( ) {
     double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
 
-    QString dispenseText = QString("Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
+    QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>."
+                                   "<br/><br/>The file:<br/><b>%2</b><br/>")
+            .arg( QString::number( std::clamp(solutionRequired, 1.0, 10.0 ), 'f', 2 ) )
+            .arg( GetFileBaseName( _printJob->modelFileName ) );
+
+    if(!_printJob->isTiled()) {
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
+                .arg( _printJob->baseSlices.layerCount)
+                .arg( _printJob->baseSlices.layerThickness )
+                .arg( _printJob->baseSlices.exposureTime )
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->bodySlices.layerThickness )
+                .arg( _printJob->bodySlices.exposureTime );
+
+        dispenseText.append(pjInfo);
+    } else {
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
+                .arg( _printJob->baseSlices.layerCount )
+                .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->getBaseManager()->layerThickNessAt(0) );
+
+        int tileCount = _printJob->getBaseManager()->tilingCount();
+        int bodyElementStart = tileCount * 2;
+
+        double baseMinExpoTime = _printJob->getBaseManager()->getTimeForElementAt(tileCount - 1);
+        double baseExpoStep =  _printJob->getBaseManager()->getTimeForElementAt(0);
+        double baseMaxExpoTime = baseMinExpoTime + (baseExpoStep * (tileCount-1));
+
+        double bodyMinExpoTime = _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart + tileCount - 1);
+        double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart);
+        double bodyMaxExpoTime = bodyMinExpoTime + (bodyExpoStep * (tileCount-1));
+
+
+        QString tilingInfoText = QString("<br/><br/>Tiling parameters: <br/><div style=\"width: 300px\" align=\"left\"><ul><li>number of tiles: <b>%1</b></li>"
+                                         "<li>base exposure time: <b>%2 - %3 sec</b></li><li>body exposure time: <b>%4 - %5 sec</li></b><br/></div>")
+                .arg(tileCount )
+                .arg(QString::number(baseMinExpoTime, 'f', 2 ))
+                .arg(QString::number(baseMaxExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMinExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMaxExpoTime, 'f', 2 ));
+
+
+        //_tilingInfoLabel->setText( tilingInfoText );
+        dispenseText.append(pjInfo);
+        dispenseText.append(tilingInfoText);
+    }
+
     if(solutionRequired > 10.0){
-     dispenseText.append(QString("<br>Total print solution needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
+        dispenseText.append(QString("<br>Total PhotoInk<span style='font-family: arial'>™</span> needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
     }
     _dispensePrintSolutionLabel->setText(dispenseText);
 
-
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
+    _dispensePrintSolutionTitle->setVisible( true );
 
     update( );
 }
@@ -560,8 +608,10 @@ void StatusTab::printerOnlineTimer_timeout()
 
 void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
+    _dispensePrintSolutionTitle->setVisible( false );
+
     _currentLayerGroup->setVisible( true );
-    _printerStateDisplay->setText( "Print solution is settling" );
+    _printerStateDisplay->setText( "PhotoInk<span style='font-family: arial'>™</span> is settling" );
 
     _printManager->printSolutionDispensed( );
 
@@ -601,6 +651,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     case UiState::SliceCompleted:
         _modelFileNameLabel->clear( );
         _imageFileNameLabel->clear();
+        _tilingInfoLabel->clear();
         _stopButton->setVisible( false );
         _reprintButton->setVisible( true );
         break;
