@@ -1,9 +1,11 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "constants.h"
+#include "progressdialog.h"
 #include "slicesorderpopup.h"
 #include "utils.h"
 #include "window.h"
+
 
 SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifestManager):
     _manifestManager(manifestManager)
@@ -152,6 +154,16 @@ void SlicesOrderPopup::fillModel( ) {
 
 void SlicesOrderPopup::oklClicked_clicked( bool ) {
     debug( "+ SlicesOrderPopup::oklClicked_clicked reading element \n" );
+
+    ProgressDialog* dialog = new ProgressDialog(this);
+
+    QObject::connect(_manifestManager.get(), &OrderManifestManager::statusUpdate, dialog,
+        &ProgressDialog::setMessage);
+    QObject::connect(_manifestManager.get(), &OrderManifestManager::progressUpdate, dialog,
+        &ProgressDialog::setProgress);
+
+    dialog->show();
+
     if( _alphaNum->isChecked() )
         _manifestManager->setSortType( ManifestSortType::ALPHANUMERIC );
     else if ( _numerical->isChecked() )
@@ -159,21 +171,27 @@ void SlicesOrderPopup::oklClicked_clicked( bool ) {
     else if ( _custom->isChecked() )
         _manifestManager->setSortType( ManifestSortType::CUSTOM );
 
-    QStringList filenames { };
+    QStringList* filenames = new QStringList;
 
     for(int i=0; i<_model->rowCount(); ++i)
     {
         QString item = _model->item( i )->text();
         if ( _model->item( i, 1)->checkState() == Qt::CheckState::Checked )
-            filenames.push_back( item );
+            filenames->push_back( item );
     }
 
-    _manifestManager->setFileList( filenames );
-    _manifestManager->save();
+    QThread *thread = QThread::create([filenames, dialog, this]{
+        _manifestManager->setFileList( *filenames );
+        _manifestManager->save();
 
-    this->setResult( QDialog::Accepted );
-    this->accept( );
-    this->close( );
+        dialog->hide();
+
+        this->setResult( QDialog::Accepted );
+        this->accept( );
+        this->close( );
+    });
+
+    thread->start();
 }
 
 void SlicesOrderPopup::arrowUp_clicked(bool) {
