@@ -15,6 +15,7 @@
 #include "shepherd.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
+#include "printprofilemanager.h"
 #include "window.h"
 
 namespace {
@@ -452,10 +453,10 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         PrinterMaximumZ
     );
 
-    _dimensionsText = QString { "%1 mm × %2 mm × %3 mm" }
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
+    _dimensionsText = QString {"%1 mm × %2 mm × %3 mm"}
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.x.size, 0, 'f', 2), ' '))
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.y.size, 0, 'f', 2), ' '))
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.z.size, 0, 'f', 2), ' '));
     _dimensionsLabel->setText( _dimensionsText % ", <i>calculating volume…</i>" );
 
     if ( _viewSolid->isChecked( ) ) {
@@ -668,29 +669,28 @@ void FileTab::selectButton_clicked(bool)
     );
 
     if (_modelsLocation == ModelsLocation::Library) {
+        _printJob.reset(new PrintJob(_printProfileManager->activeProfile()));
         if (_modelSelection.type == ModelFileType::File) {
-            _printJob->resetTiling();
             emit modelSelected(&_modelSelection);
             emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
-                _printJob->baseSlices.layerCount = 2;
-                _printJob->baseSlices.layerThickness = match.captured(1).toInt();
-                _printJob->bodySlices.layerThickness = match.captured(1).toInt();
-                _printJob->directoryMode = true;
-                _printJob->directoryPath = _modelSelection.fileName;
+                _printJob->setSelectedBaseLayerThickness(match.captured(1).toInt());
+                _printJob->setSelectedBodyLayerThickness(match.captured(1).toInt());
+                _printJob->setDirectoryMode(true);
+                _printJob->setDirectoryPath(_modelSelection.fileName);
                 emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
-                    _printJob->directoryMode = true;
-                    _printJob->directoryPath = _modelSelection.fileName;
+                    _printJob->setDirectoryMode(true);
+                    _printJob->setDirectoryPath(_modelSelection.fileName);
                     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
                 }
             }
 
-            _printJob->modelFileName = _modelSelection.fileName;
+            _printJob->setModelFilename(_modelSelection.fileName);
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );
@@ -747,7 +747,7 @@ void FileTab::selectButton_clicked(bool)
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
                 if ( copiedFiles > 0 ) {
-                    this->printJob()->directoryMode = true;
+                    this->printJob()->setDirectoryMode(true);
                     emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
                 } else {
                     // TODO inform user of failure somehow

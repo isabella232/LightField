@@ -3,10 +3,14 @@
 #include "svgrenderer.h"
 #include "slicertask.h"
 
-SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, bool reslice, QObject *parent):
+SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, const QString &basePath, bool sliceBase,
+    const QString &bodyPath, bool sliceBody, QObject *parent):
     QObject(parent),
     _printJob(printJob),
-    _reslice(reslice)
+    _basePath(basePath),
+    _bodyPath(bodyPath),
+    _sliceBase(sliceBase),
+    _sliceBody(sliceBody)
 {
 }
 
@@ -14,54 +18,54 @@ void SlicerTask::run()
 {
     debug("+ SlicerTask::run\n");
 
-    bool oneHeight = _printJob->baseSlices.layerThickness == _printJob->bodySlices.layerThickness;
+    bool oneHeight = _printJob->getSelectedBaseLayerThickness() == _printJob->getSelectedBodyLayerThickness();
 
     if (oneHeight)
         debug("  + base and body layers are the same height\n");
 
     try {
-        if (_printJob->hasBaseLayers() && (!_printJob->baseSlices.isPreSliced || _reslice)) {
+        if (_printJob->hasBaseLayers() && _sliceBase) {
             /* Need to reslice base layers */
-            QDir dir { QDir(_printJob->baseSlices.sliceDirectory) };
+            QDir dir { QDir(_basePath) };
             QString output { QString("%1/sliced.svg").arg(dir.path()) };
 
             debug("  + must reslice base layers into %s\n", output.toUtf8().data());
             emit sliceStatus("base layers");
-            _createDirectory(_printJob->baseSlices);
-            _slice(_printJob->modelFileName, output, _printJob->baseSlices.layerThickness);
+            _createDirectory(_basePath);
+            _slice(_printJob->getModelFilename(), output, _printJob->getSelectedBaseLayerThickness());
         }
 
-        if ((!_printJob->bodySlices.isPreSliced || _reslice) && !oneHeight) {
+        if (_sliceBody && !oneHeight) {
             /* Need to reslice body layers */
-            QString output { QString("%1/sliced.svg").arg(_printJob->bodySlices.sliceDirectory) };
+            QString output { QString("%1/sliced.svg").arg(_bodyPath) };
 
             debug("  + must reslice body layers into %s\n", output.toUtf8().data());
             emit sliceStatus("body layers");
-            _createDirectory(_printJob->bodySlices);
-            _slice(_printJob->modelFileName, output, _printJob->bodySlices.layerThickness);
+            _createDirectory(_bodyPath);
+            _slice(_printJob->getModelFilename(), output, _printJob->getSelectedBodyLayerThickness());
         }
 
         emit sliceStatus("finished");
 
-        if (_printJob->hasBaseLayers() && (!_printJob->baseSlices.isPreSliced || _reslice)) {
+        if (_printJob->hasBaseLayers() && _sliceBase) {
             /* Need to render base layers */
 
             debug("  + must render base layers\n");
-            _render(_printJob->baseSlices);
+            _render(_basePath, false);
         }
 
         if (oneHeight) {
             _printJob->setBodyManager(_printJob->getBaseManager());
-            _printJob->bodySlices.layerCount = _printJob->slicedBaseLayerCount() - _printJob->baseSlices.layerCount;
-            emit layerCount(_printJob->totalLayerCount());
         } else {
-            if (!_printJob->bodySlices.isPreSliced || _reslice) {
+            if (_sliceBody) {
                 /* Need to render body layers */
 
                  debug("  + must rendes body layers\n");
-                _render(_printJob->bodySlices);
+                _render(_bodyPath, true);
             }
         }
+
+        emit layerCount(_printJob->totalLayerCount());
     } catch (const std::exception &ex) {
         debug("  + caught exception: %s\n", ex.what());
         emit done(false);
@@ -98,44 +102,30 @@ void SlicerTask::_slice(const QString &input, const QString &output, int layerHe
         throw std::runtime_error("Slicer process crashed");
 }
 
-void SlicerTask::_render(const SliceInformation &slices)
+void SlicerTask::_render(const QString &directory, bool isBody)
 {
     QSharedPointer<OrderManifestManager> manager { new OrderManifestManager };
     QString sliced;
-    QString outputDirectory;
     SvgRenderer renderer;
 
-    switch (slices.type) {
-    case SliceType::SliceBase:
-        QObject::connect(&renderer, &SvgRenderer::layerCount, this, &SlicerTask::_baseLayerCount);
-        QObject::connect(&renderer, &SvgRenderer::layerComplete, this, &SlicerTask::_baseLayerDone);
-        sliced = QString("%1/sliced.svg").arg(_printJob->baseSlices.sliceDirectory);
-        outputDirectory = _printJob->baseSlices.sliceDirectory;
-        break;
-
-    case SliceType::SliceBody:
-        QObject::connect(&renderer, &SvgRenderer::layerCount, this, &SlicerTask::_bodyLayerCount);
+    if (isBody)
         QObject::connect(&renderer, &SvgRenderer::layerComplete, this, &SlicerTask::_bodyLayerDone);
-        sliced = QString("%1/sliced.svg").arg(_printJob->bodySlices.sliceDirectory);
-        outputDirectory = _printJob->bodySlices.sliceDirectory;
-        break;
-    }
+    else
+        QObject::connect(&renderer, &SvgRenderer::layerComplete, this, &SlicerTask::_baseLayerDone);
 
-    renderer.render(sliced, outputDirectory, _printJob, manager);
+    sliced = QString("%1/sliced.svg").arg(directory);
 
-    switch (slices.type) {
-    case SliceType::SliceBase:
-        _printJob->setBaseManager(manager);
-        break;
-    case SliceType::SliceBody:
+    renderer.render(sliced, directory, _printJob, manager);
+
+    if (isBody)
         _printJob->setBodyManager(manager);
-        break;
-    }
+    else
+        _printJob->setBaseManager(manager);
 }
 
-void SlicerTask::_createDirectory(const SliceInformation &slices)
+void SlicerTask::_createDirectory(const QString &path)
 {
-    QDir workDir { QDir(slices.sliceDirectory) };
+    QDir workDir { QDir(path) };
 
     Q_ASSERT(workDir.path().length() > 0);
     Q_ASSERT(workDir.path().startsWith(JobWorkingDirectoryPath));
@@ -144,21 +134,10 @@ void SlicerTask::_createDirectory(const SliceInformation &slices)
     workDir.mkdir(workDir.path());
 }
 
-void SlicerTask::_baseLayerCount(int count)
-{
-    _printJob->baseSlices.layerCount = std::min(_printJob->baseSlices.layerCount, count);
-}
-
 void SlicerTask::_baseLayerDone(int layer, const QString &path)
 {
     emit renderStatus(QString("base layer %1").arg(layer));
     emit layerDone(layer, path);
-}
-
-void SlicerTask::_bodyLayerCount(int count)
-{
-    _printJob->bodySlices.layerCount = count - _printJob->bodyLayerStart();
-    emit layerCount(_printJob->totalLayerCount());
 }
 
 void SlicerTask::_bodyLayerDone(int layer, const QString &path)

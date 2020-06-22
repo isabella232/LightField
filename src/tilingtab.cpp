@@ -307,7 +307,7 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         _setEnabled(false);
         _setupTiling->setEnabled(false);
 
-        if (printJob()->directoryMode) {
+        if (printJob()->getDirectoryMode()) {
             this->_stepBase = 2.0;
             this->_stepBody = 2.0;
             this->_minExposureBase = 10.0;
@@ -378,8 +378,8 @@ void TilingTab::confirmButton_clicked(bool)
                 _minExposureBase, _stepBase, _minExposureBody, _stepBody, _space->getValue(),
                 _count->getValue());
 
-            printJob()->directoryMode = true;
-            printJob()->directoryPath = tilingMgr->getPath();
+            printJob()->setDirectoryMode(true);
+            printJob()->setDirectoryPath(tilingMgr->getPath());
 
             dialog->close();
             delete dialog;

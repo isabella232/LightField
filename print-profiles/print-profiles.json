@@ -6,7 +6,7 @@
         "disregardFirstLayerHeight": false,
         "heatingTemperature": 50,
         "baseLayerCount": 2,
-        "layerSettingsEnabled": false,
+        "advancedExposureEnabled": false,
         "baseLayerParameters": {
             "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
@@ -17,8 +17,8 @@
             "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
-            "layerThickness": 100,
-            "layerExposureTime": 1000,
+            "basicLayerExposureTime": 1000,
+            "advancedLayerExposureTime": 1000,
             "powerLevel": 50.0
         },
         "bodyLayerParameters": {
@@ -32,7 +32,8 @@
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,
-            "layerExposureTime": 1000,
+            "basicLayerExposureTime": 1000,
+            "advancedLayerExposureTime": 1000,
             "powerLevel": 50.0
         }
     }

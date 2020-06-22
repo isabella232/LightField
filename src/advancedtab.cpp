@@ -552,17 +552,19 @@ void AdvancedTab::expoTimeEnabled_changed(int state)
 {
     bool enabled;
 
-    _printJob->enableAdvancedControls(state);
+    (void)state;
     enabled = _printJob->hasAdvancedControlsEnabled();
     setLayersSettingsEnabled(enabled);
 
     if (enabled) {
-        this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue() / 1000;
-        this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() / 1000;
+        auto bodyParams = _printJob->bodyLayerParameters();
+        auto baseParams = _printJob->baseLayerParameters();
+        bodyParams.setAdvancedLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        baseParams.setAdvancedLayerExposureTime(_baseExposureTimeSlider->getValue());
     }
 
     auto activeProfile = _printProfileManager->activeProfile();
-    activeProfile->setLayerSettingsEnabled(enabled);
+    activeProfile->setAdvancedExposureControlsEnabled(enabled);
     emit advancedExposureTimeChanged();
 }
 
@@ -621,33 +623,33 @@ void AdvancedTab::updatePrintProfile()
     activeProfile->setBuildPlatformOffset(_offsetSlider->getValue());
     activeProfile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
     activeProfile->setHeatingTemperature(_bedTemperatureSlider->value());
-    activeProfile->setLayerSettingsEnabled(_expoTimeEnabled->isChecked());
+    activeProfile->setAdvancedExposureControlsEnabled(_expoTimeEnabled->isChecked());
 
     PrintParameters baseParams = activeProfile->baseLayerParameters();
 
     baseParams.setPumpingEnabled(_addBasePumpCheckbox->isChecked());
-    baseParams.setPumpUpDistance( ((double)_distanceSlider->getValue()) / 1000);
+    baseParams.setPumpUpDistance((static_cast<double>(_distanceSlider->getValue()) / 1000));
     baseParams.setPumpUpVelocity(_basePumpUpVelocitySlider->getValue());
     baseParams.setPumpUpPause(_upPauseSlider->getValue());
     baseParams.setPumpDownVelocity(_basePumpDownVelocitySlider->getValue());
     baseParams.setPumpDownPause(_downPauseSlider->getValue());
-    baseParams.setNoPumpUpVelocity( ((double)_baseNoPumpUpVelocitySlider->getValue()));
+    baseParams.setNoPumpUpVelocity((static_cast<double>(_baseNoPumpUpVelocitySlider->getValue())));
     baseParams.setPumpEveryNthLayer(0);
-    baseParams.setLayerExposureTime(_baseExposureTimeSlider->getValue());
+    baseParams.setAdvancedLayerExposureTime(_baseExposureTimeSlider->getValue());
     baseParams.setPowerLevel(_powerLevelSlider->value());
 
     activeProfile->setBaseLayerParameters(baseParams);
 
     PrintParameters bodyParams = activeProfile->bodyLayerParameters();
     bodyParams.setPumpingEnabled(_addBodyPumpCheckbox->isChecked());
-    bodyParams.setPumpUpDistance( ((double)_bodyDistanceSlider->getValue()) / 1000 );
+    bodyParams.setPumpUpDistance((static_cast<double>(_bodyDistanceSlider->getValue()) / 1000 ));
     bodyParams.setPumpUpVelocity(_bodyPumpUpVelocitySlider->getValue());
     bodyParams.setPumpUpPause(_bodyUpPauseSlider->getValue());
     bodyParams.setPumpDownVelocity(_bodyPumpDownVelocitySlider->getValue());
     bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
-    bodyParams.setNoPumpUpVelocity( ((double)_bodyNoPumpUpVelocitySlider->getValue()));
+    bodyParams.setNoPumpUpVelocity((static_cast<double>(_bodyNoPumpUpVelocitySlider->getValue())));
     bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
-    bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
+    bodyParams.setAdvancedLayerExposureTime(_bodyExposureTimeSlider->getValue());
     bodyParams.setPowerLevel(_powerLevelSlider->value());
 
     activeProfile->setBodyLayerParameters(bodyParams);
@@ -665,27 +667,28 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     _addBasePumpCheckbox->setChecked(profile->baseLayerParameters().isPumpingEnabled());
     _addBodyPumpCheckbox->setChecked(profile->bodyLayerParameters().isPumpingEnabled());
 
-    _distanceSlider->setValue( baseParams.pumpUpDistance( ) * 1000.0 );
-    _basePumpUpVelocitySlider->setValue( baseParams.pumpUpVelocity_Effective() );
-    _upPauseSlider->setValue( baseParams.pumpUpPause( ) );
-    _basePumpDownVelocitySlider->setValue( baseParams.pumpDownVelocity_Effective() );
-    _downPauseSlider->setValue( baseParams.pumpDownPause( ) );
-    _baseNoPumpUpVelocitySlider->setValue( baseParams.noPumpUpVelocity( ) );
-    _baseExposureTimeSlider->setValue( baseParams.layerExposureTime( ) );
-    _powerLevelSlider->setValue( baseParams.powerLevel( ) );
+    _distanceSlider->setValue(static_cast<int>(baseParams.pumpUpDistance( ) * 1000.0));
+    _basePumpUpVelocitySlider->setValue(static_cast<int>(baseParams.pumpUpVelocity_Effective()));
+    _upPauseSlider->setValue(baseParams.pumpUpPause());
+    _basePumpDownVelocitySlider->setValue(static_cast<int>(baseParams.pumpDownVelocity_Effective()));
+    _downPauseSlider->setValue(baseParams.pumpDownPause());
+    _baseNoPumpUpVelocitySlider->setValue(static_cast<int>(baseParams.noPumpUpVelocity()));
+    _baseExposureTimeSlider->setValue( baseParams.advancedLayerExposureTime());
+    _powerLevelSlider->setValue(static_cast<int>(baseParams.powerLevel()));
 
-    _bodyDistanceSlider->setValue( bodyParams.pumpUpDistance( ) * 1000.0 );
-    _bodyPumpUpVelocitySlider->setValue( bodyParams.pumpUpVelocity_Effective() );
-    _bodyUpPauseSlider->setValue( bodyParams.pumpUpPause( ) );
-    _bodyPumpDownVelocitySlider->setValue( bodyParams.pumpDownVelocity_Effective() );
-    _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause( ) );
-    _bodyNoPumpUpVelocitySlider->setValue( bodyParams.noPumpUpVelocity( ) );
-    _bodyExposureTimeSlider->setValue( bodyParams.layerExposureTime( ) );
+    _bodyDistanceSlider->setValue(static_cast<int>(bodyParams.pumpUpDistance() * 1000.0));
+    _bodyPumpUpVelocitySlider->setValue(static_cast<int>(bodyParams.pumpUpVelocity_Effective()));
+    _bodyUpPauseSlider->setValue(bodyParams.pumpUpPause());
+    _bodyPumpDownVelocitySlider->setValue(static_cast<int>(bodyParams.pumpDownVelocity_Effective()));
+    _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause());
+    _bodyNoPumpUpVelocitySlider->setValue(static_cast<int>(bodyParams.noPumpUpVelocity()));
+    _bodyExposureTimeSlider->setValue( bodyParams.advancedLayerExposureTime());
     // assume body and base power level are the same for now
     //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
     _bodyPumpEveryNthLayer->setValue( bodyParams.pumpEveryNthLayer( ) );
 
-    _expoTimeEnabled->setChecked( profile->layerSettingsEnabled() );
+    _expoTimeEnabled->setChecked(profile->advancedExposureControlsEnabled());
+    _printJob->setPrintProfile(profile);
     _loadingPrintProfile = false;
 }
 

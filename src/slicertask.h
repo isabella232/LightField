@@ -14,7 +14,8 @@ class SlicerTask: public QObject, public QRunnable
     Q_OBJECT
 
 public:
-    explicit SlicerTask(QSharedPointer<PrintJob> printJob, bool reslice, QObject *parent = nullptr);
+    explicit SlicerTask(QSharedPointer<PrintJob> printJob, const QString &basePath, bool sliceBase,
+        const QString &bodyPath, bool sliceBody, QObject *parent = nullptr);
     virtual void run() override;
 
 signals:
@@ -27,15 +28,16 @@ signals:
 protected:
     int _numThreads();
     void _slice(const QString &input, const QString &output, int layerHeight);
-    void _render(const SliceInformation &slices);
-    void _createDirectory(const SliceInformation &slices);
-    void _baseLayerCount(int count);
+    void _render(const QString &directory, bool isBody);
+    void _createDirectory(const QString &path);
     void _baseLayerDone(int layer, const QString &path);
-    void _bodyLayerCount(int count);
     void _bodyLayerDone(int layer, const QString &path);
 
     QSharedPointer<PrintJob> _printJob;
-    bool _reslice;
+    const QString &_basePath;
+    const QString &_bodyPath;
+    bool _sliceBase;
+    bool _sliceBody;
 };
 
 #endif // SLICERTASK_H

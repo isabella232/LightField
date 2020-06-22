@@ -356,7 +356,6 @@ void ProfilesTab::_updateProfile()
         return;
     }
 
-    profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
     _printProfileManager->saveProfile(profileName);
     profile->debugPrint();
 }

@@ -58,13 +58,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
-
-    _printJob = QSharedPointer<PrintJob>(new PrintJob);
-    _printJob->setPrintProfile(_printProfileManager->activeProfile());
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 100;
-    _printJob->bodySlices.layerThickness = 100;
-
+    _printJob = QSharedPointer<PrintJob>(new PrintJob(_printProfileManager->activeProfile()));
 
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
@@ -89,8 +83,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
-    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
-        _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
         tabA->setPrintJob(_printJob);
@@ -319,8 +311,6 @@ void Window::startPrinting()
     _tabWidget->setCurrentIndex(+TabIndex::Status);
     update();
 
-    const auto& baseSlices = _printJob->baseSlices;
-    const auto& bodySlices = _printJob->bodySlices;
     const auto& baseLayerParameters = _printJob->baseLayerParameters();
     const auto& bodyLayerParameters = _printJob->bodyLayerParameters();
 
@@ -331,14 +321,12 @@ void Window::startPrinting()
         "  + totalLayerCount:            %d\n"
         "  + base slices:\n"
         "    + sliceDirectory:           '%s'\n"
-        "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
         "  + body slices:\n"
         "    + sliceDirectory:           '%s'\n"
-        "    + isPreSliced:              %s\n"
         "    + layerCount:               %d\n"
         "    + layerThickness:           %d\n"
         "    + startLayer:               %d\n"
@@ -348,21 +336,19 @@ void Window::startPrinting()
         "",
 
         _printJob,
-        _printJob->modelFileName.toUtf8().data(),
-        _printJob->modelHash.toUtf8().data(),
+        _printJob->getModelFilename().toUtf8().data(),
+        _printJob->getModelHash().toUtf8().data(),
         _printJob->totalLayerCount(),
 
-        baseSlices.sliceDirectory.toUtf8().data(),
-        ToString( baseSlices.isPreSliced ),
-        baseSlices.layerCount,
-        baseSlices.layerThickness,
+        _printJob->getBaseManager()->path().toUtf8().data(),
+        _printJob->getBaseLayerCount(),
+        _printJob->getBaseLayerThickness(),
         _printJob->baseLayerStart(),
         _printJob->baseLayerEnd(),
 
-        bodySlices.sliceDirectory.toUtf8().data(),
-        ToString( bodySlices.isPreSliced ),
-        bodySlices.layerCount,
-        bodySlices.layerThickness,
+        _printJob->getBodyManager()->path().toUtf8().data(),
+        _printJob->getBodyLayerCount(),
+        _printJob->getBodyLayerThickness(),
         _printJob->bodyLayerStart(),
         _printJob->bodyLayerEnd()
     );
@@ -379,24 +365,24 @@ void Window::startPrinting()
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %.2f s\n"
+        "      + basicLayerExposureTime: %.2f s\n"
+        "      + advLayerExposureTime:   %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
-        _printJob->baseSlices.layerCount,
-        ToString( baseLayerParameters.isPumpingEnabled( ) ),
-        baseLayerParameters.pumpUpDistance( ),
-        baseLayerParameters.pumpUpVelocity_Effective( ),
-        baseLayerParameters.pumpUpPause( ),
-        baseLayerParameters.pumpDownDistance_Effective( ),
-        baseLayerParameters.pumpDownVelocity_Effective( ),
-        baseLayerParameters.pumpDownPause( ),
-        baseLayerParameters.noPumpUpVelocity( ),
-        baseLayerParameters.pumpEveryNthLayer( ),
-        baseLayerParameters.layerThickness( ),
-        baseSlices.exposureTime,
-        baseLayerParameters.powerLevel( )
+        _printJob->getBaseLayerCount(),
+        ToString( baseLayerParameters.isPumpingEnabled()),
+        baseLayerParameters.pumpUpDistance(),
+        baseLayerParameters.pumpUpVelocity_Effective(),
+        baseLayerParameters.pumpUpPause(),
+        baseLayerParameters.pumpDownDistance_Effective(),
+        baseLayerParameters.pumpDownVelocity_Effective(),
+        baseLayerParameters.pumpDownPause(),
+        baseLayerParameters.noPumpUpVelocity(),
+        baseLayerParameters.pumpEveryNthLayer(),
+        baseLayerParameters.basicLayerExposureTime(),
+        baseLayerParameters.advancedLayerExposureTime(),
+        baseLayerParameters.powerLevel()
     );
 
 
@@ -411,28 +397,28 @@ void Window::startPrinting()
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %.2f s\n"
+        "      + basicLayerExposureTime: %.2f s\n"
+        "      + advLayerExposureTime:   %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
 
-        ToString( bodyLayerParameters.isPumpingEnabled( ) ),
-        bodyLayerParameters.pumpUpDistance( ),
-        bodyLayerParameters.pumpUpVelocity_Effective( ),
-        bodyLayerParameters.pumpUpPause( ),
-        bodyLayerParameters.pumpDownDistance_Effective( ),
-        bodyLayerParameters.pumpDownVelocity_Effective( ),
-        bodyLayerParameters.pumpDownPause( ),
-        bodyLayerParameters.noPumpUpVelocity( ),
-        bodyLayerParameters.pumpEveryNthLayer( ),
-        bodyLayerParameters.layerThickness( ),
-        bodySlices.exposureTime,
-        bodyLayerParameters.powerLevel( )
+        ToString( bodyLayerParameters.isPumpingEnabled()),
+        bodyLayerParameters.pumpUpDistance(),
+        bodyLayerParameters.pumpUpVelocity_Effective(),
+        bodyLayerParameters.pumpUpPause(),
+        bodyLayerParameters.pumpDownDistance_Effective(),
+        bodyLayerParameters.pumpDownVelocity_Effective(),
+        bodyLayerParameters.pumpDownPause(),
+        bodyLayerParameters.noPumpUpVelocity(),
+        bodyLayerParameters.pumpEveryNthLayer(),
+        bodyLayerParameters.basicLayerExposureTime(),
+        bodyLayerParameters.advancedLayerExposureTime(),
+        bodyLayerParameters.powerLevel()
     );
 
-    QSharedPointer<PrintJob> job(_printJob);
     _printJob.reset(new PrintJob(*_printJob));
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
 
     PrintManager* oldPrintManager = _printManager;
 
@@ -446,7 +432,7 @@ void Window::startPrinting()
     emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( job );
+    _printManager->print( _printJob );
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );
@@ -464,7 +450,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered(this->_printJob->directoryMode);
+            _setModelRendered(this->_printJob->getDirectoryMode());
             if (_tabWidget->currentIndex() == +TabIndex::File ||
                 _tabWidget->currentIndex() == +TabIndex::Tiling) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);
@@ -539,7 +525,8 @@ void Window::printManager_printAborted( ) {
     update( );
 }
 
-void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
+void Window::fileTab_modelSelected(ModelSelectionInfo const* modelSelection)
+{
     if ( _modelSelection ) {
         delete _modelSelection;
     }
@@ -562,13 +549,9 @@ void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
         _modelSelection->estimatedVolume
     );
 
-    _printJob->directoryMode   = false;
-    _printJob->vertexCount     = _modelSelection->vertexCount;
-    _printJob->x               = _modelSelection->x;
-    _printJob->y               = _modelSelection->y;
-    _printJob->z               = _modelSelection->z;
-    _printJob->estimatedVolume = _modelSelection->estimatedVolume;
-    _printJob->modelFileName   = _modelSelection->fileName;
+    _printJob->setDirectoryMode(false);
+    //_printJob->getBodyManager()->setVolume(_modelSelection->estimatedVolume);
+    _printJob->setModelFilename(_modelSelection->fileName);
 
     _setModelRendered( false );
 }

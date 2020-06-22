@@ -25,8 +25,6 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
     QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
 
-
-
     _powerLevelSlider->innerSlider()->setPageStep( 5 );
     _powerLevelSlider->innerSlider()->setSingleStep( 1 );
     _powerLevelSlider->innerSlider()->setTickInterval( 5 );
@@ -117,8 +115,6 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
-    //TODO: debug slider itself instead of overwriting it
-    _bodyExposureTimeSlider->setValue(1000);
 
     _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
     _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
@@ -146,8 +142,14 @@ void PrintTab::projectorPowerLevel_changed(int percentage)
 
 
 void PrintTab::exposureTime_update( ) {
-    _printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValueDouble();
-    _printJob->baseSlices.exposureTime = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
+    if (_printJob->hasBasicControlsEnabled()) {
+        auto bodyParams = _printJob->bodyLayerParameters();
+        auto baseParams = _printJob->baseLayerParameters();
+        bodyParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        baseParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue() *
+            _baseExposureTimeSlider->getValue());
+        emit basicExposureTimeChanged();
+    }
     update( );
 }
 
@@ -259,21 +261,24 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
     debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s; PO? %s PA? %s PP? %s MR? %s\n", ToString( sender ), ToString( _uiState ), ToString( state ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
     _uiState = state;
 
+    auto bodyParams = _printJob->bodyLayerParameters();
+    auto baseParams = _printJob->baseLayerParameters();
+
     switch (_uiState) {
         case UiState::SelectCompleted:
             _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
             _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
-            if(!_printJob->isTiled()) {
+            if(!_printJob->isTiled())
                 _expoDisabledTilingWarning->hide();
-            } else {
+            else
                 _expoDisabledTilingWarning->show();
-            }
 
-            _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
-            _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
-                _printJob->bodySlices.exposureTime);
+
+            _bodyExposureTimeSlider->setValue(bodyParams.basicLayerExposureTime());
+            _baseExposureTimeSlider->setValue(baseParams.basicLayerExposureTime() /
+                bodyParams.basicLayerExposureTime());
 
             break;
 
@@ -315,9 +320,11 @@ void PrintTab::changeExpoTimeSliders()
     _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     if(enable) {
-        this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
-        this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() *
-            _bodyExposureTimeSlider->getValue();
+        auto bodyParams = _printJob->bodyLayerParameters();
+        auto baseParams = _printJob->baseLayerParameters();
+        bodyParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        baseParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue() *
+            _baseExposureTimeSlider->getValue());
     }
 }
 

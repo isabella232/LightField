@@ -56,7 +56,6 @@ public:
         return _running;
     }
 
-    QString& currentLayerImage();
 
 private:
     Shepherd*           _shepherd                 { };

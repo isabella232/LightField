@@ -31,7 +31,7 @@ void TilingManager::processImages(int width, int height, double baseExpoTime, do
         .arg(_bodyStep)
         .arg(_count)
         .arg(_space)
-        .arg(_printJob->modelHash);
+        .arg(_printJob->getModelHash());
 
     _path = JobWorkingDirectoryPath % Slash % dirName;
 
@@ -46,15 +46,15 @@ void TilingManager::processImages(int width, int height, double baseExpoTime, do
     manifestMgr.setFileList(_fileNameList);
     manifestMgr.setExpoTimeList(_expoTimeList);
     manifestMgr.setLayerThicknessList(_layerThicknessList);
-    manifestMgr.setBaseLayerThickness(_printJob->baseSlices.layerThickness);
-    manifestMgr.setBodyLayerThickness(_printJob->bodySlices.layerThickness);
-    manifestMgr.setBaseLayerCount(_printJob->baseSlices.layerCount);
+    manifestMgr.setBaseLayerThickness(_printJob->getSelectedBaseLayerThickness());
+    manifestMgr.setBodyLayerThickness(_printJob->getSelectedBodyLayerThickness());
+    manifestMgr.setBaseLayerCount(_printJob->getBaseLayerCount());
     manifestMgr.setPath(JobWorkingDirectoryPath % Slash % dirName);
 
     manifestMgr.setTiled(true);
     manifestMgr.setTilingSpace(_space);
     manifestMgr.setTilingCount(_count);
-    manifestMgr.setVolume(_count * _printJob->estimatedVolume);
+    manifestMgr.setVolume(_count * _printJob->getEstimatedVolume());
 
     manifestMgr.save();
 }
@@ -140,12 +140,12 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
-        if( sequence < _printJob->baseSlices.layerCount ) {
+        if( sequence < _printJob->getBaseLayerCount() ) {
             _expoTimeList.push_back(e == _wCount ? _baseExpoTime : _baseStep );
-            _layerThicknessList.push_back(e == 1 ? _printJob->baseSlices.layerThickness : 0);
+            _layerThicknessList.push_back(e == 1 ? _printJob->getSelectedBaseLayerThickness() : 0);
         } else {
             _expoTimeList.push_back(e == _wCount ? _bodyExpoTime : _bodyStep );
-            _layerThicknessList.push_back(e == 1 ? _printJob->bodySlices.layerThickness : 0);
+            _layerThicknessList.push_back(e == 1 ? _printJob->getSelectedBodyLayerThickness() : 0);
         }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );

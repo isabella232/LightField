@@ -9,8 +9,8 @@
 #include "printjob.h"
 
 class Hasher;
-class SliceInformation;
 class SvgRenderer;
+
 
 class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
@@ -23,7 +23,6 @@ public:
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
-    void             loadPrintProfile(QSharedPointer<PrintProfile> profile);
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
@@ -94,8 +93,8 @@ private:
 
 
 
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody );
-    void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
+    bool _checkPreSlicedFiles(const QString &directory, bool isBody);
+    bool _checkOneSliceDirectory(const QString &directory, bool isBody);
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage(int const layer);

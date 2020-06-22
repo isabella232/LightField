@@ -473,7 +473,7 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
-    double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
+    double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->getEstimatedVolume() / 1000.0;
 
     QString dispenseText = QString("Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
     if(solutionRequired > 10.0){
@@ -606,7 +606,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         break;
 
     case UiState::PrintStarted:
-        _modelFileNameLabel->setText( "Model: " % _printJob->modelFileName.right( _printJob->modelFileName.length( ) - _printJob->modelFileName.lastIndexOf( Slash ) - 1 ) );
+        _modelFileNameLabel->setText( "Model: " % _printJob->getModelFilename().right( _printJob->getModelFilename().length( ) - _printJob->getModelFilename().lastIndexOf( Slash ) - 1 ) );
         _stopButton->setEnabled( true );
         _stopButton->setText( "STOP" );
         _stopButton->setVisible( true );

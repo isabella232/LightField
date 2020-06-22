@@ -50,12 +50,11 @@ public:
                 printProfile->setActive(obj["active"].toBool(false));
                 printProfile->setBuildPlatformOffset(obj["buildPlatformOffset"].toInt());
                 printProfile->setDisregardFirstLayerHeight(obj["disregardFirstLayerHeight"].toBool());
-                printProfile->setBaseLayerCount(obj["baseLayerCount"].toInt(2));
                 printProfile->setBaseLayerParameters(_parsePrintParameters(
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
                     obj["bodyLayerParameters"]));
-                printProfile->setLayerSettingsEnabled(obj["layerSettingsEnabled"].toBool());
+                printProfile->setAdvancedExposureControlsEnabled(obj["advancedExposureEnabled"].toBool());
                 profilesList.insert(printProfile->profileName(), printProfile);
             }
             catch (const std::exception &ex)
@@ -86,8 +85,7 @@ public:
                 {"buildPlatformOffset", profile->buildPlatformOffset()},
                 {"disregardFirstLayerHeight", profile->disregardFirstLayerHeight()},
                 {"heatingTemperature", profile->heatingTemperature()},
-                {"baseLayerCount", profile->baseLayerCount()},
-                {"layerSettingsEnabled", profile->layerSettingsEnabled() ? true : false},
+                {"advancedExposureEnabled", profile->advancedExposureControlsEnabled()},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
                 {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())}
             };
@@ -110,8 +108,8 @@ private:
             return params;
 
         obj = value.toObject();
-        params.setLayerThickness(obj["layerThickness"].toInt(100));
-        params.setLayerExposureTime(obj["layerExposureTime"].toInt());
+        params.setBasicLayerExposureTime(obj["basicLayerExposureTime"].toInt());
+        params.setAdvancedLayerExposureTime(obj["advancedLayerExposureTime"].toInt());
         params.setPowerLevel(obj["powerLevel"].toInt());
         params.setPumpingEnabled(obj["pumpingEnabled"].toBool(false));
         params.setPumpUpDistance(obj["pumpUpDistance"].toDouble(1.0));
@@ -127,8 +125,8 @@ private:
     static QJsonObject _serializePrintParameters(const PrintParameters& params)
     {
         return QJsonObject {
-            {"layerThickness", params.layerThickness()},
-            {"layerExposureTime", params.layerExposureTime()},
+            {"basicLayerExposureTime", params.basicLayerExposureTime()},
+            {"advancedLayerExposureTime", params.advancedLayerExposureTime()},
             {"powerLevel", params.powerLevel()},
             {"pumpingEnabled", params.isPumpingEnabled()},
             {"pumpUpDistance", params.pumpUpDistance()},

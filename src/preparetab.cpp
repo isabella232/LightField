@@ -222,27 +222,30 @@ void PrepareTab::_connectShepherd( ) {
 }
 
 void PrepareTab::_initialShowEvent( QShowEvent* event ) {
-    _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
-    update( );
+    _currentLayerImage->setFixedSize(_currentLayerImage->width( ),
+        static_cast<int>(_currentLayerImage->width( ) / AspectRatio16to10 + 0.5));
+    update();
 
-    event->accept( );
+    event->accept();
 }
 
-void PrepareTab::_connectUsbMountManager( ) {
+void PrepareTab::_connectUsbMountManager()
+{
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &PrepareTab::usbMountManager_filesystemMounted   );
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &PrepareTab::usbMountManager_filesystemUnmounted );
 }
 
-bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody ) {
+bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
+{
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
-    auto modelFile = QFileInfo { _printJob->modelFileName };
+    auto modelFile = QFileInfo {_printJob->getModelFilename()};
     if ( !modelFile.exists( ) ) {
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
-    auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory + Slash + SlicedSvgFileName };
+    auto slicedSvgFile = QFileInfo { directory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -250,13 +253,14 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     // check that the sliced SVG file is newer than the STL file
     auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
-    if ( !_printJob->modelFileName.isEmpty( ) ) {
-        auto modelFile = QFileInfo { _printJob->modelFileName };
+    if (!_printJob->getModelFilename().isEmpty( )) {
+        auto modelFile = QFileInfo { _printJob->getModelFilename() };
         if ( !modelFile.exists( ) ) {
             debug( "  + Fail: model file does not exist\n" );
             return false;
         }
-        if ( !_printJob->modelFileName.isEmpty( ) && ( modelFile.lastModified( ) > slicedSvgFileLastModified ) ) {
+        if (!_printJob->getModelFilename().isEmpty() &&
+            (modelFile.lastModified() > slicedSvgFileLastModified)) {
             debug( "  + Fail: model file is newer than sliced SVG file\n" );
             return false;
         }
@@ -267,7 +271,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath( sliceInfo.sliceDirectory);
+    manifestMgr->setPath(directory);
     QStringList errors;
     QStringList warnings;
 
@@ -281,10 +285,6 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         /* FALLTHROUGH */
 
     case ManifestParseResult::POSITIVE:
-        if(manifestMgr->tiled()){
-            debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
-            _printJob->estimatedVolume = manifestMgr->manifestVolume();
-        }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
     case ManifestParseResult::FILE_NOT_EXIST: {
@@ -301,7 +301,7 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
     while (iter.hasNext()) {
-        QFileInfo entry(sliceInfo.sliceDirectory % Slash % *iter);
+        QFileInfo entry(directory % Slash % *iter);
         ++iter;
 
         if (!entry.exists()) {
@@ -319,54 +319,55 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     }
 
     if(isBody)
-        _printJob->setBodyManager( manifestMgr );
+        _printJob->setBodyManager(manifestMgr);
     else
-        _printJob->setBaseManager( manifestMgr );
+        _printJob->setBaseManager(manifestMgr);
 
-    debug("  + Success: %d layers\n", sliceInfo.layerCount);
+    debug("  + Success\n");
     return true;
 }
 
-void PrepareTab::_checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices ) {
-    //debug(" PrepareTab::_checkOneSliceDirectory %s (%d)\n", type, slices.layerCount);
-    if ( type == SliceDirectoryType::SLICE_BASE && slices.layerCount == 0 ) {
-        debug( "  + base layer count is zero, skipping\n");
+bool PrepareTab::_checkOneSliceDirectory(const QString &directory, bool isBody)
+{
+    bool isPreSliced;
 
-        return;
-    }
-
-    if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
-        slices.isPreSliced = false;
-        debug( "  + no pre-sliced %s layers\n", type == SliceDirectoryType::SLICE_BASE ? "base" : "body" );
+    if (QDir slicesDir { directory }; !slicesDir.exists()) {
+        isPreSliced = false;
+        debug("  + no pre-sliced %s layers\n", isBody ? "body" : "base");
     } else {
-        slices.isPreSliced = _checkPreSlicedFiles( slices, type == SliceDirectoryType::SLICE_BODY );
-        debug( "  + pre-sliced layers are %sgood\n", slices.isPreSliced ? "" : "NOT " );
+        isPreSliced = _checkPreSlicedFiles(directory, isBody);
+        debug("  + pre-sliced layers are %sgood\n", isPreSliced ? "" : "NOT ");
 
-        if ( !slices.isPreSliced ) {
-            slicesDir.removeRecursively( );
+        if (!isPreSliced) {
+            slicesDir.removeRecursively();
         }
     }
+
+    return isPreSliced;
 }
 
-bool PrepareTab::_checkSliceDirectories( )
+bool PrepareTab::_checkSliceDirectories()
 {
-    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
+    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->getModelHash() };
+    QString baseSliceDirectory;
+    QString bodySliceDirectory;
+    bool preSliced = true;
 
-    if(_printJob->directoryMode) {
+    if(_printJob->getDirectoryMode()) {
         debug("+ PrepareTab::_checkSliceDirectories: directory mode, nothing to do\n");
         emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
         return true;
     }
 
     if(_printJob->hasBaseLayers()) {
-        _printJob->baseSlices.sliceDirectory = QString("%1-%2")
-            .arg( sliceDirectoryBase)
-            .arg(_printJob->baseSlices.layerThickness);
+        baseSliceDirectory = QString("%1-%2")
+            .arg(sliceDirectoryBase)
+            .arg(_printJob->getSelectedBaseLayerThickness());
     }
 
-    _printJob->bodySlices.sliceDirectory = QString("%1-%2")
+    bodySliceDirectory = QString("%1-%2")
         .arg(sliceDirectoryBase)
-        .arg(_printJob->bodySlices.layerThickness);
+        .arg(_printJob->getSelectedBodyLayerThickness());
 
     debug(
         "+ PrepareTab::_checkSliceDirectories:"
@@ -374,17 +375,17 @@ bool PrepareTab::_checkSliceDirectories( )
         "  + base slices directory: '%s'\n"
         "  + body slices directory: '%s'\n"
         "",
-        _printJob->modelFileName.toUtf8().data(),
-        _printJob->baseSlices.sliceDirectory.toUtf8().data(),
-        _printJob->bodySlices.sliceDirectory.toUtf8().data()
+        _printJob->getModelFilename().toUtf8().data(),
+        baseSliceDirectory.toUtf8().data(),
+        bodySliceDirectory.toUtf8().data()
     );
 
-    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BASE, _printJob->baseSlices );
-    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BODY, _printJob->bodySlices );
+    if(_printJob->hasBaseLayers())
+        preSliced &= _checkOneSliceDirectory(baseSliceDirectory, false);
+    preSliced &= _checkOneSliceDirectory(bodySliceDirectory, true);
 
-    auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
-    _setNavigationButtonsEnabled( preSliced );
-    _setSliceControlsEnabled( true );
+    _setNavigationButtonsEnabled(preSliced);
+    _setSliceControlsEnabled(true);
 
     if (preSliced) {
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice..." : "Reslice...");
@@ -410,26 +411,26 @@ bool PrepareTab::_checkSliceDirectories( )
 
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 100;
-    _printJob->bodySlices.layerThickness = 100;
+    _printJob->setBaseLayerCount(2);
+    _printJob->setSelectedBaseLayerThickness(100);
+    _printJob->setSelectedBodyLayerThickness(100);
     _checkSliceDirectories();
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 50;
-    _printJob->bodySlices.layerThickness = 50;
+    _printJob->setBaseLayerCount(2);
+    _printJob->setSelectedBaseLayerThickness(50);
+    _printJob->setSelectedBodyLayerThickness(50);
     _checkSliceDirectories();
 }
 
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 20;
-    _printJob->bodySlices.layerThickness = 20;
+    _printJob->setBaseLayerCount(2);
+    _printJob->setSelectedBaseLayerThickness(20);
+    _printJob->setSelectedBodyLayerThickness(20);
     _checkSliceDirectories();
 }
 #endif // defined EXPERIMENTAL
@@ -554,7 +555,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath(_printJob->directoryPath);
+    manifestMgr->setPath(_printJob->getDirectoryPath());
 
     SlicesOrderPopup popup { manifestMgr };
     popup.exec();
@@ -562,19 +563,32 @@ void PrepareTab::orderButton_clicked( bool ) {
     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
 }
 
-void PrepareTab::sliceButton_clicked( bool ) {
-    debug( "+ PrepareTab::sliceButton_clicked\n" );
-    debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
-    debug("  + base layer thickness: %d\n", _printJob->baseLayerThickness());
-    debug("  + body layer thickness: %d\n", _printJob->bodyLayerThickness());
+void PrepareTab::sliceButton_clicked(bool)
+{
+    debug("+ PrepareTab::sliceButton_clicked\n");
+    debug("  + number of base layers: %d\n", _printJob->getBaseLayerCount());
+    debug("  + base layer thickness: %d\n", _printJob->getSelectedBaseLayerThickness());
+    debug("  + body layer thickness: %d\n", _printJob->getSelectedBodyLayerThickness());
 
-    _sliceStatus->setText( "starting base layers" );
-    _imageGeneratorStatus->setText( "waiting" );
+    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->getModelHash() };
+    QString baseSliceDirectory = QString("%1-%2")
+        .arg(sliceDirectoryBase)
+        .arg(_printJob->getSelectedBaseLayerThickness());
+    QString bodySliceDirectory = QString("%1-%2")
+        .arg(sliceDirectoryBase)
+        .arg(_printJob->getSelectedBodyLayerThickness());
+
+    _sliceStatus->setText("starting base layers");
+    _imageGeneratorStatus->setText( "waiting");
     _setNavigationButtonsEnabled(false);
 
-    TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
+    TimingLogger::startTiming(TimingId::SlicingSvg, GetFileBaseName(_printJob->getModelFilename()));
 
-    SlicerTask *task { new SlicerTask(_printJob, _reslice) };
+    bool basePresliced = _checkOneSliceDirectory(baseSliceDirectory, false);
+    bool bodyPresliced = _checkOneSliceDirectory(bodySliceDirectory, true);
+
+    SlicerTask *task { new SlicerTask(_printJob, baseSliceDirectory, basePresliced || _reslice,
+        bodySliceDirectory, bodyPresliced || _reslice) };
     QObject::connect(task, &SlicerTask::sliceStatus, this, &PrepareTab::slicingStatusUpdate);
     QObject::connect(task, &SlicerTask::renderStatus, this, &PrepareTab::renderingStatusUpdate);
     QObject::connect(task, &SlicerTask::layerCount, this, &PrepareTab::layerCountUpdate);
@@ -582,13 +596,14 @@ void PrepareTab::sliceButton_clicked( bool ) {
     QObject::connect(task, &SlicerTask::done, this, &PrepareTab::slicingDone);
     _threadPool.start(task);
 
-    _setSliceControlsEnabled( false );
-    emit uiStateChanged( TabIndex::Prepare, UiState::SliceStarted );
+    _setSliceControlsEnabled(false);
+    emit uiStateChanged(TabIndex::Prepare, UiState::SliceStarted);
 
-    update( );
+    update();
 }
 
-void PrepareTab::hasher_resultReady( QString const hash ) {
+void PrepareTab::hasher_resultReady(QString const hash)
+{
     debug(
         "+ PrepareTab::hasher_resultReady:\n"
         "  + result hash:           '%s'\n"
@@ -596,7 +611,8 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         hash.toUtf8( ).data( )
     );
 
-    _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
+    _printJob->setModelHash(
+        hash.isEmpty() ? QString("%1-%2").arg(time(nullptr)).arg(getpid()) : hash);
 
     _sliceStatus->setText("Idle");
     _hasher = nullptr;
@@ -656,7 +672,7 @@ void PrepareTab::_loadDirectoryManifest()
     QStringList warnings;
     QString warningsStr;
 
-    manifestMgr->setPath(_printJob->directoryPath);
+    manifestMgr->setPath(_printJob->getDirectoryPath());
 
     switch(manifestMgr->parse(&errors, &warnings))
     {
@@ -666,10 +682,6 @@ void PrepareTab::_loadDirectoryManifest()
         /* FALLTHROUGH */
 
     case ManifestParseResult::POSITIVE:
-        if (manifestMgr->tiled()) {
-            // in case of tiled design volume comes from manifest file instead of model calculation
-            _printJob->estimatedVolume = manifestMgr->manifestVolume();
-        }
         break;
 
     case ManifestParseResult::FILE_CORRUPTED:
@@ -679,9 +691,9 @@ void PrepareTab::_loadDirectoryManifest()
 
             manifestMgr->setTiled(false);
             manifestMgr->requireAreaCalculation();
-            manifestMgr->setBaseLayerCount( 2 );
-            manifestMgr->setBodyLayerThickness( 100 );
-            manifestMgr->setBaseLayerThickness( 100 );
+            manifestMgr->setBaseLayerCount(2);
+            manifestMgr->setBodyLayerThickness(100);
+            manifestMgr->setBaseLayerThickness(100);
 
             SlicesOrderPopup slicesOrderPopup { manifestMgr };
             slicesOrderPopup.exec();
@@ -690,19 +702,11 @@ void PrepareTab::_loadDirectoryManifest()
     }
 
     _printJob->setBaseManager(manifestMgr);
-    _printJob->bodySlices.isPreSliced = true;
-    _printJob->bodySlices.sliceDirectory = manifestMgr->path();
 
-    if (manifestMgr->tiled()) {
-        _printJob->baseSlices.layerCount = manifestMgr->baseLayerCount();
-        _printJob->baseSlices.isPreSliced = true;
-        _printJob->baseSlices.layerThickness = -1;
-        _printJob->baseSlices.sliceDirectory = manifestMgr->path();
-    }
+    if (manifestMgr->tiled())
+        _printJob->setSelectedBaseLayerThickness(-1);
 
     _printJob->setBodyManager(manifestMgr);
-    if (manifestMgr->tiled())
-        _printJob->bodySlices.layerCount = manifestMgr->getSize() - manifestMgr->baseLayerCount();
 
     _orderButton->setEnabled(true);
     _setSliceControlsEnabled(false);
@@ -822,9 +826,9 @@ void PrepareTab::_updateSliceControls() {
     _layerThickness20Button->setChecked(false);
 #endif
 
-    if (_printJob->baseSlices.layerThickness == _printJob->bodySlices.layerThickness &&
-        _printJob->baseSlices.layerCount == 2) {
-        switch (_printJob->baseSlices.layerThickness) {
+    if (_printJob->getSelectedBaseLayerThickness() == _printJob->getSelectedBodyLayerThickness() &&
+        _printJob->getBaseLayerCount() == 2) {
+        switch (_printJob->getSelectedBaseLayerThickness()) {
         case 100:
             _layerThickness100Button->setChecked(true);
             return;
@@ -851,7 +855,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     switch (_uiState) {
     case UiState::SelectCompleted:
 
-        if( !_printJob->directoryMode ) {
+        if (!_printJob->getDirectoryMode()) {
             _setSliceControlsEnabled(false);
 
             _sliceStatus->setText("idle");
@@ -866,7 +870,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
             _hasher = new Hasher;
             QObject::connect(_hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection);
-            _hasher->hash(_printJob->modelFileName, QCryptographicHash::Md5);
+            _hasher->hash(_printJob->getModelFilename(), QCryptographicHash::Md5);
 
         } else {
             _setSliceControlsEnabled(false);
@@ -880,7 +884,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::SliceCompleted:
-        if ( !_printJob->directoryMode )
+        if (!_printJob->getDirectoryMode())
             _setSliceControlsEnabled(true);
         break;
 
@@ -892,8 +896,8 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::PrintCompleted:
-        _setSliceControlsEnabled(!_printJob->directoryMode && !_printJob->isTiled());
-        _orderButton->setEnabled( _printJob->directoryMode );
+        _setSliceControlsEnabled(!_printJob->getDirectoryMode() && !_printJob->isTiled());
+        _orderButton->setEnabled(_printJob->getDirectoryMode());
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
         break;
@@ -946,36 +950,6 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     _updatePrepareButtonState( );
 }
 
-void PrepareTab::loadPrintProfile(QSharedPointer<PrintProfile> profile) {
-    _printJob->baseSlices.layerCount = profile->baseLayerCount();
-    _printJob->baseSlices.layerThickness = profile->baseLayerParameters().layerThickness();
-    _printJob->bodySlices.layerThickness = profile->bodyLayerParameters().layerThickness();
-    _updateSliceControls();
-}
-
-//void PrepareTab::copyToUSB_clicked( bool ) {
-//    debug( "+ PrepareTab::copyToUSB_clicked\n" );
-//
-//    QDir jobDir   { _printJob->jobWorkingDirectory };
-//    QDir mediaDir { _usbPath };
-//    mediaDir.mkdir( jobDir.dirName( ) );
-//
-//    QDirIterator it { _printJob->jobWorkingDirectory };
-//    while ( it.hasNext( ) ) {
-//        QString   fileName { it.next( ) };
-//        QFileInfo fileInfo { fileName   };
-//
-//        QString dest { _usbPath % Slash % jobDir.dirName( ) % Slash % fileInfo.fileName( ) };
-//
-//        debug( "  + copying %s\n", dest.toUtf8( ).data( ) );
-//        if ( !QFile::copy( fileName, dest ) ) {
-//            // TODO
-//        }
-//    }
-//
-//    update( );
-//}
-
 void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
     debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
 
@@ -992,10 +966,6 @@ void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) 
 
     _usbPath = mountPoint;
 
-    //if ( !_directoryMode && _checkPreSlicedFiles( ) ) {
-    //    _copyToUSBButton->setEnabled( true );
-    //}
-
     update( );
 }
 
@@ -1008,8 +978,6 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
     }
 
     _usbPath.clear( );
-
-    //_copyToUSBButton->setEnabled( false );
 
     update( );
 }

@@ -126,11 +126,6 @@ PrintManager::~PrintManager( ) {
     /*empty*/
 }
 
-QString& PrintManager::currentLayerImage()
-{
-    return _printJob->currentImageFile.remove(0,1);
-}
-
 QTimer* PrintManager::_makeAndStartTimer( int const interval, void ( PrintManager::*func )( ) ) {
     auto timer = new QTimer( this );
     QObject::connect( timer, &QTimer::timeout, this, func );
@@ -328,8 +323,12 @@ void PrintManager::stepB2_start( ) {
     if (_isTiled) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
-    } else
-        layerExposureTime = 1000.0 * _printJob->baseSlices.exposureTime;
+    } else {
+        if (_printJob->hasBasicControlsEnabled())
+            layerExposureTime = _printJob->baseLayerParameters().basicLayerExposureTime();
+        else
+            layerExposureTime = _printJob->baseLayerParameters().advancedLayerExposureTime();
+    }
 
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
 
@@ -640,8 +639,12 @@ void PrintManager::stepC2_start( ) {
     if (_isTiled) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
-    } else
-        layerExposureTime = 1000.0 * _printJob->bodySlices.exposureTime;
+    } else {
+        if (_printJob->hasBasicControlsEnabled())
+            layerExposureTime = _printJob->bodyLayerParameters().basicLayerExposureTime();
+        else
+            layerExposureTime = _printJob->bodyLayerParameters().advancedLayerExposureTime();
+    }
 
     debug( "+ PrintManager::stepC2_start: pausing for %d ms\n", layerExposureTime );
 
@@ -1026,15 +1029,15 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     }
 
     if (printJob->isTiled()) {
-        Q_ASSERT(printJob->baseSlices.layerThickness == -1);
-        Q_ASSERT(printJob->bodySlices.layerThickness == -1);
+        Q_ASSERT(printJob->getSelectedBaseLayerThickness() == -1);
+        Q_ASSERT(printJob->getSelectedBodyLayerThickness() == -1);
     } else {
         if (printJob->hasBaseLayers()) {
-            Q_ASSERT(printJob->baseSlices.layerCount > 0);
-            Q_ASSERT(printJob->baseSlices.layerThickness > 0);
+            Q_ASSERT(printJob->getBaseLayerCount() > 0);
+            Q_ASSERT(printJob->getSelectedBaseLayerThickness() > 0);
         }
 
-        Q_ASSERT(printJob->bodySlices.layerThickness > 0);
+        Q_ASSERT(printJob->getSelectedBodyLayerThickness() > 0);
     }
 
     debug( "+ PrintManager::print: new job %p\n", printJob );
@@ -1054,9 +1057,9 @@ void PrintManager::print(QSharedPointer<PrintJob> printJob)
     _stepA3_movements.push_back({MoveType::Absolute, firstLayerHeight, firstParameters.noPumpDownVelocity_Effective()});
     _stepA3_movements.push_back({PauseAfterPrintSolutionDispensed});
 
-    _stepB4b2_movements.push_back({MoveType::Relative, (_printJob->baseSlices.layerThickness / 1000.0), PrinterDefaultLowSpeed});
+    _stepB4b2_movements.push_back({MoveType::Relative, (_printJob->getSelectedBaseLayerThickness() / 1000.0), PrinterDefaultLowSpeed});
 
-    TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->modelFileName ) );
+    TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->getModelFilename() ) );
     _printResult = PrintResult::None;
     _currentBaseLayer = _printJob->baseLayerStart();
     _running = true;
