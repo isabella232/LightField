@@ -179,6 +179,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
+    _dispensePrintSolutionTitle->setVisible( false );
     _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
         nullptr,
         _dispensePrintSolutionLabel,
@@ -193,7 +194,7 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
         _currentLayerGroup,
-        new QLabel("Dispense PhotoInk<span style='font-family: arial'>™</span>"),
+        _dispensePrintSolutionTitle,
         _dispensePrintSolutionGroup,
         nullptr
     ) );
@@ -481,22 +482,21 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
             .arg( GetFileBaseName( _printJob->modelFileName ) );
 
     if(!_printJob->isTiled()) {
-        QString pjInfo =  QString("will be printed at <b>%3 µm</b> %4 base layers (<b>%5 sec</b>) <br/>and then <b>%6 µm</b> at %7 body layers (<b>%8 sec</b>)" )
-
-                .arg( _printJob->baseSlices.layerThickness)
-                .arg( _printJob->baseSlices.layerCount )
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
+                .arg( _printJob->baseSlices.layerCount)
+                .arg( _printJob->baseSlices.layerThickness )
                 .arg( _printJob->baseSlices.exposureTime )
-                .arg( _printJob->bodySlices.layerThickness )
                 .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->bodySlices.layerThickness )
                 .arg( _printJob->bodySlices.exposureTime );
 
         dispenseText.append(pjInfo);
     } else {
-        QString pjInfo =  QString("will be printed at <b>%3 µm</b> %4 base layers <br/>and then <b>%6 µm</b> at %7 body layers." )
-                .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
                 .arg( _printJob->baseSlices.layerCount )
                 .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
-                .arg( _printJob->bodySlices.layerCount );
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->getBaseManager()->layerThickNessAt(0) );
 
         int tileCount = _printJob->getBaseManager()->tilingCount();
         int bodyElementStart = tileCount * 2;
@@ -510,16 +510,18 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
         double bodyMaxExpoTime = bodyMinExpoTime + (bodyExpoStep * (tileCount-1));
 
 
-        QString tilingInfoText = QString("Tiling will range from <b>%1 sec</b> miniumum to <b>%2 sec</b> maximum exposure time<br/>for base layers "
-                                         "and range from <b>%3 sec</b> minmum to <b>%4 sec</b> maximum exposure time<br/> body layers with %5 tiles per layer")
-                .arg( QString::number( baseMinExpoTime, 'f', 2 ) )
-                .arg( QString::number( baseMaxExpoTime, 'f', 2 ) )
-                .arg( QString::number( bodyMinExpoTime, 'f', 2 ) )
-                .arg( QString::number( bodyMaxExpoTime, 'f', 2 ) )
-                .arg( tileCount );
+        QString tilingInfoText = QString("<br/><br/>Tiling parameters: <br/><div style=\"width: 300px\" align=\"left\"><ul><li>number of tiles: <b>%1</b></li>"
+                                         "<li>base exposure time: <b>%2 - %3 sec</b></li><li>body exposure time: <b>%4 - %5 sec</li></b><br/></div>")
+                .arg(tileCount )
+                .arg(QString::number(baseMinExpoTime, 'f', 2 ))
+                .arg(QString::number(baseMaxExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMinExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMaxExpoTime, 'f', 2 ));
 
-        _tilingInfoLabel->setText( tilingInfoText );
+
+        //_tilingInfoLabel->setText( tilingInfoText );
         dispenseText.append(pjInfo);
+        dispenseText.append(tilingInfoText);
     }
 
     if(solutionRequired > 10.0){
@@ -529,6 +531,7 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
 
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
+    _dispensePrintSolutionTitle->setVisible( true );
 
     update( );
 }
@@ -605,6 +608,8 @@ void StatusTab::printerOnlineTimer_timeout()
 
 void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
+    _dispensePrintSolutionTitle->setVisible( false );
+
     _currentLayerGroup->setVisible( true );
     _printerStateDisplay->setText( "PhotoInk<span style='font-family: arial'>™</span> is settling" );
 
