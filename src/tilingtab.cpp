@@ -117,14 +117,14 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
     all->setLayout(
         WrapWidgetsInVBox(
            _setupTiling,
-           nullptr,
-           lrInfo,
-           nullptr,
            _space,
            _count,
            nullptr,
            _setupExpoTimeBt,
-           _confirm
+           _confirm,
+           nullptr,
+           lrInfo,
+           nullptr
         )
     );
 
