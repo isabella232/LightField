@@ -708,7 +708,7 @@ void PrepareTab::_loadDirectoryManifest()
 
     _printJob->setBodyManager(manifestMgr);
 
-    _orderButton->setEnabled(true);
+    _orderButton->setEnabled(!manifestMgr->tiled());
     _setSliceControlsEnabled(false);
 
     layerCountUpdate(_printJob->totalLayerCount());

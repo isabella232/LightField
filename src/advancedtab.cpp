@@ -25,8 +25,7 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
 
     _forms[0] = _generalForm;
     _forms[1] = _basePumpForm;
-    _forms[2] = _layersForm;
-    _forms[3] = _bodyPumpForm;
+    _forms[2] = _bodyPumpForm;
 
     QWidget::connect(_addBasePumpCheckbox, &QCheckBox::clicked, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_addBodyPumpCheckbox, &QCheckBox::clicked, this, &AdvancedTab::updatePrintProfile);
@@ -36,8 +35,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     QWidget::connect(_upPauseSlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_downPauseSlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_baseNoPumpUpVelocitySlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_baseExposureTimeSlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
-    QWidget::connect(_bodyExposureTimeSlider,&ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyPumpEveryNthLayer, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyDistanceSlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
     QWidget::connect(_bodyPumpUpVelocitySlider, &ParamSlider::valueChanged, this, &AdvancedTab::updatePrintProfile);
@@ -50,7 +47,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _setUpGeneralForm(boldFont, fontAwesome);
     _setUpTemperaturelForm(boldFont);
     _setUpBasePumpForm(boldFont);
-    _setUpLayersForm();
     _setUpBodyPumpForm(boldFont);
 
     for(int i = 1; i < FORMS_COUNT; ++i)
@@ -59,7 +55,6 @@ AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
     _rightColumn->setLayout(WrapWidgetsInVBox(
         _generalForm,
         _basePumpForm,
-        _layersForm,
         _bodyPumpForm,
         nullptr
     ));
@@ -129,16 +124,6 @@ void AdvancedTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         _setEnabled(true);
         emit printerAvailabilityChanged(true);
         break;
-
-    case UiState::PrintJobReady:
-        if (_printJob->isTiled()) {
-            _expoTimeEnabled->setChecked(false);
-            _expoTimeEnabled->setEnabled(false);
-        } else if (!_expoTimeEnabled->isEnabled())
-            _expoTimeEnabled->setEnabled(true);
-
-        break;
-
     default:
         break;
     }
@@ -309,7 +294,7 @@ void AdvancedTab::setPrinterAvailable( bool const value ) {
 }
 
 void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
-    AdvancedTabSelectionModel* model = new AdvancedTabSelectionModel(4, 1, _forms, FORMS_COUNT);
+    AdvancedTabSelectionModel* model = new AdvancedTabSelectionModel(3, 1, _forms, FORMS_COUNT);
 
     QStandardItem* item = new QStandardItem(QString("General"));
     QStandardItem* generalItem = item;
@@ -318,11 +303,8 @@ void AdvancedTab::_setUpLeftMenu(QFont fontAwesome) {
     item = new QStandardItem(QString("Base Pump"));
     model->setItem(1, 0, item);
 
-    item = new QStandardItem(QString("Layers"));
-    model->setItem(2, 0, item);
-
     item = new QStandardItem(QString("Body Pump"));
-    model->setItem(3, 0, item);
+    model->setItem(2, 0, item);
 
     QItemSelectionModel* selectionModel = new QItemSelectionModel(model);
     QObject::connect(
@@ -528,45 +510,6 @@ void AdvancedTab::_setUpBasePumpForm(QFont boldFont)
     _basePumpForm->setWidget(container);
 }
 
-void AdvancedTab::_setUpLayersForm()
-{
-    _baseExposureTimeSlider->setEnabled(false);
-    _bodyExposureTimeSlider->setEnabled(false);
-
-    connect(_expoTimeEnabled, &QCheckBox::stateChanged, this, &AdvancedTab::expoTimeEnabled_changed);
-
-    _layersForm->setContentsMargins( { } );
-    _layersForm->setMinimumSize( MaximalRightHandPaneSize );
-    _layersForm->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _layersForm->setLayout(
-         WrapWidgetsInVBoxDM(
-            _expoTimeEnabled,
-            _baseExposureTimeSlider,
-            _bodyExposureTimeSlider,
-            nullptr
-         )
-    );
-}
-
-void AdvancedTab::expoTimeEnabled_changed(int state)
-{
-    bool enabled;
-
-    (void)state;
-    enabled = _printJob->hasAdvancedControlsEnabled();
-    setLayersSettingsEnabled(enabled);
-
-    if (enabled) {
-        auto bodyParams = _printJob->bodyLayerParameters();
-        auto baseParams = _printJob->baseLayerParameters();
-        bodyParams.setAdvancedLayerExposureTime(_bodyExposureTimeSlider->getValue());
-        baseParams.setAdvancedLayerExposureTime(_baseExposureTimeSlider->getValue());
-    }
-
-    auto activeProfile = _printProfileManager->activeProfile();
-    activeProfile->setAdvancedExposureControlsEnabled(enabled);
-    emit advancedExposureTimeChanged();
-}
 
 void AdvancedTab::offsetDisregardFirstLayerStateChanged(int state)
 {
@@ -623,7 +566,6 @@ void AdvancedTab::updatePrintProfile()
     activeProfile->setBuildPlatformOffset(_offsetSlider->getValue());
     activeProfile->setDisregardFirstLayerHeight(_offsetDisregardFirstLayer->isChecked());
     activeProfile->setHeatingTemperature(_bedTemperatureSlider->value());
-    activeProfile->setAdvancedExposureControlsEnabled(_expoTimeEnabled->isChecked());
 
     PrintParameters baseParams = activeProfile->baseLayerParameters();
 
@@ -635,7 +577,6 @@ void AdvancedTab::updatePrintProfile()
     baseParams.setPumpDownPause(_downPauseSlider->getValue());
     baseParams.setNoPumpUpVelocity((static_cast<double>(_baseNoPumpUpVelocitySlider->getValue())));
     baseParams.setPumpEveryNthLayer(0);
-    baseParams.setAdvancedLayerExposureTime(_baseExposureTimeSlider->getValue());
     baseParams.setPowerLevel(_powerLevelSlider->value());
 
     activeProfile->setBaseLayerParameters(baseParams);
@@ -649,7 +590,6 @@ void AdvancedTab::updatePrintProfile()
     bodyParams.setPumpDownPause(_bodyDownPauseSlider->getValue());
     bodyParams.setNoPumpUpVelocity((static_cast<double>(_bodyNoPumpUpVelocitySlider->getValue())));
     bodyParams.setPumpEveryNthLayer(_bodyPumpEveryNthLayer->getValue());
-    bodyParams.setAdvancedLayerExposureTime(_bodyExposureTimeSlider->getValue());
     bodyParams.setPowerLevel(_powerLevelSlider->value());
 
     activeProfile->setBodyLayerParameters(bodyParams);
@@ -673,7 +613,6 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     _basePumpDownVelocitySlider->setValue(static_cast<int>(baseParams.pumpDownVelocity_Effective()));
     _downPauseSlider->setValue(baseParams.pumpDownPause());
     _baseNoPumpUpVelocitySlider->setValue(static_cast<int>(baseParams.noPumpUpVelocity()));
-    _baseExposureTimeSlider->setValue( baseParams.advancedLayerExposureTime());
     _powerLevelSlider->setValue(static_cast<int>(baseParams.powerLevel()));
 
     _bodyDistanceSlider->setValue(static_cast<int>(bodyParams.pumpUpDistance() * 1000.0));
@@ -682,12 +621,10 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     _bodyPumpDownVelocitySlider->setValue(static_cast<int>(bodyParams.pumpDownVelocity_Effective()));
     _bodyDownPauseSlider->setValue( bodyParams.pumpDownPause());
     _bodyNoPumpUpVelocitySlider->setValue(static_cast<int>(bodyParams.noPumpUpVelocity()));
-    _bodyExposureTimeSlider->setValue( bodyParams.advancedLayerExposureTime());
     // assume body and base power level are the same for now
     //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
     _bodyPumpEveryNthLayer->setValue( bodyParams.pumpEveryNthLayer( ) );
 
-    _expoTimeEnabled->setChecked(profile->advancedExposureControlsEnabled());
     _printJob->setPrintProfile(profile);
     _loadingPrintProfile = false;
 }
@@ -698,11 +635,5 @@ void AdvancedTab::_setEnabled(bool enabled)
     _offsetSlider->setEnabled(enabled);
     _basePumpForm->setEnabled(enabled);
     _bodyPumpForm->setEnabled(enabled);
-    _layersForm->setEnabled(enabled);
 }
 
-void AdvancedTab::setLayersSettingsEnabled(bool enabled)
-{
-    _baseExposureTimeSlider->setEnabled(enabled);
-    _bodyExposureTimeSlider->setEnabled(enabled);
-}

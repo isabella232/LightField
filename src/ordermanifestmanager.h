@@ -80,7 +80,9 @@ private:
 };
 
 
-class OrderManifestManager {
+class OrderManifestManager: public QObject
+{
+    Q_OBJECT
 
 public:
     class Iterator {
@@ -249,6 +251,9 @@ public:
 
     int layerThickNessAt(int position);
     bool isBaseLayer(int position);
+signals:
+    void statusUpdate(const QString &messgae);
+    void progressUpdate(int percentage);
 
 private:
     QString             _dirPath;

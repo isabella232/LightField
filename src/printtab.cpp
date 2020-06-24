@@ -6,6 +6,7 @@
 #include "printmanager.h"
 #include "shepherd.h"
 #include "ordermanifestmanager.h"
+#include "spoiler.h"
 
 namespace {
 
@@ -30,17 +31,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _powerLevelSlider->innerSlider()->setTickInterval( 5 );
 
     _expoDisabledTilingWarning->setMinimumSize(400, 50);
-    _expoDisabledAdvancedWarning->setMinimumSize(400, 50);
 
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
-        _powerLevelSlider,
-        _bodyExposureTimeSlider,
-        _baseExposureTimeSlider,
-        _expoDisabledTilingWarning,
-        _expoDisabledAdvancedWarning,
-        nullptr
-    ) );
     _optionsGroup->setTitle( "Print settings" );
 
     _printButton->setEnabled( false );
@@ -63,14 +55,43 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr ) );
     _adjustmentsGroup->setTitle( "Adjustments" );
 
-    _layout->setContentsMargins( { } );
-    _layout->addWidget( _optionsGroup,     0, 0, 1, 2 );
-    _layout->addWidget( _printButton,      1, 0, 1, 1 );
-    _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
-    _layout->setRowStretch( 0, 4 );
-    _layout->setRowStretch( 1, 1 );
 
-    setLayout( _layout );
+    Spoiler* basicExpoTimeGroup = new Spoiler("Basic exposure time controll");
+    Spoiler* advancedExpoTimeGroup = new Spoiler("Advanced exposure time controll");
+
+    QObject::connect(basicExpoTimeGroup, &Spoiler::collapseStateChanged, [advancedExpoTimeGroup](bool checked) {
+        advancedExpoTimeGroup->setCollapsed(checked);
+    });
+
+    QObject::connect(advancedExpoTimeGroup, &Spoiler::collapseStateChanged, [basicExpoTimeGroup](bool checked) {
+        basicExpoTimeGroup->setCollapsed(checked);
+    });
+
+    basicExpoTimeGroup->setCollapsed( false );
+    basicExpoTimeGroup->setContentLayout(
+        WrapWidgetsInVBox(
+            _bodyExposureTimeSlider,
+            _baseExposureTimeSlider
+        )
+    );
+
+    _optionsGroup->setLayout(
+        WrapWidgetsInVBox(
+              basicExpoTimeGroup,
+              advancedExpoTimeGroup,
+              _expoDisabledTilingWarning,
+              nullptr
+        )
+    );
+
+    setLayout(
+        WrapWidgetsInVBox(
+            _powerLevelSlider,
+            _optionsGroup,
+            nullptr,
+            WrapWidgetsInHBox(_printButton, _adjustmentsGroup)
+        )
+    );
 }
 
 PrintTab::~PrintTab( ) {
@@ -116,10 +137,9 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
 
-    _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-    _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
+    _baseExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
+    _bodyExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
     _expoDisabledTilingWarning->setVisible(_printJob->isTiled());
-    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     event->accept( );
 
@@ -128,8 +148,13 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
 void PrintTab::powerLevelSlider_valueChanged()
 {
-    _printJob->baseLayerParameters().setPowerLevel(_powerLevelSlider->getValue());
-    _printJob->bodyLayerParameters().setPowerLevel(_powerLevelSlider->getValue());
+    double value = _powerLevelSlider->getValue();
+
+    PrintParameters& baseParams = _printJob->baseLayerParameters();
+    PrintParameters& bodyParams = _printJob->bodyLayerParameters();
+
+    baseParams.setPowerLevel( value );
+    bodyParams.setPowerLevel( value );
 
     update();
 }
@@ -142,14 +167,13 @@ void PrintTab::projectorPowerLevel_changed(int percentage)
 
 
 void PrintTab::exposureTime_update( ) {
-    if (_printJob->hasBasicControlsEnabled()) {
-        auto bodyParams = _printJob->bodyLayerParameters();
-        auto baseParams = _printJob->baseLayerParameters();
-        bodyParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue());
-        baseParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue() *
-            _baseExposureTimeSlider->getValue());
-        emit basicExposureTimeChanged();
-    }
+    auto bodyParams = _printJob->bodyLayerParameters();
+    auto baseParams = _printJob->baseLayerParameters();
+    bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
+    baseParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue() *
+        _baseExposureTimeSlider->getValue());
+    emit basicExposureTimeChanged();
+
     update( );
 }
 
@@ -266,9 +290,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch (_uiState) {
         case UiState::SelectCompleted:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
+            _baseExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
+            _bodyExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
 
             if(!_printJob->isTiled())
                 _expoDisabledTilingWarning->hide();
@@ -276,16 +299,15 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
                 _expoDisabledTilingWarning->show();
 
 
-            _bodyExposureTimeSlider->setValue(bodyParams.basicLayerExposureTime());
-            _baseExposureTimeSlider->setValue(baseParams.basicLayerExposureTime() /
-                bodyParams.basicLayerExposureTime());
+            _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
+            _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
+                bodyParams.layerExposureTime());
 
             break;
 
         case UiState::PrintJobReady:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
+            _baseExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
+            _bodyExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
 
             if(!_printJob->isTiled()) {
                 _expoDisabledTilingWarning->hide();
@@ -314,16 +336,15 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
 void PrintTab::changeExpoTimeSliders()
 {
-    bool enable = _printJob->hasBasicControlsEnabled();
+    bool enable = _printJob->hasExposureControlsEnabled();
     _baseExposureTimeSlider->setEnabled(enable);
     _bodyExposureTimeSlider->setEnabled(enable);
-    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     if(enable) {
         auto bodyParams = _printJob->bodyLayerParameters();
         auto baseParams = _printJob->baseLayerParameters();
-        bodyParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue());
-        baseParams.setBasicLayerExposureTime(_bodyExposureTimeSlider->getValue() *
+        bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        baseParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue() *
             _baseExposureTimeSlider->getValue());
     }
 }

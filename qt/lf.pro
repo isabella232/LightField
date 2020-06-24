@@ -7,6 +7,11 @@ QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 
+QMAKE_CXXFLAGS += -O0
+QMAKE_CXXFLAGS -= -O1
+QMAKE_CXXFLAGS -= -O2
+QMAKE_CXXFLAGS -= -O3
+
 SOURCES +=                          \
     ../src/advancedtab.cpp          \
     ../src/advancedtabselectionmodel.cpp \
@@ -45,6 +50,7 @@ SOURCES +=                          \
     ../src/signalhandler.cpp        \
     ../src/slicesorderpopup.cpp	    \
     ../src/slicertask.cpp           \
+    ../src/spoiler.cpp              \
     ../src/statustab.cpp            \
     ../src/stdiologger.cpp          \
     ../src/strings.cpp              \
@@ -86,7 +92,8 @@ HEADERS  +=                         \
     ../src/lightfieldstyle.h        \
     ../src/loader.h                 \
     ../src/mesh.h                   \
-    ../src/movementsequencer.h      \    
+    ../src/movementsequencer.h      \
+    ../src/spoiler.h                \
     ../src/ordermanifestmanager.h   \
     ../src/paramslider.h            \
     ../src/pngdisplayer.h           \
@@ -95,7 +102,6 @@ HEADERS  +=                         \
     ../src/printmanager.h           \
     ../src/printprofile.h           \
     ../src/printprofilemanager.h    \
-    ../src/printpumpingparameters.h \
     ../src/printtab.h               \
     ../src/processrunner.h          \
     ../src/profilesjsonparser.h     \

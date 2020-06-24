@@ -3,7 +3,6 @@
 #include "inputdialog.h"
 #include "profilestab.h"
 #include "printmanager.h"
-#include "profilesjsonparser.h"
 #include "usbmountmanager.h"
 #include "window.h"
 
@@ -72,7 +71,6 @@ ProfilesTab::~ProfilesTab()
 {
     /*empty*/
 }
-
 
 void ProfilesTab::itemClicked(const QModelIndex& index)
 {
@@ -410,6 +408,21 @@ void ProfilesTab::loadProfiles()
         _profilesList->setCurrentIndex(_model->indexFromItem(item));
         _model->appendRow(item);
     }
+
+    auto activeProfile = _printProfileManager->activeProfile();
+
+    const QModelIndexList indexes = _model->match(
+        _model->index(0,0),
+        Qt::DisplayRole,
+        QVariant(activeProfile->profileName()),
+        1, // first hit only
+        Qt::MatchExactly
+    );
+
+    if(indexes.length() > 0) {
+        _profilesList->setCurrentIndex(indexes.at(0));
+        _enableButtonProfile(true, activeProfile.get());
+    }
 }
 
 void ProfilesTab::_connectUsbMountManager()
@@ -476,10 +489,7 @@ void ProfilesTab::printManager_printComplete(const bool success)
 
     QModelIndex index = _profilesList->currentIndex();
     QString indexName = index.data(Qt::DisplayRole).toString();
-
     auto profile = _printProfileManager->getProfile(indexName);
-    if (!profile)
-        profile = _printProfileManager->activeProfile();
 
     _enableButtonProfile(true, *profile);
 
@@ -493,10 +503,7 @@ void ProfilesTab::printManager_printAborted()
 
     QModelIndex index = _profilesList->currentIndex();
     QString indexName = index.data(Qt::DisplayRole).toString();
-
     auto profile = _printProfileManager->getProfile(indexName);
-    if (!profile)
-        profile = _printProfileManager->activeProfile();
 
     _enableButtonProfile(true, *profile);
 

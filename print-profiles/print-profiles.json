@@ -17,8 +17,7 @@
             "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
-            "basicLayerExposureTime": 1000,
-            "advancedLayerExposureTime": 1000,
+            "layerExposureTime": 1000
             "powerLevel": 50.0
         },
         "bodyLayerParameters": {
@@ -32,8 +31,7 @@
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,
-            "basicLayerExposureTime": 1000,
-            "advancedLayerExposureTime": 1000,
+            "layerExposureTime": 1000
             "powerLevel": 50.0
         }
     }

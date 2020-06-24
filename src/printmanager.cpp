@@ -324,10 +324,7 @@ void PrintManager::stepB2_start( ) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else {
-        if (_printJob->hasBasicControlsEnabled())
-            layerExposureTime = _printJob->baseLayerParameters().basicLayerExposureTime();
-        else
-            layerExposureTime = _printJob->baseLayerParameters().advancedLayerExposureTime();
+        layerExposureTime = _printJob->baseLayerParameters().layerExposureTime();
     }
 
     debug( "+ PrintManager::stepB2_start: pausing for %d ms\n", layerExposureTime );
@@ -640,10 +637,8 @@ void PrintManager::stepC2_start( ) {
         layerExposureTime = 1000.0 * _printJob->getTimeForElementAt(currentLayer());
         _duringTiledLayer = true;
     } else {
-        if (_printJob->hasBasicControlsEnabled())
-            layerExposureTime = _printJob->bodyLayerParameters().basicLayerExposureTime();
-        else
-            layerExposureTime = _printJob->bodyLayerParameters().advancedLayerExposureTime();
+        if (_printJob->hasExposureControlsEnabled())
+            layerExposureTime = _printJob->bodyLayerParameters().layerExposureTime();
     }
 
     debug( "+ PrintManager::stepC2_start: pausing for %d ms\n", layerExposureTime );

@@ -98,9 +98,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
         for (const auto &tabB: tabs) {
             QObject::connect(tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged,
-                Qt::QueuedConnection);
-
-            tabA->setPrintProfileManager(_printProfileManager);
+                Qt::QueuedConnection);            
         }
     }
 
@@ -222,6 +220,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
         tab->setFont( fontNormalSize );
+
+        tab->setPrintProfileManager(_printProfileManager);
     }
 
     setCentralWidget( _tabWidget );
@@ -365,8 +365,7 @@ void Window::startPrinting()
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
-        "      + basicLayerExposureTime: %.2f s\n"
-        "      + advLayerExposureTime:   %.2f s\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -380,8 +379,7 @@ void Window::startPrinting()
         baseLayerParameters.pumpDownPause(),
         baseLayerParameters.noPumpUpVelocity(),
         baseLayerParameters.pumpEveryNthLayer(),
-        baseLayerParameters.basicLayerExposureTime(),
-        baseLayerParameters.advancedLayerExposureTime(),
+        baseLayerParameters.layerExposureTime(),
         baseLayerParameters.powerLevel()
     );
 
@@ -397,8 +395,7 @@ void Window::startPrinting()
         "      + pumpDownPause:          %d ms\n"
         "      + noPumpUpVelocity:       %.2f mm/min\n"
         "      + pumpEveryNthLayer:      %d\n"
-        "      + basicLayerExposureTime: %.2f s\n"
-        "      + advLayerExposureTime:   %.2f s\n"
+        "      + layerExposureTime:      %.2f s\n"
         "      + powerLevel:             %.1f%%\n"
         "",
 
@@ -412,8 +409,7 @@ void Window::startPrinting()
         bodyLayerParameters.pumpDownPause(),
         bodyLayerParameters.noPumpUpVelocity(),
         bodyLayerParameters.pumpEveryNthLayer(),
-        bodyLayerParameters.basicLayerExposureTime(),
-        bodyLayerParameters.advancedLayerExposureTime(),
+        bodyLayerParameters.layerExposureTime(),
         bodyLayerParameters.powerLevel()
     );
 

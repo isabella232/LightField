@@ -20,15 +20,13 @@ public:
         _printProfile = profile;
     }
 
-    PrintParameters baseLayerParameters()
+    PrintParameters& baseLayerParameters()
     {
-
         return _printProfile->baseLayerParameters();
     }
 
-    PrintParameters bodyLayerParameters()
+    PrintParameters& bodyLayerParameters()
     {
-
         return _printProfile->bodyLayerParameters();
     }
 
@@ -98,22 +96,9 @@ public:
         return false;
     }
 
-    bool hasBasicControlsEnabled() const
+    bool hasExposureControlsEnabled() const
     {
-
-        if (isTiled())
-            return false;
-
-        return !_printProfile->advancedExposureControlsEnabled();
-    }
-
-    bool hasAdvancedControlsEnabled() const
-    {
-
-        if (isTiled())
-            return false;
-
-        return _printProfile->advancedExposureControlsEnabled();
+        return !isTiled();
     }
 
     int getBuildPlatformOffset() const

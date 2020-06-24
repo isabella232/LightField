@@ -50,11 +50,11 @@ public:
                 printProfile->setActive(obj["active"].toBool(false));
                 printProfile->setBuildPlatformOffset(obj["buildPlatformOffset"].toInt());
                 printProfile->setDisregardFirstLayerHeight(obj["disregardFirstLayerHeight"].toBool());
+                printProfile->setAdvancedExposureControlsEnabled(obj["advancedExposureEnabled"].toBool(false));
                 printProfile->setBaseLayerParameters(_parsePrintParameters(
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
                     obj["bodyLayerParameters"]));
-                printProfile->setAdvancedExposureControlsEnabled(obj["advancedExposureEnabled"].toBool());
                 profilesList.insert(printProfile->profileName(), printProfile);
             }
             catch (const std::exception &ex)
@@ -107,10 +107,9 @@ private:
         if (!value.isObject())
             return params;
 
-        obj = value.toObject();
-        params.setBasicLayerExposureTime(obj["basicLayerExposureTime"].toInt());
-        params.setAdvancedLayerExposureTime(obj["advancedLayerExposureTime"].toInt());
-        params.setPowerLevel(obj["powerLevel"].toInt());
+        obj = value.toObject();        
+        params.setLayerExposureTime(obj["layerExposureTime"].toInt(1000));
+        params.setPowerLevel(obj["powerLevel"].toInt(50));
         params.setPumpingEnabled(obj["pumpingEnabled"].toBool(false));
         params.setPumpUpDistance(obj["pumpUpDistance"].toDouble(1.0));
         params.setPumpUpVelocity( obj["pumpUpVelocity"].toInt(50));
@@ -125,8 +124,7 @@ private:
     static QJsonObject _serializePrintParameters(const PrintParameters& params)
     {
         return QJsonObject {
-            {"basicLayerExposureTime", params.basicLayerExposureTime()},
-            {"advancedLayerExposureTime", params.advancedLayerExposureTime()},
+            {"layerExposureTime", params.layerExposureTime()},
             {"powerLevel", params.powerLevel()},
             {"pumpingEnabled", params.isPumpingEnabled()},
             {"pumpUpDistance", params.pumpUpDistance()},

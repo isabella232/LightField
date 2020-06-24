@@ -15,18 +15,9 @@ public:
     // Accessors
     //
 
-    // unit: ms
-    int basicLayerExposureTime() const
+    int layerExposureTime() const
     {
-
-        return _basicLayerExposureTime;
-    }
-
-    // unit: ms
-    int advancedLayerExposureTime() const
-    {
-
-        return _advancedLayerExposureTime;
+        return _layerExposureTime;
     }
 
     // unit: percent
@@ -112,17 +103,9 @@ public:
     //
 
     // unit: ms
-    void setBasicLayerExposureTime(int const value)
+    void setLayerExposureTime(int const value)
     {
-
-        _basicLayerExposureTime = value;
-    }
-
-    // unit: ms
-    void setAdvancedLayerExposureTime(int const value)
-    {
-
-        _advancedLayerExposureTime = value;
+        _layerExposureTime = value;
     }
 
     // unit: percent
@@ -197,8 +180,7 @@ private:
     int _pumpDownVelocity {50}; // mm/min
     int _noPumpUpVelocity {200}; // mm/min
     int _pumpEveryNthLayer {1}; // layer
-    int _basicLayerExposureTime {1000}; //ms
-    int _advancedLayerExposureTime {1000}; // ms
+    int _layerExposureTime {1000}; //ms
     double _powerLevel {50.0}; // percent
 
 };
