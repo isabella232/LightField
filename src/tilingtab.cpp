@@ -79,6 +79,7 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
 
     _setupTiling->setEnabled(false);
     _setupTiling->setMinimumWidth(MainButtonSize.width());
+    _setupTiling->setMinimumHeight(MainButtonSize.height());
     _setupTiling->setText("Setup tiling");
     QObject::connect(_setupTiling, &QPushButton::clicked, this, &TilingTab::setupTilingClicked);
 
@@ -88,11 +89,12 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
     _currentLayerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
     _confirm->setMinimumWidth(MainButtonSize.width());
+    _confirm->setMinimumHeight(MainButtonSize.height());
     _confirm->setEnabled(false);
 
     _setupExpoTimeBt->setMinimumWidth(MainButtonSize.width());
+    _setupExpoTimeBt->setMinimumHeight(MainButtonSize.height());
 
-    QGroupBox* lrInfo = new QGroupBox();
     QGroupBox* baseLrInfo = new QGroupBox("Base layer");
     QGroupBox* bodyLrInfo = new QGroupBox("Body layer");
 
@@ -110,10 +112,6 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
         )
     );
 
-    lrInfo->setLayout(
-        WrapWidgetsInVBox(baseLrInfo, nullptr, bodyLrInfo)
-    );
-
     all->setLayout(
         WrapWidgetsInVBox(
            _setupTiling,
@@ -121,10 +119,7 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
            _count,
            nullptr,
            _setupExpoTimeBt,
-           _confirm,
-           nullptr,
-           lrInfo,
-           nullptr
+           _confirm
         )
     );
 
@@ -136,7 +131,14 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
 
     all->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    setLayout(WrapWidgetsInHBox(all, _currentLayerImage));
+    setLayout(
+        WrapWidgetsInHBox(all,
+            WrapWidgetsInVBox(
+                _currentLayerImage,
+                WrapWidgetsInHBox(baseLrInfo, bodyLrInfo)
+            )
+        )
+    );
 
     _setEnabled(false);
     update();
