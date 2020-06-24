@@ -38,6 +38,8 @@ Spoiler::Spoiler(const QString & title, const int animationDuration, QWidget *pa
 
         emit collapseStateChanged(checked);
     });
+
+    this->setStyleSheet(_contentArea.styleSheet());
 }
 
 void Spoiler::setContentLayout(QVBoxLayout* contentLayout) {
@@ -66,4 +68,9 @@ void Spoiler::setCollapsed(bool checked) {
 
 bool Spoiler::isCollapsed() {
     return _toggleButton.isChecked();
+}
+
+void Spoiler::setMaxHeight(int maxHeight)
+{
+    _contentArea.setMaximumHeight(maxHeight);
 }

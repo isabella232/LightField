@@ -18,6 +18,7 @@ public:
     void setContentLayout(QVBoxLayout* contentLayout);
     void setCollapsed(bool collapsed);
     bool isCollapsed();
+    void setMaxHeight(int maxHeight);
 
 signals:
 

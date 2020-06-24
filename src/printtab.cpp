@@ -56,6 +56,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _adjustmentsGroup->setTitle( "Adjustments" );
 
 
+    QScrollArea* advArea = new QScrollArea();
+
     Spoiler* basicExpoTimeGroup = new Spoiler("Basic exposure time controll");
     Spoiler* advancedExpoTimeGroup = new Spoiler("Advanced exposure time controll");
 
@@ -67,7 +69,7 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
         basicExpoTimeGroup->setCollapsed(checked);
     });
 
-    basicExpoTimeGroup->setCollapsed( false );
+    basicExpoTimeGroup->setCollapsed( false /*!_printProfileManager->activeProfile()->advancedExposureControlsEnabled()*/ );
     basicExpoTimeGroup->setContentLayout(
         WrapWidgetsInVBox(
             _bodyExposureTimeSlider,
@@ -75,10 +77,37 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
         )
     );
 
+    QVBoxLayout* container =
+        WrapWidgetsInVBox(
+                  _advBodyExpoCorse,
+                  _advBodyExpoFine,
+                  _advBaseExpoCorse,
+                  _advBaseExpoFine
+        );
+
+    advancedExpoTimeGroup->setCollapsed( true /*_printProfileManager->activeProfile()->advancedExposureControlsEnabled()*/);
+    advancedExpoTimeGroup->setContentLayout(
+        container
+    );
+
+
+    int scrolbarWidth = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+    int contentWidth = MainWindowSize.width() - ButtonPadding.width() - scrolbarWidth;
+
+    advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+
+    advancedExpoTimeGroup->setMinimumWidth(contentWidth);
+    basicExpoTimeGroup->setMinimumWidth(contentWidth);
+
+    QWidget* widget = new QWidget(advArea);
+    widget->setLayout( WrapWidgetsInVBox(basicExpoTimeGroup, advancedExpoTimeGroup, nullptr));
+
+
+    advArea->setWidget(widget);
+
     _optionsGroup->setLayout(
         WrapWidgetsInVBox(
-              basicExpoTimeGroup,
-              advancedExpoTimeGroup,
+              advArea,
               _expoDisabledTilingWarning,
               nullptr
         )

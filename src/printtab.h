@@ -61,6 +61,17 @@ private:
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
                                                                               "s",    1000, 30000, 250, 250 ) };
+
+    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body corse", "s",
+                                                                              1000, 29000, 1000, 1000 ) };
+    ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body fine", "ms",
+                                                                              50, 1000, 50, 0) };
+
+    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base corse", "s",
+                                                                              1000, 149000, 1000, 1000 ) };
+    ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
+                                                                              50, 1000, 50, 0) };
+
     QLabel*            _expoDisabledTilingWarning          { new QLabel("<font color='red'>Exposure controls disabled by tiling.</font>") };
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
