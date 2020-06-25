@@ -9,6 +9,11 @@ Spoiler::Spoiler(const QString & title, const int animationDuration, QWidget *pa
     _toggleButton.setText(title);
     _toggleButton.setCheckable(true);
     _toggleButton.setChecked(false);
+    auto font = _toggleButton.font();
+    font.setPixelSize(30);
+    _toggleButton.setFont(font);
+
+    _title = title;
 
     _headerLine.setFrameShape(QFrame::HLine);
     _headerLine.setFrameShadow(QFrame::Sunken);
@@ -35,6 +40,8 @@ Spoiler::Spoiler(const QString & title, const int animationDuration, QWidget *pa
         _toggleButton.setArrowType(checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
         _toggleAnimation.setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
         _toggleAnimation.start();
+
+        _toggleButton.setText( !checked ? _title : QString("%1 ✓").arg(_title));
 
         emit collapseStateChanged(checked);
     });
@@ -64,6 +71,8 @@ void Spoiler::setCollapsed(bool checked) {
     _toggleButton.setChecked(!checked);
     _toggleAnimation.setDirection(!checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     _toggleAnimation.start();
+
+    _toggleButton.setText( checked ? _title : QString("%1 ✓").arg(_title));
 }
 
 bool Spoiler::isCollapsed() {

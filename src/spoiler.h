@@ -13,6 +13,7 @@ private:
     QParallelAnimationGroup _toggleAnimation;
     QScrollArea _contentArea;
     int _animationDuration{300};
+    QString _title;
 public:
     explicit Spoiler(const QString & title = "", const int _animationDuration = 150, QWidget *parent = 0);
     void setContentLayout(QVBoxLayout* contentLayout);

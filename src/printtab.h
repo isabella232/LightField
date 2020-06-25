@@ -60,15 +60,15 @@ private:
                                                                               "x",    2, 5, 1, 1 ) };
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
-                                                                              "s",    1000, 30000, 250, 250 ) };
+                                                                              "s",    1000, 30000, 250, 250, 1000 ) };
 
     ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body corse", "s",
-                                                                              1000, 29000, 1000, 1000 ) };
+                                                                              1000, 29000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body fine", "ms",
                                                                               50, 1000, 50, 0) };
 
     ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base corse", "s",
-                                                                              1000, 149000, 1000, 1000 ) };
+                                                                              1000, 149000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
                                                                               50, 1000, 50, 0) };
 
@@ -115,7 +115,11 @@ private slots:
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );
 
-    void exposureTime_update( );
+    void connectBasicExpoTimeCallback(bool connect);
+    void connectAdvanExpoTimeCallback(bool connect);
+
+    void basicExposureTime_update( );
+    void advancedExposureTime_update( );
 
 };
 
