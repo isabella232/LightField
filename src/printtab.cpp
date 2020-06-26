@@ -64,8 +64,14 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     QObject::connect(basicExpoTimeGroup, &Spoiler::collapseStateChanged, [advancedExpoTimeGroup, this](bool checked) {
         advancedExpoTimeGroup->setCollapsed(checked);
 
-        connectBasicExpoTimeCallback(!checked);
-        connectAdvanExpoTimeCallback(checked);
+        connectBasicExpoTimeCallback(checked);
+        connectAdvanExpoTimeCallback(!checked);
+
+        if(checked)
+            basicExposureTime_update();
+        else
+            advancedExposureTime_update();
+
     });
 
     QObject::connect(advancedExpoTimeGroup, &Spoiler::collapseStateChanged, [basicExpoTimeGroup, this](bool checked) {
@@ -73,6 +79,11 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
         connectBasicExpoTimeCallback(!checked);
         connectAdvanExpoTimeCallback(checked);
+
+        if(checked)
+            basicExposureTime_update();
+        else
+            advancedExposureTime_update();
     });
 
     basicExpoTimeGroup->setCollapsed( false /*!_printProfileManager->activeProfile()->advancedExposureControlsEnabled()*/ );
