@@ -93,8 +93,8 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
     _setupExpoTimeBt->setMinimumWidth(MainButtonSize.width());
 
     QGroupBox* lrInfo = new QGroupBox();
-    QGroupBox* baseLrInfo = new QGroupBox("Base layer");
-    QGroupBox* bodyLrInfo = new QGroupBox("Body layer");
+    QGroupBox* baseLrInfo = new QGroupBox("Base Layer Times");
+    QGroupBox* bodyLrInfo = new QGroupBox("Body Layer Times");
 
     auto fontBoldBigger = boldFont;
     fontBoldBigger.setPointSize(14);
@@ -221,7 +221,7 @@ void TilingTab::setStepValue()
     painter.fillRect(0,0, _currentLayerImage->width(), _currentLayerImage->height(),
         QBrush("#000000"));
 
-    painter.setFont(QFont("Arial", 10));
+    painter.setFont(QFont("Arial", 12, 2));
     painter.setPen(Qt::red);
 
 #if 0
@@ -291,8 +291,8 @@ void TilingTab::_renderText(QPainter* painter, QPoint pos, double expoBase, doub
     QString bodyText = QString("Body %2s").arg(expoBody);
     int textHeight = fm.height();
 
-    painter->drawText(QPoint(pos.x(), pos.y() - textHeight - 2), baseText);
-    painter->drawText(pos, bodyText);
+    painter->drawText(QPoint(pos.x(), pos.y() - textHeight), baseText);
+    painter->drawText(QPoint(pos.x(), pos.y() - (0.25*textHeight)), bodyText);
 }
 
 void TilingTab::_showLayerImage()
@@ -324,9 +324,9 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
             this->_count->setValue(1);
             this->_currentLayerImage->clear();
 
-            _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure Time").arg(10.0));
+            _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(10.0));
             _stepBaseLabel->setText(QString("%1s Exposure Step").arg(2.0));
-            _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure Time").arg(20.0));
+            _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(20.0));
             _stepBodyLabel->setText(QString("%1s Exposure Step").arg(2.0));
 
             _setEnabled(false);
@@ -451,9 +451,9 @@ void TilingTab::setupExpoTimeClicked(bool)
         _minExposureBody = _expoTimePopup.minExposureBody();
         _stepBody = _expoTimePopup.stepBody();
 
-        _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure Time").arg(_minExposureBase));
+        _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBase));
         _stepBaseLabel->setText(QString("%1s Exposure Step").arg(_stepBase));
-        _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure Time").arg(_minExposureBody));
+        _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBody));
         _stepBodyLabel->setText(QString("%1s Exposure Step").arg(_stepBody));
     }
 
