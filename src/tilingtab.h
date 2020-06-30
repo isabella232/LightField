@@ -47,6 +47,7 @@ public:
 
 protected:
     virtual void _connectPrintManager() override;
+    virtual void _connectPrintJob() override;
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };

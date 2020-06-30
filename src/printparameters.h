@@ -104,6 +104,18 @@ public:
         return _layerThickness;
     }
 
+    //unit: ms
+    int tilingDefaultExposure() const
+    {
+        return _tilingDefaultExposure;
+    }
+
+    //unit: ms
+    int tilingDefaultExposureStep() const
+    {
+        return _tilingDefaultExposureStep;
+    }
+
     //
     // Mutators
     //
@@ -182,6 +194,19 @@ public:
         _layerThickness = value;
     }
 
+    //unit: ms
+    void setTilingDefaultExposure(int const value)
+    {
+        _tilingDefaultExposure = value;
+    }
+
+    //unit: ms
+    void setTilingDefaultExposureStep(int const value)
+    {
+        _tilingDefaultExposureStep = value;
+    }
+
+
 private:
 
     bool _pumpingEnabled {false}; // boolean (true/false)
@@ -194,7 +219,9 @@ private:
     int _pumpEveryNthLayer {1}; // layer
     int _layerExposureTime {1000}; //ms
     double _powerLevel {50.0}; // percent
-    int _layerThickness {50}; // um
+    int _layerThickness {100}; // um
+    int _tilingDefaultExposure {10000}; //ms
+    int _tilingDefaultExposureStep {2000}; //ms
 
 };
 

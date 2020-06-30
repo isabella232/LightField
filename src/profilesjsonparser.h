@@ -118,7 +118,10 @@ private:
         params.setPumpDownPause(obj["pumpDownPause"].toInt());
         params.setNoPumpUpVelocity(obj["noPumpUpVelocity"].toInt(50));
         params.setPumpEveryNthLayer(obj["pumpEveryNthLayer"].toInt(1));
-        params.setLayerThickness(obj["layerThickness"].toInt());
+        params.setLayerThickness(obj["layerThickness"].toInt(100));
+        params.setLayerThickness(obj["layerThickness"].toInt(100));
+        params.setTilingDefaultExposure(obj["tilingDefaultExposure"].toInt(10000));
+        params.setTilingDefaultExposureStep(obj["tilingDefaultExposureStep"].toInt(2000));
         return params;
     }
 
@@ -135,7 +138,9 @@ private:
             {"pumpDownPause", params.pumpDownPause()},
             {"noPumpUpVelocity", params.noPumpUpVelocity()},
             {"pumpEveryNthLayer", params.pumpEveryNthLayer()},
-            {"layerThickness", params.layerThickness()}
+            {"layerThickness", params.layerThickness()},
+            {"tilingDefaultExposure", params.tilingDefaultExposure()},
+            {"tilingDefaultExposureStep", params.tilingDefaultExposureStep()}
         };
     }
 

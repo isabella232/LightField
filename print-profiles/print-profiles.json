@@ -19,7 +19,9 @@
             "pumpEveryNthLayer": 1,
             "layerExposureTime": 1000,
             "powerLevel": 50.0,
-            "layerThickness": 100
+            "layerThickness": 100,
+            "tilingDefaultExposure": 10000,
+            "tilingDefaultExposureStep": 2000
         },
         "bodyLayerParameters": {
             "pumpingEnabled": true,
@@ -34,7 +36,9 @@
             "layerThickness": 100,
             "layerExposureTime": 1000,
             "powerLevel": 50.0,
-            "layerThickness": 100
+            "layerThickness": 100,
+            "tilingDefaultExposure": 10000,
+            "tilingDefaultExposureStep": 2000
         }
     }
 ]
