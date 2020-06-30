@@ -133,7 +133,7 @@ void PrintProfileManager::reload()
         emit activeProfileChanged(activeProfile);
     } else {
         _activeProfile = defaultProfile;
-        defaultProfile->setActive(true );
+        defaultProfile->setActive(true);
         emit activeProfileChanged(defaultProfile);
     }
 }

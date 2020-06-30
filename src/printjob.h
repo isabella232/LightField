@@ -166,7 +166,10 @@ public:
     {   
 
         Q_ASSERT(_bodyManager);
-        return hasBaseLayers() ? baseThickness() / getBodyLayerThickness() : 0;
+        if(getBodyLayerThickness() > 0)
+            return hasBaseLayers() ? baseThickness() / getBodyLayerThickness() : 0;
+        else
+            return 0;
     }
 
     int bodyLayerEnd() const

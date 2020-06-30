@@ -17,8 +17,9 @@
             "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
-            "layerExposureTime": 1000
-            "powerLevel": 50.0
+            "layerExposureTime": 1000,
+            "powerLevel": 50.0,
+            "layerThickness": 100
         },
         "bodyLayerParameters": {
             "pumpingEnabled": true,
@@ -31,8 +32,9 @@
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,
-            "layerExposureTime": 1000
-            "powerLevel": 50.0
+            "layerExposureTime": 1000,
+            "powerLevel": 50.0,
+            "layerThickness": 100
         }
     }
 ]

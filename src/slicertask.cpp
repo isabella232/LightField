@@ -3,8 +3,8 @@
 #include "svgrenderer.h"
 #include "slicertask.h"
 
-SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, const QString &basePath, bool sliceBase,
-    const QString &bodyPath, bool sliceBody, QObject *parent):
+SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, QString basePath, bool sliceBase,
+    QString bodyPath, bool sliceBody, QObject *parent):
     QObject(parent),
     _printJob(printJob),
     _basePath(basePath),
@@ -16,7 +16,7 @@ SlicerTask::SlicerTask(QSharedPointer<PrintJob> printJob, const QString &basePat
 
 void SlicerTask::run()
 {
-    debug("+ SlicerTask::run\n");
+    debug(QString("+ SlicerTask::run %1\n").arg(_basePath).toUtf8().data());
 
     bool oneHeight = _printJob->getSelectedBaseLayerThickness() == _printJob->getSelectedBodyLayerThickness();
 
@@ -104,6 +104,8 @@ void SlicerTask::_slice(const QString &input, const QString &output, int layerHe
 
 void SlicerTask::_render(const QString &directory, bool isBody)
 {
+    debug(QString("+ SlicerTask::_render %1\n").arg(directory).toUtf8().data());
+
     QSharedPointer<OrderManifestManager> manager { new OrderManifestManager };
     QString sliced;
     SvgRenderer renderer;

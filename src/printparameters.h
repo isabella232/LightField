@@ -98,6 +98,12 @@ public:
         return _pumpEveryNthLayer;
     }
 
+    //unit: um
+    int layerThickness() const
+    {
+        return _layerThickness;
+    }
+
     //
     // Mutators
     //
@@ -170,6 +176,12 @@ public:
         _pumpEveryNthLayer = value;
     }
 
+    //unit: um
+    void setLayerThickness(int const value)
+    {
+        _layerThickness = value;
+    }
+
 private:
 
     bool _pumpingEnabled {false}; // boolean (true/false)
@@ -182,6 +194,7 @@ private:
     int _pumpEveryNthLayer {1}; // layer
     int _layerExposureTime {1000}; //ms
     double _powerLevel {50.0}; // percent
+    int _layerThickness {50}; // um
 
 };
 

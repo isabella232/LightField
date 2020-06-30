@@ -587,8 +587,8 @@ void PrepareTab::sliceButton_clicked(bool)
     bool basePresliced = _checkOneSliceDirectory(baseSliceDirectory, false);
     bool bodyPresliced = _checkOneSliceDirectory(bodySliceDirectory, true);
 
-    SlicerTask *task { new SlicerTask(_printJob, baseSliceDirectory, basePresliced || _reslice,
-        bodySliceDirectory, bodyPresliced || _reslice) };
+    SlicerTask *task { new SlicerTask(_printJob, baseSliceDirectory, !basePresliced || _reslice,
+        bodySliceDirectory, !bodyPresliced || _reslice) };
     QObject::connect(task, &SlicerTask::sliceStatus, this, &PrepareTab::slicingStatusUpdate);
     QObject::connect(task, &SlicerTask::renderStatus, this, &PrepareTab::renderingStatusUpdate);
     QObject::connect(task, &SlicerTask::layerCount, this, &PrepareTab::layerCountUpdate);
@@ -845,7 +845,7 @@ void PrepareTab::_updateSliceControls() {
         }
     }
 
-    _layerThicknessCustomButton->setChecked(true);
+    //_layerThicknessCustomButton->setChecked(true);
 }
 
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -856,8 +856,13 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     case UiState::SelectCompleted:
 
         if (!_printJob->getDirectoryMode()) {
-            _setSliceControlsEnabled(false);
+            _layerThickness100Button->click();
 
+            _printJob->setBaseLayerCount(printJob()->getBaseLayerCount());
+            _printJob->setSelectedBaseLayerThickness(printJob()->baseLayerParameters().layerThickness());
+            _printJob->setSelectedBodyLayerThickness(printJob()->bodyLayerParameters().layerThickness());
+
+            _setSliceControlsEnabled(false);
             _sliceStatus->setText("idle");
             _imageGeneratorStatus->setText("idle");
             _currentLayerImage->clear();

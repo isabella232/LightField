@@ -227,6 +227,7 @@ double OrderManifestManager::getTimeForElementAt(int position){
  * @return
  */
 int OrderManifestManager::layerThickNessAt(int position) {
+    debug("+ OrderManifestManager::layerThickNessAt \n");
     if(_layerThickNess.count() > 0 && position < _layerThickNess.count())
     {
         return _layerThickNess[position];

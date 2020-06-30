@@ -118,6 +118,7 @@ private:
         params.setPumpDownPause(obj["pumpDownPause"].toInt());
         params.setNoPumpUpVelocity(obj["noPumpUpVelocity"].toInt(50));
         params.setPumpEveryNthLayer(obj["pumpEveryNthLayer"].toInt(1));
+        params.setLayerThickness(obj["layerThickness"].toInt());
         return params;
     }
 
@@ -133,7 +134,8 @@ private:
             {"pumpDownVelocity", params.pumpDownVelocity_Effective()},
             {"pumpDownPause", params.pumpDownPause()},
             {"noPumpUpVelocity", params.noPumpUpVelocity()},
-            {"pumpEveryNthLayer", params.pumpEveryNthLayer()}
+            {"pumpEveryNthLayer", params.pumpEveryNthLayer()},
+            {"layerThickness", params.layerThickness()}
         };
     }
 
