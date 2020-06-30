@@ -50,7 +50,7 @@ protected:
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
-    ParamSlider*            _space                    { new ParamSlider ("Space", "mm", 1, 10, 1, 1)};
+    ParamSlider*            _space                    { new ParamSlider ("Tile Spacing", "mm", 1, 10, 1, 1)};
     ParamSlider*            _count                    { new ParamSlider ("Count", "", 1, 8, 1, 1)};
     QPushButton*            _confirm                  { new QPushButton ("Create Tiles") };
     QLabel*                 _minExposureBaseLabel     { new QLabel("10s Minimum Layer Exposure") };
