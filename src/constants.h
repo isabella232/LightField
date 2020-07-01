@@ -86,8 +86,8 @@ double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
 double constexpr          const  ProjectorMaxPowerLevel     = 1023.0;
 
-int    constexpr          const  ProjectorMinPercent        =    5;
-int    constexpr          const  ProjectorMaxPercent        =   80;
+int    constexpr          const  ProjectorMinPercent        =   5;
+int    constexpr          const  ProjectorMaxPercent        =   100;
 
 #   else // ! defined DLP4710
 
