@@ -747,13 +747,6 @@ void FileTab::selectButton_clicked(bool)
                 debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
-                if ( copiedFiles > 0 ) {
-                    this->printJob()->directoryMode = true;
-                    this->printJob()->directoryPath = folderCpyPath;
-                    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
-                } else {
-                    // TODO inform user of failure somehow
-                }
             }, Qt::QueuedConnection );
 
             QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
