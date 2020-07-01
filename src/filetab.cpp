@@ -741,18 +741,16 @@ void FileTab::selectButton_clicked(bool)
 
                 pairList.push_back( fileNamePair );
             }
-
+            _selectButton->setEnabled(false);
             FileCopier* fileCopier { new FileCopier };
             QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath, folderCpyName] ( int const copiedFiles, int const skippedFiles ) {
-                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n, folder name %s", copiedFiles, skippedFiles, folderCpyName );
+                _selectButton->setEnabled(true);
+                _showLibrary( );
 
-                if ( copiedFiles == 1 ) {
-                    _showLibrary( );
-
-                    auto index = _libraryFsModel->index( folderCpyName );
-                    _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
-                    availableFilesListView_clicked( index );
-                }
+                auto index = _libraryFsModel->index( folderCpyName );
+                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                availableFilesListView_clicked( index );
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
             }, Qt::QueuedConnection );
