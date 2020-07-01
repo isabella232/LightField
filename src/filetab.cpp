@@ -744,7 +744,9 @@ void FileTab::selectButton_clicked(bool)
             _selectButton->setEnabled(false);
             FileCopier* fileCopier { new FileCopier };
             QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath, folderCpyName] ( int const copiedFiles, int const skippedFiles ) {
-                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n, folder name %s", copiedFiles, skippedFiles, folderCpyName );
+                debug( QString("+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files "
+                               "copied %1, files skipped %2\n, folder name %3")
+                       .arg(copiedFiles).arg(skippedFiles).arg(folderCpyName).toUtf8().data() );
                 _selectButton->setEnabled(true);
                 _showLibrary( );
 
