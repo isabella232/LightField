@@ -140,6 +140,13 @@ void PrintTab::powerLevelSlider_valueChanged()
     baseParams.setPowerLevel( value );
     bodyParams.setPowerLevel( value );
 
+    //if value is greater than 80% then set font color to red
+    if(value>80) {
+        _powerLevelSlider->setFontColor("red");
+    } else {
+        _powerLevelSlider->setFontColor("white");
+    }
+
     update();
 }
 

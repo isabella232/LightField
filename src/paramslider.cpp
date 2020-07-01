@@ -135,5 +135,11 @@ ParamSlider::ParamSlider(QString name, int maxValue)
     this->init(name, "", 0, maxValue, 1, 0);
 }
 
+void   ParamSlider::setFontColor(QString font)
+{
+    this->_nameLabel->setStyleSheet(QString("QLabel { color : %1; }").arg(font));
+    this->_valueLabel->setStyleSheet(QString("QLabel { color : %1; }").arg(font));
+}
+
 ParamSlider::~ParamSlider()
 { }
