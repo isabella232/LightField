@@ -750,7 +750,7 @@ void FileTab::selectButton_clicked(bool)
                 _selectButton->setEnabled(true);
                 _showLibrary( );
 
-                auto index = _libraryFsModel->index( folderCpyName );
+                auto index = _libraryFsModel->index( _modelSelection.fileName );
                 _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
                 availableFilesListView_clicked( index );
 
