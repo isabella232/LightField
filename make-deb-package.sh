@@ -110,6 +110,7 @@ else
     ANTIBUILDTYPE=debug
 fi
 
+sed -i "1s/(.*)/($VERSION)/" ${LIGHTFIELD_ROOT}/debian/changelog
 PRINTRUN_SRC="${LIGHTFIELD_ROOT}/printrun"
 MOUNTMON_SRC="${LIGHTFIELD_ROOT}/mountmon"
 PRINTPROFILES_SRC="${LIGHTFIELD_ROOT}/print-profiles"
@@ -299,6 +300,7 @@ blue-bar "• Cleaning up"
 cd ..
 
 rm ${VERBOSE} -rf "${LIGHTFIELD_PACKAGE}"
+git checkout ${LIGHTFIELD_ROOT}/debian/changelog
 
 blue-bar ""
 blue-bar "• Done!"

@@ -86,7 +86,12 @@ fi
 
 if [ "${COUNT}" -eq 3 ]
 then
-    VER[3]=$(git rev-list --count HEAD)
+    if [ -z "$(git describe --abbrev=0 2>/dev/null || true)" ]
+    then
+        VER[3]=$(git rev-list --count HEAD)
+    else
+        VER[3]=0
+    fi
 fi
 
 STRINGVER="${VER[0]}.${VER[1]}.${VER[2]}.${VER[3]}"
