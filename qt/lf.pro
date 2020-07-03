@@ -95,7 +95,6 @@ HEADERS  +=                         \
     ../src/printmanager.h           \
     ../src/printprofile.h           \
     ../src/printprofilemanager.h    \
-    ../src/printpumpingparameters.h \
     ../src/printtab.h               \
     ../src/processrunner.h          \
     ../src/profilesjsonparser.h     \
@@ -147,13 +146,18 @@ debug {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
 }
 
-dlp4710 {
-    DEFINES += DLP4710
-    message(Configuring for DLP4710.)
-}
+dlp4710-20um {
+    DEFINES += DLP471020UM
+    message(Configuring for DLP471020UM.)
+} else {
+    dlp4710 {
+        DEFINES += DLP4710
+        message(Configuring for DLP4710.)
+    }
 
-!dlp4710 {
-    message(Configuring for DLPC350.)
+    !dlp4710 {
+        message(Configuring for DLPC350.)
+    }
 }
 
 experimental {

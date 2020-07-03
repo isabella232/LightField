@@ -60,3 +60,16 @@ build_xdlp4710:
   artifacts:
     paths:
       - packaging
+
+build_dlp4710-20um:
+  stage: build_dlp4710-20um
+  script:
+    - rm -rf packaging
+    - bash change-version-number.sh -t dlp4710-20um ${VERSION}
+    - bash make-deb-package.sh release
+    - bash make-deb-package.sh debug
+  tags:
+    - lightfield
+  artifacts:
+    paths:
+      - packaging
