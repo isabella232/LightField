@@ -8,6 +8,7 @@ stages:
   - build_dlp4710
   - build_xbase
   - build_base
+  - build_dlp4710_20um
 
 build_base:
   stage: build_base
@@ -62,7 +63,7 @@ build_xdlp4710:
       - packaging
 
 build_dlp4710-20um:
-  stage: build_dlp4710-20um
+  stage: build_dlp4710_20um
   script:
     - rm -rf packaging
     - bash change-version-number.sh -t dlp4710-20um ${VERSION}
