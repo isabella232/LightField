@@ -52,14 +52,14 @@ public:
     {
 
        Q_ASSERT(_baseManager);
-       return hasBaseLayers() ? _baseManager->layerThickNessAt(0) : 0;
+       return hasBaseLayers() ? getLayerThicknessAt(0) : 0;
     }
 
     int getBodyLayerThickness() const
     {
 
         Q_ASSERT(_bodyManager);
-        return _bodyManager->layerThickNessAt(0);
+        return getLayerThicknessAt(_baseLayerCount);
     }
 
     int getBaseLayerCount() const
@@ -138,16 +138,21 @@ public:
 
     int getLayerThicknessAt(int layerNo) const
     {
-
         Q_ASSERT(_bodyManager);
-        if (hasBaseLayers()) {
-            Q_ASSERT(_baseManager);
-            return layerNo < _baseLayerCount
-                ? _baseManager->layerThickNessAt(layerNo)
-                : _bodyManager->layerThickNessAt(bodyLayerStart() + layerNo - _baseLayerCount);
-        }
 
-        return _bodyManager->layerThickNessAt(layerNo);
+        if(_bodyManager->tiled()) {
+            return _bodyManager->layerThickNessAt(layerNo);
+        } else if (_directoryMode) {
+            return _selectedBodyThickness;
+        } else {
+            if (hasBaseLayers()) {
+                Q_ASSERT(_baseManager);
+                return layerNo < _baseLayerCount
+                    ? _selectedBaseThickness
+                    : _selectedBodyThickness;
+            }
+            return _selectedBodyThickness;
+        }
     }
 
     int baseLayerStart() const
@@ -232,6 +237,10 @@ public:
     {
 
         _bodyManager.swap(manager);
+
+        if(_directoryMode || _bodyManager->tiled()) {
+            _baseManager = _bodyManager;
+        }
     }
 
     void setBaseManager(QSharedPointer<OrderManifestManager> manager)

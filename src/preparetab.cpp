@@ -318,10 +318,11 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
         prevLayerNumber = layerNumber;
     }
 
-    if(isBody)
+    if(isBody) {
         _printJob->setBodyManager(manifestMgr);
-    else
-        _printJob->setBaseManager(manifestMgr);
+    } else {
+        _printJob->setBaseManager(manifestMgr);   
+    }
 
     debug("  + Success\n");
     return true;
@@ -331,16 +332,12 @@ bool PrepareTab::_checkOneSliceDirectory(const QString &directory, bool isBody)
 {
     bool isPreSliced;
 
-    if (QDir slicesDir { directory }; !slicesDir.exists()) {
-        isPreSliced = false;
-        debug("  + no pre-sliced %s layers\n", isBody ? "body" : "base");
-    } else {
-        isPreSliced = _checkPreSlicedFiles(directory, isBody);
-        debug("  + pre-sliced layers are %sgood\n", isPreSliced ? "" : "NOT ");
+    QDir slicesDir { directory };
+    isPreSliced = _checkPreSlicedFiles(directory, isBody);
+    debug("  + pre-sliced layers are %sgood\n", isPreSliced ? "" : "NOT ");
 
-        if (!isPreSliced) {
-            slicesDir.removeRecursively();
-        }
+    if (!isPreSliced) {
+        slicesDir.removeRecursively();
     }
 
     return isPreSliced;
@@ -691,20 +688,15 @@ void PrepareTab::_loadDirectoryManifest()
 
             manifestMgr->setTiled(false);
             manifestMgr->requireAreaCalculation();
-            manifestMgr->setBaseLayerCount(2);
-            manifestMgr->setBodyLayerThickness(100);
-            manifestMgr->setBaseLayerThickness(100);
+            _printJob->setBaseLayerCount(2);
+            _printJob->setSelectedBodyLayerThickness(DefaultBodyLayerThickness);
+            _printJob->setSelectedBaseLayerThickness(DefaultBaseLayerThickness);
 
             SlicesOrderPopup slicesOrderPopup { manifestMgr };
             slicesOrderPopup.exec();
             break;
         }
     }
-
-    _printJob->setBaseManager(manifestMgr);
-
-    if (manifestMgr->tiled())
-        _printJob->setSelectedBaseLayerThickness(-1);
 
     _printJob->setBodyManager(manifestMgr);
 

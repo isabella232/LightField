@@ -228,16 +228,24 @@ double OrderManifestManager::getTimeForElementAt(int position){
  */
 int OrderManifestManager::layerThickNessAt(int position) {
     debug("+ OrderManifestManager::layerThickNessAt \n");
+
     if(_layerThickNess.count() > 0 && position < _layerThickNess.count())
     {
-        return _layerThickNess[position];
-    } else if (_layerThickNess.count() > 0 && _layerThickNess.count() <= position) {
-        return -1;
-    } else {
-        if( position < _baseLayerCount ) {
+        if(_tiled)
+        {
+            return _layerThickNess[position];
+        }
+        else if( position < _baseLayerCount )
+        {
             return _baseLayerThickNess;
-        } else {
+        }
+        else
+        {
             return _bodyLayerThickNess;
         }
+    }
+    else
+    {
+        return -1;
     }
 }

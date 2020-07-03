@@ -486,9 +486,9 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
                 .arg( _printJob->getBaseLayerCount() )
                 .arg( _printJob->getBaseLayerThickness() )
                 .arg( _printJob->baseLayerParameters().layerExposureTime() )
-                .arg( _printJob->getBaseLayerCount() )
-                .arg( _printJob->getBaseLayerThickness() )
-                .arg( _printJob->baseLayerParameters().layerExposureTime() );
+                .arg( _printJob->getBodyLayerCount() )
+                .arg( _printJob->getBodyLayerThickness() )
+                .arg( _printJob->bodyLayerParameters().layerExposureTime() );
 
         dispenseText.append(pjInfo);
     } else {
@@ -496,7 +496,7 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
                 .arg( _printJob->getBaseLayerCount() )
                 .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
                 .arg( _printJob->getBodyLayerCount() )
-                .arg( _printJob->getBaseManager()->layerThickNessAt(0) );
+                .arg( _printJob->getBodyManager()->layerThickNessAt(0) );
 
         int tileCount = _printJob->getBaseManager()->tilingCount();
         int bodyElementStart = tileCount * 2;

@@ -413,7 +413,6 @@ void Window::startPrinting()
         bodyLayerParameters.powerLevel()
     );
 
-    _printJob.reset(new PrintJob(*_printJob));
     _printJob->setPrintProfile(_printProfileManager->activeProfile());
 
     PrintManager* oldPrintManager = _printManager;
