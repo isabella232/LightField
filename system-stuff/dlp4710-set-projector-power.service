@@ -6,6 +6,7 @@
 [Unit]
 Description=Reset Lumen X projector
 RequiresMountsFor=/usr
+After=systemd-udev.service
 
 [Service]
 Type=oneshot
