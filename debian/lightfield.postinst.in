@@ -45,7 +45,7 @@ case "$1" in
         systemctl enable --no-ask-password getty@tty1.service
         systemctl daemon-reload
 
-        if [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "dlpc4710-20um" ]
+        if [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "dlp4710-20um" ]
         then
             set-projector-power --first-time
         fi
