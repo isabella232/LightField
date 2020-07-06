@@ -4,11 +4,11 @@ variables:
   VERSION: 2.0.0
 
 stages:
+  - build_dlp4710_20um
   - build_xdlp4710
   - build_dlp4710
   - build_xbase
   - build_base
-  - build_dlp4710_20um
 
 
 build_dlp4710_20um:
