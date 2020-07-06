@@ -160,7 +160,7 @@ function rebuild () {
     then
         cp -a ../images/dlpc350-focus-image.png ../images/focus-image.png
         cp -a ../images/dlpc350-white-field.png ../images/white-field.png
-    elif [ "${PROJECTOR_TYPE}" = "dlp4710" ] || 
+    elif [ "${PROJECTOR_TYPE}" = "dlp4710" ]
     then
         cp -a ../images/dlp4710-focus-image.png ../images/focus-image.png
         cp -a ../images/dlp4710-white-field.png ../images/white-field.png
