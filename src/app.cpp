@@ -260,6 +260,8 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
         LIGHTFIELD_VERSION_GITHASH
     );
 
+    debug( QString("!!!!!!!!!!!!!!!!!!!!! pixel size: %1").arg(ProjectorPixelSize).toUtf8().data() );
+
     QCoreApplication::setOrganizationName( "Volumetric, Inc." );
     QCoreApplication::setOrganizationDomain( "https://www.volumetricbio.com/" );
     QCoreApplication::setApplicationName( "LightField" );

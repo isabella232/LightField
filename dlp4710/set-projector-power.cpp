@@ -344,7 +344,7 @@ int main( int argc, char** argv ) {
             }
 
             printf( "Setting default LED state\n" );
-            if ( !SendCommand( fd, buf, "WT+SLED=%d", 0 ) ) {
+            if ( !SendCommand( fd, buf, "WT+SLED=%d", 1 ) ) {
                 fprintf( stderr, "set-projector-power: command WT+SLED: failed to send command" );
                 goto bail2;
             }
