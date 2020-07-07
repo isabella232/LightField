@@ -89,6 +89,10 @@ public:
         this->_printProfile->setDisregardFirstLayerHeight(enabled);
     }
 
+    void setBuildPlatformOffset(int offset) {
+        this->_printProfile->setBuildPlatformOffset(offset);
+    }
+
     void resetTiling()
     {
         if (isTiled()) {

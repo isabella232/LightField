@@ -435,7 +435,7 @@ void Window::startPrinting()
     _printJob.reset(new PrintJob(*_printJob));
 
     _printJob->setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
-
+    _printJob->setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
     PrintManager* oldPrintManager = _printManager;
 
     _printManager = new PrintManager( _shepherd, this );
