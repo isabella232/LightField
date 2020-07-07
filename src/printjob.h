@@ -85,6 +85,10 @@ public:
         this->_printProfile = printProfile;
     }
 
+    void setDisregardFirstLayerHeight(bool enabled) {
+        this->_printProfile->setDisregardFirstLayerHeight(enabled);
+    }
+
     void resetTiling()
     {
         if (isTiled()) {

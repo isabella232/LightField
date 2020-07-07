@@ -434,6 +434,8 @@ void Window::startPrinting()
     QSharedPointer<PrintJob> job(_printJob);
     _printJob.reset(new PrintJob(*_printJob));
 
+    _printJob->setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
+
     PrintManager* oldPrintManager = _printManager;
 
     _printManager = new PrintManager( _shepherd, this );
