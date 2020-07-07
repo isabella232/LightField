@@ -262,6 +262,16 @@ void AdvancedTab::powerLevelSlider_valueChanged(int percentage)
     _printProfileManager->activeProfile()->baseLayerParameters().setPowerLevel(percentage);
     _printProfileManager->activeProfile()->bodyLayerParameters().setPowerLevel(percentage);
     _powerLevelValue->setText(QString { "%1%" }.arg( percentage));
+
+    //if value is greater than 80% then set font color to red
+    if(percentage>80) {
+        _powerLevelLabel->setStyleSheet(QString("QLabel { color : red; }"));
+        _powerLevelValue->setStyleSheet(QString("QLabel { color : red; }"));
+    } else {
+        _powerLevelLabel->setStyleSheet(QString("QLabel { color : white; }"));
+        _powerLevelValue->setStyleSheet(QString("QLabel { color : white; }"));
+    }
+
     update();
 }
 
