@@ -54,7 +54,7 @@ int                extern const  KeyboardRepeatDelay;
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
-#   if defined DLP471020UM
+#   if defined XDLP471020UM
 
 double constexpr          const  ProjectorPixelSize         =    0.0200; // mm
 
@@ -86,7 +86,7 @@ double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
 
 
-#   if defined DLP4710
+#   if defined DLP4710 || XDLP471020UM
 
 double constexpr          const  ProjectorMaxPowerLevel     = 1023.0;
 

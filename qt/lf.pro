@@ -146,9 +146,9 @@ debug {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
 }
 
-dlp4710-20um {
-    DEFINES += DLP471020UM
-    message(Configuring for DLP471020UM.)
+xdlp4710-20um {
+    DEFINES += XDLP471020UM
+    message(Configuring for XDLP471020UM.)
 } else {
     dlp4710 {
         DEFINES += DLP4710

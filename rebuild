@@ -65,8 +65,8 @@ function rebuild () {
             PROJECTOR_TYPE=dlp4710
             ;;
 
-        'dlp4710-20um' )
-            ADDTOCONFIG=" dlp4710-20um"
+        'xdlp4710-20um' )
+            ADDTOCONFIG=" xdlp4710-20um experimental"
             PROJECTOR_TYPE=dlp4710
             ;;
     esac

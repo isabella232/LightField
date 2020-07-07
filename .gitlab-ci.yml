@@ -5,10 +5,11 @@ variables:
 
 stages:
   - build_xdlp4710
+  - build_xdlp4710_20um
   - build_dlp4710
   - build_xbase
   - build_base
-  - build_dlp4710_20um
+
 
 build_base:
   stage: build_base
@@ -62,11 +63,11 @@ build_xdlp4710:
     paths:
       - packaging
 
-build_dlp4710_20um:
-  stage: build_dlp4710_20um
+build_xdlp4710_20um:
+  stage: build_xdlp4710_20um
   script:
     - rm -rf packaging
-    - bash change-version-number.sh -t dlp4710-20um ${VERSION}
+    - bash change-version-number.sh -t xdlp4710-20um ${VERSION}
     - bash make-deb-package.sh release
     - bash make-deb-package.sh debug
   tags:
