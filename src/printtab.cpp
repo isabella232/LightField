@@ -213,8 +213,8 @@ void PrintTab::projectorPowerLevel_changed(int percentage)
 
 
 void PrintTab::basicExposureTime_update( ) {
-    auto bodyParams = _printJob->bodyLayerParameters();
-    auto baseParams = _printJob->baseLayerParameters();
+    auto& bodyParams = _printJob->bodyLayerParameters();
+    auto& baseParams = _printJob->baseLayerParameters();
 
     int bodyExpoTime = _bodyExposureTimeSlider->getValue();
     int baseExpoMulpl = _baseExposureTimeSlider->getValue();
@@ -233,8 +233,8 @@ void PrintTab::basicExposureTime_update( ) {
 }
 
 void PrintTab::advancedExposureTime_update( ) {
-    auto bodyParams = _printJob->bodyLayerParameters();
-    auto baseParams = _printJob->baseLayerParameters();
+    auto& bodyParams = _printJob->bodyLayerParameters();
+    auto& baseParams = _printJob->baseLayerParameters();
 
     int bodyExpoTime = _advBodyExpoCorse->getValue() + _advBodyExpoFine->getValue();
     int baseExpoTime = _advBaseExpoCorse->getValue() + _advBaseExpoFine->getValue();
