@@ -78,7 +78,7 @@ public:
     {
 
         Q_ASSERT(_bodyManager);
-        return _bodyManager->getSize();
+        return _bodyManager->getSize() - _baseLayerCount;
     }
 
     void setPrintProfile(QSharedPointer<PrintProfile> printProfile)
