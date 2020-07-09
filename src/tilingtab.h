@@ -84,6 +84,7 @@ private:
     int  _getMaxCount();
     void _renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody);
     void _setEnabled(bool enabled);
+    void _updateExposureTiming();
 signals:
     ;
 
@@ -93,6 +94,8 @@ public slots:
     void setStepValue();
 
     void setupExpoTimeClicked(bool);
+
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
     ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;

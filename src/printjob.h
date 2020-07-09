@@ -335,6 +335,15 @@ public:
         return _bodyManager->manifestVolume();
     }
 
+    int getAdvancedExposureControlsEnabled() const {
+        return _printProfile->advancedExposureControlsEnabled();
+    }
+
+    // unit: boolean (true/false)
+    void setAdvancedExposureControlsEnabled(bool value) {
+        _printProfile->setAdvancedExposureControlsEnabled(value);
+    }
+
 protected:
     int _baseLayerCount;
     int _selectedBaseThickness;

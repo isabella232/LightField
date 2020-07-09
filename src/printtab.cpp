@@ -58,11 +58,11 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     QScrollArea* advArea = new QScrollArea();
 
-    Spoiler* basicExpoTimeGroup = new Spoiler("Basic exposure time controll");
-    Spoiler* advancedExpoTimeGroup = new Spoiler("Advanced exposure time controll");
+    _basicExpoTimeGroup = new Spoiler("Basic exposure time controll");
+    _advancedExpoTimeGroup = new Spoiler("Advanced exposure time controll");
 
-    QObject::connect(basicExpoTimeGroup, &Spoiler::collapseStateChanged, [advancedExpoTimeGroup, this](bool checked) {
-        advancedExpoTimeGroup->setCollapsed(checked);
+    QObject::connect(_basicExpoTimeGroup, &Spoiler::collapseStateChanged, [this](bool checked) {
+        _advancedExpoTimeGroup->setCollapsed(checked);
 
         connectBasicExpoTimeCallback(checked);
         connectAdvanExpoTimeCallback(!checked);
@@ -74,8 +74,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     });
 
-    QObject::connect(advancedExpoTimeGroup, &Spoiler::collapseStateChanged, [basicExpoTimeGroup, this](bool checked) {
-        basicExpoTimeGroup->setCollapsed(checked);
+    QObject::connect(_advancedExpoTimeGroup, &Spoiler::collapseStateChanged, [this](bool checked) {
+        _basicExpoTimeGroup->setCollapsed(checked);
 
         connectBasicExpoTimeCallback(!checked);
         connectAdvanExpoTimeCallback(checked);
@@ -86,8 +86,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
             advancedExposureTime_update();
     });
 
-    basicExpoTimeGroup->setCollapsed( false /*!_printProfileManager->activeProfile()->advancedExposureControlsEnabled()*/ );
-    basicExpoTimeGroup->setContentLayout(
+    _basicExpoTimeGroup->setCollapsed(false);
+    _basicExpoTimeGroup->setContentLayout(
         WrapWidgetsInVBox(
             _bodyExposureTimeSlider,
             _baseExposureTimeSlider
@@ -102,8 +102,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
                   _advBaseExpoFine
         );
 
-    advancedExpoTimeGroup->setCollapsed( true /*_printProfileManager->activeProfile()->advancedExposureControlsEnabled()*/);
-    advancedExpoTimeGroup->setContentLayout(
+    _advancedExpoTimeGroup->setCollapsed(true);
+    _advancedExpoTimeGroup->setContentLayout(
         container
     );
 
@@ -111,13 +111,13 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     int scrolbarWidth = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
     int contentWidth = MainWindowSize.width() - ButtonPadding.width() - scrolbarWidth;
 
-    advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
-    advancedExpoTimeGroup->setMinimumWidth(contentWidth);
-    basicExpoTimeGroup->setMinimumWidth(contentWidth);
+    _advancedExpoTimeGroup->setMinimumWidth(contentWidth);
+    _basicExpoTimeGroup->setMinimumWidth(contentWidth);
 
     QWidget* widget = new QWidget(advArea);
-    widget->setLayout( WrapWidgetsInVBox(basicExpoTimeGroup, advancedExpoTimeGroup, nullptr));
+    widget->setLayout( WrapWidgetsInVBox(_basicExpoTimeGroup, _advancedExpoTimeGroup, nullptr));
 
 
     advArea->setWidget(widget);
@@ -228,7 +228,7 @@ void PrintTab::basicExposureTime_update( ) {
 
     bodyParams.setLayerExposureTime(bodyExpoTime);
     baseParams.setLayerExposureTime(baseExpoTime);
-
+    _printJob->setAdvancedExposureControlsEnabled(false);
     update( );
 }
 
@@ -252,6 +252,7 @@ void PrintTab::advancedExposureTime_update( ) {
 
     bodyParams.setLayerExposureTime(bodyExpoTime);
     baseParams.setLayerExposureTime(baseExpoTime);
+    _printJob->setAdvancedExposureControlsEnabled(true);
 
     update( );
 }
@@ -488,4 +489,40 @@ void PrintTab::setPrinterAvailable( bool const value ) {
     debug( "+ PrintTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _updateUiState( );
+}
+
+void PrintTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+
+    syncFormWithPrintProfile();
+}
+
+void PrintTab::syncFormWithPrintProfile() {
+    auto& bodyParams = _printJob->bodyLayerParameters();
+    auto& baseParams = _printJob->baseLayerParameters();
+
+    int bodyExpoTime = bodyParams.layerExposureTime();
+    int baseExpoTime = baseParams.layerExposureTime();
+
+    if(_printJob->getAdvancedExposureControlsEnabled()) {
+        _advBodyExpoCorse->setValue(bodyExpoTime - (bodyExpoTime % 1000));
+        _advBodyExpoFine->setValue(bodyExpoTime % 1000);
+
+        _advBaseExpoCorse->setValue(baseExpoTime - (baseExpoTime % 1000));
+        _advBaseExpoFine->setValue(baseExpoTime % 1000);
+
+        _advancedExpoTimeGroup->setCollapsed(false);
+        _basicExpoTimeGroup->setCollapsed(true);
+
+        advancedExposureTime_update();
+    } else {
+        _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
+        _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
+            bodyParams.layerExposureTime());
+
+        _advancedExpoTimeGroup->setCollapsed(true);
+        _basicExpoTimeGroup->setCollapsed(false);
+
+        basicExposureTime_update();
+    }
 }

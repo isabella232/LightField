@@ -50,7 +50,7 @@ public:
                 printProfile->setActive(obj["active"].toBool(false));
                 printProfile->setBuildPlatformOffset(obj["buildPlatformOffset"].toInt());
                 printProfile->setDisregardFirstLayerHeight(obj["disregardFirstLayerHeight"].toBool());
-                printProfile->setAdvancedExposureControlsEnabled(obj["advancedExposureEnabled"].toBool(false));
+                printProfile->setAdvancedExposureControlsEnabled(obj["advancedExposureEnabled"].toBool());
                 printProfile->setBaseLayerParameters(_parsePrintParameters(
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
@@ -118,7 +118,6 @@ private:
         params.setPumpDownPause(obj["pumpDownPause"].toInt());
         params.setNoPumpUpVelocity(obj["noPumpUpVelocity"].toInt(50));
         params.setPumpEveryNthLayer(obj["pumpEveryNthLayer"].toInt(1));
-        params.setLayerThickness(obj["layerThickness"].toInt(100));
         params.setLayerThickness(obj["layerThickness"].toInt(100));
         params.setTilingDefaultExposure(obj["tilingDefaultExposure"].toInt(10000));
         params.setTilingDefaultExposureStep(obj["tilingDefaultExposureStep"].toInt(2000));

@@ -7,6 +7,7 @@
 #include "paramslider.h"
 #include "printprofilemanager.h"
 #include "constants.h"
+#include "spoiler.h"
 
 enum class BuildPlatformState {
     Lowered,
@@ -70,7 +71,9 @@ private:
     ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base corse", "s",
                                                                               1000, 149000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
-                                                                              50, 1000, 50, 0) };
+                                                                             50, 1000, 50, 0) };
+    Spoiler*           _basicExpoTimeGroup;
+    Spoiler*           _advancedExpoTimeGroup;
 
     QLabel*            _expoDisabledTilingWarning          { new QLabel("<font color='red'>Exposure controls disabled by tiling.</font>") };
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
@@ -78,6 +81,7 @@ private:
     QGridLayout*       _layout                             { new QGridLayout };
 
     void _updateUiState( );
+    void syncFormWithPrintProfile();
 
 signals:
     void advancedControlsChanged(bool enabled);
@@ -97,6 +101,7 @@ public slots:
     void setPrinterAvailable( bool const value );
     void projectorPowerLevel_changed( int const percentage );
     void changeExpoTimeSliders();
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 protected slots:
 

@@ -308,18 +308,11 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
         _setupTiling->setEnabled(false);
 
         if (printJob()->getDirectoryMode()) {
-            this->_stepBase = printJob()->baseLayerParameters().tilingDefaultExposureStep() / 1000;
-            this->_stepBody = printJob()->bodyLayerParameters().tilingDefaultExposureStep() / 1000;
-            this->_minExposureBase = printJob()->baseLayerParameters().tilingDefaultExposure() / 1000;
-            this->_minExposureBody = printJob()->bodyLayerParameters().tilingDefaultExposure() / 1000;
+            _updateExposureTiming();
+
             this->_space->setValue(1);
             this->_count->setValue(1);
             this->_currentLayerImage->clear();
-
-            _minExposureBaseValue->setText(QString("%1s").arg(_minExposureBase));
-            _stepBaseValue->setText(QString("%1s").arg(_stepBase));
-            _minExposureBodyValue->setText(QString("%1s").arg(_minExposureBody));
-            _stepBodyValue->setText(QString("%1s").arg(_stepBody));
 
             _setEnabled(false);
             _setupTiling->setEnabled(false);
@@ -490,10 +483,19 @@ void TilingTab::setupTilingClicked(bool)
 }
 
 void TilingTab::_connectPrintJob() {
-    this->_stepBase = printJob()->baseLayerParameters().tilingDefaultExposureStep() / 1000;
-    this->_stepBody = printJob()->bodyLayerParameters().tilingDefaultExposureStep() / 1000;
-    this->_minExposureBase = printJob()->baseLayerParameters().tilingDefaultExposure() / 1000;
-    this->_minExposureBody = printJob()->bodyLayerParameters().tilingDefaultExposure() / 1000;
+    _updateExposureTiming();
+}
+
+void TilingTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+    _updateExposureTiming();
+}
+
+void TilingTab::_updateExposureTiming() {
+    this->_stepBase = ((double)printJob()->baseLayerParameters().tilingDefaultExposureStep()) / 1000.0;
+    this->_stepBody = ((double)printJob()->bodyLayerParameters().tilingDefaultExposureStep()) / 1000.0;
+    this->_minExposureBase = ((double)printJob()->baseLayerParameters().tilingDefaultExposure()) / 1000.0;
+    this->_minExposureBody = ((double)printJob()->bodyLayerParameters().tilingDefaultExposure()) / 1000.0;
 
     _minExposureBaseValue->setText(QString("%1s").arg(_minExposureBase));
     _stepBaseValue->setText(QString("%1s").arg(_stepBase));

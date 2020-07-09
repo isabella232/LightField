@@ -137,9 +137,14 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable            );
 
+    //
+    // "Tiling" tab
+    //
 
     _tilingTab->setContentsMargins( { } );
     _tilingTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _tilingTab, &TilingTab::activeProfileChanged);
 
     //
     // "Print" tab
@@ -155,7 +160,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable           );
     QObject::connect( this,      &Window::modelRendered,                _printTab,    &PrintTab::setModelRendered               );
     QObject::connect( this,      &Window::printerPrepared,              _printTab,    &PrintTab::setPrinterPrepared             );
-
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _printTab, &PrintTab::activeProfileChanged);
 
     //
     // "Status" tab

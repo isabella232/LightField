@@ -163,7 +163,7 @@ public:
         _bodyLayerParameters = newParameters;
     }
 
-    int advancedExposureControlsEnabled() const {
+    bool advancedExposureControlsEnabled() const {
         return _advancedExposureControlsEnabled;
     }
 
