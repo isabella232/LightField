@@ -96,10 +96,8 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
 
     QVBoxLayout* container =
         WrapWidgetsInVBox(
-                  _advBodyExpoCorse,
-                  _advBodyExpoFine,
-                  _advBaseExpoCorse,
-                  _advBaseExpoFine
+                  WrapWidgetsInHBox(_advBodyExpoCorse, _advBodyExpoFine),
+                  WrapWidgetsInHBox(_advBaseExpoCorse, _advBaseExpoFine)
         );
 
     _advancedExpoTimeGroup->setCollapsed(true);
