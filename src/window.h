@@ -34,7 +34,7 @@ public:
 
     Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
-
+    void createNewPrintJob();
     void terminate( );
 
 protected:
@@ -75,12 +75,12 @@ private:
 signals:
     ;
 
-    void printJobChanged( QSharedPointer<PrintJob> printJob );
-    void printManagerChanged( PrintManager* printManager );
-    void shepherdChanged( Shepherd* shepherd );
+    void printJobChanged(QSharedPointer<PrintJob>& printJob);
+    void printManagerChanged(PrintManager* printManager);
+    void shepherdChanged(Shepherd* shepherd);
 
-    void modelRendered( bool const value );
-    void printerPrepared( bool const value );
+    void modelRendered(bool const value);
+    void printerPrepared(bool const value);
 
     void terminationRequested( );
 public slots:

@@ -5,13 +5,13 @@
 #include <QtWidgets>
 #include "tabbase.h"
 
-class StatusTab: public InitialShowEventMixin<StatusTab, TabBase> {
+class StatusTab: public InitialShowEventMixinTab<StatusTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    StatusTab( QWidget* parent = nullptr );
+    StatusTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
     virtual ~StatusTab( ) override;
 
     bool isStopButtonEnabled( ) {
@@ -96,6 +96,7 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );

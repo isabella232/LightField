@@ -20,13 +20,13 @@ inline constexpr int operator+( BuildPlatformState const value ) { return static
 
 char const* ToString( BuildPlatformState const value );
 
-class PrintTab: public InitialShowEventMixin<PrintTab, TabBase> {
+class PrintTab: public InitialShowEventMixinTab<PrintTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    PrintTab( QWidget* parent = nullptr );
+    PrintTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
     virtual ~PrintTab( ) override;
 
     bool             isPrintButtonEnabled( ) const          { return _printButton->isEnabled( ); }
@@ -35,7 +35,6 @@ public:
 
 protected:
 
-    virtual void _connectPrintJob( )                    override;
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
@@ -63,12 +62,12 @@ private:
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
 
-    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body corse", "s",
+    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body coarse", "s",
                                                                               1000, 29000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body fine", "ms",
                                                                               50, 1000, 50, 0) };
 
-    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base corse", "s",
+    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base coarse", "s",
                                                                               1000, 149000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
                                                                              50, 1000, 50, 0) };
@@ -82,6 +81,7 @@ private:
 
     void _updateUiState( );
     void syncFormWithPrintProfile();
+    void enableExpoTimeSliders(bool enable);
 
 signals:
     void advancedControlsChanged(bool enabled);
@@ -95,6 +95,7 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );

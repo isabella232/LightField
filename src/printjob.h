@@ -10,14 +10,13 @@
 class PrintJob
 {
 public:
-    PrintJob(QSharedPointer<PrintProfile> profile)
+    PrintJob(QSharedPointer<PrintProfile>& profile): _printProfile(profile)
     {
 
         _baseLayerCount = 2;
         _selectedBaseThickness = -1;
         _selectedBodyThickness = -1;
         _directoryMode = false;
-        _printProfile = profile;
     }
 
     PrintParameters& baseLayerParameters()
@@ -221,13 +220,13 @@ public:
         return _bodyManager->getTimeForElementAt(layer);
     }
 
-    QSharedPointer<OrderManifestManager> getBaseManager()
+    QSharedPointer<OrderManifestManager>& getBaseManager()
     {
 
         return _baseManager;
     }
 
-    QSharedPointer<OrderManifestManager> getBodyManager()
+    QSharedPointer<OrderManifestManager>& getBodyManager()
     {
 
         return _bodyManager;
@@ -344,6 +343,10 @@ public:
         _printProfile->setAdvancedExposureControlsEnabled(value);
     }
 
+    QSharedPointer<PrintProfile>& printProfile() {
+        return _printProfile;
+    }
+
 protected:
     int _baseLayerCount;
     int _selectedBaseThickness;
@@ -354,7 +357,7 @@ protected:
     bool _directoryMode;
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
-    QSharedPointer<PrintProfile>         _printProfile {};
+    QSharedPointer<PrintProfile>&         _printProfile;
 };
 
 #endif // __PRINTJOB_H__

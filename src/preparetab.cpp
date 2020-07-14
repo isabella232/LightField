@@ -19,7 +19,7 @@
 #include "usbmountmanager.h"
 #include "window.h"
 
-PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
+PrepareTab::PrepareTab(QSharedPointer<PrintJob>& printJob, QWidget* parent ): InitialShowEventMixinTab<PrepareTab, TabBase>(printJob, parent) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto font12pt    = ModifyFont( origFont, 14.0 );
@@ -977,4 +977,8 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
     _usbPath.clear( );
 
     update( );
+}
+
+void PrepareTab::printJobChanged() {
+
 }

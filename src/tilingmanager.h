@@ -15,7 +15,7 @@ public:
     TilingManager( PrintJob* printJob );
     ~TilingManager() = default;
 
-    void processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
+    OrderManifestManager* processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
     inline QString getPath ( ) { return _path; }
 
 signals:

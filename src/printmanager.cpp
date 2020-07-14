@@ -1016,7 +1016,7 @@ void PrintManager::stepE2_completed( bool const success ) {
     }
 }
 
-void PrintManager::print(QSharedPointer<PrintJob> printJob)
+void PrintManager::print(QSharedPointer<PrintJob>& printJob)
 {
     if (!_printJob.isNull()) {
         debug( "+ PrintManager::print: Job submitted while we're busy\n" );

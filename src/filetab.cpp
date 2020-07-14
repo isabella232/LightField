@@ -60,7 +60,7 @@ namespace {
 
 }
 
-FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
+FileTab::FileTab( QSharedPointer<PrintJob>& printJob, QWidget* parent ): InitialShowEventMixinTab<FileTab, TabBase>(printJob, parent) {
     QFont font16pt { ModifyFont( font( ), 16.0          ) };
     QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
 
@@ -670,7 +670,8 @@ void FileTab::selectButton_clicked(bool)
     );
 
     if (_modelsLocation == ModelsLocation::Library) {
-        _printJob.reset(new PrintJob(_printProfileManager->activeProfile()));
+        ((Window)window()).createNewPrintJob();
+
         if (_modelSelection.type == ModelFileType::File) {
             emit modelSelected(&_modelSelection);
             emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
@@ -852,4 +853,8 @@ void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
 void FileTab::processRunner_readyReadStandardError( QString const& data ) {
     auto tmp = data.toUtf8( );
     fwrite( tmp.data( ), 1, tmp.count( ), stderr );
+}
+
+void FileTab::printJobChanged() {
+
 }

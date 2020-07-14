@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <iostream>
 
-ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
+ProfilesTab::ProfilesTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): TabBase(printJob, parent)
 {
     auto origFont    = font();
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
@@ -508,4 +508,8 @@ void ProfilesTab::printManager_printAborted()
     _enableButtonProfile(true, *profile);
 
     update();
+}
+
+void ProfilesTab::printJobChanged() {
+
 }

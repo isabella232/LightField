@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "window.h"
-
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
@@ -59,7 +58,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
     _printJob = QSharedPointer<PrintJob>(new PrintJob(_printProfileManager->activeProfile()));
-
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
@@ -71,22 +69,21 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     } );
 
     std::vector<TabBase*> tabs {
-        _fileTab     = new FileTab,
-        _prepareTab  = new PrepareTab,
-        _tilingTab   = new TilingTab,
-        _printTab    = new PrintTab,
-        _statusTab   = new StatusTab,
-        _advancedTab = new AdvancedTab,
-        _profilesTab = new ProfilesTab,
-        _systemTab   = new SystemTab,
+        _fileTab     = new FileTab{_printJob},
+        _prepareTab  = new PrepareTab{_printJob},
+        _tilingTab   = new TilingTab{_printJob},
+        _printTab    = new PrintTab{_printJob},
+        _statusTab   = new StatusTab{_printJob},
+        _advancedTab = new AdvancedTab{_printJob},
+        _profilesTab = new ProfilesTab{_printJob},
+        _systemTab   = new SystemTab{_printJob},
     };
 
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
-        tabA->setPrintJob(_printJob);
-        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
+        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::printJobChanged);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
         QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
         QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
@@ -606,4 +603,11 @@ void Window::showEvent( QShowEvent* aShowEvent )
 {
     QMainWindow::showEvent(aShowEvent);
     activateWindow();
+}
+
+
+void Window::createNewPrintJob() {
+    _printJob.reset(new PrintJob(_printProfileManager->activeProfile()));
+
+    emit printJobChanged( _printJob );
 }

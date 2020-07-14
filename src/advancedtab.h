@@ -17,7 +17,7 @@ class AdvancedTab: public TabBase
 
 public:
 
-    AdvancedTab(QWidget* parent = nullptr);
+    AdvancedTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
     virtual ~AdvancedTab() override;
     virtual TabIndex tabIndex() const override
     {
@@ -128,6 +128,7 @@ signals:
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
     void setPrinterAvailable( bool const value );

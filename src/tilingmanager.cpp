@@ -8,7 +8,7 @@ TilingManager::TilingManager( PrintJob* printJob )
     _printJob = printJob;
 }
 
-void TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
+OrderManifestManager* TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
     double bodyExpoTime, double bodyStep, int space, int count)
 {
     debug( "+ TilingManager::processImages\n");
@@ -42,21 +42,24 @@ void TilingManager::processImages(int width, int height, double baseExpoTime, do
 
     QFile::link(_path, StlModelLibraryPath % Slash % dirName);
 
-    OrderManifestManager manifestMgr;
-    manifestMgr.setFileList(_fileNameList);
-    manifestMgr.setExpoTimeList(_expoTimeList);
-    manifestMgr.setLayerThicknessList(_layerThicknessList);
-    manifestMgr.setBaseLayerThickness(_printJob->getSelectedBaseLayerThickness());
-    manifestMgr.setBodyLayerThickness(_printJob->getSelectedBodyLayerThickness());
-    manifestMgr.setBaseLayerCount(_printJob->getBaseLayerCount());
-    manifestMgr.setPath(JobWorkingDirectoryPath % Slash % dirName);
+    OrderManifestManager* manifestMgr = new OrderManifestManager ();
 
-    manifestMgr.setTiled(true);
-    manifestMgr.setTilingSpace(_space);
-    manifestMgr.setTilingCount(_count);
-    manifestMgr.setVolume(_count * _printJob->getEstimatedVolume());
+    manifestMgr->setFileList(_fileNameList);
+    manifestMgr->setExpoTimeList(_expoTimeList);
+    manifestMgr->setLayerThicknessList(_layerThicknessList);
+    manifestMgr->setBaseLayerThickness(_printJob->getSelectedBaseLayerThickness());
+    manifestMgr->setBodyLayerThickness(_printJob->getSelectedBodyLayerThickness());
+    manifestMgr->setBaseLayerCount(_printJob->getBaseLayerCount());
+    manifestMgr->setPath(JobWorkingDirectoryPath % Slash % dirName);
 
-    manifestMgr.save();
+    manifestMgr->setTiled(true);
+    manifestMgr->setTilingSpace(_space);
+    manifestMgr->setTilingCount(_count);
+    manifestMgr->setVolume(_count * _printJob->getEstimatedVolume());
+
+    manifestMgr->save();
+
+    return manifestMgr;
 }
 
 void TilingManager::tileImages()

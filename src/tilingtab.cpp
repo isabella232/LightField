@@ -6,7 +6,7 @@
 #include "tilingmanager.h"
 #include "printmanager.h"
 #include "window.h"
-
+#include "printprofilemanager.h"
 
 TilingExpoTimePopup::TilingExpoTimePopup()
 {
@@ -60,7 +60,7 @@ void TilingExpoTimePopup::cancel(bool)
     this->close();
 }
 
-TilingTab::TilingTab(QWidget* parent): TabBase(parent)
+TilingTab::TilingTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): TabBase(printJob, parent)
 {
     auto origFont = font();
     auto boldFont = ModifyFont(origFont, QFont::Bold);
@@ -355,6 +355,8 @@ void TilingTab::confirmButton_clicked(bool)
 {
     debug("+ TilingTab::confirmButton_clicked\n");
 
+    Window* win = (Window*)window();
+
     TilingManager* tilingMgr = new TilingManager(printJob().get());
     ProgressDialog* dialog = new ProgressDialog(this);
 
@@ -362,18 +364,20 @@ void TilingTab::confirmButton_clicked(bool)
     QObject::connect(tilingMgr, &TilingManager::progressUpdate, dialog,
         &ProgressDialog::setProgress);
 
+    QSharedPointer<OrderManifestManager> orderMgr;
     dialog->show();
 
+    QString modelFilename = _printJob->getModelFilename();
+
     QThread *thread = QThread::create(
-        [this, tilingMgr, dialog]
+        [this, tilingMgr, dialog, &orderMgr]
         {
-            tilingMgr->processImages(ProjectorWindowSize.width(), ProjectorWindowSize.height(),
+            OrderManifestManager* orderMgrPtr = tilingMgr->processImages(ProjectorWindowSize.width(), ProjectorWindowSize.height(),
                 _minExposureBase, _stepBase, _minExposureBody, _stepBody, _space->getValue(),
                 _count->getValue());
 
-            printJob()->setDirectoryMode(true);
-            printJob()->setDirectoryPath(tilingMgr->getPath());
 
+            orderMgr.reset(orderMgrPtr);
             dialog->close();
             delete dialog;
             delete tilingMgr;
@@ -383,6 +387,17 @@ void TilingTab::confirmButton_clicked(bool)
     thread->start();
 
     dialog->exec();
+
+    win->createNewPrintJob();
+
+    printJob()->setModelFilename(modelFilename);
+    printJob()->setSelectedBaseLayerThickness(-1);
+    printJob()->setSelectedBodyLayerThickness(-1);
+    printJob()->setBaseManager(QSharedPointer<OrderManifestManager>(orderMgr));
+    printJob()->setBodyManager(QSharedPointer<OrderManifestManager>(orderMgr));
+    printJob()->setDirectoryMode(true);
+    printJob()->setDirectoryPath(tilingMgr->getPath());
+
     emit uiStateChanged(TabIndex::Tiling, UiState::SelectCompleted);
 }
 
@@ -441,10 +456,12 @@ void TilingTab::setupExpoTimeClicked(bool)
         _minExposureBodyValue->setText(QString("%1s").arg(_expoTimePopup.minExposureBody()));
         _stepBodyValue->setText(QString("%1s").arg(_expoTimePopup.stepBody()));
 
-        printJob()->baseLayerParameters().setTilingDefaultExposure(_minExposureBase * 1000);
-        printJob()->baseLayerParameters().setTilingDefaultExposureStep(_stepBase * 1000);
-        printJob()->bodyLayerParameters().setTilingDefaultExposure(_minExposureBody * 1000);
-        printJob()->bodyLayerParameters().setTilingDefaultExposureStep(_stepBody * 1000);
+        QSharedPointer<PrintProfile>& printProfile = printProfileManager()->activeProfile();
+
+        printProfile->baseLayerParameters().setTilingDefaultExposure(_minExposureBase * 1000);
+        printProfile->baseLayerParameters().setTilingDefaultExposureStep(_stepBase * 1000);
+        printProfile->bodyLayerParameters().setTilingDefaultExposure(_minExposureBody * 1000);
+        printProfile->bodyLayerParameters().setTilingDefaultExposureStep(_stepBody * 1000);
     }
 
     setStepValue();
@@ -482,7 +499,7 @@ void TilingTab::setupTilingClicked(bool)
     emit uiStateChanged(TabIndex::Prepare, UiState::TilingClicked);
 }
 
-void TilingTab::_connectPrintJob() {
+void TilingTab::printJobChanged() {
     _updateExposureTiming();
 }
 

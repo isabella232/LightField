@@ -12,7 +12,7 @@ class ProfilesTab: public TabBase
 
 public:
 
-    ProfilesTab(QWidget* parent = nullptr);
+    ProfilesTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
     virtual ~ProfilesTab() override;
     virtual TabIndex tabIndex() const override
     {
@@ -54,6 +54,7 @@ private:
 
 public slots:
     virtual void tab_uiStateChanged(TabIndex const sender, UiState const state) override;
+    virtual void printJobChanged() override;
 
     void importParamsClicked(bool);
     void exportParamsClicked(bool);

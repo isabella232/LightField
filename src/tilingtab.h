@@ -40,14 +40,13 @@ class TilingTab: public TabBase {
     Q_OBJECT
 
 public:
-    TilingTab( QWidget* parent = nullptr );
+    TilingTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
     virtual ~TilingTab( ) { }
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Tiling; }
 
 protected:
     virtual void _connectPrintManager() override;
-    virtual void _connectPrintJob() override;
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
@@ -96,10 +95,10 @@ public slots:
     void setupExpoTimeClicked(bool);
 
     void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
-    ;
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
+    virtual void printJobChanged() override;
+    ;
 protected slots:
     ;
 

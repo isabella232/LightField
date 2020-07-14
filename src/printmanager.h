@@ -109,7 +109,7 @@ signals:
 
 public slots:
     void setPngDisplayer(PngDisplayer* pngDisplayer);
-    void print(QSharedPointer<PrintJob> printJob);
+    void print(QSharedPointer<PrintJob>& printJob);
     void pause( );
     void resume( );
     void terminate( );

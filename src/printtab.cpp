@@ -15,7 +15,7 @@ namespace {
 
 }
 
-PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
+PrintTab::PrintTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): InitialShowEventMixinTab<PrintTab, TabBase>(printJob, parent) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -142,13 +142,12 @@ PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::_connectPrintJob()
+void PrintTab::printJobChanged()
 {
-    debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
+    debug( "+ PrintTab::printJobChanged: %p\n", _printJob );
 
-    int powerLevelValue = _printJob->baseLayerParameters().powerLevel();
+    syncFormWithPrintProfile();
 
-    _powerLevelSlider->setValue( powerLevelValue );
     update( );
 }
 
@@ -395,9 +394,7 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch (_uiState) {
         case UiState::SelectCompleted:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
-
+            enableExpoTimeSliders(!_printJob->isTiled());
             if(!_printJob->isTiled())
                 _expoDisabledTilingWarning->hide();
             else
@@ -411,8 +408,8 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
             break;
 
         case UiState::PrintJobReady:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasExposureControlsEnabled());
+            enableExpoTimeSliders(!_printJob->isTiled());
+            syncFormWithPrintProfile();
 
             if(!_printJob->isTiled()) {
                 _expoDisabledTilingWarning->hide();
@@ -496,31 +493,65 @@ void PrintTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
 }
 
 void PrintTab::syncFormWithPrintProfile() {
-    auto& bodyParams = _printJob->bodyLayerParameters();
-    auto& baseParams = _printJob->baseLayerParameters();
+    int powerLevelValue = _printJob->baseLayerParameters().powerLevel();
 
-    int bodyExpoTime = bodyParams.layerExposureTime();
-    int baseExpoTime = baseParams.layerExposureTime();
+    _powerLevelSlider->setValue( powerLevelValue );
 
-    if(_printJob->getAdvancedExposureControlsEnabled()) {
-        _advBodyExpoCorse->setValue(bodyExpoTime - (bodyExpoTime % 1000));
-        _advBodyExpoFine->setValue(bodyExpoTime % 1000);
-
-        _advBaseExpoCorse->setValue(baseExpoTime - (baseExpoTime % 1000));
-        _advBaseExpoFine->setValue(baseExpoTime % 1000);
-
-        _advancedExpoTimeGroup->setCollapsed(false);
-        _basicExpoTimeGroup->setCollapsed(true);
-
-        advancedExposureTime_update();
-    } else {
-        _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
-        _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
-            bodyParams.layerExposureTime());
+    if(printJob()->isTiled()) {
+        connectBasicExpoTimeCallback(false);
+        connectAdvanExpoTimeCallback(false);
 
         _advancedExpoTimeGroup->setCollapsed(true);
-        _basicExpoTimeGroup->setCollapsed(false);
+        _basicExpoTimeGroup->setCollapsed(true);
+    } else {
+        auto& bodyParams = _printJob->bodyLayerParameters();
+        auto& baseParams = _printJob->baseLayerParameters();
 
-        basicExposureTime_update();
+        int bodyExpoTime = bodyParams.layerExposureTime();
+        int baseExpoTime = baseParams.layerExposureTime();
+
+        if(_printJob->getAdvancedExposureControlsEnabled()) {
+            _advBodyExpoCorse->setValue(bodyExpoTime - (bodyExpoTime % 1000));
+            _advBodyExpoFine->setValue(bodyExpoTime % 1000);
+
+            _advBaseExpoCorse->setValue(baseExpoTime - (baseExpoTime % 1000));
+            _advBaseExpoFine->setValue(baseExpoTime % 1000);
+
+            _advancedExpoTimeGroup->setCollapsed(false);
+            _basicExpoTimeGroup->setCollapsed(true);
+
+
+            connectBasicExpoTimeCallback(false);
+            connectAdvanExpoTimeCallback(true);
+
+            advancedExposureTime_update();
+        } else {
+            _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
+            _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
+                bodyParams.layerExposureTime());
+
+            _advancedExpoTimeGroup->setCollapsed(true);
+            _basicExpoTimeGroup->setCollapsed(false);
+
+            connectBasicExpoTimeCallback(true);
+            connectAdvanExpoTimeCallback(false);
+
+            basicExposureTime_update();
+        }
     }
+}
+
+void PrintTab::enableExpoTimeSliders(bool enable) {
+    connectAdvanExpoTimeCallback(enable);
+    connectBasicExpoTimeCallback(enable);
+
+    _basicExpoTimeGroup->setEnabled(enable);
+    _advancedExpoTimeGroup->setEnabled(enable);
+
+    _baseExposureTimeSlider->setEnabled(enable);
+    _bodyExposureTimeSlider->setEnabled(enable);
+    _advBaseExpoFine->setEnabled(enable);
+    _advBodyExpoFine->setEnabled(enable);
+    _advBaseExpoCorse->setEnabled(enable);
+    _advBodyExpoCorse->setEnabled(enable);
 }

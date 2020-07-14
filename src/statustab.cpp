@@ -33,7 +33,7 @@ namespace {
 
 }
 
-StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBase>( parent ) {
+StatusTab::StatusTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): InitialShowEventMixinTab<StatusTab, TabBase>(printJob, parent) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -485,10 +485,10 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
                 .arg( _printJob->getBaseLayerCount() )
                 .arg( _printJob->getBaseLayerThickness() )
-                .arg( _printJob->baseLayerParameters().layerExposureTime() )
+                .arg( _printJob->baseLayerParameters().layerExposureTime() / 1000.0 )
                 .arg( _printJob->getBodyLayerCount() )
                 .arg( _printJob->getBodyLayerThickness() )
-                .arg( _printJob->bodyLayerParameters().layerExposureTime() );
+                .arg( _printJob->bodyLayerParameters().layerExposureTime() / 1000.0 );
 
         dispenseText.append(pjInfo);
     } else {
@@ -503,11 +503,11 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
 
         double baseMinExpoTime = _printJob->getBaseManager()->getTimeForElementAt(tileCount - 1);
         double baseExpoStep =  _printJob->getBaseManager()->getTimeForElementAt(0);
-        double baseMaxExpoTime = baseMinExpoTime + (baseExpoStep * (tileCount-1));
+        double baseMaxExpoTime = (baseMinExpoTime + (baseExpoStep * (tileCount-1)));
 
         double bodyMinExpoTime = _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart + tileCount - 1);
         double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart);
-        double bodyMaxExpoTime = bodyMinExpoTime + (bodyExpoStep * (tileCount-1));
+        double bodyMaxExpoTime = (bodyMinExpoTime + (bodyExpoStep * (tileCount-1)));
 
 
         QString tilingInfoText = QString("<br/><br/>Tiling parameters: <br/><div style=\"width: 300px\" align=\"left\"><ul><li>number of tiles: <b>%1</b></li>"
@@ -674,4 +674,9 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     }
 
     _updateReprintButtonState( );
+}
+
+
+void StatusTab::printJobChanged() {
+
 }

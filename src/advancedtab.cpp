@@ -18,7 +18,7 @@ namespace {
 
 }
 
-AdvancedTab::AdvancedTab( QWidget* parent ): TabBase( parent ) {
+AdvancedTab::AdvancedTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): TabBase(printJob, parent) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
@@ -637,3 +637,6 @@ void AdvancedTab::_setEnabled(bool enabled)
     _bodyPumpForm->setEnabled(enabled);
 }
 
+void AdvancedTab::printJobChanged() {
+
+}
