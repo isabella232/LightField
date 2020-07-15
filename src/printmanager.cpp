@@ -252,9 +252,9 @@ void PrintManager::stepA3_completed( bool const success ) {
 
     emit printPausable(true);
 
-    if ( _printJob->baseLayerStart() > -1 ) {
+    if ( _printJob->hasBaseLayers() ) {
         stepB1_start( );
-    } else if ( _printJob->bodyLayerStart() > -1 ) {
+    } else if ( _printJob->totalLayerCount() > 0 ) {
         stepC1_start( );
     } else {
         // this should never happen
@@ -502,7 +502,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1) ) {
+    if ( _currentBaseLayer == _printJob->getBaseLayerCount() ) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -570,7 +570,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
     }
 
 
-    if ( _currentBaseLayer == (_printJob->baseLayerEnd()+1)) {
+    if ( _currentBaseLayer == _printJob->getBaseLayerCount()) {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -1056,7 +1056,7 @@ void PrintManager::print(QSharedPointer<PrintJob>& printJob)
 
     TimingLogger::startTiming( TimingId::Printing, GetFileBaseName( _printJob->getModelFilename() ) );
     _printResult = PrintResult::None;
-    _currentBaseLayer = _printJob->baseLayerStart();
+    _currentBaseLayer = 0;
     _running = true;
     emit printStarting( );
     stepA1_start( );

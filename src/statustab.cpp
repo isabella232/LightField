@@ -493,20 +493,19 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
         dispenseText.append(pjInfo);
     } else {
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
-                .arg( _printJob->getBaseLayerCount() )
-                .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
-                .arg( _printJob->getBodyLayerCount() )
-                .arg( _printJob->getBodyManager()->layerThickNessAt(0) );
+                .arg( _printJob->getBaseLayerCount() / _printJob->tilingCount() )
+                .arg( _printJob->getBaseLayerThickness() )
+                .arg( _printJob->getBodyLayerCount() / _printJob->tilingCount() )
+                .arg( _printJob->getBodyLayerThickness() );
 
-        int tileCount = _printJob->getBaseManager()->tilingCount();
-        int bodyElementStart = tileCount * 2;
+        int tileCount = _printJob->tilingCount();
 
-        double baseMinExpoTime = _printJob->getBaseManager()->getTimeForElementAt(tileCount - 1);
+        double baseMinExpoTime = _printJob->getTimeForElementAt(tileCount - 1);
         double baseExpoStep =  _printJob->getBaseManager()->getTimeForElementAt(0);
         double baseMaxExpoTime = (baseMinExpoTime + (baseExpoStep * (tileCount-1)));
 
-        double bodyMinExpoTime = _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart + tileCount - 1);
-        double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart);
+        double bodyMinExpoTime = _printJob->getTimeForElementAt(_printJob->getBaseLayerCount() + tileCount - 1);
+        double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(_printJob->getBaseLayerCount());
         double bodyMaxExpoTime = (bodyMinExpoTime + (bodyExpoStep * (tileCount-1)));
 
 

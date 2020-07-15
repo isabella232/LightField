@@ -197,16 +197,17 @@ public:
         this->_calculateArea = true;
     }
 
-    inline int baseLayerThickness()    { return _baseLayerThickNess; }
-    inline int bodyLayerThickness()    { return _bodyLayerThickNess; }
-    inline int baseLayerCount()        { return _baseLayerCount; }
-    inline int firstLayerOffset()      { return _firstLayerOffset;  }
-    inline bool tiled()                { return _tiled; }
-    inline double tilingMinExposure()  { return _tilingMinExposure; }
-    inline double tilingStep()         { return _tilingStep; }
-    inline int tilingSpace()           { return _tilingSpace; }
-    inline int tilingCount()           { return _tilingCount; }
-    inline double manifestVolume()     { return _estimatedVolume; }
+    inline int baseLayerThickness()        { return _baseLayerThickNess; }
+    inline int bodyLayerThickness()        { return _bodyLayerThickNess; }
+    inline int baseLayerCount()            { return tiled() ? _baseLayerCount * _tilingCount : _baseLayerCount; }
+    inline int firstLayerOffset()          { return _firstLayerOffset;  }
+    inline bool tiled()                    { return _tiled; }
+    inline double tilingMinExposure()      { return _tilingMinExposure; }
+    inline double tilingStep()             { return _tilingStep; }
+    inline int tilingSpace()               { return _tilingSpace; }
+    inline int tilingCount()               { return _tilingCount; }
+    inline int baseLayerCountBeforeTiled() { return _baseLayerCount; }
+    inline double manifestVolume()         { return _estimatedVolume; }
 
     inline QString getFirstElement()
     {
