@@ -29,7 +29,7 @@ protected:
 
 private:
     QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
-    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "um", 0, 1000, 50, 0) };
+    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "µm", 0, 1000, 50, 0) };
 
     QPushButton*  _bedHeatingButton                   { new QPushButton };
     QLabel*       _bedHeatingButtonLabel              { new QLabel      };

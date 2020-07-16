@@ -69,42 +69,66 @@ namespace {
     }
 
     bool ReadResponseFromProjector( int const fd, char* buffer, size_t const bufferLength ) {
+        fd_set read_fds, write_fds, except_fds;
+        struct timeval timeout;
         size_t index = 0;
 
-        memset( buffer, '\0', bufferLength );
-        while ( index < bufferLength ) {
-            auto rc = read( fd, &buffer[index], 1 );
-            if ( rc < 0 ) {
-                perror( "set-projector-power: read" );
-                return false;
-            } else if ( rc == 0 ) {
-                fprintf( stderr, "+ ReadResponseFromProjector: EOF??\n" );
+	FD_ZERO(&read_fds);
+        FD_ZERO(&write_fds);
+        FD_ZERO(&except_fds);
+        FD_SET(fd, &read_fds);
+
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+
+        memset(buffer, '\0', bufferLength);
+
+	while (1) {
+            if (select(fd + 1, &read_fds, &write_fds, &except_fds, &timeout) == 1) {
+                auto rc = read(fd, &buffer[index], 1);
+
+                if ( rc < 0 ) {
+                    perror( "set-projector-power: read" );
+                    return false;
+                } else if ( rc == 0 ) {
+                    fprintf( stderr, "+ ReadResponseFromProjector: EOF??\n" );
+                    return false;
+                }
+
+                if ( ( index > 0 ) && ( buffer[index - 1] == '\r' ) && ( buffer[index] == '\n' ) ) {
+                    buffer[index - 1] = '\0';
+                    return true;
+                }
+
+                ++index;
+
+                if (index == bufferLength)
+                    return false;
+
+            } else {
                 return false;
             }
-
-            if ( ( index > 0 ) && ( buffer[index - 1] == '\r' ) && ( buffer[index] == '\n' ) ) {
-                buffer[index - 1] = '\0';
-                return true;
-            }
-
-            ++index;
         }
-        return true;
+
     }
 
     template<typename... Args>
     bool SendCommand( int const fd, char* responseBuffer, char const* format, Args... args ) {
-        if ( !WriteCommandToProjector( fd, format, args... ) ) {
-            fprintf( stderr, "SendCommand: WriteCommandToProjector failed\n" );
-            return false;
+        for (int i=0; i<3; i++) {
+            if ( !WriteCommandToProjector( fd, format, args... ) ) {
+                fprintf( stderr, "SendCommand: WriteCommandToProjector failed\n" );
+                continue;
+            }
+
+            if ( !ReadResponseFromProjector( fd, responseBuffer, 4095 ) ) {
+                fprintf( stderr, "SendCommand: ReadResponseFromProjector failed\n" );
+                continue;
+            }
+
+            return true;
         }
 
-        if ( !ReadResponseFromProjector( fd, responseBuffer, 4095 ) ) {
-            fprintf( stderr, "SendCommand: ReadResponseFromProjector failed\n" );
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     bool IsGoodResponse( char const* result ) {

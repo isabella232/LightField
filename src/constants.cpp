@@ -16,7 +16,7 @@ QSize                            MaximalRightHandPaneSize      {    722,  530 };
 
 QSize                     const  ButtonPadding                 {     20,    4 };
 
-#if defined DLP4710
+#if defined DLP4710 || XDLP471020UM
 
 QSize constexpr           const  ProjectorWindowSize           {   1920, 1080 };
 
@@ -43,9 +43,6 @@ QString                   const  StlModelLibraryPath           { "/var/lib/light
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };
 QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
-//QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"};
-
-//QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };

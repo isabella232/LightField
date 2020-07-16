@@ -16,10 +16,11 @@ Changes the LightField version in all the relevant places in the source.
 
   -t <release-train>   Sets the release train. Default: ${DEFAULT_RELEASE_TRAIN}
                        Available release trains:
-                       base       LightField with DLPC350 support
-                       dlpc4710   LightField with DLP4710 support
-                       xbase      LightField with DLPC350 support (experimental)
-                       xdlpc4710  LightField with DLP4710 support (experimental)
+                       base       	  LightField with DLPC350 support
+                       dlp4710   	  LightField with DLP4710 support
+                       xbase      	  LightField with DLPC350 support (experimental)
+                       xdlp4710  	  LightField with DLP4710 support (experimental)
+                       xdlp4710-20um  LightField with DLP4710 and 20 um pixel size support
   <a.b.c[.d]>          Version number. If the fourth element is omitted,
                        it defaults to 0.
 HERE
@@ -41,7 +42,7 @@ while [ -n "${1}" ]
 do
     case "${1}" in
         '-t')
-            if [ "${2}" = "base" ] || [ "${2}" = "xbase" ] || [ "${2}" = "dlp4710" ] || [ "${2}" = "xdlp4710" ]
+            if [ "${2}" = "base" ] || [ "${2}" = "xbase" ] || [ "${2}" = "dlp4710" ] || [ "${2}" = "xdlp4710" ] || [ "${2}" = "xdlp4710-20um" ]
             then
                 RELEASE_TRAIN="${2}"
             else
@@ -86,7 +87,12 @@ fi
 
 if [ "${COUNT}" -eq 3 ]
 then
-    VER[3]=$(git rev-list --count HEAD)
+    if [ -z "$(git describe --abbrev=0 2>/dev/null || true)" ]
+    then
+        VER[3]=$(git rev-list --count HEAD)
+    else
+        VER[3]=0
+    fi
 fi
 
 STRINGVER="${VER[0]}.${VER[1]}.${VER[2]}.${VER[3]}"

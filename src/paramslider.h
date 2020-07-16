@@ -32,6 +32,7 @@ public:
     void   setStep(int step);
     void   setMaxValue(int value);
     inline QSlider* innerSlider() { return _slider; }
+    void   setFontColor(QString font);
 
 signals:
     void valueChanged();

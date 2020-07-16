@@ -57,17 +57,25 @@ public:
     int getBodyLayerThickness() const
     {
 
-        Q_ASSERT(_bodyManager);
-        return getLayerThicknessAt(getBaseLayerCount());
+       Q_ASSERT(_bodyManager);
+       return getLayerThicknessAt(getBaseLayerCount());
     }
 
     int getBaseLayerCount() const
     {
-        if(isTiled()) {
-            return _baseManager->baseLayerCount();
-        }
+       if(isTiled()) {
+           return _baseManager->baseLayerCount();
+       }
 
-        return _baseLayerCount;
+       return _baseLayerCount;
+    }
+
+    void setDisregardFirstLayerHeight(bool enabled) {
+        this->_printProfile->setDisregardFirstLayerHeight(enabled);
+    }
+
+    void setBuildPlatformOffset(int offset) {
+        this->_printProfile->setBuildPlatformOffset(offset);
     }
 
     void setBaseLayerCount(int value)

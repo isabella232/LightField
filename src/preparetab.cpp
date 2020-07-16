@@ -252,18 +252,18 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
     }
 
     // check that the sliced SVG file is newer than the STL file
-    auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
-    if (!_printJob->getModelFilename().isEmpty( )) {
+    // disabled
+    //auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
+    if ( !_printJob->getModelFilename().isEmpty( ) ) {
         auto modelFile = QFileInfo { _printJob->getModelFilename() };
         if ( !modelFile.exists( ) ) {
             debug( "  + Fail: model file does not exist\n" );
             return false;
         }
-        if (!_printJob->getModelFilename().isEmpty() &&
-            (modelFile.lastModified() > slicedSvgFileLastModified)) {
+        /*if ( !_printJob->getModelFilename().isEmpty( ) && ( modelFile.lastModified( ) > slicedSvgFileLastModified ) ) {
             debug( "  + Fail: model file is newer than sliced SVG file\n" );
             return false;
-        }
+        }*/
     }
 
     int layerNumber     = -1;

@@ -742,19 +742,20 @@ void FileTab::selectButton_clicked(bool)
 
                 pairList.push_back( fileNamePair );
             }
-
+            _selectButton->setEnabled(false);
             FileCopier* fileCopier { new FileCopier };
             QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath, folderCpyName] ( int const copiedFiles, int const skippedFiles ) {
-                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+                debug( QString("+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files "
+                               "copied %1, files skipped %2\n, folder name %3")
+                       .arg(copiedFiles).arg(skippedFiles).arg(folderCpyName).toUtf8().data() );
+                _selectButton->setEnabled(true);
+                _showLibrary( );
+
+                auto index = _libraryFsModel->index( _modelSelection.fileName );
+                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                availableFilesListView_clicked( index );
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
-                if ( copiedFiles > 0 ) {
-                    this->printJob()->setDirectoryMode(true);
-                    this->printJob()->setDirectoryPath(folderCpyPath);
-                    emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
-                } else {
-                    // TODO inform user of failure somehow
-                }
             }, Qt::QueuedConnection );
 
             QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );

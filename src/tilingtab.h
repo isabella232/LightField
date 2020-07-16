@@ -26,9 +26,9 @@ public:
 
 private:
     ParamSlider*            _minExposureBase              { new ParamSlider ("Base layer minimum exposure", "sec", 1, 40, 1, 1, 4 ) };
-    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 1, 1, 4 )};
+    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 1, 0, 4 )};
     ParamSlider*            _minExposureBody              { new ParamSlider ("Body layer minimum exposure", "sec", 1, 40, 1, 1, 4 ) };
-    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 1, 1, 4 )};
+    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 1, 0, 4 )};
     QPushButton*            _okButton                     { new QPushButton ("Ok" )                };
     QPushButton*            _cancelButton                 { new QPushButton ("Cancel" )            };
 
@@ -50,18 +50,14 @@ protected:
 
 private:
     QLabel*                 _currentLayerImage        { new QLabel  };
-    ParamSlider*            _space                    { new ParamSlider ("Space", "mm", 1, 10, 1, 1)};
+    ParamSlider*            _space                    { new ParamSlider ("Tile Spacing", "mm", 1, 10, 1, 1)};
     ParamSlider*            _count                    { new ParamSlider ("Count", "", 1, 8, 1, 1)};
-    QPushButton*            _confirm                  { new QPushButton ("Confirm") };
-    QLabel*                 _minExposureBaseLabel     { new QLabel("Minimum exposure time") };
-    QLabel*                 _stepBaseLabel            { new QLabel("Step") };
-    QLabel*                 _minExposureBodyLabel     { new QLabel("Minimum exposure time") };
-    QLabel*                 _stepBodyLabel            { new QLabel("Step") };
-
-    QLabel*                 _minExposureBaseValue     { new QLabel("10s") };
-    QLabel*                 _stepBaseValue            { new QLabel("2s") };
-    QLabel*                 _minExposureBodyValue     { new QLabel("10s") };
-    QLabel*                 _stepBodyValue            { new QLabel("2s") };
+    QPushButton*            _confirm                  { new QPushButton ("Create Tiles") };
+    QLabel*                 _minExposureBaseLabel     { new QLabel("10s Minimum Layer Exposure") };
+    QLabel*                 _stepBaseLabel            { new QLabel("2s Exposure Step") };
+    QLabel*                 _minExposureBodyLabel     { new QLabel("10s Minimum Layer Exposure") };
+    QLabel*                 _stepBodyLabel            { new QLabel("2s Exposure Step") };
+    QLabel*                 _fileNameLabel            { new QLabel };
 
     int                     _pixmapWidth              { 0 };
     int                     _pixmapHeight             { 0 };
@@ -75,7 +71,7 @@ private:
     double                  _stepBody                 { 2 };
     QPixmap*                _pixmap                   { nullptr };
     TilingExpoTimePopup     _expoTimePopup            { };
-    QPushButton*            _setupExpoTimeBt          { new QPushButton( "Exposure time" ) };
+    QPushButton*            _setupExpoTimeBt          { new QPushButton( "Edit Exposure..." ) };
     QPushButton*            _setupTiling              { new QPushButton      };
 
     void _showLayerImage ( );
