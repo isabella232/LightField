@@ -80,7 +80,7 @@ PrintTab::PrintTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): Initial
         connectBasicExpoTimeCallback(!checked);
         connectAdvanExpoTimeCallback(checked);
 
-        if(checked)
+        if(!checked)
             basicExposureTime_update();
         else
             advancedExposureTime_update();

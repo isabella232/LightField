@@ -25,7 +25,7 @@ bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
     }
 
     newProfile->setActive(true);
-    _activeProfile.swap(newProfile);
+    _activeProfile = newProfile;
 
     ProfilesJsonParser::saveProfiles(profiles);
     emit activeProfileChanged(newProfile);
@@ -98,7 +98,7 @@ void PrintProfileManager::setActiveProfile(const QString& profileName)
     (*profiles.find(profileName))->setActive(true);
     (*profiles.find(_activeProfile->profileName()))->setActive(false);
 
-    _activeProfile.swap(*profile);
+    _activeProfile = *profile;
 
     ProfilesJsonParser::saveProfiles(profiles);
 
@@ -127,10 +127,10 @@ void PrintProfileManager::reload()
     }
 
     if (!activeProfile.isNull()) {
-        _activeProfile.swap(activeProfile);
+        _activeProfile = activeProfile;
         emit activeProfileChanged(activeProfile);
     } else {
-        _activeProfile.swap(defaultProfile);
+        _activeProfile = defaultProfile;
         defaultProfile->setActive(true);
         emit activeProfileChanged(defaultProfile);
     }
