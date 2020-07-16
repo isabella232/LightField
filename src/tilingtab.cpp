@@ -380,7 +380,6 @@ void TilingTab::confirmButton_clicked(bool)
             orderMgr.reset(orderMgrPtr);
             dialog->close();
             delete dialog;
-            delete tilingMgr;
         }
     );
 
