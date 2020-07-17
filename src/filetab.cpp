@@ -10,6 +10,7 @@
 #include "loader.h"
 #include "mesh.h"
 #include "printjob.h"
+#include "printmanager.h"
 #include "processrunner.h"
 #include "shepherd.h"
 #include "timinglogger.h"
@@ -172,6 +173,53 @@ void FileTab::_initialShowEvent( QShowEvent* event ) {
     event->accept( );
 }
 
+void FileTab::_connectPrintManager()
+{
+
+    if (_printManager) {
+        QObject::connect(_printManager, &PrintManager::printStarting, this,
+           &FileTab::printManager_printStarting);
+        QObject::connect(_printManager, &PrintManager::printComplete, this,
+           &FileTab::printManager_printComplete);
+        QObject::connect(_printManager, &PrintManager::printAborted, this,
+           &FileTab::printManager_printAborted);
+    }
+}
+
+void FileTab::printManager_printStarting()
+{
+
+    debug("+ FileTab::printManager_printStarting\n");
+
+    _selectButton->setEnabled(false);
+    _deleteButton->setEnabled(false);
+
+    update();
+}
+
+void FileTab::printManager_printComplete(const bool success)
+{
+
+    debug("+ FileTab::printManager_printComplete\n");
+    (void)success;
+
+    _selectButton->setEnabled(true);
+    _deleteButton->setEnabled(true);
+
+    update();
+}
+
+void FileTab::printManager_printAborted()
+{
+
+    debug("+ FileTab::printManager_printAborted\n");
+
+    _selectButton->setEnabled(true);
+    _deleteButton->setEnabled(true);
+
+    update();
+}
+
 void FileTab::_connectUsbMountManager( ) {
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &FileTab::usbMountManager_filesystemMounted   );
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &FileTab::usbMountManager_filesystemUnmounted );
@@ -189,7 +237,8 @@ void FileTab::_createUsbFsModel( ) {
         { "*-20"  },
 #endif
         { "*-50"  },
-        { "*-100" }
+        { "*-100" },
+        { "*tiled*" }
     } );
     (void) QObject::connect( _usbFsModel, &QFileSystemModel::directoryLoaded, this, &FileTab::usbFsModel_directoryLoaded );
     _usbFsModel->setRootPath( _usbPath );
@@ -295,14 +344,14 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         _selectedRow = -1;
         break;
 
-    case UiState::SelectedDirectory:
+    case UiState::SelectCompleted:
         if (sender == TabIndex::Tiling) {
             auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
         break;
 
-   default:
+    default:
         break;
     }
 }
@@ -528,9 +577,9 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
     if ( _modelSelection.type == ModelFileType::File ) {
         _availableFilesListView->setEnabled( false );
-        _selectButton->setEnabled( false );
         _viewSolid->setEnabled( false );
         _viewWireframe->setEnabled( false );
+        _selectButton->setEnabled( false );
         _deleteButton->setEnabled( false );
         update( );
 
@@ -543,13 +592,15 @@ void FileTab::availableFilesListView_clicked( QModelIndex const& index ) {
 
         _loadModel( _modelSelection.fileName );
     } else {
-        _selectButton->setEnabled( true );
-
         _dimensionsLabel->clear( );
         _errorLabel->clear( );
         _viewSolid->setEnabled( false );
         _viewWireframe->setEnabled( false );
-        _deleteButton->setEnabled( true );
+
+        if (!_printManager->isRunning()) {
+            _selectButton->setEnabled(true);
+            _deleteButton->setEnabled(true);
+        }
 
         QTimer::singleShot( 1, [this] ( ) { _canvas->clear( ); } );
     }
@@ -608,17 +659,20 @@ void FileTab::toggleLocationButton_clicked( bool ) {
     update( );
 }
 
-void FileTab::selectButton_clicked( bool ) {
+void FileTab::selectButton_clicked(bool)
+{
     debug(
         "+ FileTab::selectButton_clicked:\n"
         "  + current models location: %s\n"
         "",
         ToString( _modelsLocation )
     );
-    if ( _modelsLocation == ModelsLocation::Library ) {
-        if ( _modelSelection.type == ModelFileType::File ) {
-            emit modelSelected( &_modelSelection );
-            emit uiStateChanged( TabIndex::File, UiState::SelectCompleted );
+
+    if (_modelsLocation == ModelsLocation::Library) {
+        if (_modelSelection.type == ModelFileType::File) {
+            _printJob->resetTiling();
+            emit modelSelected(&_modelSelection);
+            emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
@@ -627,13 +681,13 @@ void FileTab::selectButton_clicked( bool ) {
                 _printJob->bodySlices.layerThickness = match.captured(1).toInt();
                 _printJob->directoryMode = true;
                 _printJob->directoryPath = _modelSelection.fileName;
-                emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
                     _printJob->directoryMode = true;
                     _printJob->directoryPath = _modelSelection.fileName;
-                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
+                    emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
                 }
             }
 
@@ -687,17 +741,20 @@ void FileTab::selectButton_clicked( bool ) {
 
                 pairList.push_back( fileNamePair );
             }
-
+            _selectButton->setEnabled(false);
             FileCopier* fileCopier { new FileCopier };
             QObject::connect( fileCopier, &FileCopier::finished, this, [this, folderCpyPath, folderCpyName] ( int const copiedFiles, int const skippedFiles ) {
-                debug( "+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files copied %d, files skipped %d\n", copiedFiles, skippedFiles );
+                debug( QString("+ FileTab::selectButton_clicked/lambda for FileCopier::finished: files "
+                               "copied %1, files skipped %2\n, folder name %3")
+                       .arg(copiedFiles).arg(skippedFiles).arg(folderCpyName).toUtf8().data() );
+                _selectButton->setEnabled(true);
+                _showLibrary( );
+
+                auto index = _libraryFsModel->index( _modelSelection.fileName );
+                _availableFilesListView->selectionModel( )->select( index, QItemSelectionModel::ClearAndSelect );
+                availableFilesListView_clicked( index );
 
                 QFile::link( folderCpyPath, StlModelLibraryPath % Slash % folderCpyName );
-                if ( copiedFiles > 0 ) {
-                    emit uiStateChanged( TabIndex::File, UiState::SelectedDirectory );
-                } else {
-                    // TODO inform user of failure somehow
-                }
             }, Qt::QueuedConnection );
 
             QObject::connect( fileCopier, &FileCopier::finished, fileCopier, &FileCopier::deleteLater, Qt::QueuedConnection );
@@ -745,7 +802,8 @@ void FileTab::deleteButton_clicked( bool ) {
 void FileTab::processRunner_succeeded( ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_succeeded\n" );
-    _deleteButton->setEnabled( true );
+    if (!_printManager->isRunning())
+        _deleteButton->setEnabled(true);
 
     for ( auto line : _slicerBuffer.split( NewLineRegex ) ) {
         if ( auto match = VolumeLineMatcher.match( line ); match.hasMatch( ) ) {
@@ -767,7 +825,8 @@ void FileTab::processRunner_succeeded( ) {
                 unit = "mL";
             }
             _dimensionsLabel->setText( _dimensionsText % Comma % Space % GroupDigits( QString { "%1" }.arg( estimatedVolume, 0, 'f', 2 ), ' ' ) % Space % unit );
-            _selectButton->setEnabled( true );
+            if (!_printManager->isRunning())
+                _selectButton->setEnabled(true);
 
             update( );
             break;
@@ -780,7 +839,8 @@ void FileTab::processRunner_succeeded( ) {
 void FileTab::processRunner_failed( int const exitCode, QProcess::ProcessError const error ) {
     TimingLogger::stopTiming( TimingId::VolumeCalculation );
     debug( "+ FileTab::processRunner_failed: exit code: %d, error %s [%d]\n", exitCode, ToString( error ), error );
-    _deleteButton->setEnabled( true );
+    if (!_printManager->isRunning())
+        _deleteButton->setEnabled(true);
 
     _slicerBuffer.clear( );
     emit uiStateChanged( TabIndex::File, UiState::SelectStarted );

@@ -236,7 +236,7 @@ char const* ToString( Qt::GestureState const value ) {
 
 char const* ToString( UiState const value ) {
 #if defined _DEBUG
-    if ( ( value >= UiState::SelectStarted ) && ( value <= UiState::SelectedDirectory ) ) {
+    if ( ( value >= UiState::SelectStarted ) && ( value <= UiState::TilingClicked ) ) {
 #endif
         return UiStateStrings[static_cast<int>( value )];
 #if defined _DEBUG

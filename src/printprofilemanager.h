@@ -4,25 +4,21 @@
 #include <QtCore>
 #include "printprofile.h"
 
-using PrintProfileCollection = QVector<QSharedPointer<PrintProfile>>;
+using PrintProfileCollection = QMap<QString, QSharedPointer<PrintProfile>>;
 
 class PrintProfileManager: public QObject
 {
     Q_OBJECT
 
 public:
-
-    PrintProfileManager(QObject* parent = nullptr): QObject(parent)
-    {
-        /*empty*/
-    }
+    PrintProfileManager(QObject* parent = nullptr);
 
     virtual ~PrintProfileManager() override
     {
         /*empty*/
     }
 
-    PrintProfileCollection* profiles()
+    PrintProfileCollection& profiles()
     {
         return _profiles;
     }
@@ -32,19 +28,30 @@ public:
         return _activeProfile;
     }
 
+    QSharedPointer<PrintProfile> getProfile(const QString& name)
+    {
+        auto iter = _profiles.find(name);
+        return iter == _profiles.end() ? QSharedPointer<PrintProfile>() : *iter;
+    }
+
     bool addProfile(QSharedPointer<PrintProfile> newProfile);
-    bool removeProfile(QString const& name);
-    bool setActiveProfile(QString const& profileName);
+    void removeProfile(QString const& name);
+    void setActiveProfile(QString const& profileName);
     bool importProfiles(QString const& fileName);
     bool exportProfiles(QString const& fileName);
+    void saveProfiles();
+    void loadProfile(const QString& profileName);
+    void saveProfile(const QString& profileName);
+    void renameProfile(const QString& oldName, const QString& newName);
+    void reload();
 
 private:
-    PrintProfileCollection* _profiles { new PrintProfileCollection };
-    QSharedPointer<PrintProfile> _activeProfile { };
-    QSharedPointer<PrintProfile> _findProfile( QString const& name );
+    PrintProfileCollection _profiles;
+    QSharedPointer<PrintProfile> _activeProfile;
 
 signals:
-    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile );
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
+    void reloadProfiles(PrintProfileCollection& profiles);
 };
 
 #endif //!__PRINTPROFILEMANAGER_H__

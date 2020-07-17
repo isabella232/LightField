@@ -15,7 +15,7 @@ class OrderManifestManager;
 class TabBase: public QWidget {
 
     Q_OBJECT;
-    Q_PROPERTY( PrintJob*            printJob            READ printJob            WRITE setPrintJob            );
+    Q_PROPERTY( QSharedPointer<PrintJob>  printJob       READ printJob            WRITE setPrintJob            );
     Q_PROPERTY( PrintManager*        printManager        READ printManager        WRITE setPrintManager        );
     Q_PROPERTY( PrintProfileManager* printProfileManager READ printProfileManager WRITE setPrintProfileManager );
     Q_PROPERTY( Shepherd*            shepherd            READ shepherd            WRITE setShepherd            );
@@ -42,21 +42,17 @@ public:
         SelectCompleted,
         SliceStarted,
         SliceCompleted,
+        PrintJobReady,
         PrintStarted,
         PrintCompleted,
-        SelectedDirectory,
-        TilingClicked,
-        AdvancedExposureTimeEnabled,
-        AdvancedExposureTimeDisabled,
-        EnableTiling,
-        DisableTiling
+        TilingClicked
     };
     Q_ENUM( UiState );
 
     TabBase( QWidget* parent = nullptr );
     virtual ~TabBase( ) override;
 
-    PrintJob*            printJob( )            const { return _printJob;            }
+    QSharedPointer<PrintJob> printJob( )        const { return _printJob;            }
     PrintManager*        printManager( )        const { return _printManager;        }
     PrintProfileManager* printProfileManager( ) const { return _printProfileManager; }
     Shepherd*            shepherd( )            const { return _shepherd;            }
@@ -67,7 +63,7 @@ public:
 
 protected:
 
-    PrintJob*               _printJob                 { };
+    QSharedPointer<PrintJob> _printJob                { };
     PrintManager*           _printManager             { };
     PrintProfileManager*    _printProfileManager      { };
     Shepherd*               _shepherd                 { };
@@ -98,9 +94,7 @@ signals:
     void iconChanged( TabIndex const sender, QIcon const& icon );
 
 public slots:
-    ;
-
-    virtual void setPrintJob( PrintJob* printJob );
+    virtual void setPrintJob( QSharedPointer<PrintJob> printJob );
     virtual void setPrintManager( PrintManager* printManager );
     virtual void setPrintProfileManager( PrintProfileManager* printProfileManager );
     virtual void setShepherd( Shepherd* shepherd );

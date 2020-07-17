@@ -9,29 +9,23 @@
 
 class LayerRenderTask;
 
-class SvgRenderer: public QObject {
+class SvgRenderer: public QObject
+{
     friend class LayerRenderTask;
     Q_OBJECT
 
 public:
+    SvgRenderer() = default;
+    virtual ~SvgRenderer() = default;
 
-    SvgRenderer( );
-    ~SvgRenderer( );
-
-    void render(QString const& svgFileName, QString const& _outputDirectory,
-        PrintJob* printJob, QSharedPointer<OrderManifestManager> orderManager);
-    void loadSlices ( PrintJob* printJob );
+    void render(const QString& svgFileName, const QString& outputDirectory,
+        QSharedPointer<PrintJob> printJob,
+        QSharedPointer<OrderManifestManager> orderManager);
 
 protected:
-
-private:
-
-    QString                 _outputDirectory;
-    QDomDocument            _doc;
-
-    QVector<int>            _runningLayers;
-    QStringList             _layerList;
-    QThreadPool             _threadPool;
+    QString _outputDirectory;
+    QDomDocument _doc;
+    QThreadPool _threadPool;
     QSharedPointer<OrderManifestManager> _orderManager;
 
     int                     _currentLayer        { };
@@ -46,8 +40,8 @@ private:
     void _renderLayer( );
 
 signals:
-    void layerCount( int const totalLayers );
-    void layerComplete( int const layer, QString path );
+    void layerCount(int const totalLayers);
+    void layerComplete(int const layer, QString path);
 };
 
 class LayerRenderTask: public QRunnable
@@ -71,6 +65,7 @@ public:
         /* GraphicsMagick needs normalized locale */
         (void) setlocale(LC_ALL,"");
         (void) setlocale(LC_NUMERIC, "C");
+        Magick::InitializeMagick(nullptr);
 
         image.quiet(false);
 

@@ -56,16 +56,20 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
     QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
 
-    _printJob = new PrintJob;
+    _printProfileManager = new PrintProfileManager;
+    _printProfileManager->reload();
+
+    _printJob = QSharedPointer<PrintJob>(new PrintJob);
+    _printJob->setPrintProfile(_printProfileManager->activeProfile());
     _printJob->baseSlices.layerCount = 2;
     _printJob->baseSlices.layerThickness = 100;
     _printJob->bodySlices.layerThickness = 100;
 
-    _printProfileManager = new PrintProfileManager;
+
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
-
+    _printManager = new PrintManager( _shepherd, this );
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -83,27 +87,32 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         _systemTab   = new SystemTab,
     };
 
-    _prepareTab->setPrintJob(_printJob);
-    _advancedTab->setPrintJob(_printJob);
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _advancedTab, &AdvancedTab::loadPrintProfile );
-    QObject::connect( _printProfileManager,  &PrintProfileManager::activeProfileChanged, _prepareTab, &PrepareTab::loadPrintProfile );
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _advancedTab, &AdvancedTab::loadPrintProfile);
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
-        QObject::connect( this, &Window::printJobChanged,     tabA, &TabBase::setPrintJob     );
-        QObject::connect( this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager );
-        QObject::connect( this, &Window::shepherdChanged,     tabA, &TabBase::setShepherd     );
+        tabA->setPrintJob(_printJob);
+        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
+        QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
+        QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
+        QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
+        QObject::connect(tabA, &TabBase::iconChanged,
+            [this] (TabIndex const sender, QIcon const& icon) {
+                _tabWidget->setTabIcon(+sender, icon);
+            }
+        );
 
-        QObject::connect( tabA, &TabBase::iconChanged,        [ this ] ( TabIndex const sender, QIcon const& icon ) { _tabWidget->setTabIcon( +sender, icon ); } );
-        QObject::connect( tabA, &TabBase::uiStateChanged,     this, &Window::tab_uiStateChanged );
-
-        for (const auto &tabB: tabs ) {
-            QObject::connect( tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged );
-            tabA->setPrintProfileManager( _printProfileManager);
+        for (const auto &tabB: tabs) {
+            QObject::connect(tabA, &TabBase::uiStateChanged, tabB, &TabBase::tab_uiStateChanged,
+                Qt::QueuedConnection);            
         }
     }
 
     emit shepherdChanged( _shepherd );
     emit printJobChanged( _printJob );
+    emit printManagerChanged( _printManager );
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
@@ -155,6 +164,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( this,      &Window::modelRendered,                _printTab,    &PrintTab::setModelRendered               );
     QObject::connect( this,      &Window::printerPrepared,              _printTab,    &PrintTab::setPrinterPrepared             );
 
+
     //
     // "Status" tab
     //
@@ -174,8 +184,10 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _prepareTab, &PrepareTab::setPrinterAvailable       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _printTab,   &PrintTab::setPrinterAvailable         );
     QObject::connect( _advancedTab, &AdvancedTab::projectorPowerLevelChanged, _printTab,   &PrintTab::projectorPowerLevel_changed );
+    QObject::connect( _advancedTab, &AdvancedTab::advancedExposureTimeChanged, _printTab,  &PrintTab::changeExpoTimeSliders       );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _statusTab,  &StatusTab::setPrinterAvailable        );
     QObject::connect( _advancedTab, &AdvancedTab::printerAvailabilityChanged, _systemTab,  &SystemTab::setPrinterAvailable        );
+
 
     //
     // "Profiles" tab
@@ -216,6 +228,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     for ( auto tab : tabs ) {
         _tabWidget->addTab( tab, ToString( tab->tabIndex( ) ) );
         tab->setFont( fontNormalSize );
+
+        tab->setPrintProfileManager(_printProfileManager);
     }
 
     setCentralWidget( _tabWidget );
@@ -300,15 +314,15 @@ void Window::terminate( ) {
     update( );
 }
 
-void Window::startPrinting( ) {
-    _tabWidget->setCurrentIndex( +TabIndex::Status );
-    update( );
+void Window::startPrinting()
+{
+    _tabWidget->setCurrentIndex(+TabIndex::Status);
+    update();
 
-    auto const  printProfile         { _printJob->printProfile               };
-    auto const& baseSlices           { _printJob->baseSlices                 };
-    auto const& bodySlices           { _printJob->bodySlices                 };
-    auto const& baseLayerParameters { printProfile->baseLayerParameters( ) };
-    auto const& bodyLayerParameters { printProfile->bodyLayerParameters( ) };
+    const auto& baseSlices = _printJob->baseSlices;
+    const auto& bodySlices = _printJob->bodySlices;
+    const auto& baseLayerParameters = _printJob->baseLayerParameters();
+    const auto& bodyLayerParameters = _printJob->bodyLayerParameters();
 
     debug(
         "+ Window::startPrinting: print job %p:\n"
@@ -329,8 +343,7 @@ void Window::startPrinting( ) {
         "    + layerThickness:           %d\n"
         "    + startLayer:               %d\n"
         "    + endLayer:                 %d\n"
-        "  + print profile: (calculated parameters are marked with *)\n"
-        "    + profileName:              '%s'\n"
+        "  + layer parameters: (calculated parameters are marked with *)\n"
 
         "",
 
@@ -351,12 +364,8 @@ void Window::startPrinting( ) {
         bodySlices.layerCount,
         bodySlices.layerThickness,
         _printJob->bodyLayerStart(),
-        _printJob->bodyLayerEnd(),
-
-        printProfile->profileName().toUtf8().data()
-
+        _printJob->bodyLayerEnd()
     );
-
 
     debug(
         "    + baseLayerCount:           %d\n"
@@ -375,8 +384,7 @@ void Window::startPrinting( ) {
         "      + powerLevel:             %.1f%%\n"
         "",
 
-        printProfile->baseLayerCount( ),
-
+        _printJob->baseSlices.layerCount,
         ToString( baseLayerParameters.isPumpingEnabled( ) ),
         baseLayerParameters.pumpUpDistance( ),
         baseLayerParameters.pumpUpVelocity_Effective( ),
@@ -389,8 +397,6 @@ void Window::startPrinting( ) {
         baseLayerParameters.layerThickness( ),
         baseSlices.exposureTime,
         baseLayerParameters.powerLevel( )
-
-
     );
 
 
@@ -425,9 +431,11 @@ void Window::startPrinting( ) {
         bodyLayerParameters.powerLevel( )
     );
 
-    PrintJob* job = _printJob;
-    _printJob = new PrintJob(*_printJob);
+    QSharedPointer<PrintJob> job(_printJob);
+    _printJob.reset(new PrintJob(*_printJob));
 
+    _printJob->setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
+    _printJob->setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
     PrintManager* oldPrintManager = _printManager;
 
     _printManager = new PrintManager( _shepherd, this );
@@ -454,16 +462,16 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
     _uiState = state;
     switch ( _uiState ) {
         case UiState::SelectStarted:
-            _setModelRendered( false );
+            _setModelRendered(false);
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered( false );
-            if (_tabWidget->currentIndex( ) == +TabIndex::File) {
+            _setModelRendered(this->_printJob->directoryMode);
+            if (_tabWidget->currentIndex() == +TabIndex::File ||
+                _tabWidget->currentIndex() == +TabIndex::Tiling) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);
                 update();
             }
-
             break;
 
         case UiState::SliceStarted:
@@ -474,19 +482,11 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             _setModelRendered(true);
             if (_isModelRendered && _isPrinterPrepared &&
                 _tabWidget->currentIndex() == +TabIndex::Prepare) {
-                _tabWidget->setCurrentIndex( +TabIndex::Print );
+                _tabWidget->setCurrentIndex( +TabIndex::Print);
                 update( );
             }
             break;
 
-        case UiState::SelectedDirectory:
-            _setModelRendered(true);
-            if (_tabWidget->currentIndex( ) == +TabIndex::File ||
-                _tabWidget->currentIndex() == +TabIndex::Tiling ) {
-                _tabWidget->setCurrentIndex(+TabIndex::Prepare);
-                update();
-            }
-            break;
         case UiState::TilingClicked:
             _tabWidget->setCurrentIndex(+TabIndex::Tiling);
             update();
@@ -595,13 +595,6 @@ void Window::prepareTab_preparePrinterComplete( bool const success ) {
 void Window::prepareTab_slicingNeeded( bool const needed ) {
     debug( "+ Window::prepareTab_slicingNeeded: %s; [PP? %s MR? %s current tab %s]\n", YesNoString( needed ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ), ToString( static_cast<TabIndex>( _tabWidget->currentIndex( ) ) ) );
     _setModelRendered( !needed );
-
-    if ( _isModelRendered && _isPrinterPrepared && ( _tabWidget->currentIndex( ) == +TabIndex::Prepare ) ) {
-        debug( "+ Window::prepareTab_slicingNeeded: switching to Print tab\n" );
-        _tabWidget->setCurrentIndex( +TabIndex::Print );
-
-        update( );
-    }
 }
 
 void Window::signalHandler_signalReceived( siginfo_t const& info ) {

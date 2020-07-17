@@ -56,7 +56,7 @@ void TabBase::_connectUsbMountManager( ) {
     /*empty*/
 }
 
-void TabBase::setPrintJob( PrintJob* printJob ) {
+void TabBase::setPrintJob( QSharedPointer<PrintJob> printJob ) {
     _disconnectPrintJob( );
     _printJob = printJob;
     _connectPrintJob( );
@@ -68,7 +68,8 @@ void TabBase::setPrintManager( PrintManager* printManager ) {
     _connectPrintManager( );
 }
 
-void TabBase::setPrintProfileManager( PrintProfileManager* printProfileManager ) {
+void TabBase::setPrintProfileManager(PrintProfileManager* printProfileManager)
+{
     _disconnectPrintProfileManager( );
     _printProfileManager = printProfileManager;
     _connectPrintProfileManager( );

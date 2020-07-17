@@ -39,20 +39,13 @@ case "$1" in
         udevadm control --reload
         udevadm trigger /dev/ttyACM* /dev/ttyUSB*
 
-        if [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "xdlp4710" ]
-        then
-            fuser -k /dev/lumen-projector
-            set-projector-power --first-time
-        fi
-
         systemctl daemon-reload
         systemctl set-default multi-user.target
-        systemctl enable --now set-projector-power.service clean-up-mount-points.service
-        systemctl enable getty@tty1.service
+        systemctl enable --no-ask-password --now set-projector-power.service clean-up-mount-points.service
+        systemctl enable --no-ask-password getty@tty1.service
         systemctl daemon-reload
 
-
-        if [ "${RELEASE_TRAIN}" = "dlp4710" ]
+        if [ "${RELEASE_TRAIN}" = "dlp4710" ] || [ "${RELEASE_TRAIN}" = "xdlp4710-20um" ]
         then
             set-projector-power --first-time
         fi

@@ -64,6 +64,11 @@ function rebuild () {
             ADDTOCONFIG=" dlp4710 experimental"
             PROJECTOR_TYPE=dlp4710
             ;;
+
+        'xdlp4710-20um' )
+            ADDTOCONFIG=" xdlp4710-20um experimental"
+            PROJECTOR_TYPE=dlp4710
+            ;;
     esac
 
     if ! getopt -Q -q -n 'rebuild' -o 'cnqrx' -l 'clean,nuke-first,qmake-anyway,release' -- "$@"; then

@@ -95,7 +95,6 @@ HEADERS  +=                         \
     ../src/printmanager.h           \
     ../src/printprofile.h           \
     ../src/printprofilemanager.h    \
-    ../src/printpumpingparameters.h \
     ../src/printtab.h               \
     ../src/processrunner.h          \
     ../src/profilesjsonparser.h     \
@@ -131,7 +130,8 @@ PRECOMPILED_HEADER = ../src/pch.h
 RESOURCES += \
     ../gl/gl.qrc         \
     ../images/images.qrc \
-    ../text/text.qrc
+    ../text/text.qrc \
+    ../styles.qrc
 
 linux {
     target.path = /usr/bin
@@ -146,13 +146,18 @@ debug {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
 }
 
-dlp4710 {
-    DEFINES += DLP4710
-    message(Configuring for DLP4710.)
-}
+xdlp4710-20um {
+    DEFINES += XDLP471020UM
+    message(Configuring for XDLP471020UM.)
+} else {
+    dlp4710 {
+        DEFINES += DLP4710
+        message(Configuring for DLP4710.)
+    }
 
-!dlp4710 {
-    message(Configuring for DLPC350.)
+    !dlp4710 {
+        message(Configuring for DLPC350.)
+    }
 }
 
 experimental {
@@ -166,3 +171,6 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -DNDEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
 QMAKE_CXXFLAGS_DEBUG   += -Og -D_DEBUG -Wall -Wextra -Winvalid-pch -Wno-unused-result
+
+DISTFILES += \
+    ../src/stylesheet.qss

@@ -54,7 +54,11 @@ int                extern const  KeyboardRepeatDelay;
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
-#   if defined DLP4710
+#   if defined XDLP471020UM
+
+double constexpr          const  ProjectorPixelSize         =    0.0200; // mm
+
+#   elif defined DLP4710
 
 double constexpr          const  ProjectorPixelSize         =    0.0355; // mm
 
@@ -66,7 +70,7 @@ double constexpr          const  ProjectorPixelSize         =    0.0500; // mm
 
 double             extern const  PrinterMaximumX;
 double             extern const  PrinterMaximumY;
-double constexpr          const  PrinterMaximumZ            =   50.00;   // mm
+double constexpr          const  PrinterMaximumZ            =   60.00;   // mm
 double constexpr          const  PrinterRaiseToMaximumZ     =   60.00;   // mm
 double constexpr          const  PrinterHighSpeedThresholdZ =   10.00;   // mm
 int    constexpr          const  TilingMargin               =   25;      // px
@@ -82,12 +86,12 @@ double constexpr          const  AspectRatio16to10          =   16.0 / 10.0;
 
 
 
-#   if defined DLP4710
+#   if defined DLP4710 || XDLP471020UM
 
 double constexpr          const  ProjectorMaxPowerLevel     = 1023.0;
 
-int    constexpr          const  ProjectorMinPercent        =    5;
-int    constexpr          const  ProjectorMaxPercent        =   80;
+int    constexpr          const  ProjectorMinPercent        =   5;
+int    constexpr          const  ProjectorMaxPercent        =   100;
 
 #   else // ! defined DLP4710
 

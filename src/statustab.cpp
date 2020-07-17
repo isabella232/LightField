@@ -179,21 +179,22 @@ StatusTab::StatusTab( QWidget* parent ): InitialShowEventMixin<StatusTab, TabBas
     _dispensePrintSolutionGroup->setMinimumSize( MaximalRightHandPaneSize );
     _dispensePrintSolutionGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _dispensePrintSolutionGroup->setVisible( false );
-    _dispensePrintSolutionGroup->setTitle( "Dispense print solution" );
+    _dispensePrintSolutionTitle->setVisible( false );
     _dispensePrintSolutionGroup->setLayout( WrapWidgetsInVBox(
         nullptr,
         _dispensePrintSolutionLabel,
+        _tilingInfoLabel,
         nullptr,
         WrapWidgetsInHBox( nullptr, _startThePrintButton, nullptr ),
         nullptr
     ) );
-
 
     _rightColumn->setContentsMargins( { } );
     _rightColumn->setMinimumSize( MaximalRightHandPaneSize );
     _rightColumn->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
     _rightColumn->setLayout( WrapWidgetsInVBox(
         _currentLayerGroup,
+        _dispensePrintSolutionTitle,
         _dispensePrintSolutionGroup,
         nullptr
     ) );
@@ -276,40 +277,47 @@ void StatusTab::printer_offline( ) {
     update( );
 }
 
-void StatusTab::pauseButton_clicked( bool ) {
-    auto paused = _isPaused;
-    _isPaused = !_isPaused;
-    _pauseButton->setEnabled( false );
-    update( );
+void StatusTab::pauseButton_clicked(bool)
+{
+    debug("+ StatusTab::pauseButton_clicked\n");
+    _pauseButton->setEnabled(false);
+    _stopButton->setEnabled(false);
 
-    if ( !paused ) {
-        _currentPauseStartTime = GetBootTimeClock( );
-        _printManager->pause( );
+    if (!_printManager->isPaused()) {
+        _currentPauseStartTime = GetBootTimeClock();
+        _printManager->pause();
+        _pauseButton->setText("Pausing...");
     } else {
-        auto pausedTime = GetBootTimeClock( ) - _currentPauseStartTime;
-
-        _totalPausedTime        += pausedTime;
+        auto pausedTime = GetBootTimeClock() - _currentPauseStartTime;
+        _totalPausedTime += pausedTime;
         _previousLayerStartTime += pausedTime;
-        _currentLayerStartTime  += pausedTime;
-        _printJobStartTime      += pausedTime;
-
-        _printManager->resume( );
+        _currentLayerStartTime += pausedTime;
+        _printJobStartTime += pausedTime;
+        _printManager->resume();
     }
+
+    update();
 }
 
-void StatusTab::stopButton_clicked( bool ) {
-    debug( "+ StatusTab::stopButton_clicked\n" );
-
-    _pauseButton->setEnabled( false );
-    _stopButton->setEnabled( false );
-    _stopButton->setText( "Stopping…" );
-    _updatePrintTimeInfo->stop( );
+void StatusTab::stopButton_clicked(bool)
+{
+    debug("+ StatusTab::stopButton_clicked\n");
 
     if ( _printManager ) {
-        _printManager->abort( );
+        _pauseButton->setEnabled( false );
+        _stopButton->setEnabled( false );
+    
+        if(_printJob->isTiled()) {
+            _stopButton->setText("Finishing Layer...");
+        } else {
+            _stopButton->setText( "Stopping…" );
+        }
+    
+        _updatePrintTimeInfo->stop( );
+        _printManager->abort();
     }
 
-    update( );
+    update();
 }
 
 void StatusTab::reprintButton_clicked( bool ) {
@@ -347,54 +355,60 @@ void StatusTab::printManager_printComplete( bool const success ) {
     update( );
 }
 
-void StatusTab::printManager_printAborted( ) {
-    debug( "+ StatusTab::printManager_printAborted\n" );
+void StatusTab::printManager_printAborted()
+{
+    debug("+ StatusTab::printManager_printAborted\n");
 
-    _dispensePrintSolutionGroup->setVisible( false );
-    _currentLayerGroup->setVisible( true );
+    _dispensePrintSolutionGroup->setVisible(false);
+    _currentLayerGroup->setVisible(true);
 
-    _updatePrintTimeInfo->stop( );
+    _updatePrintTimeInfo->stop();
 
-    _printerStateDisplay->setText( "Print was canceled" );
-    _HideAndClear( _currentLayerDisplay       );
-    _HideAndClear( _estimatedTimeLeftDisplay  );
-    _HideAndClear( _percentageCompleteDisplay );
-    _currentLayerImage->clear( );
+    _printerStateDisplay->setText("Print was canceled");
+    _HideAndClear(_currentLayerDisplay);
+    _HideAndClear(_estimatedTimeLeftDisplay);
+    _HideAndClear(_percentageCompleteDisplay);
+    _currentLayerImage->clear();
 
-    emit uiStateChanged( TabIndex::Status, UiState::PrintCompleted );
+    emit uiStateChanged(TabIndex::Status, UiState::PrintCompleted);
+    update();
+}
+
+void StatusTab::printManager_printPausable(bool const pausable)
+{
+    debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString(pausable));
+
+    _pauseButton->setEnabled(pausable);
 
     update( );
 }
 
-void StatusTab::printManager_printPausable( bool const pausable ) {
-    debug( "+ StatusTab::printManager_printPausable: pausable? %s\n", ToString( pausable ) );
+void StatusTab::printManager_printPaused()
+{
+    debug("+ StatusTab::printManager_printPaused\n");
 
-    _pauseButton->setEnabled( pausable );
+    _printerStateDisplay->setText("Print is paused");
+    _stopButton->setEnabled(true);
+    _pauseButton->setEnabled(true);
+    _pauseButton->setText("Resume");
 
-    update( );
+    update();
 }
 
-void StatusTab::printManager_printPaused( ) {
-    debug( "+ StatusTab::printManager_printPaused\n" );
-
-    _printerStateDisplay->setText( "Print is paused" );
-    _pauseButton->setEnabled( true );
-    _pauseButton->setText( "Resume" );
-
-    update( );
-}
-
-void StatusTab::printManager_printResumed( ) {
+void StatusTab::printManager_printResumed()
+{
     debug( "+ StatusTab::printManager_printResumed\n" );
 
-    _printerStateDisplay->setText( "Printing" );
-    _pauseButton->setEnabled( true );
-    _pauseButton->setText( "Pause" );
+    _printerStateDisplay->setText("Printing");
+    _stopButton->setEnabled(true);
+    _pauseButton->setEnabled(true);
+    _pauseButton->setText("Pause");
 
-    update( );
+    update();
 }
 
-void StatusTab::printManager_startingLayer( int const layer ) {
+void StatusTab::printManager_startingLayer(int const layer)
+{
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount());
     if(_printJob->isTiled()){
         int realLayer = (layer+_printJob->tilingCount())/_printJob->tilingCount();
@@ -462,15 +476,62 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 void StatusTab::printManager_requestDispensePrintSolution( ) {
     double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->estimatedVolume / 1000.0;
 
-    QString dispenseText = QString("Dispense <b>%1 mL</b> of print solution,<br>then tap <b>Start the print</b>." ).arg( std::clamp(solutionRequired, 1.0, 10.0 ), 0, 'f', 2 );
+    QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>."
+                                   "<br/><br/>The file:<br/><b>%2</b><br/>")
+            .arg( QString::number( std::clamp(solutionRequired, 1.0, 10.0 ), 'f', 2 ) )
+            .arg( GetFileBaseName( _printJob->modelFileName ) );
+
+    if(!_printJob->isTiled()) {
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
+                .arg( _printJob->baseSlices.layerCount)
+                .arg( _printJob->baseSlices.layerThickness )
+                .arg( _printJob->baseSlices.exposureTime )
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->bodySlices.layerThickness )
+                .arg( _printJob->bodySlices.exposureTime );
+
+        dispenseText.append(pjInfo);
+    } else {
+        QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
+                .arg( _printJob->baseSlices.layerCount )
+                .arg( _printJob->getBaseManager()->layerThickNessAt(0) )
+                .arg( _printJob->bodySlices.layerCount )
+                .arg( _printJob->getBaseManager()->layerThickNessAt(0) );
+
+        int tileCount = _printJob->getBaseManager()->tilingCount();
+        int bodyElementStart = tileCount * 2;
+
+        double baseMinExpoTime = _printJob->getBaseManager()->getTimeForElementAt(tileCount - 1);
+        double baseExpoStep =  _printJob->getBaseManager()->getTimeForElementAt(0);
+        double baseMaxExpoTime = baseMinExpoTime + (baseExpoStep * (tileCount-1));
+
+        double bodyMinExpoTime = _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart + tileCount - 1);
+        double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(bodyElementStart);
+        double bodyMaxExpoTime = bodyMinExpoTime + (bodyExpoStep * (tileCount-1));
+
+
+        QString tilingInfoText = QString("<br/><br/>Tiling parameters: <br/><div style=\"width: 300px\" align=\"left\"><ul><li>number of tiles: <b>%1</b></li>"
+                                         "<li>base exposure time: <b>%2 - %3 sec</b></li><li>body exposure time: <b>%4 - %5 sec</li></b><br/></div>")
+                .arg(tileCount )
+                .arg(QString::number(baseMinExpoTime, 'f', 2 ))
+                .arg(QString::number(baseMaxExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMinExpoTime, 'f', 2 ))
+                .arg(QString::number(bodyMaxExpoTime, 'f', 2 ));
+
+
+        //_tilingInfoLabel->setText( tilingInfoText );
+        dispenseText.append(pjInfo);
+        dispenseText.append(tilingInfoText);
+    }
+
     if(solutionRequired > 10.0){
-     dispenseText.append(QString("<br>Total print solution needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
+        dispenseText.append(QString("<br>Total PhotoInk<span style='font-family: arial'>™</span> needed: <b>%1 mL</b>" ).arg( solutionRequired, 0, 'f', 2 ));
     }
     _dispensePrintSolutionLabel->setText(dispenseText);
 
-
     _currentLayerGroup->setVisible( false );
     _dispensePrintSolutionGroup->setVisible( true );
+    _dispensePrintSolutionTitle->setVisible( true );
 
     update( );
 }
@@ -518,25 +579,26 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     auto const estimatedTimeLeft = _estimatedPrintJobTime - delta;
     auto const currentLayer      = _printManager->currentLayer( );
 
-    debug( "+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n", delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString( _isPaused ), currentLayer );
+    debug("+ StatusTab::updatePrintTimeInfo_timeout: delta %f; estimate %f; time left %f; isPaused? %s; currentLayer %d\n",
+        delta, _estimatedPrintJobTime, estimatedTimeLeft, YesNoString(_printManager->isPaused()),
+          currentLayer);
 
     _SetTextAndShow( _elapsedTimeDisplay, TimeDeltaToString( delta + _totalPausedTime ) % " elapsed" );
 
-    update( );
+    update();
 
-    if ( _isPaused || ( currentLayer < 4 ) || ( estimatedTimeLeft < 0.5 ) ) {
+    if (_printManager->isPaused() || (currentLayer < 4) || (estimatedTimeLeft < 0.5))
         return;
-    }
 
-    if ( currentLayer == 4 ) {
-        _estimatedTimeLeftDisplay->setFont( _boldFont );
-    }
-    _SetTextAndShow( _estimatedTimeLeftDisplay, TimeDeltaToString( estimatedTimeLeft ) % " remaining" );
+    if (currentLayer == 4)
+        _estimatedTimeLeftDisplay->setFont(_boldFont);
 
-    update( );
+    _SetTextAndShow(_estimatedTimeLeftDisplay, TimeDeltaToString(estimatedTimeLeft) % " remaining");
+    update();
 }
 
-void StatusTab::printerOnlineTimer_timeout( ) {
+void StatusTab::printerOnlineTimer_timeout()
+{
     _printerOnlineTimer->stop( );
 
     debug( "+ StatusTab::printerOnlineTimer_timeout: sending initialization commands\n" );
@@ -546,8 +608,10 @@ void StatusTab::printerOnlineTimer_timeout( ) {
 
 void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
+    _dispensePrintSolutionTitle->setVisible( false );
+
     _currentLayerGroup->setVisible( true );
-    _printerStateDisplay->setText( "Print solution is settling" );
+    _printerStateDisplay->setText( "PhotoInk<span style='font-family: arial'>™</span> is settling" );
 
     _printManager->printSolutionDispensed( );
 
@@ -582,12 +646,12 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     _uiState = state;
 
     switch (_uiState) {
-    case UiState::SelectStarted:
     case UiState::SelectCompleted:
     case UiState::SliceStarted:
     case UiState::SliceCompleted:
         _modelFileNameLabel->clear( );
         _imageFileNameLabel->clear();
+        _tilingInfoLabel->clear();
         _stopButton->setVisible( false );
         _reprintButton->setVisible( true );
         break;

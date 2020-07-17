@@ -351,7 +351,9 @@ void Shepherd::doMoveRelative( float const relativeDistance, float const speed )
 #if defined _DEBUG
     if ( g_settings.pretendPrinterIsOnline ) {
         debug( "+ Shepherd::doMoveRelative: Mocking relative move : %.2f with speed %.2f\nThis could happen only in debug!\n", relativeDistance,  speed);
+        _zPosition += relativeDistance;
         emit action_moveRelativeComplete( true );
+        emit printer_positionReport(_zPosition, 0);
         return;
     }
 #endif // defined _DEBUG
@@ -364,7 +366,9 @@ void Shepherd::doMoveAbsolute( float const absolutePosition, float const speed )
 #if defined _DEBUG
     if ( g_settings.pretendPrinterIsOnline ) {
         debug( "+ Shepherd::doMoveAbsolute: Mocking absolute move to: %.2f with speed %.2f\nThis could happen only in debug!\n", absolutePosition,  speed);
+        _zPosition = absolutePosition;
         emit action_moveAbsoluteComplete( true );
+        emit printer_positionReport(_zPosition, 0);
         return;
     }
 #endif // defined _DEBUG

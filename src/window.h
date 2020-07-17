@@ -47,7 +47,7 @@ private:
     SignalHandler*       _signalHandler       { };
     ModelSelectionInfo*  _modelSelection      { };
     PngDisplayer*        _pngDisplayer        { };
-    PrintJob*            _printJob            { };
+    QSharedPointer<PrintJob> _printJob        { };
     PrintManager*        _printManager        { };
     PrintProfileManager* _printProfileManager { };
     Shepherd*            _shepherd            { };
@@ -75,7 +75,7 @@ private:
 signals:
     ;
 
-    void printJobChanged( PrintJob* printJob );
+    void printJobChanged( QSharedPointer<PrintJob> printJob );
     void printManagerChanged( PrintManager* printManager );
     void shepherdChanged( Shepherd* shepherd );
 

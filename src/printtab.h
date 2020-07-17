@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include "tabbase.h"
 #include "paramslider.h"
+#include "constants.h"
 
 enum class BuildPlatformState {
     Lowered,
@@ -44,13 +45,8 @@ private:
     bool               _isModelRendered                    { false };
     BuildPlatformState _buildPlatformState                 { BuildPlatformState::Lowered };
 
-
-    /*QLabel*            _powerLevelLabel                    { new QLabel      };
-    QLabel*            _powerLevelValue                    { new QLabel      };
-    QSlider*           _powerLevelSlider                   { new QSlider     };*/
-
     ParamSlider*       _powerLevelSlider                   { new ParamSlider( "Projector power level",
-                                                                              "%",    50, ProjectorMaxPercent,   ProjectorMinPercent, 1 ) };
+                                                                              "%",    50, ProjectorMaxPercent, 1, ProjectorMinPercent ) };
 
     QGroupBox*         _optionsGroup                       { new QGroupBox   };
 
@@ -64,7 +60,8 @@ private:
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
-
+    QLabel*            _expoDisabledTilingWarning          { new QLabel("<font color='red'>Exposure controls disabled by tiling.</font>") };
+    QLabel*            _expoDisabledAdvancedWarning        { new QLabel("<font color='red'>Exposure controls disabled by advanced settings.</font>") };
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
     QGridLayout*       _layout                             { new QGridLayout };
@@ -72,7 +69,7 @@ private:
     void _updateUiState( );
 
 signals:
-
+    void advancedControlsChanged(bool enabled);
     void printerAvailabilityChanged( bool const available );
     void printRequested( );
 
@@ -84,10 +81,9 @@ public slots:
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
-
     void setPrinterAvailable( bool const value );
-
     void projectorPowerLevel_changed( int const percentage );
+    void changeExpoTimeSliders();
 
 protected slots:
 

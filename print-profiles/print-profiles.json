@@ -1,23 +1,34 @@
 [
     {
-        "name": "exampleProfile",
+        "name": "default",
+	"default": true,
+        "buildPlatformOffset": 300,
+        "disregardFirstLayerHeight": false,
+        "heatingTemperature": 50,
         "baseLayerCount": 2,
-        "baseLayersPumpingParameters": {
+        "layerSettingsEnabled": false,
+        "baseLayerParameters": {
+            "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
             "pumpDownPause": 4000,
+            "pumpUpVelocity": 50,
+            "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,
             "layerExposureTime": 1000,
             "powerLevel": 50.0
         },
-        "bodyLayersPumpingParameters": {
+        "bodyLayerParameters": {
+            "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
             "pumpUpTime": 600,
             "pumpUpPause": 2000,
             "pumpDownPause": 4000,
+            "pumpUpVelocity": 50,
+            "pumpDownVelocity": 50,
             "noPumpUpVelocity": 200,
             "pumpEveryNthLayer": 1,
             "layerThickness": 100,

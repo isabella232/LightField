@@ -9,49 +9,20 @@
 #include "ordermanifestmanager.h"
 
 
-namespace {
-
-    QDomDocument _CloneDocRoot( QDomDocument& doc ) {
-        QDomDocument skeletonDoc( doc.doctype( ) );
-        skeletonDoc.appendChild( doc.childNodes( ).item( 0 ).cloneNode( false ) );
-        skeletonDoc.appendChild( doc.childNodes( ).item( 1 ).cloneNode( false ) );
+namespace
+{
+    QDomDocument _CloneDocRoot(QDomDocument& doc)
+    {
+        QDomDocument skeletonDoc(doc.doctype());
+        skeletonDoc.appendChild(doc.childNodes().item(0).cloneNode(false));
+        skeletonDoc.appendChild(doc.childNodes().item(1).cloneNode(false));
         return skeletonDoc;
     }
 
 }
 
-SvgRenderer::SvgRenderer( )
-{
-    /*empty*/
-}
-
-SvgRenderer::~SvgRenderer( ) {
-    /*empty*/
-}
-
-void SvgRenderer::loadSlices( PrintJob* printJob ) {
-    int  layerNumber     { -1 };
-
-    debug( "+ SvgRenderer::loadSlices \n");
-    TimingLogger::startTiming( TimingId::LoadingPngFolder );
-
-    for (int i=0; i<printJob->totalLayerCount(); ++i ) {
-        debug( "+ SvgRenderer::loadSlices next iter \n");
-        QString fileName = printJob->getLayerFileName( i );
-
-        debug( "+ SvgRenderer::loadSlices fileName: %s \n", fileName.toUtf8().data());
-        layerNumber++;
-        emit layerComplete( layerNumber, fileName );
-    }
-    TimingLogger::stopTiming( TimingId::LoadingPngFolder );
-
-    debug( "  + Done\n" );
-    emit layerCount( printJob->totalLayerCount() );
-}
-
-void SvgRenderer::render(QString const& svgFileName,
-    QString const& outputDirectory, PrintJob* printJob,
-    QSharedPointer<OrderManifestManager> orderManager)
+void SvgRenderer::render(const QString& svgFileName, const QString& outputDirectory,
+    QSharedPointer<PrintJob>printJob, QSharedPointer<OrderManifestManager> orderManager)
 {
     Q_ASSERT(svgFileName.length() > 0);
     Q_ASSERT(outputDirectory.length() > 0);
@@ -63,9 +34,8 @@ void SvgRenderer::render(QString const& svgFileName,
 
     TimingLogger::startTiming( TimingId::RenderingPngs );
 
-    _threadPool.setMaxThreadCount(get_nprocs());
+    _threadPool.setMaxThreadCount(1);
     _outputDirectory = outputDirectory;
-    _layerList.clear();
 
     QFile file { svgFileName };
     if ( !file.open( QIODevice::ReadOnly ) ) {
@@ -105,13 +75,12 @@ void SvgRenderer::render(QString const& svgFileName,
         }
 
         QDomElement* element = reinterpret_cast<QDomElement*>( &node );
-        QString nodeName = element->nodeName( );
-        if ( nodeName != "g" ) {
+        QString nodeName = element->nodeName();
+        if (nodeName != "g")
             continue;
-        }
-        if ( !element->hasAttributes( ) ) {
+
+        if (!element->hasAttributes())
             continue;
-        }
 
         QString idValue = element->attribute( "id" );
         if ( !idValue.startsWith( "layer" ) ) {
@@ -119,8 +88,8 @@ void SvgRenderer::render(QString const& svgFileName,
         }
 
         QString layerFilename { QString( "%1/%2.svg" )
-            .arg( _outputDirectory )
-            .arg( layer, 6, 10, DigitZero ) };
+            .arg(_outputDirectory)
+            .arg(layer, 6, 10, DigitZero) };
 
         if (!orderManager.isNull())
             orderManager->addFile(QString("%1.png").arg(layer, 6, 10, DigitZero));

@@ -16,7 +16,7 @@ QSize                            MaximalRightHandPaneSize      {    722,  530 };
 
 QSize                     const  ButtonPadding                 {     20,    4 };
 
-#if defined DLP4710
+#if defined DLP4710 || XDLP471020UM
 
 QSize constexpr           const  ProjectorWindowSize           {   1920, 1080 };
 

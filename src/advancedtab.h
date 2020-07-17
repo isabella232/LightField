@@ -11,28 +11,25 @@
 #include "printprofilemanager.h"
 class PngDisplayer;
 
-class AdvancedTab: public TabBase {
-
+class AdvancedTab: public TabBase
+{
     Q_OBJECT
 
 public:
 
-    AdvancedTab( QWidget* parent = nullptr );
-    virtual ~AdvancedTab( ) override;
+    AdvancedTab(QWidget* parent = nullptr);
+    virtual ~AdvancedTab() override;
+    virtual TabIndex tabIndex() const override
+    {
+        return TabIndex::Advanced;
+    }
 
-    virtual TabIndex    tabIndex( ) const override { return TabIndex::Advanced; }
-    void setPrintProfileManager(PrintProfileManager* profileManager);
 protected:
-
-    virtual void _connectShepherd( ) override;
+    virtual void _connectShepherd() override;
 
 private:
-    PrintProfileManager* _printProfileManager;
-    QLabel*       _offsetLabel                        { new QLabel      };
-    QLabel*       _offsetValue                        { new QLabel      };
-    QSlider*      _offsetSlider                       { new QSlider     };
-
-    QGroupBox*    _buildPlatformOffsetGroup           { new QGroupBox   };
+    QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
+    ParamSlider* _offsetSlider { new ParamSlider("Build platform offset", "µm", 0, 1000, 50, 0) };
 
     QPushButton*  _bedHeatingButton                   { new QPushButton };
     QLabel*       _bedHeatingButtonLabel              { new QLabel      };
@@ -85,31 +82,31 @@ private:
     QScrollArea*  _basePumpForm                       { new QScrollArea                                                          };
     QCheckBox*    _addBasePumpCheckbox                { new QCheckBox( "Enable pumping for base layers" )                        };
 
-    ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250 ) };
-    ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5 ) };
-    ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5 ) };
-    ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5 ) };
+    ParamSlider*  _distanceSlider                     { new ParamSlider( "Base Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
+    ParamSlider*  _basePumpUpVelocitySlider           { new ParamSlider( "Base Pump Up Speed",        "mm/min",   5,   50,   5, 5 ) };
+    ParamSlider*  _basePumpDownVelocitySlider         { new ParamSlider( "Base Pump Down Speed",      "mm/min",   5,   50,   5, 5 ) };
+    ParamSlider*  _upPauseSlider                      { new ParamSlider( "Base Pump Up Pause",        "ms",    1000, 8000,   50, 50 ) };
+    ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   50, 50 ) };
+    ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5, 5 ) };
 
 
     //Layer Form
     QWidget*      _layersForm                          { new QWidget                                                              };
 
-    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,   1 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,   1 ) };
-    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time controll") };
+    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
+    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
+    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time control") };
 
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };
     QCheckBox*    _addBodyPumpCheckbox                { new QCheckBox( "Enable pumping for body layers" )                        };
 
     ParamSlider*  _bodyPumpEveryNthLayer              { new ParamSlider( "Body Pump Every Nth Layer", "",         5,   20,   1 ) };
-    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000,   1 ) };
+    ParamSlider*  _bodyDistanceSlider                 { new ParamSlider( "Body Pump Distance",        "µm",    1000, 8000, 250, 250 ) };
     ParamSlider*  _bodyPumpUpVelocitySlider           { new ParamSlider( "Body Pump Up Speed",        "mm/min",   5,   50,   5,      5 ) };
     ParamSlider*  _bodyPumpDownVelocitySlider         { new ParamSlider( "Body Pump Down Speed",      "mm/min",   5,   50,   5,      5 ) };
-    ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   1 ) };
-    ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   1 ) };
+    ParamSlider*  _bodyUpPauseSlider                  { new ParamSlider( "Body Pump Up Pause",        "ms",    1000, 8000,   50, 50 ) };
+    ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   50, 50) };
     ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5,      5 ) };
 
     static const int FORMS_COUNT                      { 4 };
@@ -130,10 +127,13 @@ private:
     void _setUpBasePumpForm( QFont fontBold );
     void _setUpLayersForm( );
     void _setUpBodyPumpForm( QFont fontBold );
+    void _setEnabled( bool enabled );
 
 signals:
+    void basicControlsChanged(bool enabled);
     void printerAvailabilityChanged( bool const available );
     void projectorPowerLevelChanged( int const value );
+    void advancedExposureTimeChanged();
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
@@ -153,8 +153,7 @@ private slots:
     void printer_positionReport( double const px, int const cx );
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
-    void offsetSlider_sliderReleased( );
-    void offsetSlider_valueChanged( int value);
+    void offsetSliderValueChanged();
 
     void printBedHeatingButton_clicked( bool checked );
 #if defined ENABLE_TEMPERATURE_SETTING
@@ -177,6 +176,8 @@ private slots:
     void setLayersSettingsEnabled(bool enabled);
 
     void expoTimeEnabled_changed(int state);
+
+    void offsetDisregardFirstLayerStateChanged(int state);
 };
 
 #endif // __ADVANCEDTAB_H__

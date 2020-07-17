@@ -12,54 +12,63 @@ class ProfilesTab: public TabBase
 
 public:
 
-    ProfilesTab( QWidget* parent = nullptr );
-    virtual ~ProfilesTab( ) override;
+    ProfilesTab(QWidget* parent = nullptr);
+    virtual ~ProfilesTab() override;
+    virtual TabIndex tabIndex() const override
+    {
+        return TabIndex::Profiles;
+    }
 
-    virtual TabIndex tabIndex( ) const override { return TabIndex::Profiles; }
-
-    void setPrintProfileManager( PrintProfileManager* printProfileManager );
 
 protected:
     virtual void _connectUsbMountManager() override;
     void _filesystemMounted(QString const& mountPoint);
     void _filesystemUnmounted(QString const& mountPoint);
+    virtual void _connectPrintManager() override;
 
 private:
-    PrintProfileManager* _printProfileManager;
     QString _usbMountPoint { "" };
-
-    QPushButton*        _importParams                    { new QPushButton("Import")              };
-    QPushButton*        _exportParams                    { new QPushButton("Export")              };
-    QPushButton*        _newProfile                      { new QPushButton("Create profile")      };
-    QPushButton*        _renameProfile                   { new QPushButton("Rename profile")      };
-    QPushButton*        _overwriteProfile                { new QPushButton("Update profile")      };
-    QPushButton*        _deleteProfile                   { new QPushButton("Delete selected")     };
-    QPushButton*        _loadProfile                     { new QPushButton("Load selected")       };
-    QCheckBox*          _cpyProfilesUsb                  { new QCheckBox("Copy profiles from/to USB")  };
-    QCheckBox*          _cpyStlFilesUsb                  { new QCheckBox("Copy STL files from/to USB") };
-    QListView*          _profilesList                    { new QListView                          };
-    QStandardItemModel* _model                           { new QStandardItemModel                 };
-    QFont*              _fontAwesome;
-
-    void _setupProfilesList(QFont font);
+    QPushButton* _importParams { new QPushButton("Import") };
+    QPushButton* _exportParams { new QPushButton("Export") };
+    QPushButton* _newProfile { new QPushButton("Create profile") };
+    QPushButton* _renameProfile { new QPushButton("Rename profile") };
+    QPushButton* _overwriteProfile { new QPushButton("Save profile") };
+    QPushButton* _deleteProfile { new QPushButton("Delete selected") };
+    QPushButton* _loadProfile { new QPushButton("Load selected") };
+    QCheckBox* _cpyProfilesUsb { new QCheckBox("Copy profiles from/to USB") };
+    QCheckBox* _cpyStlFilesUsb { new QCheckBox("Copy STL files from/to USB") };
+    QListView* _profilesList { new QListView };
+    QStandardItemModel* _model { new QStandardItemModel };
+    QFont* _fontAwesome;
+    void _setupProfilesList();
     bool _createNewProfile(QString profileName);
     bool _renamePProfile(QString profileName);
-    bool _updateProfile();
-    bool _deletePrintProfile();
-    bool _loadPrintProfile();
-    void _enableButtonProfile( bool enabled );
+    void _updateProfile();
+    void _deletePrintProfile();
+    void _loadPrintProfile();
+    void _enableButtonProfile(bool enabled, const PrintProfile& selected);
+    void _usbRemounted(const bool succeeded, const bool writable);
+    void _setEnabled(bool enabled);
+    void _activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
+    virtual void _connectPrintProfileManager() override;
 
 public slots:
-    virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void tab_uiStateChanged(TabIndex const sender, UiState const state) override;
 
-    void importParams_clicked(bool);
-    void exportParams_clicked(bool);
-    void newProfile_clicked(bool);
-    void renamePProfile_clicked(bool);
-    void updateProfile_clicked(bool);
-    void deleteProfile_clicked(bool);
-    void loadProfile_clicked(bool);
-    void itemClicked(const QModelIndex &index);
+    void importParamsClicked(bool);
+    void exportParamsClicked(bool);
+    void newProfileClicked(bool);
+    void renamePProfileClicked(bool);
+    void updateProfileClicked(bool);
+    void deleteProfileClicked(bool);
+    void loadProfileClicked(bool);
+    void itemClicked(const QModelIndex& index);
+
+    void printManager_printStarting();
+    void printManager_printComplete(bool const success);
+    void printManager_printAborted();
+
+    void loadProfiles();
 
 };
 

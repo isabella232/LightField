@@ -7,7 +7,7 @@
 
 using namespace std;
 
-const QString ManifestKeys::strings[12] = {
+const QString ManifestKeys::strings[13] = {
         "size",
         "sort_type",
         "tiling",
@@ -19,7 +19,8 @@ const QString ManifestKeys::strings[12] = {
         "fileName",
         "layerThickness",
         "exposureTime",
-        "estimatedVolume"
+        "estimatedVolume",
+        "baseLayerCnt"
 };
 
 const QString ManifestSortType::strings[3] = {
@@ -82,6 +83,7 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
             _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
             _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
             _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
+            _baseLayerCount = tilingNested.value(ManifestKeys(ManifestKeys::BASE_LAYER_CNT).toQString()).toInt();
 
             QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
 
@@ -91,9 +93,8 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 
             QJsonArray layerThicknessArray = tilingNested.value(ManifestKeys(ManifestKeys::LAYER_THICKNESS).toQString()).toArray();
 
-            for(int i=0; i<layerThicknessArray.count(); ++i) {
+            for(int i=0; i<layerThicknessArray.count(); ++i)
                 _layerThickNess.push_back(layerThicknessArray[i].toInt());
-            }
     }
     } catch (...) {
         return ManifestParseResult::FILE_CORRUPTED;
@@ -131,23 +132,21 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
 }
 
 bool OrderManifestManager::save() {
-    debug( "+ OrderManifestManager::save \n" );
-    QFile jsonFile( _dirPath % Slash % ManifestFilename );
-    QJsonDocument jsonDocument=QJsonDocument( );
-    QJsonObject   root;
-    root.insert( ManifestKeys(ManifestKeys::SORT_TYPE).toQString(), QJsonValue { _type.toQString() } );
-    root.insert( ManifestKeys(ManifestKeys::SIZE).toQString(),      QJsonValue { _size } );
+    debug("+ OrderManifestManager::save \n");
+    QFile jsonFile(_dirPath % Slash % ManifestFilename);
+    QJsonDocument jsonDocument=QJsonDocument();
+    QJsonObject root;
+    root.insert(ManifestKeys(ManifestKeys::SORT_TYPE).toQString(), QJsonValue {_type.toQString()});
+    root.insert(ManifestKeys(ManifestKeys::SIZE).toQString(), QJsonValue {_size});
 
-
-
-    if (_tiled)
-    {
+    if (_tiled) {
         QJsonObject tiling;
 
-        tiling.insert( ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString(),    QJsonValue { _tilingMinExposure } );
-        tiling.insert( ManifestKeys(ManifestKeys::STEP).toQString(),            QJsonValue { _tilingStep } );
-        tiling.insert( ManifestKeys(ManifestKeys::SPACE).toQString(),           QJsonValue { _tilingSpace } );
-        tiling.insert( ManifestKeys(ManifestKeys::COUNT).toQString(),           QJsonValue { _tilingCount } );
+        tiling.insert(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString(), QJsonValue {_tilingMinExposure});
+        tiling.insert(ManifestKeys(ManifestKeys::STEP).toQString(), QJsonValue {_tilingStep});
+        tiling.insert(ManifestKeys(ManifestKeys::SPACE).toQString(), QJsonValue {_tilingSpace});
+        tiling.insert(ManifestKeys(ManifestKeys::COUNT).toQString(), QJsonValue {_tilingCount});
+        tiling.insert(ManifestKeys(ManifestKeys::BASE_LAYER_CNT).toQString(), QJsonValue {_baseLayerCount});
 
         QJsonArray expoArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)
@@ -172,6 +171,7 @@ bool OrderManifestManager::save() {
     QImage calculationImage;
     int activeTreshold = QColor("white").value() / 2;
     int i = 0;
+    int total = _fileNameList.count();
 
     foreach (fileName, _fileNameList) {
         QJsonObject entity;
@@ -196,6 +196,9 @@ bool OrderManifestManager::save() {
         }
 
         jsonArray.append(entity);
+
+        emit statusUpdate(QString("Calculating volume of layer %1").arg(fileName));
+        emit progressUpdate( ((double)i / (double)total) * 100 );
     }
 
     root.insert( ManifestKeys(ManifestKeys::VOLUME).toQString(), QJsonValue { _estimatedVolume } );

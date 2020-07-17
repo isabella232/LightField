@@ -26,12 +26,15 @@ class SliceInformation
 {
 public:
     SliceInformation(SliceType t):
-        type(t), layerCount(0), layerThickness(0)
+        type(t), layerCount(-1), layerThickness(100)
     {
+        if (t == SliceType::SliceBase)
+            layerCount = 2;
     }
 
     SliceType type;
     QString sliceDirectory;
+    PrintParameters params;
     bool isPreSliced;
     int layerCount;
     int layerThickness;
@@ -48,26 +51,94 @@ public:
     QString directoryPath;
     QString modelHash;
     QString currentImageFile;
-    
-    size_t                  vertexCount     { };
-    Coordinate              x               { };
-    Coordinate              y               { };
-    Coordinate              z               { };
-    double                  estimatedVolume { }; // unit: µL
-    int             firstLayerOffset;
-    bool            directoryMode;
+    size_t vertexCount { };
+    Coordinate x { };
+    Coordinate y { };
+    Coordinate z { };
+    double estimatedVolume { }; // unit: µL
+    bool directoryMode;
 
-    SliceInformation        baseSlices { SliceType::SliceBase };
-    SliceInformation        bodySlices { SliceType::SliceBody };
+    SliceInformation baseSlices { SliceType::SliceBase };
+    SliceInformation bodySlices { SliceType::SliceBody };
 
-    QSharedPointer<PrintProfile>    printProfile    { };
+    PrintParameters& baseLayerParameters() {
+        return _printProfile->baseLayerParameters();
+    }
 
-    bool isTiled()
+    PrintParameters& bodyLayerParameters() {
+        return _printProfile->bodyLayerParameters();
+    }
+
+    int buildPlatformOffset() const {
+        return _printProfile->buildPlatformOffset();
+    }
+
+    bool disregardFirstLayerHeight() const  {
+        return _printProfile->disregardFirstLayerHeight();
+    }
+
+    int heatingTemperature() const {
+        return _printProfile->heatingTemperature();
+    }
+
+    void setPrintProfile(QSharedPointer<PrintProfile> printProfile) {
+        this->_printProfile = printProfile;
+    }
+
+    void setDisregardFirstLayerHeight(bool enabled) {
+        this->_printProfile->setDisregardFirstLayerHeight(enabled);
+    }
+
+    void setBuildPlatformOffset(int offset) {
+        this->_printProfile->setBuildPlatformOffset(offset);
+    }
+
+    void resetTiling()
+    {
+        if (isTiled()) {
+            baseSlices.layerCount = 2;
+            baseSlices.layerThickness = 100;
+            bodySlices.layerThickness = 100;
+        }
+    }
+
+    bool isTiled() const
     {
         if(_bodyManager)
             return _bodyManager->tiled();
 
         return false;
+    }
+
+    bool hasBasicControlsEnabled() const
+    {
+        if (isTiled())
+            return false;
+
+        return !_advancedControlsEnabled;
+    }
+
+    bool hasAdvancedControlsEnabled() const
+    {
+        if (isTiled())
+            return false;
+
+        return _advancedControlsEnabled;
+    }
+
+    void enableAdvancedControls(bool enable)
+    {
+        _advancedControlsEnabled = enable;
+    }
+
+    int getBuildPlatformOffset() const
+    {
+        int result = buildPlatformOffset();
+
+        if (!disregardFirstLayerHeight())
+            result += getLayerThicknessAt(0);
+
+        return result;
     }
 
     bool hasBaseLayers() const
@@ -105,7 +176,7 @@ public:
             : bodySlices.layerThickness;
     }
 
-    int getLayerThicknessAt(int layerNo)
+    int getLayerThicknessAt(int layerNo) const
     {
         if (isTiled()) {
             if (hasBaseLayers()) {
@@ -226,6 +297,8 @@ public:
 private:
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
+    QSharedPointer<PrintProfile>         _printProfile {};
+    bool _advancedControlsEnabled;
 };
 
 #endif // __PRINTJOB_H__
