@@ -118,7 +118,7 @@ fi
 
 
 
-printf "###########################################################\n  Welcome to Volumetric's sweeeeeeet Virtual Environment!\n          Are we ready to change the world today?\n###########################################################\n"
+printf "###########################################################\n  Welcome to Volumetric's Virtual Environment!\n###########################################################\n"
 
 
 cd /home/lumen/Volumetric/
