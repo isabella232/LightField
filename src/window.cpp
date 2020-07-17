@@ -63,10 +63,11 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printManager = new PrintManager( _shepherd, this );
 
-    QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
+    //temporary disabled
+    /*QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
         _upgradeManager->checkForUpgrades( _usbMountManager->mountPoint( ) );
-    } );
+    } );*/
 
     std::vector<TabBase*> tabs {
         _fileTab     = new FileTab{_printJob},
