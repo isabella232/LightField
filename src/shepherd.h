@@ -2,6 +2,7 @@
 #define __SHEPHERD_H__
 
 #include <QtCore>
+#include "qprocess.h"
 
 enum class PendingCommand {
     none,
@@ -16,6 +17,56 @@ inline int operator+( PendingCommand const value ) { return static_cast<int>( va
 char const* ToString( PendingCommand const value );
 
 class ProcessRunner;
+
+
+class ProcessWrapper: public QProcess {
+public:
+
+    ProcessWrapper(QObject *parent = nullptr) : QProcess(parent) {
+
+    }
+
+    void setReadChannel(ProcessChannel channel) {
+        debug( QString(" +ProcessWrapper::setReadChannel %1 \n").arg(channel).toUtf8().data());
+        QProcess::setReadChannel(channel);
+    }
+
+    QString readAllStandardError() {
+        QString buff = QProcess::readAllStandardError();
+
+        debug( QString(" +ProcessWrapper::readAllStandardError '%1' \n").arg(buff).toUtf8().data());
+
+        return buff;
+    }
+
+    QString readAllStandardOutput() {
+        QString buff = QProcess::readAllStandardOutput();
+
+        debug( QString(" +ProcessWrapper::readAllStandardOutput '%1' \n").arg(buff).toUtf8().data());
+
+        return buff;
+    }
+
+    inline qint64 write(const QByteArray &data) {
+        qint64 res = QProcess::write(data);
+
+        debug( QString(" +ProcessWrapper::write '%1' \n").arg(data.data()).toUtf8().data());
+
+        return res;
+    }
+
+    void kill() {
+        QProcess::kill();
+
+        debug( QString(" +ProcessWrapper::kill \n").toUtf8().data() );
+    }
+
+    void start(const QString &command, OpenMode mode = ReadWrite) {
+        QProcess::start(command, mode);
+
+        debug( QString(" +ProcessWrapper::start '%1' \n").arg(command).toUtf8().data());
+    }
+};
 
 class Shepherd: public QObject {
 
@@ -40,7 +91,7 @@ protected:
 private:
 
     QString        _buffer;
-    QProcess*      _process               { };
+    ProcessWrapper* _process               { };
     ProcessRunner* _processRunner         { };
     PendingCommand _pendingCommand        { PendingCommand::none };
     int            _okCount               { };
