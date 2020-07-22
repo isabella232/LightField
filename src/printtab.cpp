@@ -396,9 +396,6 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
     debug( "+ PrintTab::tab_uiStateChanged: from %sTab: %s => %s; PO? %s PA? %s PP? %s MR? %s\n", ToString( sender ), ToString( _uiState ), ToString( state ), YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
     _uiState = state;
 
-    auto bodyParams = printJob.bodyLayerParameters();
-    auto baseParams = printJob.baseLayerParameters();
-
     switch (_uiState) {
         case UiState::SelectCompleted:
             enableExpoTimeSliders(!printJob.isTiled());
@@ -406,11 +403,6 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
                 _expoDisabledTilingWarning->hide();
             else
                 _expoDisabledTilingWarning->show();
-
-
-            _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
-            _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
-                bodyParams.layerExposureTime());
 
             break;
 
