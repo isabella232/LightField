@@ -5,17 +5,13 @@ class Coordinate {
 
 public:
 
-    constexpr Coordinate( ): min( 0.0f ), max( 0.0f ), size( 0.0f ) {
-        /*empty*/
-    }
+    constexpr Coordinate(): min(0.0), max(0.0), size(0.0) {}
 
-    constexpr Coordinate( float const min_, float const max_ ): min( min_ ), max( max_ ), size( max_ - min_ ) {
-        /*empty*/
-    }
+    constexpr Coordinate(double min_, double max_): min(min_), max(max_), size(max_ - min_) {}
 
-    float min;
-    float max;
-    float size;
+    double min;
+    double max;
+    double size;
 
 };
 

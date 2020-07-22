@@ -10,7 +10,6 @@
 
 class ModelSelectionInfo;
 class PngDisplayer;
-class PrintJob;
 class PrintManager;
 class PrintProfileManager;
 class Shepherd;
@@ -34,7 +33,6 @@ public:
 
     Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
-
     void terminate( );
 
 protected:
@@ -47,7 +45,6 @@ private:
     SignalHandler*       _signalHandler       { };
     ModelSelectionInfo*  _modelSelection      { };
     PngDisplayer*        _pngDisplayer        { };
-    QSharedPointer<PrintJob> _printJob        { };
     PrintManager*        _printManager        { };
     PrintProfileManager* _printProfileManager { };
     Shepherd*            _shepherd            { };
@@ -73,16 +70,16 @@ private:
     void _setModelRendered( bool const value );
 
 signals:
-    ;
 
-    void printJobChanged( QSharedPointer<PrintJob> printJob );
-    void printManagerChanged( PrintManager* printManager );
-    void shepherdChanged( Shepherd* shepherd );
+    void printManagerChanged(PrintManager* printManager);
+    void shepherdChanged(Shepherd* shepherd);
 
-    void modelRendered( bool const value );
-    void printerPrepared( bool const value );
+    void modelRendered(bool const value);
+    void printerPrepared(bool const value);
 
     void terminationRequested( );
+
+    ;
 public slots:
     ;
 

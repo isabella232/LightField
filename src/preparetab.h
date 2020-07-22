@@ -9,8 +9,8 @@
 #include "printjob.h"
 
 class Hasher;
-class SliceInformation;
 class SvgRenderer;
+
 
 class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
@@ -18,12 +18,11 @@ class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
 public:
 
-    PrepareTab( QWidget* parent = nullptr );
+    PrepareTab(QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
-    void             loadPrintProfile(QSharedPointer<PrintProfile> profile);
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
@@ -94,8 +93,8 @@ private:
 
 
 
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody );
-    void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
+    bool _checkPreSlicedFiles(const QString &directory, bool isBody);
+    bool _checkOneSliceDirectory(const QString &directory, bool isBody);
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage(int const layer);
@@ -116,6 +115,8 @@ signals:
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
+
     void setPrinterAvailable( bool const value );
 
 private slots:

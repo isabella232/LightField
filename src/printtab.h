@@ -5,7 +5,9 @@
 #include <QtWidgets>
 #include "tabbase.h"
 #include "paramslider.h"
+#include "printprofilemanager.h"
 #include "constants.h"
+#include "spoiler.h"
 
 enum class BuildPlatformState {
     Lowered,
@@ -24,7 +26,7 @@ class PrintTab: public InitialShowEventMixin<PrintTab, TabBase> {
 
 public:
 
-    PrintTab( QWidget* parent = nullptr );
+    PrintTab(QWidget* parent = nullptr);
     virtual ~PrintTab( ) override;
 
     bool             isPrintButtonEnabled( ) const          { return _printButton->isEnabled( ); }
@@ -33,7 +35,6 @@ public:
 
 protected:
 
-    virtual void _connectPrintJob( )                    override;
     virtual void _connectShepherd( )                    override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
@@ -60,13 +61,27 @@ private:
 
     ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
+
+    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body coarse", "s",
+                                                                              1000, 29000, 1000, 1000, 1000 ) };
+    ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body fine", "ms",
+                                                                              50, 1000, 50, 0) };
+
+    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base coarse", "s",
+                                                                              1000, 149000, 1000, 1000, 1000 ) };
+    ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
+                                                                             50, 1000, 50, 0) };
+    Spoiler*           _basicExpoTimeGroup;
+    Spoiler*           _advancedExpoTimeGroup;
+
     QLabel*            _expoDisabledTilingWarning          { new QLabel("<font color='red'>Exposure controls disabled by tiling.</font>") };
-    QLabel*            _expoDisabledAdvancedWarning        { new QLabel("<font color='red'>Exposure controls disabled by advanced settings.</font>") };
     QGroupBox*         _adjustmentsGroup                   { new QGroupBox   };
 
     QGridLayout*       _layout                             { new QGridLayout };
 
     void _updateUiState( );
+    void syncFormWithPrintProfile();
+    void enableExpoTimeSliders(bool enable);
 
 signals:
     void advancedControlsChanged(bool enabled);
@@ -75,15 +90,19 @@ signals:
 
     void projectorPowerLevelChanged( int const value );
 
+    void basicExposureTimeChanged();
+
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
     void setPrinterAvailable( bool const value );
     void projectorPowerLevel_changed( int const percentage );
     void changeExpoTimeSliders();
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 protected slots:
 
@@ -102,7 +121,11 @@ private slots:
     void raiseOrLowerButton_clicked( bool );
     void homeButton_clicked( bool );
 
-    void exposureTime_update( );
+    void connectBasicExpoTimeCallback(bool connect);
+    void connectAdvanExpoTimeCallback(bool connect);
+
+    void basicExposureTime_update( );
+    void advancedExposureTime_update( );
 
 };
 

@@ -1,88 +1,90 @@
 #ifndef __PRINTJOB_H__
 #define __PRINTJOB_H__
 
-
 #include "constants.h"
 #include "coordinate.h"
 #include "printprofile.h"
+#include "printprofilemanager.h"
 #include "ordermanifestmanager.h"
 
 
-enum class SliceDirectoryType
+class PrintJob: public QObject
 {
-    SLICE_BASE,
-    SLICE_BODY
-};
-
-enum class SliceType
-{
-    SliceBase,
-    SliceBody,
-};
-
-
-
-class SliceInformation
-{
+    Q_OBJECT
 public:
-    SliceInformation(SliceType t):
-        type(t), layerCount(-1), layerThickness(100)
+
+    PrintJob(QSharedPointer<PrintProfile>& profile): _printProfile(profile)
     {
-        if (t == SliceType::SliceBase)
-            layerCount = 2;
+        _baseLayerCount = 2;
+        _selectedBaseThickness = -1;
+        _selectedBodyThickness = -1;
+        _directoryMode = false;
     }
 
-    SliceType type;
-    QString sliceDirectory;
-    PrintParameters params;
-    bool isPreSliced;
-    int layerCount;
-    int layerThickness;
-    double exposureTime;
-};
+    void operator=(const PrintJob& other) {
+        _baseLayerCount = other._baseLayerCount;
+        _selectedBaseThickness = other._selectedBaseThickness;
+        _selectedBodyThickness = other._selectedBodyThickness;
+        _modelFilename = other._modelFilename;
+        _directoryPath = other._directoryPath;
+        _modelHash = other._modelHash;
+        _directoryMode = other._directoryMode;
+        _bodyManager = other._bodyManager;
+        _baseManager = other._baseManager;
+        _printProfile = other._printProfile;
 
-class PrintJob
-{
-public:
-    PrintJob() = default;
-    PrintJob(const PrintJob &other) = default;
+        emit printJobChanged();
+    }
 
-    QString modelFileName;
-    QString directoryPath;
-    QString modelHash;
-    QString currentImageFile;
-    size_t vertexCount { };
-    Coordinate x { };
-    Coordinate y { };
-    Coordinate z { };
-    double estimatedVolume { }; // unit: µL
-    bool directoryMode;
-
-    SliceInformation baseSlices { SliceType::SliceBase };
-    SliceInformation bodySlices { SliceType::SliceBody };
-
-    PrintParameters& baseLayerParameters() {
+    PrintParameters& baseLayerParameters()
+    {
         return _printProfile->baseLayerParameters();
     }
 
-    PrintParameters& bodyLayerParameters() {
+    PrintParameters& bodyLayerParameters()
+    {
         return _printProfile->bodyLayerParameters();
     }
 
-    int buildPlatformOffset() const {
+    int buildPlatformOffset() const
+    {
+
         return _printProfile->buildPlatformOffset();
     }
 
-    bool disregardFirstLayerHeight() const  {
+    bool disregardFirstLayerHeight() const
+    {
+
         return _printProfile->disregardFirstLayerHeight();
     }
 
-    int heatingTemperature() const {
+    int heatingTemperature() const
+    {
+
         return _printProfile->heatingTemperature();
     }
 
-    void setPrintProfile(QSharedPointer<PrintProfile> printProfile) {
-        this->_printProfile = printProfile;
+    int getBaseLayerThickness() const
+    {
+
+       Q_ASSERT(_baseManager);
+       return hasBaseLayers() ? getLayerThicknessAt(0) : 0;
+    }
+
+    int getBodyLayerThickness() const
+    {
+
+       Q_ASSERT(_bodyManager);
+       return getLayerThicknessAt(getBaseLayerCount());
+    }
+
+    int getBaseLayerCount() const
+    {
+       if(isTiled()) {
+           return _baseManager->baseLayerCount();
+       }
+
+       return _baseLayerCount;
     }
 
     void setDisregardFirstLayerHeight(bool enabled) {
@@ -93,42 +95,47 @@ public:
         this->_printProfile->setBuildPlatformOffset(offset);
     }
 
-    void resetTiling()
+    void setBaseLayerCount(int value)
     {
-        if (isTiled()) {
-            baseSlices.layerCount = 2;
-            baseSlices.layerThickness = 100;
-            bodySlices.layerThickness = 100;
+
+        _baseLayerCount = value;
+    }
+
+    int getBodyLayerCount() const
+    {
+
+        Q_ASSERT(_bodyManager);
+
+        if(isTiled()) {
+            return _bodyManager->getSize() - _baseManager->baseLayerCount();
         }
+
+        //assumption that directories has always 2 base layers
+        if(_directoryMode) {
+            return _bodyManager->getSize() - 2;
+        }
+
+        return bodyLayerEnd() - bodyLayerStart() + 1;
+    }
+
+    void setPrintProfile(QSharedPointer<PrintProfile>& printProfile)
+    {
+
+        this->_printProfile = printProfile;
     }
 
     bool isTiled() const
     {
-        if(_bodyManager)
+
+        if (_bodyManager)
             return _bodyManager->tiled();
 
         return false;
     }
 
-    bool hasBasicControlsEnabled() const
+    bool hasExposureControlsEnabled() const
     {
-        if (isTiled())
-            return false;
-
-        return !_advancedControlsEnabled;
-    }
-
-    bool hasAdvancedControlsEnabled() const
-    {
-        if (isTiled())
-            return false;
-
-        return _advancedControlsEnabled;
-    }
-
-    void enableAdvancedControls(bool enable)
-    {
-        _advancedControlsEnabled = enable;
+        return !isTiled();
     }
 
     int getBuildPlatformOffset() const
@@ -143,162 +150,426 @@ public:
 
     bool hasBaseLayers() const
     {
-        return baseSlices.layerCount > 0;
+        if(isTiled()) {
+            return _bodyManager->baseLayerCount() > 0;
+        }
+
+        //assumption that directories has always 2 base layers
+        if(_directoryMode)
+            return true;
+
+        return _baseLayerCount > 0;
     }
 
+    /**
+     * @brief totalLayerCount
+     * @return overall layers count of current print (base + body)
+     */
     int totalLayerCount() const
     {
-        return baseSlices.layerCount + bodySlices.layerCount;
-    }
 
-    int slicedBaseLayerCount() const
-    {
+        Q_ASSERT(_bodyManager);
+
+        if(isTiled() || _directoryMode) {
+            return _bodyManager->getSize();
+        }
+
+        if (hasBaseLayers()) {
+            Q_ASSERT(_baseManager);
+            return _baseLayerCount + (bodyLayerEnd()+1) - bodyLayerStart();
+        }
+
         return _bodyManager->getSize();
     }
 
+    /**
+     * @brief baseThickness
+     * @return overall base thickness - sum of all base layers
+     */
     int baseThickness() const
     {
-        return baseSlices.layerCount * baseSlices.layerThickness;
+
+        return getBaseLayerCount() * getBaseLayerThickness();
     }
 
-    int baseLayerThickness()
-    {
-        if (isTiled())
-            return hasBaseLayers() ? _baseManager->layerThickNessAt(0) : 0;
-        else
-            return hasBaseLayers() ? baseSlices.layerThickness : 0;
-    }
-
-    int bodyLayerThickness()
-    {
-        return isTiled()
-            ? _bodyManager->layerThickNessAt(0)
-            : bodySlices.layerThickness;
-    }
-
+    /**
+     * @brief getLayerThicknessAt
+     * @param layerNo
+     * @return returns thickness of requested layer
+     */
     int getLayerThicknessAt(int layerNo) const
     {
-        if (isTiled()) {
-            if (hasBaseLayers()) {
-                return layerNo <= _baseManager->getSize()
-                    ? _baseManager->layerThickNessAt(layerNo)
-                    : _bodyManager->layerThickNessAt(layerNo);
-            } else
-                return _bodyManager->layerThickNessAt(layerNo);
+        Q_ASSERT(_bodyManager);
+
+        if(_bodyManager->tiled()) {
+            return _bodyManager->layerThickNessAt(layerNo);
+        } else if (_directoryMode) {
+            return _selectedBodyThickness;
         } else {
-            if (hasBaseLayers()) {
-                return layerNo <= baseSlices.layerCount
-                    ? baseSlices.layerThickness
-                    : bodySlices.layerThickness;
-            } else
-                return bodySlices.layerThickness;
+            if (isBaseLayer(layerNo)) {
+                return _selectedBaseThickness;
+            }
+
+            return _selectedBodyThickness;
         }
     }
 
+    /**
+     * @brief isBaseLayer
+     * @param layer layer number
+     * @return requested layer belongs to: base (true) or body (false)
+     */
+    bool isBaseLayer(int layer) const
+    {
+
+        if (!hasBaseLayers())
+            return false;
+
+        return layer < getBaseLayerCount();
+    }
+
+    /**
+     * @brief getLayerDirectory
+     * @param layer layer number
+     * @return name of directory where file of requested layer is
+     */
+    QString getLayerDirectory(int layer) const
+    {
+
+        return isBaseLayer(layer) ? _baseManager->path() : _bodyManager->path();
+    }
+
+    /**
+     * @brief getLayerFileName
+     * @param layer layer number
+     * @return layer file name
+     */
+    QString getLayerFileName(int layer) const
+    {
+        Q_ASSERT(_bodyManager);
+
+        if(isTiled() || _directoryMode) {
+            return _bodyManager->getElementAt(layer);
+        }
+
+        return isBaseLayer(layer)
+            ? _baseManager->getElementAt(layer)
+            : _bodyManager->getElementAt(bodyLayerStart() + layer - _baseLayerCount);
+    }
+
+    /**
+     * @brief getLayerPath
+     * @param layer layer number
+     * @return absolute path to requested layer
+     */
+    QString getLayerPath(int layer) const
+    {
+
+        return QString("%1/%2").arg(getLayerDirectory(layer)).arg(getLayerFileName(layer));
+    }
+
+    /**
+     * @brief getTimeForElementAt
+     * @param layer layer number in context of current print
+     * @return exposure time for requested layer
+     */
+    double getTimeForElementAt(int layer) const
+    {
+
+        Q_ASSERT(_bodyManager);
+
+        if(isTiled()) {
+            return _bodyManager->getTimeForElementAt(layer);
+        }
+
+        if(isBaseLayer(layer)) {
+            return this->_printProfile->baseLayerParameters().layerExposureTime();
+        } else {
+            return this->_printProfile->bodyLayerParameters().layerExposureTime();
+        }
+
+    }
+
+    QSharedPointer<OrderManifestManager>& getBaseManager()
+    {
+
+        return _baseManager;
+    }
+
+    QSharedPointer<OrderManifestManager>& getBodyManager()
+    {
+
+        return _bodyManager;
+    }
+
+    void setBodyManager(QSharedPointer<OrderManifestManager> manager)
+    {
+
+        _bodyManager.swap(manager);
+
+        if(_directoryMode || _bodyManager->tiled()) {
+            _baseManager = _bodyManager;
+        }
+    }
+
+    void setBaseManager(QSharedPointer<OrderManifestManager> manager)
+    {
+
+        _baseManager.swap(manager);
+    }
+
+    /* number of tiles per layer */
+    int tilingCount() const
+    {
+
+        Q_ASSERT(_bodyManager);
+        return isTiled() ? _bodyManager->tilingCount() : 1;
+    }
+
+    bool getDirectoryMode() const
+    {
+
+        return _directoryMode;
+    }
+
+    void setDirectoryMode(bool value)
+    {
+
+        _directoryMode = value;
+    }
+
+    QString getDirectoryPath() const
+    {
+
+        return _directoryPath;
+    }
+
+    void setDirectoryPath(QString value)
+    {
+
+        _directoryPath = value;
+    }
+
+    QString getModelFilename() const
+    {
+
+        return _modelFilename;
+    }
+
+    void setModelFilename(QString value)
+    {
+
+        _modelFilename = value;
+    }
+
+    QString getModelHash() const
+    {
+
+        return _modelHash;
+    }
+
+    void setModelHash(QString value)
+    {
+
+        _modelHash = value;
+    }
+
+    int getSelectedBaseLayerThickness() const
+    {
+
+        return _selectedBaseThickness;
+    }
+
+    void setSelectedBaseLayerThickness(int value)
+    {
+
+        _selectedBaseThickness = value;
+    }
+
+    int getSelectedBodyLayerThickness() const
+    {
+
+        return _selectedBodyThickness;
+    }
+
+    void setSelectedBodyLayerThickness(int value)
+    {
+
+        _selectedBodyThickness = value;
+    }
+
+    double getEstimatedVolume() const
+    {
+
+        Q_ASSERT(_bodyManager);
+        return _bodyManager->manifestVolume();
+    }
+
+    int getAdvancedExposureControlsEnabled() const {
+        return _printProfile->advancedExposureControlsEnabled();
+    }
+
+    // unit: boolean (true/false)
+    void setAdvancedExposureControlsEnabled(bool value) {
+        _printProfile->setAdvancedExposureControlsEnabled(value);
+    }
+
+    QSharedPointer<PrintProfile>& printProfile() {
+        return _printProfile;
+    }
+
+    void printJobData() {
+        const auto& baseLayerParameters = this->baseLayerParameters();
+        const auto& bodyLayerParameters = this->bodyLayerParameters();
+
+        debug(
+            "+ Window::startPrinting: print job %p:\n"
+            "  + modelFileName:              '%s'\n"
+            "  + modelHash:                  %s\n"
+            "  + totalLayerCount:            %d\n"
+            "  + base slices:\n"
+            "    + sliceDirectory:           '%s'\n"
+            "    + layerCount:               %d\n"
+            "    + layerThickness:           %d\n"
+            "    + startLayer:               %d\n"
+            "    + endLayer:                 %d\n"
+            "  + body slices:\n"
+            "    + sliceDirectory:           '%s'\n"
+            "    + layerCount:               %d\n"
+            "    + layerThickness:           %d\n"
+            "    + startLayer:               %d\n"
+            "    + endLayer:                 %d\n"
+            "  + layer parameters: (calculated parameters are marked with *)\n"
+
+            "",
+
+            this,
+            getModelFilename().toUtf8().data(),
+            getModelHash().toUtf8().data(),
+            totalLayerCount(),
+
+            getBaseManager()->path().toUtf8().data(),
+            getBaseLayerCount(),
+            getBaseLayerThickness(),
+            baseLayerStart(),
+            baseLayerEnd(),
+
+            getBodyManager()->path().toUtf8().data(),
+            getBodyLayerCount(),
+            getBodyLayerThickness(),
+            bodyLayerStart(),
+            bodyLayerEnd()
+        );
+
+        debug(
+            "    + baseLayerCount:           %d\n"
+            "    + baseLayersPumpingEnabled: %s\n"
+            "    + base layer parameters:\n"
+            "      + pumpUpDistance:         %.2f mm\n"
+            "      + pumpUpVelocity:        *%.2f mm/min\n"
+            "      + pumpUpPause:            %d ms\n"
+            "      + pumpDownDistance:      *%.2f mm\n"
+            "      + pumpDownVelocity:      *%.2f mm/min\n"
+            "      + pumpDownPause:          %d ms\n"
+            "      + noPumpUpVelocity:       %.2f mm/min\n"
+            "      + pumpEveryNthLayer:      %d\n"
+            "      + layerExposureTime:      %.2f s\n"
+            "      + powerLevel:             %.1f%%\n"
+            "",
+
+            getBaseLayerCount(),
+            ToString( baseLayerParameters.isPumpingEnabled()),
+            baseLayerParameters.pumpUpDistance(),
+            baseLayerParameters.pumpUpVelocity_Effective(),
+            baseLayerParameters.pumpUpPause(),
+            baseLayerParameters.pumpDownDistance_Effective(),
+            baseLayerParameters.pumpDownVelocity_Effective(),
+            baseLayerParameters.pumpDownPause(),
+            baseLayerParameters.noPumpUpVelocity(),
+            baseLayerParameters.pumpEveryNthLayer(),
+            baseLayerParameters.layerExposureTime(),
+            baseLayerParameters.powerLevel()
+        );
+
+
+        debug(
+            "    + bodyLayersPumpingEnabled: %s\n"
+            "    + body layer parameters:\n"
+            "      + pumpUpDistance:         %.2f mm\n"
+            "      + pumpUpVelocity:        *%.2f mm/min\n"
+            "      + pumpUpPause:            %d ms\n"
+            "      + pumpDownDistance:      *%.2f mm\n"
+            "      + pumpDownVelocity:      *%.2f mm/min\n"
+            "      + pumpDownPause:          %d ms\n"
+            "      + noPumpUpVelocity:       %.2f mm/min\n"
+            "      + pumpEveryNthLayer:      %d\n"
+            "      + layerExposureTime:      %.2f s\n"
+            "      + powerLevel:             %.1f%%\n"
+            "",
+
+
+            ToString( bodyLayerParameters.isPumpingEnabled()),
+            bodyLayerParameters.pumpUpDistance(),
+            bodyLayerParameters.pumpUpVelocity_Effective(),
+            bodyLayerParameters.pumpUpPause(),
+            bodyLayerParameters.pumpDownDistance_Effective(),
+            bodyLayerParameters.pumpDownVelocity_Effective(),
+            bodyLayerParameters.pumpDownPause(),
+            bodyLayerParameters.noPumpUpVelocity(),
+            bodyLayerParameters.pumpEveryNthLayer(),
+            bodyLayerParameters.layerExposureTime(),
+            bodyLayerParameters.powerLevel()
+        );
+    }
+
+
+signals:
+    void printJobChanged();
+    ;
+
+protected:
+    int _baseLayerCount;
+    int _selectedBaseThickness;
+    int _selectedBodyThickness;
+    QString _modelFilename;
+    QString _directoryPath;
+    QString _modelHash;
+    bool _directoryMode;
+    QSharedPointer<OrderManifestManager> _bodyManager {};
+    QSharedPointer<OrderManifestManager> _baseManager {};
+    QSharedPointer<PrintProfile>&        _printProfile;
+
     int baseLayerStart() const
     {
+
         return hasBaseLayers() ? 0 : -1;
     }
 
     int baseLayerEnd() const
     {
-        return hasBaseLayers() ? baseSlices.layerCount - 1 : -1;
+
+        return hasBaseLayers() ? getBaseLayerCount() - 1 : -1;
     }
 
     int bodyLayerStart() const
-    {   
-        return hasBaseLayers() ? baseThickness() / bodySlices.layerThickness : 0;
+    {
+
+        Q_ASSERT(_bodyManager);
+
+        if(_selectedBodyThickness > 0)
+            return (_selectedBaseThickness * getBaseLayerCount()) / _selectedBodyThickness;
+        else
+            return 0;
     }
 
     int bodyLayerEnd() const
     {
-        return bodySlices.layerCount + bodyLayerStart() - 1;
+
+        Q_ASSERT(_bodyManager);
+        return _bodyManager->getSize() - 1;
     }
-
-    bool isBaseLayer(int const layer) const
-    {
-        if (!hasBaseLayers())
-            return false;
-
-        return (layer >= baseLayerStart()) && (layer <= baseLayerEnd());
-    }
-
-    QString getLayerDirectory(int const layer) const
-    {
-        if (directoryMode)
-            return directoryPath;
-
-        return isBaseLayer(layer) ? baseSlices.sliceDirectory : bodySlices.sliceDirectory;
-    }
-
-    QString getLayerFileName(int const layer) const
-    {
-        return isBaseLayer(layer)
-            ? _baseManager->getElementAt(layer)
-            : _bodyManager->getElementAt(bodyLayerStart() + layer - baseSlices.layerCount);
-    }
-
-    QString getLayerPath( int const layer ) const {
-        return QString("%1/%2").arg(getLayerDirectory(layer)).arg(getLayerFileName(layer));
-    }
-
-    double getTimeForElementAt( int position ) {
-        if(_bodyManager && isTiled())
-            return _bodyManager->getTimeForElementAt( position );
-
-        else return -1.0;
-    }
-
-    QSharedPointer<OrderManifestManager> getBaseManager()
-    {
-        return _baseManager;
-    }
-
-    QSharedPointer<OrderManifestManager> getBodyManager()
-    {
-        return _bodyManager;
-    }
-
-    void setBodyManager(QSharedPointer<OrderManifestManager> manager) {
-        _bodyManager.swap(manager);
-        bodySlices.isPreSliced = true;
-        bodySlices.layerCount = _bodyManager->getSize() - bodyLayerStart();
-
-        if (_bodyManager->tiled())
-            bodySlices.layerThickness = -1;
-    }
-
-    void setBaseManager(QSharedPointer<OrderManifestManager> manager)
-    {
-        _baseManager.swap(manager);
-
-        if (!_baseManager.isNull()) {
-            baseSlices.isPreSliced = true;
-            baseSlices.layerCount = std::min(baseSlices.layerCount, _baseManager->getSize());
-            if (_baseManager->tiled())
-                baseSlices.layerThickness = -1;
-
-        } else {
-            baseSlices.sliceDirectory = nullptr;
-            baseSlices.isPreSliced = false;
-            baseSlices.layerCount = 0;
-            baseSlices.layerThickness = -1;
-        }
-    }
-
-    int tilingCount()
-    {
-        if(!_bodyManager.isNull() && isTiled())
-            return _bodyManager->tilingCount();
-
-        return 0;
-    }
-
-private:
-    QSharedPointer<OrderManifestManager> _bodyManager {};
-    QSharedPointer<OrderManifestManager> _baseManager {};
-    QSharedPointer<PrintProfile>         _printProfile {};
-    bool _advancedControlsEnabled;
 };
+
+extern PrintJob printJob;
 
 #endif // __PRINTJOB_H__

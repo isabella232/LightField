@@ -22,11 +22,10 @@ namespace
 }
 
 void SvgRenderer::render(const QString& svgFileName, const QString& outputDirectory,
-    QSharedPointer<PrintJob>printJob, QSharedPointer<OrderManifestManager> orderManager)
+    QSharedPointer<OrderManifestManager> orderManager)
 {
     Q_ASSERT(svgFileName.length() > 0);
     Q_ASSERT(outputDirectory.length() > 0);
-    Q_ASSERT(printJob != nullptr);
 
     debug("+ SvgRenderer::render\n");
     debug("  + svgFileName: %s\n", svgFileName.toUtf8().data());

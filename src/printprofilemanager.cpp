@@ -4,8 +4,12 @@
 #include "profilesjsonparser.h"
 #include "printprofilemanager.h"
 
-PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent)
+QSharedPointer<PrintProfile> activeProfileRef;
+
+
+PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent), _activeProfile(activeProfileRef)
 {
+
 }
 
 bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)
@@ -126,16 +130,16 @@ void PrintProfileManager::reload()
             defaultProfile = profile;
     }
 
-    emit reloadProfiles(_profiles);
-
     if (!activeProfile.isNull()) {
         _activeProfile = activeProfile;
         emit activeProfileChanged(activeProfile);
     } else {
         _activeProfile = defaultProfile;
-        defaultProfile->setActive(true );
+        defaultProfile->setActive(true);
         emit activeProfileChanged(defaultProfile);
     }
+
+    emit reloadProfiles(_profiles);
 }
 
 void PrintProfileManager::loadProfile(const QString& profileName)

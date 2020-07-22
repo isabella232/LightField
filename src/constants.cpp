@@ -28,6 +28,9 @@ QSize constexpr           const  ProjectorWindowSize           {   1280,  800 };
 
 int                       const  KeyboardRepeatDelay           { 200        }; //miliseconds
 int                       const  KeyboardRepeatDelayStart      { 600        }; //miliseconds
+int                       const  DefaultBodyLayerThickness     { 100        }; //um
+int                       const  DefaultBaseLayerThickness     { 100        }; //um
+
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
 QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };

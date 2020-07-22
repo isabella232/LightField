@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "window.h"
-
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
@@ -58,14 +57,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
-
-    _printJob = QSharedPointer<PrintJob>(new PrintJob);
-    _printJob->setPrintProfile(_printProfileManager->activeProfile());
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 100;
-    _printJob->bodySlices.layerThickness = 100;
-
-
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
@@ -77,24 +68,21 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     } );
 
     std::vector<TabBase*> tabs {
-        _fileTab     = new FileTab,
-        _prepareTab  = new PrepareTab,
-        _tilingTab   = new TilingTab,
-        _printTab    = new PrintTab,
-        _statusTab   = new StatusTab,
-        _advancedTab = new AdvancedTab,
-        _profilesTab = new ProfilesTab,
-        _systemTab   = new SystemTab,
+        _fileTab     = new FileTab{this},
+        _prepareTab  = new PrepareTab{this},
+        _tilingTab   = new TilingTab{this},
+        _printTab    = new PrintTab{this},
+        _statusTab   = new StatusTab{this},
+        _advancedTab = new AdvancedTab{this},
+        _profilesTab = new ProfilesTab{this},
+        _systemTab   = new SystemTab{this},
     };
 
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
-    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
-        _prepareTab, &PrepareTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
-        tabA->setPrintJob(_printJob);
-        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::setPrintJob);
+        QObject::connect(&printJob, &PrintJob::printJobChanged, tabA, &TabBase::printJobChanged);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
         QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
         QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
@@ -111,8 +99,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     }
 
     emit shepherdChanged( _shepherd );
-    emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
+
+    printJob.printJobChanged();
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
@@ -145,9 +134,14 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable            );
 
+    //
+    // "Tiling" tab
+    //
 
     _tilingTab->setContentsMargins( { } );
     _tilingTab->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _tilingTab, &TilingTab::activeProfileChanged);
 
     //
     // "Print" tab
@@ -163,7 +157,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _printTab, &PrintTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable           );
     QObject::connect( this,      &Window::modelRendered,                _printTab,    &PrintTab::setModelRendered               );
     QObject::connect( this,      &Window::printerPrepared,              _printTab,    &PrintTab::setPrinterPrepared             );
-
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _printTab, &PrintTab::activeProfileChanged);
 
     //
     // "Status" tab
@@ -319,123 +314,12 @@ void Window::startPrinting()
     _tabWidget->setCurrentIndex(+TabIndex::Status);
     update();
 
-    const auto& baseSlices = _printJob->baseSlices;
-    const auto& bodySlices = _printJob->bodySlices;
-    const auto& baseLayerParameters = _printJob->baseLayerParameters();
-    const auto& bodyLayerParameters = _printJob->bodyLayerParameters();
+    printJob.printJobData();
 
-    debug(
-        "+ Window::startPrinting: print job %p:\n"
-        "  + modelFileName:              '%s'\n"
-        "  + modelHash:                  %s\n"
-        "  + totalLayerCount:            %d\n"
-        "  + base slices:\n"
-        "    + sliceDirectory:           '%s'\n"
-        "    + isPreSliced:              %s\n"
-        "    + layerCount:               %d\n"
-        "    + layerThickness:           %d\n"
-        "    + startLayer:               %d\n"
-        "    + endLayer:                 %d\n"
-        "  + body slices:\n"
-        "    + sliceDirectory:           '%s'\n"
-        "    + isPreSliced:              %s\n"
-        "    + layerCount:               %d\n"
-        "    + layerThickness:           %d\n"
-        "    + startLayer:               %d\n"
-        "    + endLayer:                 %d\n"
-        "  + layer parameters: (calculated parameters are marked with *)\n"
+    printJob.setPrintProfile(_printProfileManager->activeProfile());
 
-        "",
-
-        _printJob,
-        _printJob->modelFileName.toUtf8().data(),
-        _printJob->modelHash.toUtf8().data(),
-        _printJob->totalLayerCount(),
-
-        baseSlices.sliceDirectory.toUtf8().data(),
-        ToString( baseSlices.isPreSliced ),
-        baseSlices.layerCount,
-        baseSlices.layerThickness,
-        _printJob->baseLayerStart(),
-        _printJob->baseLayerEnd(),
-
-        bodySlices.sliceDirectory.toUtf8().data(),
-        ToString( bodySlices.isPreSliced ),
-        bodySlices.layerCount,
-        bodySlices.layerThickness,
-        _printJob->bodyLayerStart(),
-        _printJob->bodyLayerEnd()
-    );
-
-    debug(
-        "    + baseLayerCount:           %d\n"
-        "    + baseLayersPumpingEnabled: %s\n"
-        "    + base layer parameters:\n"
-        "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpVelocity:        *%.2f mm/min\n"
-        "      + pumpUpPause:            %d ms\n"
-        "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownVelocity:      *%.2f mm/min\n"
-        "      + pumpDownPause:          %d ms\n"
-        "      + noPumpUpVelocity:       %.2f mm/min\n"
-        "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %.2f s\n"
-        "      + powerLevel:             %.1f%%\n"
-        "",
-
-        _printJob->baseSlices.layerCount,
-        ToString( baseLayerParameters.isPumpingEnabled( ) ),
-        baseLayerParameters.pumpUpDistance( ),
-        baseLayerParameters.pumpUpVelocity_Effective( ),
-        baseLayerParameters.pumpUpPause( ),
-        baseLayerParameters.pumpDownDistance_Effective( ),
-        baseLayerParameters.pumpDownVelocity_Effective( ),
-        baseLayerParameters.pumpDownPause( ),
-        baseLayerParameters.noPumpUpVelocity( ),
-        baseLayerParameters.pumpEveryNthLayer( ),
-        baseLayerParameters.layerThickness( ),
-        baseSlices.exposureTime,
-        baseLayerParameters.powerLevel( )
-    );
-
-
-    debug(
-        "    + bodyLayersPumpingEnabled: %s\n"
-        "    + body layer parameters:\n"
-        "      + pumpUpDistance:         %.2f mm\n"
-        "      + pumpUpVelocity:        *%.2f mm/min\n"
-        "      + pumpUpPause:            %d ms\n"
-        "      + pumpDownDistance:      *%.2f mm\n"
-        "      + pumpDownVelocity:      *%.2f mm/min\n"
-        "      + pumpDownPause:          %d ms\n"
-        "      + noPumpUpVelocity:       %.2f mm/min\n"
-        "      + pumpEveryNthLayer:      %d\n"
-        "      + layerThickness:         %d µm\n"
-        "      + layerExposureTime:      %.2f s\n"
-        "      + powerLevel:             %.1f%%\n"
-        "",
-
-
-        ToString( bodyLayerParameters.isPumpingEnabled( ) ),
-        bodyLayerParameters.pumpUpDistance( ),
-        bodyLayerParameters.pumpUpVelocity_Effective( ),
-        bodyLayerParameters.pumpUpPause( ),
-        bodyLayerParameters.pumpDownDistance_Effective( ),
-        bodyLayerParameters.pumpDownVelocity_Effective( ),
-        bodyLayerParameters.pumpDownPause( ),
-        bodyLayerParameters.noPumpUpVelocity( ),
-        bodyLayerParameters.pumpEveryNthLayer( ),
-        bodyLayerParameters.layerThickness( ),
-        bodySlices.exposureTime,
-        bodyLayerParameters.powerLevel( )
-    );
-
-    QSharedPointer<PrintJob> job(_printJob);
-    _printJob.reset(new PrintJob(*_printJob));
-
-    _printJob->setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
-    _printJob->setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
+    printJob.setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
+    printJob.setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
     PrintManager* oldPrintManager = _printManager;
 
     _printManager = new PrintManager( _shepherd, this );
@@ -445,10 +329,9 @@ void Window::startPrinting()
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );
 
-    emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( job );
+    _printManager->print();
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );
@@ -466,7 +349,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered(this->_printJob->directoryMode);
+            _setModelRendered(printJob.getDirectoryMode());
             if (_tabWidget->currentIndex() == +TabIndex::File ||
                 _tabWidget->currentIndex() == +TabIndex::Tiling) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);
@@ -541,7 +424,8 @@ void Window::printManager_printAborted( ) {
     update( );
 }
 
-void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
+void Window::fileTab_modelSelected(ModelSelectionInfo const* modelSelection)
+{
     if ( _modelSelection ) {
         delete _modelSelection;
     }
@@ -564,13 +448,9 @@ void Window::fileTab_modelSelected( ModelSelectionInfo const* modelSelection ) {
         _modelSelection->estimatedVolume
     );
 
-    _printJob->directoryMode   = false;
-    _printJob->vertexCount     = _modelSelection->vertexCount;
-    _printJob->x               = _modelSelection->x;
-    _printJob->y               = _modelSelection->y;
-    _printJob->z               = _modelSelection->z;
-    _printJob->estimatedVolume = _modelSelection->estimatedVolume;
-    _printJob->modelFileName   = _modelSelection->fileName;
+    printJob.setDirectoryMode(false);
+    //printJob.getBodyManager()->setVolume(_modelSelection->estimatedVolume);
+    printJob.setModelFilename(_modelSelection->fileName);
 
     _setModelRendered( false );
 }

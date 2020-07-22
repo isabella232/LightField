@@ -6,16 +6,15 @@
 #include "ordermanifestmanager.h"
 #include "printjob.h"
 
-
 class TilingManager: public QObject
 {
     Q_OBJECT
 
 public:
-    TilingManager( PrintJob* printJob );
+    TilingManager();
     ~TilingManager() = default;
 
-    void processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
+    OrderManifestManager* processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
     inline QString getPath ( ) { return _path; }
 
 signals:
@@ -27,7 +26,6 @@ protected:
   void renderTiles ( QFileInfo info, int sequence );
   void putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j );
 private:
-        PrintJob*             _printJob;
         QString               _path;
         int                   _width;
         int                   _height;

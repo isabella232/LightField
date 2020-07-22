@@ -15,6 +15,7 @@
 #include "shepherd.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
+#include "printprofilemanager.h"
 #include "window.h"
 
 namespace {
@@ -59,7 +60,7 @@ namespace {
 
 }
 
-FileTab::FileTab( QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>( parent ) {
+FileTab::FileTab(QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>(parent) {
     QFont font16pt { ModifyFont( font( ), 16.0          ) };
     QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
 
@@ -346,7 +347,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
     case UiState::SelectCompleted:
         if (sender == TabIndex::Tiling) {
-            auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
+            auto index = _libraryFsModel->index( printJob.getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
         break;
@@ -453,10 +454,10 @@ void FileTab::loader_gotMesh( Mesh* mesh ) {
         PrinterMaximumZ
     );
 
-    _dimensionsText = QString { "%1 mm × %2 mm × %3 mm" }
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.x.size, 0, 'f', 2 ), ' ' ) )
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.y.size, 0, 'f', 2 ), ' ' ) )
-        .arg( GroupDigits( QString { "%1" }.arg( _modelSelection.z.size, 0, 'f', 2 ), ' ' ) );
+    _dimensionsText = QString {"%1 mm × %2 mm × %3 mm"}
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.x.size, 0, 'f', 2), ' '))
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.y.size, 0, 'f', 2), ' '))
+        .arg(GroupDigits(QString{"%1"}.arg(_modelSelection.z.size, 0, 'f', 2), ' '));
     _dimensionsLabel->setText( _dimensionsText % ", <i>calculating volume…</i>" );
 
     if ( _viewSolid->isChecked( ) ) {
@@ -669,29 +670,29 @@ void FileTab::selectButton_clicked(bool)
     );
 
     if (_modelsLocation == ModelsLocation::Library) {
+        printJob = PrintJob(_printProfileManager->activeProfile());
+
         if (_modelSelection.type == ModelFileType::File) {
-            _printJob->resetTiling();
             emit modelSelected(&_modelSelection);
             emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
-                _printJob->baseSlices.layerCount = 2;
-                _printJob->baseSlices.layerThickness = match.captured(1).toInt();
-                _printJob->bodySlices.layerThickness = match.captured(1).toInt();
-                _printJob->directoryMode = true;
-                _printJob->directoryPath = _modelSelection.fileName;
+                printJob.setSelectedBaseLayerThickness(match.captured(1).toInt());
+                printJob.setSelectedBodyLayerThickness(match.captured(1).toInt());
+                printJob.setDirectoryMode(true);
+                printJob.setDirectoryPath(_modelSelection.fileName);
                 emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
-                    _printJob->directoryMode = true;
-                    _printJob->directoryPath = _modelSelection.fileName;
+                    printJob.setDirectoryMode(true);
+                    printJob.setDirectoryPath(_modelSelection.fileName);
                     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
                 }
             }
 
-            _printJob->modelFileName = _modelSelection.fileName;
+            printJob.setModelFilename(_modelSelection.fileName);
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );
@@ -853,4 +854,8 @@ void FileTab::processRunner_readyReadStandardOutput( QString const& data ) {
 void FileTab::processRunner_readyReadStandardError( QString const& data ) {
     auto tmp = data.toUtf8( );
     fwrite( tmp.data( ), 1, tmp.count( ), stderr );
+}
+
+void FileTab::printJobChanged() {
+
 }

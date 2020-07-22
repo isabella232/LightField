@@ -11,7 +11,7 @@ class StatusTab: public InitialShowEventMixin<StatusTab, TabBase> {
 
 public:
 
-    StatusTab( QWidget* parent = nullptr );
+    StatusTab(QWidget* parent = nullptr);
     virtual ~StatusTab( ) override;
 
     bool isStopButtonEnabled( ) {
@@ -96,6 +96,7 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setModelRendered( bool const value );
     void setPrinterPrepared( bool const value );
