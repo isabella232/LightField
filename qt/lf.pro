@@ -39,6 +39,7 @@ SOURCES +=                          \
     ../src/paramslider.cpp          \
     ../src/pngdisplayer.cpp         \
     ../src/preparetab.cpp           \
+    ../src/printjob.cpp             \
     ../src/printmanager.cpp         \
     ../src/printprofile.cpp         \
     ../src/printprofilemanager.cpp  \

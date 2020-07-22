@@ -48,13 +48,13 @@ public:
 
 };
 
-class FileTab: public InitialShowEventMixinTab<FileTab, TabBase> {
+class FileTab: public InitialShowEventMixin<FileTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    FileTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    FileTab(QWidget* parent = nullptr);
     virtual ~FileTab( ) override;
 
     virtual TabIndex          tabIndex( )       const override { return TabIndex::File;   }

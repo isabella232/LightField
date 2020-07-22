@@ -8,7 +8,7 @@
 #include "shepherd.h"
 #include "usbmountmanager.h"
 
-TabBase::TabBase(QSharedPointer<PrintJob>& printJob, QWidget* parent): QWidget( parent ), _printJob(printJob) {
+TabBase::TabBase(QWidget* parent): QWidget( parent ) {
     /*empty*/
 }
 

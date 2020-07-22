@@ -12,13 +12,13 @@ class Hasher;
 class SvgRenderer;
 
 
-class PrepareTab: public InitialShowEventMixinTab<PrepareTab, TabBase> {
+class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    PrepareTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr );
+    PrepareTab(QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }

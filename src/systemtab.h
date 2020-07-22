@@ -11,13 +11,13 @@ class UpgradeManager;
 class UpgradeSelector;
 class UsbMountManager;
 
-class SystemTab: public InitialShowEventMixinTab<SystemTab, TabBase> {
+class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    SystemTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    SystemTab(QWidget* parent = nullptr);
     virtual ~SystemTab( ) override;
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::System; }

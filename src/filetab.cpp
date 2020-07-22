@@ -60,7 +60,7 @@ namespace {
 
 }
 
-FileTab::FileTab( QSharedPointer<PrintJob>& printJob, QWidget* parent ): InitialShowEventMixinTab<FileTab, TabBase>(printJob, parent) {
+FileTab::FileTab(QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>(parent) {
     QFont font16pt { ModifyFont( font( ), 16.0          ) };
     QFont font22pt { ModifyFont( font( ), LargeFontSize ) };
 
@@ -347,7 +347,7 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
     case UiState::SelectCompleted:
         if (sender == TabIndex::Tiling) {
-            auto index = _libraryFsModel->index( _printJob->getLayerDirectory(0) );
+            auto index = _libraryFsModel->index( printJob.getLayerDirectory(0) );
             _availableFilesListView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::Select );
         }
         break;
@@ -670,7 +670,7 @@ void FileTab::selectButton_clicked(bool)
     );
 
     if (_modelsLocation == ModelsLocation::Library) {
-        ((Window)window()).createNewPrintJob();
+        printJob = PrintJob(_printProfileManager->activeProfile());
 
         if (_modelSelection.type == ModelFileType::File) {
             emit modelSelected(&_modelSelection);
@@ -678,21 +678,21 @@ void FileTab::selectButton_clicked(bool)
         } else {
             auto match = SliceDirectoryNameRegex.match(_modelSelection.fileName);
             if (match.hasMatch()) {
-                _printJob->setSelectedBaseLayerThickness(match.captured(1).toInt());
-                _printJob->setSelectedBodyLayerThickness(match.captured(1).toInt());
-                _printJob->setDirectoryMode(true);
-                _printJob->setDirectoryPath(_modelSelection.fileName);
+                printJob.setSelectedBaseLayerThickness(match.captured(1).toInt());
+                printJob.setSelectedBodyLayerThickness(match.captured(1).toInt());
+                printJob.setDirectoryMode(true);
+                printJob.setDirectoryPath(_modelSelection.fileName);
                 emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
             } else {
                 auto match = TiledDirectoryNameRegex.match(_modelSelection.fileName);
                 if (match.hasMatch()) {
-                    _printJob->setDirectoryMode(true);
-                    _printJob->setDirectoryPath(_modelSelection.fileName);
+                    printJob.setDirectoryMode(true);
+                    printJob.setDirectoryPath(_modelSelection.fileName);
                     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
                 }
             }
 
-            _printJob->setModelFilename(_modelSelection.fileName);
+            printJob.setModelFilename(_modelSelection.fileName);
         }
     } else {
         debug( "  + current model file type: %s\n", ToString( _modelSelection.type ) );

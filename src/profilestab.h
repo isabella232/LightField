@@ -12,7 +12,7 @@ class ProfilesTab: public TabBase
 
 public:
 
-    ProfilesTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    ProfilesTab(QWidget* parent = nullptr);
     virtual ~ProfilesTab() override;
     virtual TabIndex tabIndex() const override
     {

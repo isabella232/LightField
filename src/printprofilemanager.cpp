@@ -4,8 +4,12 @@
 #include "profilesjsonparser.h"
 #include "printprofilemanager.h"
 
-PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent)
+QSharedPointer<PrintProfile> activeProfileRef;
+
+
+PrintProfileManager::PrintProfileManager(QObject* parent): QObject(parent), _activeProfile(activeProfileRef)
 {
+
 }
 
 bool PrintProfileManager::addProfile(QSharedPointer<PrintProfile> newProfile)

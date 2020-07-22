@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <iostream>
 
-ProfilesTab::ProfilesTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): TabBase(printJob, parent)
+ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
 {
     auto origFont    = font();
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
@@ -127,6 +127,8 @@ void ProfilesTab::_connectPrintProfileManager()
 
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
 {
+    (void)writable;
+
     QMessageBox msgBox { this };
     QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
         &ProfilesTab::_usbRemounted);
@@ -388,7 +390,7 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.exec();
     }
 
-    _printJob->setPrintProfile(_printProfileManager->activeProfile());
+    printJob.setPrintProfile(_printProfileManager->activeProfile());
 }
 
 void ProfilesTab::loadProfiles()

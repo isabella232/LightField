@@ -6,6 +6,8 @@
 
 using PrintProfileCollection = QMap<QString, QSharedPointer<PrintProfile>>;
 
+extern QSharedPointer<PrintProfile> activeProfileRef;
+
 class PrintProfileManager: public QObject
 {
     Q_OBJECT
@@ -53,7 +55,7 @@ public:
 
 private:
     PrintProfileCollection _profiles;
-    QSharedPointer<PrintProfile> _activeProfile;
+    QSharedPointer<PrintProfile>& _activeProfile;
 
 signals:
     void activeProfileChanged(QSharedPointer<PrintProfile>& newProfile);

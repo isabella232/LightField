@@ -1,22 +1,39 @@
 #ifndef __PRINTJOB_H__
 #define __PRINTJOB_H__
 
-
 #include "constants.h"
 #include "coordinate.h"
 #include "printprofile.h"
+#include "printprofilemanager.h"
 #include "ordermanifestmanager.h"
 
-class PrintJob
+
+class PrintJob: public QObject
 {
+    Q_OBJECT
 public:
+
     PrintJob(QSharedPointer<PrintProfile>& profile): _printProfile(profile)
     {
-
         _baseLayerCount = 2;
         _selectedBaseThickness = -1;
         _selectedBodyThickness = -1;
         _directoryMode = false;
+    }
+
+    void operator=(const PrintJob& other) {
+        _baseLayerCount = other._baseLayerCount;
+        _selectedBaseThickness = other._selectedBaseThickness;
+        _selectedBodyThickness = other._selectedBodyThickness;
+        _modelFilename = other._modelFilename;
+        _directoryPath = other._directoryPath;
+        _modelHash = other._modelHash;
+        _directoryMode = other._directoryMode;
+        _bodyManager = other._bodyManager;
+        _baseManager = other._baseManager;
+        _printProfile = other._printProfile;
+
+        emit printJobChanged();
     }
 
     PrintParameters& baseLayerParameters()
@@ -505,6 +522,11 @@ public:
         );
     }
 
+
+signals:
+    void printJobChanged();
+    ;
+
 protected:
     int _baseLayerCount;
     int _selectedBaseThickness;
@@ -515,7 +537,7 @@ protected:
     bool _directoryMode;
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
-    QSharedPointer<PrintProfile>&         _printProfile;
+    QSharedPointer<PrintProfile>&        _printProfile;
 
     int baseLayerStart() const
     {
@@ -544,8 +566,10 @@ protected:
     {
 
         Q_ASSERT(_bodyManager);
-        return _bodyManager->getSize() - 1;                                                                      ;
+        return _bodyManager->getSize() - 1;
     }
 };
+
+extern PrintJob printJob;
 
 #endif // __PRINTJOB_H__

@@ -4,8 +4,8 @@
 #include "constants.h"
 #include "utils.h"
 
-ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, QWidget *parent):
-    QDialog(parent), _printJob(job)
+ThicknessWindow::ThicknessWindow(bool initValues, QWidget *parent):
+    QDialog(parent)
 {
     QVBoxLayout *layout;
     QHBoxLayout *buttons = new QHBoxLayout;
@@ -24,20 +24,20 @@ ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, 
     QWidget::connect(_cancel, &QPushButton::clicked, this, &ThicknessWindow::cancel_clicked);
 
     if(!initValues) {
-        int step = static_cast<int>( ceil(100.0 / job->getSelectedBodyLayerThickness()) );
+        int step = static_cast<int>( ceil(100.0 / printJob.getSelectedBodyLayerThickness()) );
 
-        _baseLayerCount->setValue(job->getBaseLayerCount());
+        _baseLayerCount->setValue(printJob.getBaseLayerCount());
 
-        _baseLayerThickness->setMinValue(job->getSelectedBodyLayerThickness());
-        if (100 % job->getSelectedBodyLayerThickness()) {
-            _baseLayerThickness->setMaxValue((step - 1) * job->getSelectedBodyLayerThickness());
+        _baseLayerThickness->setMinValue(printJob.getSelectedBodyLayerThickness());
+        if (100 % printJob.getSelectedBodyLayerThickness()) {
+            _baseLayerThickness->setMaxValue((step - 1) * printJob.getSelectedBodyLayerThickness());
         } else {
-            _baseLayerThickness->setMaxValue(step * job->getSelectedBodyLayerThickness());
+            _baseLayerThickness->setMaxValue(step * printJob.getSelectedBodyLayerThickness());
         }
-        _baseLayerThickness->setStep(job->getSelectedBodyLayerThickness());
-        _baseLayerThickness->setValue(job->getSelectedBaseLayerThickness());
+        _baseLayerThickness->setStep(printJob.getSelectedBodyLayerThickness());
+        _baseLayerThickness->setValue(printJob.getSelectedBaseLayerThickness());
 
-        _bodyLayerThickness->setValue(job->getSelectedBodyLayerThickness());
+        _bodyLayerThickness->setValue(printJob.getSelectedBodyLayerThickness());
     } else {
         _bodyLayerThickness->setValue( 20 );
 
@@ -50,7 +50,7 @@ ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, 
     }
 
 
-    if (_printJob->getDirectoryMode()) {
+    if (printJob.getDirectoryMode()) {
         QObject::connect(_baseLayerThickness, &ParamSlider::valueChanged, [=]() {
             _bodyLayerThickness->setValue(_baseLayerThickness->getValue());
         });
@@ -85,9 +85,9 @@ ThicknessWindow::ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, 
 }
 
 void ThicknessWindow::ok_clicked(bool) {
-    _printJob->setBaseLayerCount(_baseLayerCount->getValue());
-    _printJob->setSelectedBaseLayerThickness(_baseLayerThickness->getValue());
-    _printJob->setSelectedBodyLayerThickness(_bodyLayerThickness->getValue());
+    printJob.setBaseLayerCount(_baseLayerCount->getValue());
+    printJob.setSelectedBaseLayerThickness(_baseLayerThickness->getValue());
+    printJob.setSelectedBodyLayerThickness(_bodyLayerThickness->getValue());
     done(QDialog::Accepted);
 }
 

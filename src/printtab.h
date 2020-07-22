@@ -20,13 +20,13 @@ inline constexpr int operator+( BuildPlatformState const value ) { return static
 
 char const* ToString( BuildPlatformState const value );
 
-class PrintTab: public InitialShowEventMixinTab<PrintTab, TabBase> {
+class PrintTab: public InitialShowEventMixin<PrintTab, TabBase> {
 
     Q_OBJECT
 
 public:
 
-    PrintTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    PrintTab(QWidget* parent = nullptr);
     virtual ~PrintTab( ) override;
 
     bool             isPrintButtonEnabled( ) const          { return _printButton->isEnabled( ); }

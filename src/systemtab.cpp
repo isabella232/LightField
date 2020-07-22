@@ -20,7 +20,7 @@ namespace {
 
 }
 
-SystemTab::SystemTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): InitialShowEventMixinTab<SystemTab, TabBase>(printJob, parent) {
+SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>(parent) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );

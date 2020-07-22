@@ -18,7 +18,7 @@ namespace {
 
 }
 
-AdvancedTab::AdvancedTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): TabBase(printJob, parent) {
+AdvancedTab::AdvancedTab(QWidget* parent): TabBase(parent) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
@@ -635,7 +635,7 @@ void AdvancedTab::loadPrintProfile(QSharedPointer<PrintProfile> profile)
     //_bodyPowerLevelSlider->setValue( bodyParams.powerLevel( ) );
     _bodyPumpEveryNthLayer->setValue( bodyParams.pumpEveryNthLayer( ) );
 
-    _printJob->setPrintProfile(profile);
+    printJob.setPrintProfile(profile);
     _loadingPrintProfile = false;
 }
 

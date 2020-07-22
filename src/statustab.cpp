@@ -33,7 +33,7 @@ namespace {
 
 }
 
-StatusTab::StatusTab(QSharedPointer<PrintJob>& printJob, QWidget* parent): InitialShowEventMixinTab<StatusTab, TabBase>(printJob, parent) {
+StatusTab::StatusTab(QWidget* parent): InitialShowEventMixin<StatusTab, TabBase>(parent) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -307,7 +307,7 @@ void StatusTab::stopButton_clicked(bool)
         _pauseButton->setEnabled( false );
         _stopButton->setEnabled( false );
     
-        if(_printJob->isTiled()) {
+        if(printJob.isTiled()) {
             _stopButton->setText("Finishing Layer...");
         } else {
             _stopButton->setText( "Stopping…" );
@@ -409,14 +409,14 @@ void StatusTab::printManager_printResumed()
 
 void StatusTab::printManager_startingLayer(int const layer)
 {
-    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, _printJob->totalLayerCount());
-    if(_printJob->isTiled()){
-        int realLayer = (layer+_printJob->tilingCount())/_printJob->tilingCount();
-        int realLayersTotal = _printJob->totalLayerCount()/_printJob->tilingCount();
-        int currentElement = (layer % _printJob->tilingCount()) + 1;
-        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( _printJob->tilingCount() ) );
+    debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, printJob.totalLayerCount());
+    if(printJob.isTiled()){
+        int realLayer = (layer+printJob.tilingCount())/printJob.tilingCount();
+        int realLayersTotal = printJob.totalLayerCount()/printJob.tilingCount();
+        int currentElement = (layer % printJob.tilingCount()) + 1;
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( printJob.tilingCount() ) );
     }else{
- _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( _printJob->totalLayerCount() ) );
+ _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( printJob.totalLayerCount() ) );
     }
 
     _previousLayerStartTime = _currentLayerStartTime;
@@ -445,14 +445,14 @@ void StatusTab::printManager_startingLayer(int const layer)
         auto average = std::accumulate<std::vector<double>::iterator, double>( _layerElapsedTimes.begin( ), _layerElapsedTimes.end( ), 0 ) / _layerElapsedTimes.size( );
         debug( "  + average:    %.3f\n", average );
 
-        _estimatedPrintJobTime = average * _printJob->totalLayerCount();
+        _estimatedPrintJobTime = average * printJob.totalLayerCount();
         debug( "  + estimate:   %.3f\n", _estimatedPrintJobTime );
     }
 
-    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( _printJob->totalLayerCount() ) * 100.0 + 0.5 ) ) );
+    _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( printJob.totalLayerCount() ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( _printJob->getLayerPath( layer ) );
-    _imageFileNameLabel->setText("Layer image: " % ( _printJob->getLayerFileName( layer ) ));
+    auto pixmap = QPixmap( printJob.getLayerPath( layer ) );
+    _imageFileNameLabel->setText("Layer image: " % ( printJob.getLayerFileName( layer ) ));
 
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {
         pixmap = pixmap.scaled( _currentLayerImage->size( ), Qt::KeepAspectRatio, Qt::SmoothTransformation );
@@ -474,38 +474,38 @@ void StatusTab::printManager_lampStatusChange( bool const on ) {
 }
 
 void StatusTab::printManager_requestDispensePrintSolution( ) {
-    double solutionRequired = PrintSolutionRecommendedScaleFactor * _printJob->getEstimatedVolume() / 1000.0;
+    double solutionRequired = PrintSolutionRecommendedScaleFactor * printJob.getEstimatedVolume() / 1000.0;
 
     QString dispenseText = QString("Dispense <b>%1 mL</b> of PhotoInk<span style='font-family: arial'>™</span>,<br>then tap <b>Start the print</b>."
                                    "<br/><br/>The file:<br/><b>%2</b><br/>")
             .arg( QString::number( std::clamp(solutionRequired, 1.0, 10.0 ), 'f', 2 ) )
-            .arg( GetFileBaseName( _printJob->getModelFilename() ) );
+            .arg( GetFileBaseName( printJob.getModelFilename() ) );
 
-    if(!_printJob->isTiled()) {
+    if(!printJob.isTiled()) {
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
-                .arg( _printJob->getBaseLayerCount() )
-                .arg( _printJob->getBaseLayerThickness() )
-                .arg( _printJob->baseLayerParameters().layerExposureTime() / 1000.0 )
-                .arg( _printJob->getBodyLayerCount() )
-                .arg( _printJob->getBodyLayerThickness() )
-                .arg( _printJob->bodyLayerParameters().layerExposureTime() / 1000.0 );
+                .arg( printJob.getBaseLayerCount() )
+                .arg( printJob.getBaseLayerThickness() )
+                .arg( printJob.baseLayerParameters().layerExposureTime() / 1000.0 )
+                .arg( printJob.getBodyLayerCount() )
+                .arg( printJob.getBodyLayerThickness() )
+                .arg( printJob.bodyLayerParameters().layerExposureTime() / 1000.0 );
 
         dispenseText.append(pjInfo);
     } else {
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
-                .arg( _printJob->getBaseLayerCount() / _printJob->tilingCount() )
-                .arg( _printJob->getBaseLayerThickness() )
-                .arg( _printJob->getBodyLayerCount() / _printJob->tilingCount() )
-                .arg( _printJob->getBodyLayerThickness() );
+                .arg( printJob.getBaseLayerCount() / printJob.tilingCount() )
+                .arg( printJob.getBaseLayerThickness() )
+                .arg( printJob.getBodyLayerCount() / printJob.tilingCount() )
+                .arg( printJob.getBodyLayerThickness() );
 
-        int tileCount = _printJob->tilingCount();
+        int tileCount = printJob.tilingCount();
 
-        double baseMinExpoTime = _printJob->getTimeForElementAt(tileCount - 1);
-        double baseExpoStep =  _printJob->getBaseManager()->getTimeForElementAt(0);
+        double baseMinExpoTime = printJob.getTimeForElementAt(tileCount - 1);
+        double baseExpoStep =  printJob.getBaseManager()->getTimeForElementAt(0);
         double baseMaxExpoTime = (baseMinExpoTime + (baseExpoStep * (tileCount-1)));
 
-        double bodyMinExpoTime = _printJob->getTimeForElementAt(_printJob->getBaseLayerCount() + tileCount - 1);
-        double bodyExpoStep =  _printJob->getBodyManager()->getTimeForElementAt(_printJob->getBaseLayerCount());
+        double bodyMinExpoTime = printJob.getTimeForElementAt(printJob.getBaseLayerCount() + tileCount - 1);
+        double bodyExpoStep =  printJob.getBodyManager()->getTimeForElementAt(printJob.getBaseLayerCount());
         double bodyMaxExpoTime = (bodyMinExpoTime + (bodyExpoStep * (tileCount-1)));
 
 
@@ -656,7 +656,7 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
         break;
 
     case UiState::PrintStarted:
-        _modelFileNameLabel->setText( "Model: " % _printJob->getModelFilename().right( _printJob->getModelFilename().length( ) - _printJob->getModelFilename().lastIndexOf( Slash ) - 1 ) );
+        _modelFileNameLabel->setText( "Model: " % printJob.getModelFilename().right( printJob.getModelFilename().length( ) - printJob.getModelFilename().lastIndexOf( Slash ) - 1 ) );
         _stopButton->setEnabled( true );
         _stopButton->setText( "STOP" );
         _stopButton->setVisible( true );

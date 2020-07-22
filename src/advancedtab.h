@@ -17,7 +17,7 @@ class AdvancedTab: public TabBase
 
 public:
 
-    AdvancedTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    AdvancedTab(QWidget* parent = nullptr);
     virtual ~AdvancedTab() override;
     virtual TabIndex tabIndex() const override
     {

@@ -57,7 +57,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
-    _printJob = QSharedPointer<PrintJob>(new PrintJob(_printProfileManager->activeProfile()));
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
@@ -70,21 +69,21 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     } );*/
 
     std::vector<TabBase*> tabs {
-        _fileTab     = new FileTab{_printJob},
-        _prepareTab  = new PrepareTab{_printJob},
-        _tilingTab   = new TilingTab{_printJob},
-        _printTab    = new PrintTab{_printJob},
-        _statusTab   = new StatusTab{_printJob},
-        _advancedTab = new AdvancedTab{_printJob},
-        _profilesTab = new ProfilesTab{_printJob},
-        _systemTab   = new SystemTab{_printJob},
+        _fileTab     = new FileTab{this},
+        _prepareTab  = new PrepareTab{this},
+        _tilingTab   = new TilingTab{this},
+        _printTab    = new PrintTab{this},
+        _statusTab   = new StatusTab{this},
+        _advancedTab = new AdvancedTab{this},
+        _profilesTab = new ProfilesTab{this},
+        _systemTab   = new SystemTab{this},
     };
 
     QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
         _advancedTab, &AdvancedTab::loadPrintProfile);
 
     for (const auto &tabA: tabs) {
-        QObject::connect(this, &Window::printJobChanged, tabA, &TabBase::printJobChanged);
+        QObject::connect(&printJob, &PrintJob::printJobChanged, tabA, &TabBase::printJobChanged);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
         QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
         QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
@@ -101,8 +100,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     }
 
     emit shepherdChanged( _shepherd );
-    emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
+
+    printJob.printJobChanged();
 
     _fileTab    ->setUsbMountManager    ( _usbMountManager     );
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
@@ -315,12 +315,12 @@ void Window::startPrinting()
     _tabWidget->setCurrentIndex(+TabIndex::Status);
     update();
 
-    _printJob->printJobData();
+    printJob.printJobData();
 
-    _printJob->setPrintProfile(_printProfileManager->activeProfile());
+    printJob.setPrintProfile(_printProfileManager->activeProfile());
 
-    _printJob->setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
-    _printJob->setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
+    printJob.setDisregardFirstLayerHeight(_printProfileManager->activeProfile()->disregardFirstLayerHeight());
+    printJob.setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
     PrintManager* oldPrintManager = _printManager;
 
     _printManager = new PrintManager( _shepherd, this );
@@ -330,10 +330,9 @@ void Window::startPrinting()
     QObject::connect( _printManager, &PrintManager::printComplete, this, &Window::printManager_printComplete );
     QObject::connect( _printManager, &PrintManager::printAborted,  this, &Window::printManager_printAborted  );
 
-    emit printJobChanged( _printJob );
     emit printManagerChanged( _printManager );
 
-    _printManager->print( _printJob );
+    _printManager->print();
 
     if ( oldPrintManager ) {
         QObject::disconnect( oldPrintManager );
@@ -351,7 +350,7 @@ void Window::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
             break;
 
         case UiState::SelectCompleted:
-            _setModelRendered(this->_printJob->getDirectoryMode());
+            _setModelRendered(printJob.getDirectoryMode());
             if (_tabWidget->currentIndex() == +TabIndex::File ||
                 _tabWidget->currentIndex() == +TabIndex::Tiling) {
                 _tabWidget->setCurrentIndex(+TabIndex::Prepare);
@@ -450,9 +449,9 @@ void Window::fileTab_modelSelected(ModelSelectionInfo const* modelSelection)
         _modelSelection->estimatedVolume
     );
 
-    _printJob->setDirectoryMode(false);
-    //_printJob->getBodyManager()->setVolume(_modelSelection->estimatedVolume);
-    _printJob->setModelFilename(_modelSelection->fileName);
+    printJob.setDirectoryMode(false);
+    //printJob.getBodyManager()->setVolume(_modelSelection->estimatedVolume);
+    printJob.setModelFilename(_modelSelection->fileName);
 
     _setModelRendered( false );
 }
@@ -506,11 +505,4 @@ void Window::showEvent( QShowEvent* aShowEvent )
 {
     QMainWindow::showEvent(aShowEvent);
     activateWindow();
-}
-
-
-void Window::createNewPrintJob() {
-    _printJob.reset(new PrintJob(_printProfileManager->activeProfile()));
-
-    emit printJobChanged( _printJob );
 }

@@ -4,9 +4,9 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "tabbase.h"
-#include "printjob.h"
 #include "ordermanifestmanager.h"
 #include "paramslider.h"
+#include "printjob.h"
 
 class TilingExpoTimePopup: public QDialog {
     Q_OBJECT
@@ -40,7 +40,7 @@ class TilingTab: public TabBase {
     Q_OBJECT
 
 public:
-    TilingTab(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    TilingTab(QWidget* parent = nullptr);
     virtual ~TilingTab( ) { }
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Tiling; }

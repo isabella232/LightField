@@ -5,7 +5,6 @@
 #include <QtWidgets>
 #include "initialshoweventmixin.h"
 
-class PrintJob;
 class PrintManager;
 class PrintProfileManager;
 class Shepherd;
@@ -48,10 +47,9 @@ public:
     };
     Q_ENUM( UiState );
 
-    TabBase(QSharedPointer<PrintJob>& printJob, QWidget* parent = nullptr);
+    TabBase(QWidget* parent = nullptr);
     virtual ~TabBase( ) override;
 
-    QSharedPointer<PrintJob>& printJob( )       const { return _printJob;            }
     PrintManager*        printManager( )        const { return _printManager;        }
     PrintProfileManager* printProfileManager( ) const { return _printProfileManager; }
     Shepherd*            shepherd( )            const { return _shepherd;            }
@@ -62,7 +60,6 @@ public:
 
 protected:
 
-    QSharedPointer<PrintJob>& _printJob;
     PrintManager*             _printManager             { };
     PrintProfileManager*      _printProfileManager      { };
     Shepherd*                 _shepherd                 { };
@@ -82,6 +79,7 @@ protected:
     virtual void _connectUsbMountManager( );
 
 private:
+
 
 signals:
     ;
