@@ -80,6 +80,7 @@ private:
     void _renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody);
     void _setEnabled(bool enabled);
     void _updateExposureTiming();
+    void setWidgetsIds();
 signals:
     ;
 

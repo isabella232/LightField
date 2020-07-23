@@ -65,6 +65,8 @@ ProfilesTab::ProfilesTab(QWidget* parent): TabBase(parent)
               _profilesList
         )
     );
+
+    setWidgetsIds();
 }
 
 ProfilesTab::~ProfilesTab()
@@ -514,4 +516,18 @@ void ProfilesTab::printManager_printAborted()
 
 void ProfilesTab::printJobChanged() {
 
+}
+
+void ProfilesTab::setWidgetsIds() {
+    _importParams->setObjectName("profilesImportParams");
+    _exportParams->setObjectName("profilesExportParams");
+    _newProfile->setObjectName("profilesNew");
+    _renameProfile->setObjectName("profilesRename");
+    _overwriteProfile->setObjectName("profilesOverwrite");
+    _deleteProfile->setObjectName("profilesDelete");
+    _loadProfile->setObjectName("profilesLoad");
+    _cpyProfilesUsb->setObjectName("profilesCpyProfilesUsb");
+    _cpyStlFilesUsb->setObjectName("profilesCpyStlFilesUsb");
+    _profilesList->setObjectName("profilesProfilesList");
+    _model->setObjectName("profilesModel");
 }

@@ -51,6 +51,7 @@ private:
     void _setEnabled(bool enabled);
     void _activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
     virtual void _connectPrintProfileManager() override;
+    void setWidgetsIds();
 
 public slots:
     virtual void tab_uiStateChanged(TabIndex const sender, UiState const state) override;
@@ -70,7 +71,6 @@ public slots:
     void printManager_printAborted();
 
     void loadProfiles();
-
 };
 
 #endif //!__PROFILESTAB_H__

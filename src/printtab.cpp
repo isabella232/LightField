@@ -136,6 +136,8 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
             WrapWidgetsInHBox(_printButton, _adjustmentsGroup)
         )
     );
+
+    setWidgetsIds();
 }
 
 PrintTab::~PrintTab( ) {
@@ -553,4 +555,23 @@ void PrintTab::enableExpoTimeSliders(bool enable) {
     _advBodyExpoFine->setEnabled(enable);
     _advBaseExpoCorse->setEnabled(enable);
     _advBodyExpoCorse->setEnabled(enable);
+}
+
+void PrintTab::setWidgetsIds() {
+    _powerLevelSlider->setObjectName("printPowerLevel");
+    _optionsGroup->setObjectName("printOptions");
+    _printButton->setObjectName("printPrint");
+    _raiseOrLowerButton->setObjectName("printRaiseOrLower");
+    _homeButton->setObjectName("printHome");
+    _baseExposureTimeSlider->setObjectName("printBaseExposureTime");
+    _bodyExposureTimeSlider->setObjectName("printBodyExposureTime");
+    _advBodyExpoCorse->setObjectName("printAdvBodyExpoCorse");
+    _advBodyExpoFine->setObjectName("printAdvBodyExpoFine");
+    _advBaseExpoCorse->setObjectName("printAdvBaseExpoCorse");
+    _advBaseExpoFine->setObjectName("printAdvBaseExpoFine");
+    _basicExpoTimeGroup->setObjectName("printBasicExpoTime");
+    _advancedExpoTimeGroup->setObjectName("printAdvancedExpoTime");
+    _expoDisabledTilingWarning->setObjectName("printExpoDisabledTilingWarning");
+    _adjustmentsGroup->setObjectName("printAdjustments");
+    _layout->setObjectName("printLayout");
 }

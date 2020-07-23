@@ -153,7 +153,7 @@ private slots:
     void printManager_printStarting();
     void printManager_printComplete(bool const success);
     void printManager_printAborted();
-
+    void setWidgetsIds();
 };
 
 #endif // __FILETAB_H__

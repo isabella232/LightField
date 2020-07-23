@@ -215,6 +215,8 @@ StatusTab::StatusTab(QWidget* parent): InitialShowEventMixin<StatusTab, TabBase>
     _printerOnlineTimer->setSingleShot( true );
     _printerOnlineTimer->setTimerType( Qt::PreciseTimer );
     QObject::connect( _printerOnlineTimer, &QTimer::timeout, this, &StatusTab::printerOnlineTimer_timeout );
+
+    setWidgetsIds();
 }
 
 StatusTab::~StatusTab( ) {
@@ -678,4 +680,34 @@ void StatusTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
 
 void StatusTab::printJobChanged() {
 
+}
+
+
+void StatusTab::setWidgetsIds() {
+    _currentLayerDisplay->setObjectName("statusCurrentLayerDisplay");
+    _elapsedTimeDisplay->setObjectName("statusElapsedTimeDisplay");
+    _estimatedTimeLeftDisplay->setObjectName("statusEstimatedTimeLeftDisplay");
+    _percentageCompleteDisplay->setObjectName("statusPercentageCompleteDisplay");
+    _zPositionDisplay->setObjectName("statusZPositionDisplay");
+    _printerStateDisplay->setObjectName("statusPrinterStateDisplay");
+    _temperatureDisplay->setObjectName("statusTemperatureDisplay");
+    _projectorLampStateDisplay->setObjectName("statusProjectorLampStateDisplay");
+    _warningHotLabel->setObjectName("statusWarningHot");
+    _warningUvLabel->setObjectName("statusWarningUv");
+    _pauseButton->setObjectName("statusPause");
+    _stopButton->setObjectName("statusStop");
+    _reprintButton->setObjectName("statusReprint");
+    _leftColumn->setObjectName("statusLeftColumn");
+    _currentLayerImage->setObjectName("statusCurrentLayerImage");
+    _modelFileNameLabel->setObjectName("statusModelFileName");
+    _imageFileNameLabel->setObjectName("statusImageFileName");
+    _currentLayerLayout->setObjectName("statusCurrentLayerLayout");
+    _currentLayerGroup->setObjectName("statusCurrentLayer");
+    _dispensePrintSolutionLabel->setObjectName("statusDispensePrintSolution");
+    _dispensePrintSolutionTitle->setObjectName("statusDispensePrintSolutionTitle");
+    _tilingInfoLabel->setObjectName("statusTilingInfo");
+    _printInfoLabel->setObjectName("statusPrintInfo");
+    _startThePrintButton->setObjectName("statusStartThePrint");
+    _dispensePrintSolutionGroup->setObjectName("statusDispensePrintSolution");
+    _rightColumn->setObjectName("statusRightColumn");
 }

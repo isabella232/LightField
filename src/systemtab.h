@@ -54,7 +54,8 @@ private:
 
     QVBoxLayout*     _layout                     { new QVBoxLayout };
 
-    void _updateButtons( );
+    void _updateButtons();
+    void setWidgetsIds();
 
 signals:
     ;

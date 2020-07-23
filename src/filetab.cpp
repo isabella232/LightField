@@ -157,6 +157,8 @@ FileTab::FileTab(QWidget* parent ): InitialShowEventMixin<FileTab, TabBase>(pare
 
     setLayout( WrapWidgetsInHBox( _leftColumn, _rightColumn ) );
 
+    setWidgetsIds();
+
     update();
 }
 
@@ -858,4 +860,22 @@ void FileTab::processRunner_readyReadStandardError( QString const& data ) {
 
 void FileTab::printJobChanged() {
 
+}
+
+void FileTab::setWidgetsIds() {
+    _toggleLocationButton->setObjectName("fileToggleLocation");
+    _availableFilesListView->setObjectName("fileAvailableFiles");
+    _availableFilesLabel->setObjectName("fileAvailableFiles");
+    _selectButton->setObjectName("fileSelect");
+    _leftColumn->setObjectName("fileLeftColumn");
+    _canvas->setObjectName("fileCanvas");
+    _dimensionsLabel->setObjectName("fileDimensions");
+    _errorLabel->setObjectName("fileError");
+    _viewSolid->setObjectName("fileViewSolid");
+    _viewWireframe->setObjectName("fileViewWireframe");
+    _rightColumn->setObjectName("fileRightColumn");
+    _deleteButton->setObjectName("fileDelete");
+    _libraryFsModel->setObjectName("fileLibraryFsModel");
+    _usbFsModel->setObjectName("fileUsbFsModel");
+    _loader->setObjectName("fileLoader");
 }

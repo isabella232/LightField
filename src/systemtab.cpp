@@ -83,6 +83,8 @@ SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>
     _layout->setAlignment( Qt::AlignCenter );
 
     setLayout( _layout );
+
+    setWidgetsIds();
 }
 
 SystemTab::~SystemTab( ) {
@@ -292,4 +294,13 @@ void SystemTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
 
 void SystemTab::printJobChanged() {
 
+}
+
+void SystemTab::setWidgetsIds() {
+    _copyrightsLabel->setObjectName("systemCopyrights");
+    _updateSoftwareButton->setObjectName("systemUpdateSoftware");
+    _copyLogsButton->setObjectName("systemCopyLogs");
+    _restartButton->setObjectName("systemRestart");
+    _shutDownButton->setObjectName("systemShutDown");
+    _layout->setObjectName("systemLayout");
 }

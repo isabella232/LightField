@@ -82,6 +82,7 @@ private:
     void _updateUiState( );
     void syncFormWithPrintProfile();
     void enableExpoTimeSliders(bool enable);
+    void setWidgetsIds();
 
 signals:
     void advancedControlsChanged(bool enabled);

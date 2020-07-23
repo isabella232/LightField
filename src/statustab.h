@@ -88,7 +88,7 @@ private:
 
 
     void _updateReprintButtonState( );
-
+    void setWidgetsIds();
 signals:
 
     void printRequested( );

@@ -166,6 +166,7 @@ private slots:
     void chbox_addBasePumpCheckChanged(int state);
 
     void offsetDisregardFirstLayerStateChanged(int state);
+    void setWidgetsIds();
 };
 
 #endif // __ADVANCEDTAB_H__

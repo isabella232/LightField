@@ -156,7 +156,7 @@ private slots:
     void shepherd_homeComplete( bool const success );
     void adjustBuildPlatform_complete( bool );
     void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
-
+    void setWidgetsIds();
     //void copyToUSB_clicked( bool );
 
 };

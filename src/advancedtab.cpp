@@ -23,6 +23,9 @@ AdvancedTab::AdvancedTab(QWidget* parent): TabBase(parent) {
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
+    this->setObjectName("advanced");
+
+
     _forms[0] = _generalForm;
     _forms[1] = _basePumpForm;
     _forms[2] = _bodyPumpForm;
@@ -64,6 +67,8 @@ AdvancedTab::AdvancedTab(QWidget* parent): TabBase(parent) {
         _rightColumn, nullptr
         )
     );
+
+    setWidgetsIds();
 }
 
 AdvancedTab::~AdvancedTab()
@@ -649,4 +654,55 @@ void AdvancedTab::_setEnabled(bool enabled)
 
 void AdvancedTab::printJobChanged() {
 
+}
+
+void AdvancedTab::setWidgetsIds() {
+    _offsetDisregardFirstLayer->setObjectName("advancedOffsetDisregardFirstLayer");
+    _offsetSlider->setObjectName("advancedOffset");
+    _bedHeatingButton->setObjectName("advancedBedHeating");
+    _bedHeatingButtonLabel->setObjectName("advancedBedHeating");
+    _projectBlankImageButton->setObjectName("advancedProjectBlankImage");
+    _projectBlankImageButtonLabel->setObjectName("advancedProjectBlankImage");
+    _projectFocusImageButton->setObjectName("advancedProjectFocusImage");
+    _projectFocusImageButtonLabel->setObjectName("advancedProjectFocusImage");
+    _powerLevelLabel->setObjectName("advancedPowerLevel");
+    _powerLevelValue->setObjectName("advancedPowerLevelValue");
+    _powerLevelValueLayout->setObjectName("advancedPowerLevelValueLayout");
+    _powerLevelSlider->setObjectName("advancedPowerLevel");
+    _projectImageButtonsGroup->setObjectName("advancedProjectImageButtonsGroup");
+    _leftColumn->setObjectName("advancedLeftColumn");
+    _rightColumn->setObjectName("advancedRightColumn");
+    _leftMenu->setObjectName("advancedLeftMenu");
+    _generalForm->setObjectName("advancedGeneralForm");
+    _bedHeatingGroup->setObjectName("advancedBedHeatingGroup");
+    _temperatureForm->setObjectName("advancedTemperatureForm");
+    _currentTemperatureLabel->setObjectName("advancedCurrentTemperature");
+    _targetTemperatureLabel->setObjectName("advancedTargetTemperature");
+    _heatingElementLabel->setObjectName("advancedHeatingElement");
+    _zPositionLabel->setObjectName("advancedZPosition");
+    _currentTemperature->setObjectName("advancedCurrentTemperature");
+    _targetTemperature->setObjectName("advancedTargetTemperature");
+    _heatingElement->setObjectName("advancedHeatingElement");
+    _zPosition->setObjectName("advancedZPosition");
+    _bedTemperatureLabel->setObjectName("advancedBedTemperature");
+    _bedTemperatureValue->setObjectName("advancedBedTemperatureValue");
+    _bedTemperatureValueLayout->setObjectName("advancedBedTemperatureValueLayout");
+    _bedTemperatureSlider->setObjectName("advancedBedTemperature");
+    _basePumpForm->setObjectName("advancedBasePumpForm");
+    _addBasePumpCheckbox->setObjectName("advancedAddBasePump");
+    _distanceSlider->setObjectName("advancedDistance");
+    _basePumpUpVelocitySlider->setObjectName("advancedBasePumpUpVelocity");
+    _basePumpDownVelocitySlider->setObjectName("advancedBasePumpDownVelocity");
+    _upPauseSlider->setObjectName("advancedUpPause");
+    _downPauseSlider->setObjectName("advancedDownPause");
+    _baseNoPumpUpVelocitySlider->setObjectName("advancedBaseNoPumpUpVelocity");
+    _bodyPumpForm->setObjectName("advancedBodyPumpForm");
+    _addBodyPumpCheckbox->setObjectName("advancedAddBodyPump");
+    _bodyPumpEveryNthLayer->setObjectName("advancedBodyPumpEveryNthLayer");
+    _bodyDistanceSlider->setObjectName("advancedBodyDistance");
+    _bodyPumpUpVelocitySlider->setObjectName("advancedBodyPumpUpVelocity");
+    _bodyPumpDownVelocitySlider->setObjectName("advancedBodyPumpDownVelocity");
+    _bodyUpPauseSlider->setObjectName("advancedBodyUpPause");
+    _bodyDownPauseSlider->setObjectName("advancedBodyDownPause");
+    _bodyNoPumpUpVelocitySlider->setObjectName("advancedBodyNoPumpUpVelocity");
 }

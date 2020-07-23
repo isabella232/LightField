@@ -148,6 +148,8 @@ TilingTab::TilingTab(QWidget* parent): TabBase(parent)
 
     _setEnabled(false);
     update();
+
+    setWidgetsIds();
 }
 
 void TilingTab::_connectPrintManager()
@@ -530,4 +532,19 @@ void TilingTab::_updateExposureTiming() {
     _stepBaseLabel->setText(QString("%1s Exposure Step").arg(_stepBase));
     _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBody));
     _stepBodyLabel->setText(QString("%1s Exposure Step").arg(_stepBody));
+}
+
+void TilingTab::setWidgetsIds() {
+    _currentLayerImage->setObjectName("tilingCurrentLayerImage");
+    _space->setObjectName("tilingSpace");
+    _count->setObjectName("tilingCount");
+    _confirm->setObjectName("tilingConfirm");
+    _minExposureBaseLabel->setObjectName("tilingMinExposureBase");
+    _stepBaseLabel->setObjectName("tilingStepBase");
+    _minExposureBodyLabel->setObjectName("tilingMinExposureBody");
+    _stepBodyLabel->setObjectName("tilingStepBody");
+    _fileNameLabel->setObjectName("tilingFileName");
+    _expoTimePopup.setObjectName("tilingExpoTimePopup");
+    _setupExpoTimeBt->setObjectName("tilingSetupExpoTime");
+    _setupTiling->setObjectName("tilingSetupTiling");
 }

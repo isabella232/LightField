@@ -201,6 +201,8 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layout->setRowStretch( 1, 1 );
 
     setLayout( _layout );
+
+    setWidgetsIds();
 }
 
 PrepareTab::~PrepareTab( ) {
@@ -981,4 +983,39 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
 
 void PrepareTab::printJobChanged() {
 
+}
+
+void PrepareTab::setWidgetsIds() {
+    _layerThicknessLabel->setObjectName("prepareLayerThickness");
+    _layerThickness100Button->setObjectName("prepareLayerThickness100");
+    _layerThickness50Button->setObjectName("prepareLayerThickness50");
+#if defined EXPERIMENTAL
+    _layerThickness20Button->setObjectName("prepareLayerThickness20");
+#endif
+    _layerThicknessCustomButton->setObjectName("prepareLayerThicknessCustom");
+    _sliceStatusLabel->setObjectName("prepareSliceStatus");
+    _sliceStatus->setObjectName("prepareSliceStatus");
+    _imageGeneratorStatusLabel->setObjectName("prepareImageGeneratorStatus");
+    _imageGeneratorStatus->setObjectName("prepareImageGeneratorStatus");
+    _prepareGroup->setObjectName("preparePrepareGroup");
+    _prepareMessage->setObjectName("preparePrepareMessage");
+    _prepareProgress->setObjectName("preparePrepareProgress");
+    _prepareButton->setObjectName("preparePrepare");
+    _libraryFsModel->setObjectName("prepareLibraryFsModel");
+    _usbFsModel->setObjectName("prepareUsbFsModel");
+    _warningHotLabel->setObjectName("prepareWarningHot");
+    _warningUvLabel->setObjectName("prepareWarningUv");
+    _optionsContainer->setObjectName("prepareOptions");
+    _sliceButton->setObjectName("prepareSlice");
+    _orderButton->setObjectName("prepareOrder");
+    _currentLayerGroup->setObjectName("prepareCurrentLayerGroup");
+    _currentLayerImage->setObjectName("prepareCurrentLayerImage");
+    _currentLayerLayout->setObjectName("prepareCurrentLayer");
+    _navigateFirst->setObjectName("prepareNavigateFirst");
+    _navigatePrevious->setObjectName("prepareNavigatePrevious");
+    _navigateCurrentLabel->setObjectName("prepareNavigateCurrent");
+    _navigateNext->setObjectName("prepareNavigateNext");
+    _navigateLast->setObjectName("prepareNavigateLast");
+    _navigationLayout->setObjectName("prepareNavigation");
+    _layout->setObjectName("prepareLayout");
 }
