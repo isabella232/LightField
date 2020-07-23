@@ -1,5 +1,6 @@
 #include "pch.h"
-
+#include <ctime>
+#include <iomanip>
 #include "debug.h"
 
 namespace {
@@ -40,8 +41,18 @@ DebugManager::~DebugManager( ) {
 }
 
 void debug( char const* str ) {
+    time_t timeNow = std::time(nullptr);
+
+    std::stringstream ss;
+
+    ss << std::put_time(std::localtime(&timeNow), "%OH:%OM:%OS | ") << str;
+
+    const std::string formattedOutput = ss.str();
+    const char* cstr = formattedOutput.c_str();
+
     if ( DebugLog ) {
-        ::fputs( str, DebugLog );
+        ::fputs(cstr, DebugLog);
     }
-    ::fputs( str, OriginalStderr );
+
+    ::fputs(cstr, OriginalStderr);
 }
