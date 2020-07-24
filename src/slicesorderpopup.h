@@ -19,6 +19,7 @@ private:
     QSharedPointer<OrderManifestManager> _manifestManager;
 
     void fillModel();
+    void setWidgetsIds();
 public:
     SlicesOrderPopup() { }
     SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifestManager);

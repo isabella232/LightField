@@ -986,6 +986,7 @@ void PrepareTab::printJobChanged() {
 }
 
 void PrepareTab::setWidgetsIds() {
+    this->setObjectName("prepare");
     _layerThicknessLabel->setObjectName("prepareLayerThickness");
     _layerThickness100Button->setObjectName("prepareLayerThickness100");
     _layerThickness50Button->setObjectName("prepareLayerThickness50");
@@ -1002,7 +1003,6 @@ void PrepareTab::setWidgetsIds() {
     _prepareProgress->setObjectName("preparePrepareProgress");
     _prepareButton->setObjectName("preparePrepare");
     _libraryFsModel->setObjectName("prepareLibraryFsModel");
-    _usbFsModel->setObjectName("prepareUsbFsModel");
     _warningHotLabel->setObjectName("prepareWarningHot");
     _warningUvLabel->setObjectName("prepareWarningUv");
     _optionsContainer->setObjectName("prepareOptions");

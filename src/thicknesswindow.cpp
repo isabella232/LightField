@@ -82,6 +82,7 @@ ThicknessWindow::ThicknessWindow(bool initValues, QWidget *parent):
 
     layout->addLayout(buttons);
     setLayout(layout);
+    setWidgetsIds();
 }
 
 void ThicknessWindow::ok_clicked(bool) {
@@ -93,4 +94,14 @@ void ThicknessWindow::ok_clicked(bool) {
 
 void ThicknessWindow::cancel_clicked(bool) {
     reject();
+}
+
+void ThicknessWindow::setWidgetsIds() {
+    this->setObjectName("thickness");
+
+    _ok->setObjectName("thicknessOk");
+    _cancel->setObjectName("thicknessCancel");
+    _baseLayerCount->setObjectName("thicknessBaseLayerCount");
+    _baseLayerThickness->setObjectName("thicknessBaseLayerThickness");
+    _bodyLayerThickness->setObjectName("thicknessBodyLayerThickness");
 }

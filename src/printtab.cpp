@@ -558,6 +558,7 @@ void PrintTab::enableExpoTimeSliders(bool enable) {
 }
 
 void PrintTab::setWidgetsIds() {
+    this->setObjectName("print");
     _powerLevelSlider->setObjectName("printPowerLevel");
     _optionsGroup->setObjectName("printOptions");
     _printButton->setObjectName("printPrint");

@@ -657,6 +657,7 @@ void AdvancedTab::printJobChanged() {
 }
 
 void AdvancedTab::setWidgetsIds() {
+    this->setObjectName("advanced");
     _offsetDisregardFirstLayer->setObjectName("advancedOffsetDisregardFirstLayer");
     _offsetSlider->setObjectName("advancedOffset");
     _bedHeatingButton->setObjectName("advancedBedHeating");

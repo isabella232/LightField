@@ -684,6 +684,7 @@ void StatusTab::printJobChanged() {
 
 
 void StatusTab::setWidgetsIds() {
+    this->setObjectName("status");
     _currentLayerDisplay->setObjectName("statusCurrentLayerDisplay");
     _elapsedTimeDisplay->setObjectName("statusElapsedTimeDisplay");
     _estimatedTimeLeftDisplay->setObjectName("statusEstimatedTimeLeftDisplay");

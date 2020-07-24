@@ -22,6 +22,8 @@ protected:
 
     void ok_clicked( bool );
     void cancel_clicked( bool );
+private:
+    void setWidgetsIds();
 };
 
 #endif // __THICKNESSWINDOW_H__

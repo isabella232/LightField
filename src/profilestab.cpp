@@ -519,6 +519,7 @@ void ProfilesTab::printJobChanged() {
 }
 
 void ProfilesTab::setWidgetsIds() {
+    this->setObjectName("profiles");
     _importParams->setObjectName("profilesImportParams");
     _exportParams->setObjectName("profilesExportParams");
     _newProfile->setObjectName("profilesNew");

@@ -108,6 +108,8 @@ SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifest
     QWidget::connect(_alphaNum,  &QRadioButton::clicked, this, &SlicesOrderPopup::alphaNum_clicked);
     QWidget::connect(_numerical, &QRadioButton::clicked, this, &SlicesOrderPopup::numerical_clicked);
     QWidget::connect(_custom,    &QRadioButton::clicked, this, &SlicesOrderPopup::custom_clicked);
+
+    setWidgetsIds();
 }
 
 void SlicesOrderPopup::fillModel( ) {
@@ -246,5 +248,17 @@ void SlicesOrderPopup::numerical_clicked(bool) {
 void SlicesOrderPopup::custom_clicked(bool) {
 
     debug( "+ SlicesOrderPopup::custom_clicked \n" );
+}
+
+void SlicesOrderPopup::setWidgetsIds() {
+    this->setObjectName("slices");
+    _alphaNum->setObjectName("slicesAlphaNum");
+    _numerical->setObjectName("slicesNumerical");
+    _custom->setObjectName("slicesCustom");
+    _okButton->setObjectName("slicesOkButton");
+    _arrowUp->setObjectName("slicesArrowUp");
+    _arrowDown->setObjectName("slicesArrowDown");
+    _list->setObjectName("slicesList");
+    _model->setObjectName("slicesModel");
 }
 

@@ -535,6 +535,7 @@ void TilingTab::_updateExposureTiming() {
 }
 
 void TilingTab::setWidgetsIds() {
+    this->setObjectName("tiling");
     _currentLayerImage->setObjectName("tilingCurrentLayerImage");
     _space->setObjectName("tilingSpace");
     _count->setObjectName("tilingCount");

@@ -863,6 +863,7 @@ void FileTab::printJobChanged() {
 }
 
 void FileTab::setWidgetsIds() {
+    this->setObjectName("file");
     _toggleLocationButton->setObjectName("fileToggleLocation");
     _availableFilesListView->setObjectName("fileAvailableFiles");
     _availableFilesLabel->setObjectName("fileAvailableFiles");
@@ -876,6 +877,4 @@ void FileTab::setWidgetsIds() {
     _rightColumn->setObjectName("fileRightColumn");
     _deleteButton->setObjectName("fileDelete");
     _libraryFsModel->setObjectName("fileLibraryFsModel");
-    _usbFsModel->setObjectName("fileUsbFsModel");
-    _loader->setObjectName("fileLoader");
 }

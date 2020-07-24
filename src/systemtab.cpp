@@ -297,6 +297,7 @@ void SystemTab::printJobChanged() {
 }
 
 void SystemTab::setWidgetsIds() {
+    this->setObjectName("system");
     _copyrightsLabel->setObjectName("systemCopyrights");
     _updateSoftwareButton->setObjectName("systemUpdateSoftware");
     _copyLogsButton->setObjectName("systemCopyLogs");
