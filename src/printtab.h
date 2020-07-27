@@ -56,20 +56,20 @@ private:
     QPushButton*       _raiseOrLowerButton                 { new QPushButton };
     QPushButton*       _homeButton                         { new QPushButton };
 
-    ParamSlider*        _baseExposureTimeSlider            { new ParamSlider( "Base layers exposure time factor",
+    ParamSlider*        _baseExposureTimeSlider            { new ParamSlider( "Base exposure time factor",
                                                                               "x",    2, 5, 1, 1 ) };
 
-    ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body layers exposure time",
+    ParamSlider*        _bodyExposureTimeSlider            { new ParamSlider( "Body exposure time",
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
 
-    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body coarse", "s",
+    ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body exposure time coarse", "s",
                                                                               1000, 29000, 1000, 1000, 1000 ) };
-    ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body fine", "ms",
+    ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body exposure time fine", "ms",
                                                                               50, 1000, 50, 0) };
 
-    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base coarse", "s",
+    ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base exposure time coarse", "s",
                                                                               1000, 149000, 1000, 1000, 1000 ) };
-    ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base fine", "ms",
+    ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base exposure time fine", "ms",
                                                                              50, 1000, 50, 0) };
     Spoiler*           _basicExpoTimeGroup;
     Spoiler*           _advancedExpoTimeGroup;

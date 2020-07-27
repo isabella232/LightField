@@ -58,8 +58,8 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
 
     QScrollArea* advArea = new QScrollArea();
 
-    _basicExpoTimeGroup = new Spoiler("Basic exposure time controll");
-    _advancedExpoTimeGroup = new Spoiler("Advanced exposure time controll");
+    _basicExpoTimeGroup = new Spoiler("Basic exposure time control");
+    _advancedExpoTimeGroup = new Spoiler("Advanced exposure time control");
 
     QObject::connect(_basicExpoTimeGroup, &Spoiler::collapseStateChanged, [this](bool checked) {
         _advancedExpoTimeGroup->setCollapsed(checked);
