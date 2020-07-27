@@ -16,7 +16,7 @@ public:
         QThread* thread = QThread::create([this, testNames]{
             debug("TestExecutor::startTests thread started\n");
             for(const auto& name: testNames) {
-                if(!testList.contains(name)) {
+                if(!this->testList.contains(name)) {
                     debug("There is no such test %1", name);
                     continue;
                 }
@@ -43,7 +43,7 @@ public:
                 });
 
                 test->start();
-                debug("Launching test: %1\n", name);
+                debug(QString("Launching test: %1\n").arg(name).toUtf8().data());
             }
         });
 
