@@ -1,6 +1,6 @@
 #include "simpleprinttest.h"
 
-QString AbstractTest::testName = "simplePrintTest";
+QString AbstractTest::testName = "simpletest";
 
 SimplePrintTest::SimplePrintTest()
 {

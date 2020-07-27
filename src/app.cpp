@@ -93,9 +93,9 @@ namespace {
             debug("  +App test mode enabled\n");
             auto value = CommandLineParser.value( CommandLineOptions[11] );
             QStringList testsNames = value.split(",");
-            TestExecutor testExecutor;
+            TestExecutor* testExecutor = new TestExecutor();
 
-            testExecutor.startTests(testsNames);
+            testExecutor->startTests(testsNames);
         }
 #endif // defined _DEBUG
     };
