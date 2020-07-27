@@ -5,6 +5,7 @@
 #include "signalhandler.h"
 #include "version.h"
 #include "window.h"
+#include "tests/testsexecutor.h"
 
 AppSettings g_settings;
 
@@ -28,6 +29,7 @@ namespace {
         QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                                 },
         QCommandLineOption {               "m",            "Pretend printer is online."                                                             },
         QCommandLineOption {               "n",            "Ignore USB."                                                                            },
+        QCommandLineOption {               "t",            "Launch tests.", "\"testName1,testName2,testName3 ...\""                                 },
 #endif // defined _DEBUG
     };
 
@@ -87,6 +89,14 @@ namespace {
         [] ( ) { // -n
             g_settings.ignoreUsb = true;
         },
+        [] ( ) { // -t
+            debug("  +App test mode enabled\n");
+            auto value = CommandLineParser.value( CommandLineOptions[11] );
+            QStringList testsNames = value.split(",");
+            TestExecutor testExecutor;
+
+            testExecutor.startTests(testsNames);
+        }
 #endif // defined _DEBUG
     };
 
