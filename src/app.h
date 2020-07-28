@@ -29,6 +29,7 @@ public:
     bool   ignoreShepherdFailures   { false  };
     bool   pretendPrinterIsOnline   { false  };
     bool   ignoreUsb                { false  };
+    bool   enableTests              { false  };
 #endif // defined _DEBUG
 
 };
@@ -45,6 +46,7 @@ public:
 private:
 
     DebugManager* _debugManager;
+    bool _enableTests;
 
     void _parseCommandLine( );
     bool _isAlreadyRunning( );

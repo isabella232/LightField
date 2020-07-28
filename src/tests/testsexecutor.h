@@ -11,7 +11,7 @@ public:
     QMap<QString, AbstractTest*> testList { { SimplePrintTest::testName, new SimplePrintTest()} };
 
     void startTests(QStringList testNames) {
-        debug(("TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
+        debug(("+TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
 
         QThread* thread = QThread::create([this, testNames]{
             debug("TestExecutor::startTests thread started\n");
@@ -21,7 +21,7 @@ public:
                     continue;
                 }
 
-                debug(QString("TestExecutor::startTests test %1 found\n").arg(name).toUtf8().data());
+                debug(QString("+TestExecutor::startTests test %1 found\n").arg(name).toUtf8().data());
 
                 AbstractTest* test = testList[name];
 
@@ -43,7 +43,6 @@ public:
                 });
 
                 test->start();
-                debug(QString("Launching test: %1\n").arg(name).toUtf8().data());
             }
         });
 

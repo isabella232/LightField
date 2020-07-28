@@ -40,6 +40,12 @@ DebugManager::~DebugManager( ) {
     /*empty*/
 }
 
+void debug( QString str ) {
+    const char* buff = str.toUtf8().data();
+
+    debug(buff);
+}
+
 void debug( char const* str ) {
     time_t timeNow = std::time(nullptr);
 

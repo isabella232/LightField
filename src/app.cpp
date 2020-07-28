@@ -91,11 +91,7 @@ namespace {
         },
         [] ( ) { // -t
             debug("  +App test mode enabled\n");
-            auto value = CommandLineParser.value( CommandLineOptions[11] );
-            QStringList testsNames = value.split(",");
-            TestExecutor* testExecutor = new TestExecutor();
-
-            testExecutor->startTests(testsNames);
+            g_settings.enableTests = true;
         }
 #endif // defined _DEBUG
     };
@@ -296,6 +292,14 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _window = new Window;
     (void) QObject::connect( _window, &Window::terminationRequested, this, &App::terminate, Qt::QueuedConnection );
     _window->show( );
+
+    if(g_settings.enableTests) {
+        auto value = CommandLineParser.value( CommandLineOptions[11] );
+        QStringList testsNames = value.split(",");
+        TestExecutor* testExecutor = new TestExecutor();
+
+        testExecutor->startTests(testsNames);
+    }
 }
 
 App::~App( ) {

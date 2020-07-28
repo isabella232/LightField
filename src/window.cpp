@@ -227,6 +227,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         tab->setPrintProfileManager(_printProfileManager);
     }
 
+    _tabWidget->setObjectName("tabWidget");
     setCentralWidget( _tabWidget );
 }
 
