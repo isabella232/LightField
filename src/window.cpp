@@ -505,4 +505,5 @@ void Window::showEvent( QShowEvent* aShowEvent )
 {
     QMainWindow::showEvent(aShowEvent);
     activateWindow();
+    _initialized = true;
 }

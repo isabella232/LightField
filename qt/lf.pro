@@ -119,9 +119,9 @@ HEADERS  +=                         \
     ../src/svgrenderer.h            \
     ../src/systemtab.h              \
     ../src/tabbase.h                \
-    ../src/tests/abstracttest.h \
-    ../src/tests/simpleprinttest.h \
-    ../src/tests/testsexecutor.h \
+    ../src/tests/abstracttest.h     \
+    ../src/tests/simpleprinttest.h  \
+    ../src/tests/testsexecutor.h    \
     ../src/timinglogger.h           \
     ../src/tilingmanager.h          \
     ../src/tilingtab.h              \
@@ -156,6 +156,7 @@ static {
 
 debug {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-class-memaccess
+    QT += testlib
 }
 
 xdlp4710-20um {

@@ -1,21 +1,40 @@
 #include "simpleprinttest.h"
 #include "../window.h"
 #include "../filetab.h"
+#include "../printtab.h"
 
 QString AbstractTest::testName = "simpletest";
 
-SimplePrintTest::SimplePrintTest()
-{
-
-}
-
 
 void SimplePrintTest::start() {
-    debug("+SimplePrintTest::Hello test!\n");
-    Window* window = App::mainWindow();
-    QWidget* selectButton = (QWidget*)findWidgetByNameRoot("fileSelect");
 
-    mouseClick(selectButton);
+    debug("  +SimplePrintTest::start!\n");
 
-    emit AbstractTest::successed();
+    waitForMainWindow();
+
+    fileSelectModelOnList();
+
+    fileClickSelectButton();
+
+    prepareSliceButtonClick();
+
+    if(!g_settings.pretendPrinterIsPrepared) {
+        //@todo
+    } else {
+        //switch to print tab
+        PrintTab* printTab = findWidget<PrintTab*>("print");
+        printTab->show();
+        QTest::qWait(1000);
+    }
+
+    //continue clicked
+    QPushButton* printContinue = findWidget<QPushButton*>("printPrint");
+    mouseClick(printContinue);
+
+
+    //start print click
+    QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
+    mouseClick(statusStartPrint);
+
+    debug("+end test\n");
 }

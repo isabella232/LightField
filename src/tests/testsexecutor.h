@@ -12,7 +12,6 @@ public:
 
     void startTests(QStringList testNames) {
         debug(("+TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
-
         QThread* thread = QThread::create([this, testNames]{
             debug("TestExecutor::startTests thread started\n");
             for(const auto& name: testNames) {

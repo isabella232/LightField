@@ -30,11 +30,10 @@ class Window: public QMainWindow {
     Q_OBJECT
 
 public:
-
     Window( QWidget* parent = nullptr );
     virtual ~Window( ) override;
     void terminate( );
-
+    bool isInitialized() { return _initialized; };
 protected:
 
     virtual void closeEvent( QCloseEvent* event ) override;
@@ -65,6 +64,7 @@ private:
 
     bool                 _isPrinterPrepared   { };
     bool                 _isModelRendered     { };
+    bool                 _initialized         { false };
 
     void _setPrinterPrepared( bool const value );
     void _setModelRendered( bool const value );

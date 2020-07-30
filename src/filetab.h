@@ -60,7 +60,7 @@ public:
     virtual TabIndex          tabIndex( )       const override { return TabIndex::File;   }
 
     ModelSelectionInfo const* modelSelection( ) const          { return &_modelSelection; }
-
+    QFileSystemModel* libraryFsModel() { return _libraryFsModel; }
 protected:
 
     virtual void _initialShowEvent(QShowEvent* event) override;

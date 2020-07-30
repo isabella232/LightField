@@ -20,6 +20,7 @@ public:
 
 #define DEBUG(fmt, ...) debug(" + " __PRETTY_FUNCTION __ ": " str "\n", __VA_ARGS__)
 
+void debug(QString str);
 void debug( char const* str );
 
 template<typename... Args>
