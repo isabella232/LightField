@@ -5,8 +5,9 @@
 #include "signalhandler.h"
 #include "version.h"
 #include "window.h"
+#if defined _DEBUG
 #include "tests/testsexecutor.h"
-
+#endif
 AppSettings g_settings;
 
 QFile PidFile { QString { getenv( "XDG_RUNTIME_DIR" ) ? getenv( "XDG_RUNTIME_DIR" ) : "/tmp" } % "/lf.pid" };
@@ -292,7 +293,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _window = new Window;
     (void) QObject::connect( _window, &Window::terminationRequested, this, &App::terminate, Qt::QueuedConnection );
     _window->show( );
-
+#if defined _DEBUG
     if(g_settings.enableTests) {
         auto value = CommandLineParser.value( CommandLineOptions[11] );
         QStringList testsNames = value.split(",");
@@ -300,6 +301,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
 
         testExecutor->startTests(testsNames);
     }
+#endif
 }
 
 App::~App( ) {
