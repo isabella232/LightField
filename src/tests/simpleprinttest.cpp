@@ -8,7 +8,7 @@ QString AbstractTest::testName = "simpletest";
 
 void SimplePrintTest::start() {
 
-    debug("  +SimplePrintTest::start!\n");
+    debug("=================================Simple Print Test=================================!\n");
 
     waitForMainWindow();
 
@@ -27,14 +27,10 @@ void SimplePrintTest::start() {
         QTest::qWait(1000);
     }
 
-    //continue clicked
-    QPushButton* printContinue = findWidget<QPushButton*>("printPrint");
-    mouseClick(printContinue);
+    printContinueButtonClick();
 
+    statusStartPrint();
 
-    //start print click
-    QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
-    mouseClick(statusStartPrint);
-
-    debug("+end test\n");
+    emit successed();
+    debug("===============================Simple Print Test finished============================!\n");
 }

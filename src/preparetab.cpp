@@ -994,9 +994,7 @@ void PrepareTab::setWidgetsIds() {
     _layerThickness20Button->setObjectName("prepareLayerThickness20");
 #endif
     _layerThicknessCustomButton->setObjectName("prepareLayerThicknessCustom");
-    _sliceStatusLabel->setObjectName("prepareSliceStatus");
     _sliceStatus->setObjectName("prepareSliceStatus");
-    _imageGeneratorStatusLabel->setObjectName("prepareImageGeneratorStatus");
     _imageGeneratorStatus->setObjectName("prepareImageGeneratorStatus");
     _prepareGroup->setObjectName("preparePrepareGroup");
     _prepareMessage->setObjectName("preparePrepareMessage");

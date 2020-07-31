@@ -126,10 +126,57 @@ public:
 
         Q_ASSERT(siceStatus->text() == "idle");
         Q_ASSERT(imageGeneratorStatus->text() == "idle");
-        QRegExp rx("(\\d+)\\\\(\\d+)");
+        QRegExp rx("(\\d+)\\/(\\d+)");
+        debug("%d", rx.indexIn(prepareNavigateCurrent->text()));
         Q_ASSERT(rx.indexIn(prepareNavigateCurrent->text()) > -1);
         Q_ASSERT(rx.cap(1).toInt() > 0);
         Q_ASSERT(rx.cap(2).toInt() > 0);
+    }
+
+    void printContinueButtonClick() {
+        QPushButton* printContinue = findWidget<QPushButton*>("printPrint");
+        QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
+        QPushButton* stopButton = findWidget<QPushButton*>("statusStop");
+        QLabel* statusDispensePrintSolution = findWidget<QLabel*>("statusDispensePrintSolution");
+
+        mouseClick(printContinue);
+        QTest::qWait(1000);
+
+        Q_ASSERT(statusStartPrint->isEnabled());
+        Q_ASSERT(stopButton->isEnabled());
+        Q_ASSERT(statusDispensePrintSolution->text() != "");
+    }
+
+    void statusStartPrint() {
+        QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
+        QPushButton* statusReprint = findWidget<QPushButton*>("statusReprint");
+        QPushButton* statusPause = findWidget<QPushButton*>("statusPause");
+        QLabel* statusModelFileName = findWidget<QLabel*>("statusModelFileName");
+        QLabel* currentLayerDisplay = findWidget<QLabel*>("statusCurrentLayerDisplay");
+        QRegExp rx ("Printing layer (%1) of (%2)");
+
+        mouseClick(statusStartPrint);
+
+        QTest::qWait(10000);
+
+        debug(QString ( "'" % statusModelFileName->text() % "' '" % printJob.getModelFilename() % "'").toUtf8().data());
+
+        Q_ASSERT(statusModelFileName->text().endsWith(GetFileBaseName(printJob.getModelFilename())));
+
+        QTest::qWaitFor([currentLayerDisplay]() {
+            QRegExp rx ("(\\d+) of (\\d+)");
+            if(rx.indexIn(currentLayerDisplay->text()) > -1) {
+
+                return false;
+            }
+
+            return rx.cap(1).toInt() == rx.cap(2).toInt();
+        }, 500000);
+
+        QTest::qWait(10000);
+
+        Q_ASSERT(statusReprint->isEnabled());
+        Q_ASSERT(!statusPause->isEnabled());
     }
 
 signals:
