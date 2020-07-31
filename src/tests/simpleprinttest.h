@@ -1,3 +1,5 @@
+#if defined _DEBUG
+
 #ifndef SIMPLEPRINTTEST_H
 #define SIMPLEPRINTTEST_H
 
@@ -15,3 +17,4 @@ private slots:
 };
 
 #endif // SIMPLEPRINTTEST_H
+#endif //_DEBUG

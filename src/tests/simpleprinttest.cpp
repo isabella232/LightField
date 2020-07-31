@@ -1,3 +1,5 @@
+#if defined _DEBUG
+
 #include "simpleprinttest.h"
 #include "../window.h"
 #include "../filetab.h"
@@ -19,7 +21,8 @@ void SimplePrintTest::start() {
     prepareSliceButtonClick();
 
     if(!g_settings.pretendPrinterIsPrepared) {
-        //@todo
+        prepareClickPrepare();
+        prepareClickContinue();
     } else {
         //switch to print tab
         PrintTab* printTab = findWidget<PrintTab*>("print");
@@ -34,3 +37,5 @@ void SimplePrintTest::start() {
     emit successed();
     debug("===============================Simple Print Test finished============================!\n");
 }
+
+#endif //_DEBUG

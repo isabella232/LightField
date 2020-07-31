@@ -179,6 +179,14 @@ public:
         Q_ASSERT(!statusPause->isEnabled());
     }
 
+    void prepareClickPrepare() {
+
+    }
+
+    void prepareClickContinue() {
+
+    }
+
 signals:
     void successed();
     void failed(QString message);

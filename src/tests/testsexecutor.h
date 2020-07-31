@@ -1,3 +1,5 @@
+#if defined _DEBUG
+
 #ifndef TESTSEXECUTOR_H
 #define TESTSEXECUTOR_H
 
@@ -50,3 +52,4 @@ public:
 };
 
 #endif // TESTSEXECUTOR_H
+#endif //_DEBUG
