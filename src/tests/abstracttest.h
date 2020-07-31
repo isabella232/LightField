@@ -180,11 +180,26 @@ public:
     }
 
     void prepareClickPrepare() {
+        QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
+        QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
+        mouseClick(prepareButton);
+        QTest::qWait(1000);
+        QTest::qWaitFor([progressBar]() {
+            return !progressBar->isVisible();
+        }, 50000);
 
+        Q_ASSERT(prepareButton->isEnabled());
+        Q_ASSERT(prepareButton->text() == "Continue...");
     }
 
     void prepareClickContinue() {
-
+        QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
+        QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
+        mouseClick(prepareButton);
+        QTest::qWait(1000);
+        QTest::qWaitFor([progressBar]() {
+            return !progressBar->isVisible();
+        }, 50000);
     }
 
 signals:
