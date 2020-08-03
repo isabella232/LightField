@@ -63,7 +63,7 @@ public:
 
     //selecting model on list
     void fileSelectModelOnList() {
-        //selecting model on list
+        debug("============ TEST: file select model on list \n");
         GestureListView* availableFilesListView = findWidget<GestureListView*>("fileAvailableFiles");
         FileTab* fileTab = findWidget<FileTab*>("file");
         Canvas* canvas = findWidget<Canvas*>("fileCanvas");
@@ -88,9 +88,11 @@ public:
 
         QRegExp rx("\\d+\\.\\d+ mm × \\d+\\.\\d+ mm × \\d+\\.\\d+ mm, \\d+\\.\\d+ µL");
         Q_ASSERT(rx.indexIn(fileDimensions->text()) != -1);
+        debug("============ TEST: file select model on list - PASSED \n");
     }
 
     void fileClickSelectButton() {
+        debug("============ TEST: select button file tab \n");
         Window* window = App::mainWindow();
         QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
 
@@ -110,9 +112,11 @@ public:
 
         Q_ASSERT(currentIdx == 1);
         Q_ASSERT(resliceButton->isEnabled());
+        debug("============ TEST: select button file tab - PASSED \n");
     }
 
     void prepareSliceButtonClick() {
+        debug("============ TEST: slice button prepare tab \n");
         QPushButton* resliceButton = findWidget<QPushButton*>("prepareSlice");
         QLabel* imageGeneratorStatus = findWidget<QLabel*>("prepareImageGeneratorStatus");
         QLabel* siceStatus = findWidget<QLabel*>("prepareSliceStatus");
@@ -131,9 +135,11 @@ public:
         Q_ASSERT(rx.indexIn(prepareNavigateCurrent->text()) > -1);
         Q_ASSERT(rx.cap(1).toInt() > 0);
         Q_ASSERT(rx.cap(2).toInt() > 0);
+        debug("============ TEST: slice button prepare tab - PASSED\n");
     }
 
     void printContinueButtonClick() {
+        debug("============ TEST: continue button print tab \n");
         QPushButton* printContinue = findWidget<QPushButton*>("printPrint");
         QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
         QPushButton* stopButton = findWidget<QPushButton*>("statusStop");
@@ -145,9 +151,12 @@ public:
         Q_ASSERT(statusStartPrint->isEnabled());
         Q_ASSERT(stopButton->isEnabled());
         Q_ASSERT(statusDispensePrintSolution->text() != "");
+        debug("============ TEST: continue button print tab - PASSED\n");
     }
 
     void statusStartPrint() {
+        debug("============ TEST: start print button status tab \n");
+
         QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
         QPushButton* statusReprint = findWidget<QPushButton*>("statusReprint");
         QPushButton* statusPause = findWidget<QPushButton*>("statusPause");
@@ -177,9 +186,12 @@ public:
 
         Q_ASSERT(statusReprint->isEnabled());
         Q_ASSERT(!statusPause->isEnabled());
+        debug("============ TEST: start print button status tab - PASSED \n");
     }
 
     void prepareClickPrepare() {
+        debug("============ TEST: prepare button prepare tab \n");
+
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
         QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
         mouseClick(prepareButton);
@@ -190,9 +202,13 @@ public:
 
         Q_ASSERT(prepareButton->isEnabled());
         Q_ASSERT(prepareButton->text() == "Continue...");
+
+        debug("============ TEST: prepare button prepare tab - PASSED \n");
     }
 
     void prepareClickContinue() {
+        debug("============ TEST: continue button prepare tab \n");
+
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
         QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
         mouseClick(prepareButton);
@@ -200,6 +216,8 @@ public:
         QTest::qWaitFor([progressBar]() {
             return !progressBar->isVisible();
         }, 50000);
+
+        debug("============ TEST: continue button prepare tab \n");
     }
 
 signals:

@@ -15,8 +15,8 @@ public:
     void startTests(QStringList testNames) {
         debug(("+TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
         QThread* thread = QThread::create([this, testNames]{
-            debug("TestExecutor::startTests thread started\n");
-            for(const auto& name: testNames) {
+            debug("+TestExecutor::startTests thread started\n");
+            for(const auto name: testNames) {
                 if(!this->testList.contains(name)) {
                     debug("There is no such test %1", name);
                     continue;
@@ -39,6 +39,8 @@ public:
                 QObject::connect(test, &AbstractTest::failed, this, [test, startTime_t]() {
                     QDateTime endTime;
                     uint timeOverall = endTime.toTime_t() - startTime_t;
+
+
 
                     debug(QString(test->testName % " failed. Overall time %1 ms\n").arg(timeOverall).toUtf8().data());
                 });
