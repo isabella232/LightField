@@ -436,6 +436,8 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
     ThicknessWindow *dialog = new ThicknessWindow(_initAfterSelect, this);
+    dialog->setObjectName("prepareThicknessWindow");
+
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);

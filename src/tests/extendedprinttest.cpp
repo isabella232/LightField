@@ -1,21 +1,21 @@
 #if defined _DEBUG
 
-#include "simpleprinttest.h"
-#include "../window.h"
-#include "../filetab.h"
+#include "extendedprinttest.h"
 #include "../printtab.h"
 
-QString SimplePrintTest::testNameString = "simpletest";
+QString ExtendedPrintTest::testNameString = "extendedtest";
 
-void SimplePrintTest::start() {
+
+void ExtendedPrintTest::start() {
 
     debug("=================================Simple Print Test=================================!\n");
-
     waitForMainWindow();
 
     fileSelectModelOnList();
 
     fileClickSelectButton();
+
+    setCustomThickness();
 
     prepareSliceButtonClick();
 
@@ -29,12 +29,9 @@ void SimplePrintTest::start() {
         QTest::qWait(1000);
     }
 
-    printContinueButtonClick();
-
-    statusStartPrint();
+    setupExposureTime();
 
     emit successed();
     debug("===============================Simple Print Test finished============================!\n");
 }
-
-#endif //_DEBUG
+#endif

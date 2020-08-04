@@ -1,13 +1,12 @@
 #if defined _DEBUG
-
-#ifndef SIMPLEPRINTTEST_H
-#define SIMPLEPRINTTEST_H
+#ifndef EXTENDEDPRINTTEST_H
+#define EXTENDEDPRINTTEST_H
 
 #include <QtWidgets>
 #include <QtTest/QtTest>
 #include "abstracttest.h"
 
-class SimplePrintTest: public AbstractTest
+class ExtendedPrintTest: public AbstractTest
 {
 public:
     static QString testNameString;
@@ -15,11 +14,11 @@ public:
         return testNameString;
     }
 
-    SimplePrintTest() = default;
+    ExtendedPrintTest() = default;
 
 private slots:
     void start();
 };
 
-#endif // SIMPLEPRINTTEST_H
+#endif // EXTENDEDPRINTTEST_H
 #endif //_DEBUG

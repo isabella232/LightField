@@ -5,12 +5,16 @@
 
 #include "abstracttest.h"
 #include "simpleprinttest.h"
+#include "extendedprinttest.h"
 
 class TestExecutor: public QObject {
     Q_OBJECT
 
 public:
-    QMap<QString, AbstractTest*> testList { { SimplePrintTest::testName, new SimplePrintTest()} };
+    QMap<QString, AbstractTest*> testList {
+        { SimplePrintTest::testNameString, new SimplePrintTest()},
+        { ExtendedPrintTest::testNameString, new ExtendedPrintTest()}
+    };
 
     void startTests(QStringList testNames) {
         debug(("+TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
@@ -33,7 +37,7 @@ public:
                     QDateTime endTime;
                     uint timeOverall = endTime.toTime_t() - startTime_t;
 
-                    debug(QString(test->testName % " passed. Overall time %1 ms\n").arg(timeOverall).toUtf8().data());
+                    debug(QString(test->testName() % " passed. Overall time %1 ms\n").arg(timeOverall).toUtf8().data());
                 });
 
                 QObject::connect(test, &AbstractTest::failed, this, [test, startTime_t]() {
@@ -42,7 +46,7 @@ public:
 
 
 
-                    debug(QString(test->testName % " failed. Overall time %1 ms\n").arg(timeOverall).toUtf8().data());
+                    debug(QString(test->testName() % " failed. Overall time %1 ms\n").arg(timeOverall).toUtf8().data());
                 });
 
                 test->start();
