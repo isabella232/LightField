@@ -6,6 +6,7 @@
 #include "../filetab.h"
 #include "../thicknesswindow.h"
 #include "../canvas.h"
+#include "../spoiler.h"
 
 class AbstractTest: public QObject {
     Q_OBJECT
@@ -162,6 +163,8 @@ public:
         Q_ASSERT(rx.cap(2).toInt() > 0);
 
         int overallCount = ((modelHeight - (numberBase * baseThickness)) / bodyThickness) + numberBase;
+        debug("============ TEST: overallCount: %d, modelHeight: %d, numberBase: %d, baseThickness: %d, bodyThickness: %d",
+              overallCount, modelHeight, numberBase, baseThickness, bodyThickness);
         Q_ASSERT(overallCount == rx.cap(2).toInt());
 
         debug("============ TEST: slice button prepare tab - PASSED\n");
@@ -256,8 +259,6 @@ public:
         QPushButton* resliceButton = findWidget<QPushButton*>("prepareSlice");
         mouseClick(customThickness);
         QTest::qWait(1000);
-        //Q_ASSERT(thicknessWindow->isVisible());
-
 
         QWidgetList widgetList = QApplication::topLevelWidgets();
         ThicknessWindow* thicknessWindow = findWidgetInTopLevel<ThicknessWindow*>("prepareThicknessWindow");
@@ -266,16 +267,16 @@ public:
         ParamSlider* baseCount = findWidget<ParamSlider*>(thicknessWindow, "thicknessBaseLayerCount");
         QPushButton* thicknessOk = findWidget<QPushButton*>(thicknessWindow, "thicknessOk");
 
-        auto random = QRandomGenerator();
-        int tBody = random.bounded(1, 10) * 10;
-        int tBase = tBody * random.bounded(1, 100 / tBody);
-        int tCount = random.bounded(1, 20);
+        auto random = QRandomGenerator::system();
+        int tBody = random->bounded(1, 10) * 10;
+        int tBase = tBody * random->bounded(1, 100 / tBody);
+        int tCount = random->bounded(1, 20);
         thicknessBody->setValue(tBody);
         thicknessBase->setValue(tBase);
         baseCount->setValue(tCount);
 
         mouseClick(thicknessOk);
-        QTest::qWait(1000);
+        QTest::qWait(2000);
 
         Q_ASSERT(printJob.getSelectedBaseLayerThickness() == tBase);
         Q_ASSERT(printJob.getSelectedBodyLayerThickness() == tBody);
@@ -292,32 +293,97 @@ public:
         ParamSlider* bodyCoarse = findWidget<ParamSlider*>("printAdvBodyExpoCorse");
         ParamSlider* bodyFine = findWidget<ParamSlider*>("printAdvBodyExpoFine");
         ParamSlider* baseCoarse = findWidget<ParamSlider*>("printAdvBaseExpoCorse");
-        ParamSlider* baseFine = findWidget<ParamSlider*>("printAdvBodyExpoCorse");
+        ParamSlider* baseFine = findWidget<ParamSlider*>("printAdvBaseExpoFine");
         QLabel* statusLabel = findWidget<QLabel*>("statusDispensePrintSolution");
+        Spoiler* printAdvancedExpoTime = findWidget<Spoiler*>("printAdvancedExpoTime");
 
-        auto random = QRandomGenerator();
-        int bodyCoarseValue = random.bounded(1, 29);
-        int bodyFineValue = random.bounded(0, 20) * 50;
+        mouseClick(&printAdvancedExpoTime->toggleButton());
 
-        int baseCoarseValue = random.bounded(1, 149);
-        int baseFineValue = random.bounded(0, 20) * 50;
+        QTest::qWait(2000);
+
+        auto random = QRandomGenerator::system();
+        int bodyCoarseValue = random->bounded(1, 10) * 1000;
+        int bodyFineValue = random->bounded(0, 20) * 50;
+
+        int baseCoarseValue = random->bounded(1, 10) * 1000;
+        int baseFineValue = random->bounded(0, 20) * 50;
+
+        int baseSum = baseCoarseValue + baseFineValue;
+        int bodySum = bodyCoarseValue + bodyFineValue;
 
         bodyCoarse->setValue(bodyCoarseValue);
+        bodyCoarse->onValueChanged(bodyCoarseValue);
+
         bodyFine->setValue(bodyFineValue);
+        bodyFine->onValueChanged(bodyFineValue);
+
         baseCoarse->setValue(baseCoarseValue);
+        baseCoarse->onValueChanged(baseCoarseValue);
+
         baseFine->setValue(baseFineValue);
+        baseFine->onValueChanged(baseFineValue);
+
+        QTest::qWait(2000);
 
         printContinueButtonClick();
 
-        QRegExp rx("\\d+\\.\\d+sec");
+        QRegularExpression rx("(\\d+(\\.\\d+)?) sec");
+        auto iter = rx.globalMatch(statusLabel->text());
+        Q_ASSERT(iter.hasNext());
 
-        Q_ASSERT(rx.indexIn(statusLabel->text()) > -1);
+        auto next = iter.next();
+        int capBase = (int)(next.captured(1).toDouble() * 1000);
 
-        Q_ASSERT( (rx.cap(2).toInt() / 1000) == ((bodyCoarseValue * 1000) + bodyFineValue) );
-        Q_ASSERT( (rx.cap(1).toInt() / 1000) == ((baseCoarseValue * 1000) + baseFineValue) );
+        Q_ASSERT(capBase == baseSum);
 
+        next = iter.next();
+        int capBody = (int)(next.captured(1).toDouble() * 1000);
 
+        Q_ASSERT(capBody == bodySum);
         debug("============ TEST: set exposure time print tab - PASSED \n");
+    }
+
+    void pauseStopPrintTest() {
+        QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
+        QPushButton* pause = findWidget<QPushButton*>("statusPause");
+        QPushButton* stop = findWidget<QPushButton*>("statusStop");
+        QPushButton* reprint = findWidget<QPushButton*>("statusReprint");
+        QLabel* statusLabel = findWidget<QLabel*>("statusDispensePrintSolution");
+
+        mouseClick(statusStartPrint);
+
+        QTest::qWait(4000);
+
+        mouseClick(pause);
+
+        QTest::qWait(500);
+
+        Q_ASSERT((pause->text() == "Pausing..."));
+
+        QTest::qWaitFor([pause]() {
+            return (pause->text() == "Resume");
+        }, 50000);
+
+        Q_ASSERT((pause->text() == "Resume"));
+
+        mouseClick(pause);
+
+        QTest::qWait(1000);
+
+        Q_ASSERT((pause->text() == "Pause"));
+
+        QTest::qWait(1000);
+        mouseClick(stop);
+        //Q_ASSERT(stop->text() == "Stopping...");
+
+        QTest::qWaitFor([reprint, stop]() {
+            return reprint->isVisible() && !stop->isVisible();
+        }, 20000);
+
+        mouseClick(reprint);
+
+        Q_ASSERT(!reprint->isVisible() && stop->isVisible());
+        Q_ASSERT(statusLabel->isVisible());
     }
 
 signals:

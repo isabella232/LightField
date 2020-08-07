@@ -20,6 +20,7 @@ public:
     void setCollapsed(bool collapsed);
     bool isCollapsed();
     void setMaxHeight(int maxHeight);
+    QToolButton& toggleButton() { return _toggleButton; }
 
 signals:
 

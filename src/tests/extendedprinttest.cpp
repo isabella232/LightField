@@ -31,6 +31,10 @@ void ExtendedPrintTest::start() {
 
     setupExposureTime();
 
+    pauseStopPrintTest();
+
+    statusStartPrint();
+
     emit successed();
     debug("===============================Simple Print Test finished============================!\n");
 }
