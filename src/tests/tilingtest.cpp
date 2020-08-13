@@ -1,15 +1,15 @@
 #if defined _DEBUG
 
-#include "simpleprinttest.h"
+#include "tilingtest.h"
 #include "../window.h"
 #include "../filetab.h"
 #include "../printtab.h"
 
-QString SimplePrintTest::testNameString = "simpletest";
+QString TilingTest::testNameString = "tilingtest";
 
-void SimplePrintTest::start() {
+void TilingTest::start() {
 
-    TDEBUG("=================================Simple Print Test=================================!\n");
+    debug("=================================Tiling Test=================================!\n");
 
     waitForMainWindow();
 
@@ -34,7 +34,7 @@ void SimplePrintTest::start() {
     statusStartPrint();
 
     emit successed();
-    TDEBUG("===============================Simple Print Test finished============================!\n");
+    debug("===============================Tiling Test finished============================!\n");
 }
 
 #endif //_DEBUG

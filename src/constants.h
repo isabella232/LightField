@@ -56,6 +56,8 @@ int                extern const  DefaultBaseLayerThickness;
 
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
+char               extern const* DebugLogPath;
+char               extern const* TestLogPath;
 
 #   if defined XDLP471020UM
 

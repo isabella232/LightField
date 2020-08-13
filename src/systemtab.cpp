@@ -7,6 +7,7 @@
 #include "upgrademanager.h"
 #include "upgradeselector.h"
 #include "usbmountmanager.h"
+#include "tests/testsexecutor.h"
 #include "window.h"
 
 namespace {
@@ -78,9 +79,46 @@ SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>
         WrapWidgetsInHBox( nullptr, _updateSoftwareButton, nullptr, _copyLogsButton, nullptr ),
         nullptr,
         WrapWidgetsInHBox( nullptr, _restartButton,        nullptr, _shutDownButton, nullptr ),
-        nullptr
+#ifdef _DEBUG
+        nullptr, WrapWidgetsInHBox(nullptr, _test, nullptr), nullptr
+#endif
     );
     _layout->setAlignment( Qt::AlignCenter );
+
+#ifdef _DEBUG
+    _test->setText("Launch test...");
+    _test->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    connect(_test, &QPushButton::clicked, [font22pt]() {
+        QDialog* dialog  { new QDialog };
+        QPushButton* ok { new QPushButton("ok") };
+        QPushButton* cancel { new QPushButton("cancel") };
+        QListView* qList {new QListView };
+        QStringListModel* qModel { new QStringListModel };
+        TestExecutor* executor { new TestExecutor };
+        qModel->setStringList( executor->testList.keys() );
+        qList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        qList->setFont(font22pt);
+        qList->setModel(qModel);
+
+        connect(ok, &QPushButton::clicked, [dialog, qList, qModel, executor]() {
+            auto idx = qList->currentIndex();
+            QString testName = qModel->data(idx).toString();
+            executor->startTests({testName});
+            dialog->done(1);
+        });
+
+        connect(cancel, &QPushButton::clicked, [dialog]() {
+            dialog->done(1);
+        });
+
+        QVBoxLayout* _layout = WrapWidgetsInVBox(
+            qList,
+            WrapWidgetsInHBox(ok, cancel)
+        );
+        dialog->setLayout(_layout);
+        dialog->exec();
+    });
+#endif
 
     setLayout( _layout );
 

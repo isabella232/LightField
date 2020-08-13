@@ -64,6 +64,8 @@ QChar                     const  FA_FastForward                { L'\uF050' };
 double                    const  PrinterMaximumX               { ProjectorWindowSize.width( )  * ProjectorPixelSize }; // mm
 double                    const  PrinterMaximumY               { ProjectorWindowSize.height( ) * ProjectorPixelSize }; // mm
 
+char                      const* DebugLogPath { "/var/log/lightfield" };
+
 char                      const* DebugLogPaths[DebugLogPathCount]
 {
     "/var/log/lightfield/debug.log",
@@ -73,3 +75,5 @@ char                      const* DebugLogPaths[DebugLogPathCount]
     "/var/log/lightfield/debug.4.log",
     "/var/log/lightfield/debug.5.log",
 };
+
+char                      const* TestLogPath  { "/var/log/lightfield/test" };

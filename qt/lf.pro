@@ -58,8 +58,10 @@ SOURCES +=                          \
     ../src/svgrenderer.cpp          \
     ../src/systemtab.cpp            \
     ../src/tabbase.cpp              \
+    ../src/tests/abstracttest.cpp \
     ../src/tests/extendedprinttest.cpp \
     ../src/tests/simpleprinttest.cpp \
+    ../src/tests/tilingtest.cpp \
     ../src/timinglogger.cpp         \
     ../src/tilingmanager.cpp        \
     ../src/tilingtab.cpp            \
@@ -124,6 +126,7 @@ HEADERS  +=                         \
     ../src/tests/extendedprinttest.h \
     ../src/tests/simpleprinttest.h  \
     ../src/tests/testsexecutor.h    \
+    ../src/tests/tilingtest.h \
     ../src/timinglogger.h           \
     ../src/tilingmanager.h          \
     ../src/tilingtab.h              \

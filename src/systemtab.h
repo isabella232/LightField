@@ -54,6 +54,9 @@ private:
 
     QVBoxLayout*     _layout                     { new QVBoxLayout };
 
+#ifdef _DEBUG
+    QPushButton*     _test                       { new QPushButton };
+#endif
     void _updateButtons();
     void setWidgetsIds();
 

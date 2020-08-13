@@ -8,7 +8,7 @@ QString ExtendedPrintTest::testNameString = "extendedtest";
 
 void ExtendedPrintTest::start() {
 
-    debug("=================================Simple Print Test=================================!\n");
+    TDEBUG("=================================Extended Print Test=================================!\n");
     waitForMainWindow();
 
     fileSelectModelOnList();
@@ -36,6 +36,6 @@ void ExtendedPrintTest::start() {
     statusStartPrint();
 
     emit successed();
-    debug("===============================Simple Print Test finished============================!\n");
+    TDEBUG("===============================Extended Print Test Finished============================!\n");
 }
 #endif

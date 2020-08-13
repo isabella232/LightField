@@ -128,11 +128,12 @@ void DebugLogCopier::remountRw_finished( bool const succeeded, bool const /*writ
 void DebugLogCopier::_fileCopier_start( ) {
     debug( "+ DebugLogCopier::_fileCopier_start: copying log files to '%s'\n", _targetPath.toUtf8( ).data( ) );
 
-    for ( QString srcFileName : DebugLogPaths ) {
-        if ( QFileInfo::exists( srcFileName ) ) {
-            _fileList.append( QPair<QString, QString> { srcFileName, _targetPath % Slash % srcFileName.mid( srcFileName.lastIndexOf( Slash ) + 1 ) } );
-        }
+    QDir directory(DebugLogPath);
+    QStringList logFiles = directory.entryList(QStringList() << "*.log", QDir::Files);
+    for(QString fileName: logFiles) {
+        _fileList.append( QPair<QString, QString> { DebugLogPath % QString("/") % fileName, _targetPath % Slash % fileName } );
     }
+
     if ( _fileList.isEmpty( ) ) {
         _showMessage( "No files to copy." );
         return;

@@ -2,11 +2,20 @@
 #define ABSTRACTTEST_H
 
 #include <QtTest>
+
+#include <ctime>
+#include <cstdlib>
+#include <cstdio>
+
+#include <iomanip>
 #include "../window.h"
 #include "../filetab.h"
 #include "../thicknesswindow.h"
 #include "../canvas.h"
 #include "../spoiler.h"
+#include <iostream>
+
+extern FILE* TestLog;
 
 class AbstractTest: public QObject {
     Q_OBJECT
@@ -14,6 +23,57 @@ public:
     virtual QString testName() = 0;
 
     virtual void start() = 0;
+
+    void tDebug( char const* function, char const* str ) {
+        time_t timeNow = std::time(nullptr);
+
+        std::stringstream ss;
+
+        ss << std::put_time(std::localtime(&timeNow), "%OH:%OM:%OS | ") << "[" << function << "]: " << str << "\n";
+
+        const std::string formattedOutput = ss.str();
+        const char* cstr = formattedOutput.c_str();
+
+        if ( TestLog ) {
+            ::fputs(cstr, TestLog);
+            ::fflush(TestLog);
+        }
+
+        ss.str("");
+        ss << "============ TEST: " << str << "\n";
+
+        const std::string formattedOutput2 = ss.str();
+        const char* cstr2 = formattedOutput2.c_str();
+
+        debug(cstr2);
+    }
+
+    template<typename... Args>
+    inline void tDebug(char const* function, char const* fmt, Args... args ) {
+        if ( char* buf; asprintf( &buf, fmt, args... ) > 0 ) {
+            tDebug( function, buf );
+            free( buf );
+        }
+    }
+
+#define TDEBUG(...) tDebug(__PRETTY_FUNCTION__, __VA_ARGS__)
+
+    bool ASSERT(bool arg1, bool halt=true, QString msg = "", QString file="", QString line="") {
+        TDEBUG( "%d", arg1 );
+        if(arg1 && halt)
+        {
+            QString alert = QString("false predicate: [%1]:%2 %3").arg(file).arg(line).arg(msg);
+
+            emit failed(alert);
+            throw QException();
+        }
+        return true;
+    }
+#define xstr0(s) str0(s)
+#define str0(s) #s
+
+#define T_ASSERT(cond, halt, msg) ((cond) ? true : ASSERT(#cond, #halt, #msg, __FILE__, __LINE__))
+#define S_ASSERT(cond) ((cond) ? true : ASSERT(#cond, true, QString(str0(cond)), QString(__FILE__), QString(__LINE__)))
 
     void dispatchToMainThread(std::function<void()> callback)
     {
@@ -78,12 +138,15 @@ public:
             return !window->isInitialized();
         }, 5000);
 
-        Q_ASSERT(window->isInitialized());
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(1);
+
+        S_ASSERT(window->isInitialized());
     }
 
     //selecting model on list
     void fileSelectModelOnList() {
-        debug("============ TEST: file select model on list \n");
+        TDEBUG("file select model on list ");
         GestureListView* availableFilesListView = findWidget<GestureListView*>("fileAvailableFiles");
         FileTab* fileTab = findWidget<FileTab*>("file");
         Canvas* canvas = findWidget<Canvas*>("fileCanvas");
@@ -100,19 +163,19 @@ public:
 
         QTest::qWait(1000);
 
-        Q_ASSERT(!canvas->objectName().isEmpty());
-        Q_ASSERT(deleteButton->isEnabled());
-        Q_ASSERT(selectButton->isEnabled());
-        Q_ASSERT(fileViewSolid->isEnabled());
-        Q_ASSERT(fileViewWireframe->isEnabled());
+        S_ASSERT(!canvas->objectName().isEmpty());
+        S_ASSERT(deleteButton->isEnabled());
+        S_ASSERT(selectButton->isEnabled());
+        S_ASSERT(fileViewSolid->isEnabled());
+        S_ASSERT(fileViewWireframe->isEnabled());
 
         QRegExp rx("\\d+\\.\\d+ mm × \\d+\\.\\d+ mm × \\d+\\.\\d+ mm, \\d+\\.\\d+ µL");
-        Q_ASSERT(rx.indexIn(fileDimensions->text()) != -1);
-        debug("============ TEST: file select model on list - PASSED \n");
+        S_ASSERT(rx.indexIn(fileDimensions->text()) != -1);
+        TDEBUG("file select model on list - PASSED ");
     }
 
     void fileClickSelectButton() {
-        debug("============ TEST: select button file tab \n");
+        TDEBUG("select button file tab ");
         Window* window = App::mainWindow();
         QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
 
@@ -130,13 +193,13 @@ public:
             return currentIdx == 1;
         }, 5000);
 
-        Q_ASSERT(currentIdx == 1);
-        Q_ASSERT(resliceButton->isEnabled());
-        debug("============ TEST: select button file tab - PASSED \n");
+        S_ASSERT(currentIdx == 1);
+        S_ASSERT(resliceButton->isEnabled());
+        TDEBUG("select button file tab - PASSED ");
     }
 
     void prepareSliceButtonClick() {
-        debug("============ TEST: slice button prepare tab \n");
+        TDEBUG("slice button prepare tab ");
         QPushButton* resliceButton = findWidget<QPushButton*>("prepareSlice");
         QLabel* imageGeneratorStatus = findWidget<QLabel*>("prepareImageGeneratorStatus");
         QLabel* siceStatus = findWidget<QLabel*>("prepareSliceStatus");
@@ -152,26 +215,25 @@ public:
         QTest::qWait(1000);
         QTest::qWaitFor([imageGeneratorStatus, siceStatus]() {
             return imageGeneratorStatus->text() == "idle" && siceStatus->text() == "idle";
-        }, 50000);
+        }, 500000);
 
-        Q_ASSERT(siceStatus->text() == "idle");
-        Q_ASSERT(imageGeneratorStatus->text() == "idle");
+        S_ASSERT(siceStatus->text() == "idle");
+        S_ASSERT(imageGeneratorStatus->text() == "idle");
         QRegExp rx("(\\d+)\\/(\\d+)");
-        debug("%d", rx.indexIn(prepareNavigateCurrent->text()));
-        Q_ASSERT(rx.indexIn(prepareNavigateCurrent->text()) > -1);
-        Q_ASSERT(rx.cap(1).toInt() > 0);
-        Q_ASSERT(rx.cap(2).toInt() > 0);
+        S_ASSERT(rx.indexIn(prepareNavigateCurrent->text()) > -1);
+        S_ASSERT(rx.cap(1).toInt() > 0);
+        S_ASSERT(rx.cap(2).toInt() > 0);
 
         int overallCount = ((modelHeight - (numberBase * baseThickness)) / bodyThickness) + numberBase;
-        debug("============ TEST: overallCount: %d, modelHeight: %d, numberBase: %d, baseThickness: %d, bodyThickness: %d",
+        TDEBUG("overallCount: %d, modelHeight: %d, numberBase: %d, baseThickness: %d, bodyThickness: %d",
               overallCount, modelHeight, numberBase, baseThickness, bodyThickness);
-        Q_ASSERT(overallCount == rx.cap(2).toInt());
+        S_ASSERT(overallCount == rx.cap(2).toInt());
 
-        debug("============ TEST: slice button prepare tab - PASSED\n");
+        TDEBUG("slice button prepare tab - PASSED");
     }
 
     void printContinueButtonClick() {
-        debug("============ TEST: continue button print tab \n");
+        TDEBUG("continue button print tab ");
         QPushButton* printContinue = findWidget<QPushButton*>("printPrint");
         QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
         QPushButton* stopButton = findWidget<QPushButton*>("statusStop");
@@ -180,14 +242,14 @@ public:
         mouseClick(printContinue);
         QTest::qWait(1000);
 
-        Q_ASSERT(statusStartPrint->isEnabled());
-        Q_ASSERT(stopButton->isEnabled());
-        Q_ASSERT(statusDispensePrintSolution->text() != "");
-        debug("============ TEST: continue button print tab - PASSED\n");
+        S_ASSERT(statusStartPrint->isEnabled());
+        S_ASSERT(stopButton->isEnabled());
+        S_ASSERT(statusDispensePrintSolution->text() != "");
+        TDEBUG("continue button print tab - PASSED");
     }
 
     void statusStartPrint() {
-        debug("============ TEST: start print button status tab \n");
+        TDEBUG("start print button status tab ");
 
         QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
         QPushButton* statusReprint = findWidget<QPushButton*>("statusReprint");
@@ -200,9 +262,9 @@ public:
 
         QTest::qWait(10000);
 
-        debug(QString ( "'" % statusModelFileName->text() % "' '" % printJob.getModelFilename() % "'").toUtf8().data());
+        TDEBUG(QString ( "'" % statusModelFileName->text() % "' '" % printJob.getModelFilename() % "'").toUtf8().data());
 
-        Q_ASSERT(statusModelFileName->text().endsWith(GetFileBaseName(printJob.getModelFilename())));
+        S_ASSERT(statusModelFileName->text().endsWith(GetFileBaseName(printJob.getModelFilename())));
 
         QTest::qWaitFor([currentLayerDisplay]() {
             QRegExp rx ("(\\d+) of (\\d+)");
@@ -216,13 +278,13 @@ public:
 
         QTest::qWait(10000);
 
-        Q_ASSERT(statusReprint->isEnabled());
-        Q_ASSERT(!statusPause->isEnabled());
-        debug("============ TEST: start print button status tab - PASSED \n");
+        S_ASSERT(statusReprint->isEnabled());
+        S_ASSERT(!statusPause->isEnabled());
+        TDEBUG("start print button status tab - PASSED ");
     }
 
     void prepareClickPrepare() {
-        debug("============ TEST: prepare button prepare tab \n");
+        TDEBUG("prepare button prepare tab ");
 
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
         QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
@@ -231,15 +293,15 @@ public:
         QTest::qWaitFor([progressBar]() {
             return !progressBar->isVisible();
         }, 50000);
+        QTest::qWait(1000);
+        S_ASSERT(prepareButton->isEnabled());
+        S_ASSERT(prepareButton->text() == "Continue...");
 
-        Q_ASSERT(prepareButton->isEnabled());
-        Q_ASSERT(prepareButton->text() == "Continue...");
-
-        debug("============ TEST: prepare button prepare tab - PASSED \n");
+        TDEBUG("prepare button prepare tab - PASSED ");
     }
 
     void prepareClickContinue() {
-        debug("============ TEST: continue button prepare tab \n");
+        TDEBUG("continue button prepare tab ");
 
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
         QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
@@ -248,12 +310,12 @@ public:
         QTest::qWaitFor([progressBar]() {
             return !progressBar->isVisible();
         }, 50000);
-
-        debug("============ TEST: continue button prepare tab - PASSED \n");
+        QTest::qWait(1000);
+        TDEBUG("continue button prepare tab - PASSED ");
     }
 
     void setCustomThickness() {
-        debug("============ TEST: set custom thickness prepare tab \n");
+        TDEBUG("set custom thickness prepare tab ");
 
         QRadioButton* customThickness = findWidget<QRadioButton*>("prepareLayerThicknessCustom");
         QPushButton* resliceButton = findWidget<QPushButton*>("prepareSlice");
@@ -268,8 +330,8 @@ public:
         QPushButton* thicknessOk = findWidget<QPushButton*>(thicknessWindow, "thicknessOk");
 
         auto random = QRandomGenerator::system();
-        int tBody = random->bounded(1, 10) * 10;
-        int tBase = tBody * random->bounded(1, 100 / tBody);
+        int tBody = random->bounded(1, 5) * 10;
+        int tBase = tBody * random->bounded(1, (int)(100 / tBody));
         int tCount = random->bounded(1, 20);
         thicknessBody->setValue(tBody);
         thicknessBase->setValue(tBase);
@@ -278,17 +340,17 @@ public:
         mouseClick(thicknessOk);
         QTest::qWait(2000);
 
-        Q_ASSERT(printJob.getSelectedBaseLayerThickness() == tBase);
-        Q_ASSERT(printJob.getSelectedBodyLayerThickness() == tBody);
-        Q_ASSERT(customThickness->isEnabled());
-        Q_ASSERT(resliceButton->text() == "Custom reslice..." || resliceButton->text() == "Custom slice...");
-        Q_ASSERT(resliceButton->isEnabled());
+        S_ASSERT(printJob.getSelectedBaseLayerThickness() == tBase);
+        S_ASSERT(printJob.getSelectedBodyLayerThickness() == tBody);
+        S_ASSERT(customThickness->isEnabled());
+        S_ASSERT(resliceButton->text() == "Custom reslice..." || resliceButton->text() == "Custom slice...");
+        S_ASSERT(resliceButton->isEnabled());
 
-        debug("============ TEST: set custom thickness prepare tab \n");
+        TDEBUG("set custom thickness prepare tab - PASSED");
     }
 
     void setupExposureTime() {
-        debug("============ TEST: set exposure time print tab \n");
+        TDEBUG("set exposure time print tab ");
 
         ParamSlider* bodyCoarse = findWidget<ParamSlider*>("printAdvBodyExpoCorse");
         ParamSlider* bodyFine = findWidget<ParamSlider*>("printAdvBodyExpoFine");
@@ -329,18 +391,18 @@ public:
 
         QRegularExpression rx("(\\d+(\\.\\d+)?) sec");
         auto iter = rx.globalMatch(statusLabel->text());
-        Q_ASSERT(iter.hasNext());
+        S_ASSERT(iter.hasNext());
 
         auto next = iter.next();
         int capBase = (int)(next.captured(1).toDouble() * 1000);
 
-        Q_ASSERT(capBase == baseSum);
+        S_ASSERT(capBase == baseSum);
 
         next = iter.next();
         int capBody = (int)(next.captured(1).toDouble() * 1000);
 
-        Q_ASSERT(capBody == bodySum);
-        debug("============ TEST: set exposure time print tab - PASSED \n");
+        S_ASSERT(capBody == bodySum);
+        TDEBUG("set exposure time print tab - PASSED ");
     }
 
     void pauseStopPrintTest() {
@@ -358,32 +420,33 @@ public:
 
         QTest::qWait(500);
 
-        Q_ASSERT((pause->text() == "Pausing..."));
+        S_ASSERT((pause->text() == "Pausing..."));
 
         QTest::qWaitFor([pause]() {
             return (pause->text() == "Resume");
         }, 50000);
 
-        Q_ASSERT((pause->text() == "Resume"));
+        S_ASSERT((pause->text() == "Resume"));
 
         mouseClick(pause);
 
-        QTest::qWait(1000);
+        QTest::qWaitFor([pause]() {
+            return (pause->text() == "Pause");
+        }, 50000);
 
-        Q_ASSERT((pause->text() == "Pause"));
+        S_ASSERT((pause->text() == "Pause"));
 
         QTest::qWait(1000);
         mouseClick(stop);
-        //Q_ASSERT(stop->text() == "Stopping...");
 
         QTest::qWaitFor([reprint, stop]() {
             return reprint->isVisible() && !stop->isVisible();
-        }, 20000);
+        }, 200000);
 
         mouseClick(reprint);
 
-        Q_ASSERT(!reprint->isVisible() && stop->isVisible());
-        Q_ASSERT(statusLabel->isVisible());
+        S_ASSERT(!reprint->isVisible() && stop->isVisible());
+        S_ASSERT(statusLabel->isVisible());
     }
 
 signals:
