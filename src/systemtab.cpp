@@ -78,8 +78,9 @@ SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>
         nullptr,
         WrapWidgetsInHBox( nullptr, _updateSoftwareButton, nullptr, _copyLogsButton, nullptr ),
         nullptr,
-        WrapWidgetsInHBox( nullptr, _restartButton,        nullptr, _shutDownButton, nullptr ),
+        WrapWidgetsInHBox( nullptr, _restartButton,        nullptr, _shutDownButton, nullptr )
 #ifdef _DEBUG
+        ,
         nullptr, WrapWidgetsInHBox(nullptr, _test, nullptr), nullptr
 #endif
     );
