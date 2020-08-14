@@ -29,6 +29,8 @@ void SimplePrintTest::start() {
         QTest::qWait(1000);
     }
 
+    setupBasicExposureTime();
+
     printContinueButtonClick();
 
     statusStartPrint();

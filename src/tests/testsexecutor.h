@@ -79,8 +79,6 @@ public:
                     test->start();
                 } catch (QException e) { }
             }
-
-            fclose(TestLog);
         });
 
         thread->start();

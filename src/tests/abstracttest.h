@@ -449,6 +449,16 @@ public:
         S_ASSERT(statusLabel->isVisible());
     }
 
+    void setupBasicExposureTime() {
+
+        ParamSlider* bodyExpoSlider = findWidget<ParamSlider*>("printBodyExposureTime");
+
+        bodyExpoSlider->setValue(1000);
+        bodyExpoSlider->onValueChanged(1000);
+
+        QTest::qWait(1000);
+    }
+
 signals:
     void successed();
     void failed(QString message);
