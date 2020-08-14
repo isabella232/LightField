@@ -4,44 +4,71 @@
 
 namespace {
 
-    FILE* DebugLog       {        };
+    FILE* DebugLog { };
+    FILE* FirmwareLog { };
     FILE* OriginalStderr { stderr };
 
 }
 
-DebugManager::DebugManager( ) {
-    ::unlink( DebugLogPaths[5] );
-    for ( int n = 5; n > 0; --n ) {
-        ::rename( DebugLogPaths[n - 1], DebugLogPaths[n] );
+DebugManager::DebugManager(DebugType type, const char **paths) {
+    _type = type;
+    _paths = paths;
+
+    rotate();
+}
+
+void DebugManager::rotate() {
+    ::unlink(_paths[5]);
+    for (int n = 5; n > 0; --n) {
+        ::rename(_paths[n - 1], _paths[n]);
     }
 
-    DebugLog = ::fopen( DebugLogPaths[0], "wtx" );
-    if ( !DebugLog ) {
+    FILE **log = &DebugLog;;
+
+    switch (_type) {
+    case (DebugType::APP):
+        log = &DebugLog;
+        break;
+    case (DebugType::FIRMWARE):
+        log = &FirmwareLog;
+        break;
+    }
+
+    *log = ::fopen(_paths[0], "wtx");
+    if (!*log) {
         error_t err = errno;
-        ::fprintf( stderr, "failed to open log file '%s': %s [%d]", DebugLogPaths[0], strerror( err ), err );
+        ::fprintf(stderr, "failed to open log file '%s': %s [%d]", _paths[0], strerror(err),
+            err);
     } else {
         // save the original stderr
-        int fd = ::dup( 2 );
+        int fd = ::dup(2);
 
         // redirect stderr to the debug log
-        ::dup2( ::fileno( DebugLog ), 2 );
+        ::dup2(::fileno(*log), 2);
 
         // get a FILE* for the original stderr
-        OriginalStderr = ::fdopen( fd, "wt" );
+        OriginalStderr = ::fdopen(fd, "wt");
 
         // disable buffering on both FILE*:s
-        ::setvbuf( DebugLog,       nullptr, _IONBF, 0 );
-        ::setvbuf( OriginalStderr, nullptr, _IONBF, 0 );
+        ::setvbuf(*log, nullptr, _IONBF, 0);
+        ::setvbuf(OriginalStderr, nullptr, _IONBF, 0);
     }
 }
 
-DebugManager::~DebugManager( ) {
+DebugManager::~DebugManager() {
     /*empty*/
 }
 
-void debug( char const* str ) {
-    if ( DebugLog ) {
-        ::fputs( str, DebugLog );
+void debug(char const* str) {
+    if (DebugLog) {
+        ::fputs(str, DebugLog);
     }
-    ::fputs( str, OriginalStderr );
+    ::fputs(str, OriginalStderr);
+}
+
+void firmware_debug(char const* str) {
+    if (FirmwareLog) {
+        ::fputs(str, FirmwareLog);
+    }
+    ::fputs(str, OriginalStderr);
 }

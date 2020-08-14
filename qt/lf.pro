@@ -1,4 +1,4 @@
-QT += core gui widgets xml
+QT += core gui widgets xml serialport
 
 TARGET   = lf
 TEMPLATE = app
@@ -67,7 +67,8 @@ SOURCES +=                          \
     ../src/usbmountmanager.cpp      \
     ../src/utils.cpp                \
     ../src/window.cpp \
-    ../src/thicknesswindow.cpp
+    ../src/thicknesswindow.cpp \
+    ../src/firmwarecontroller.cpp
 
 HEADERS  +=                         \
     ../src/advancedtab.h            \
@@ -129,7 +130,8 @@ HEADERS  +=                         \
     ../src/version.h                \
     ../src/vertex.h                 \
     ../src/window.h \
-    ../src/thicknesswindow.h
+    ../src/thicknesswindow.h \
+    ../src/firmwarecontroller.h
 
 CONFIG += c++1z precompile_header link_pkgconfig
 PKGCONFIG = GraphicsMagick++

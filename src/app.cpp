@@ -243,7 +243,7 @@ void App::_setTheme( ) {
 }
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
-    _debugManager = new DebugManager;
+    _debugManager = new DebugManager(DebugType::APP, DebugLogPaths);
     debug(
         "LightField starting at %s (pid: %d).\n"
         "  + Version:         %s\n"

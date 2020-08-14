@@ -73,3 +73,13 @@ char                      const* DebugLogPaths[DebugLogPathCount]
     "/var/log/lightfield/debug.4.log",
     "/var/log/lightfield/debug.5.log",
 };
+
+char                      const* FirmwareLogPaths[FirmwareLogPathCount]
+{
+    "/var/log/lightfield/firmware.log",
+    "/var/log/lightfield/firmware.1.log",
+    "/var/log/lightfield/firmware.2.log",
+    "/var/log/lightfield/firmware.3.log",
+    "/var/log/lightfield/firmware.4.log",
+    "/var/log/lightfield/firmware.5.log",
+};

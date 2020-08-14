@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include "qprocess.h"
+#include "debug.h"
 
 enum class PendingCommand {
     none,

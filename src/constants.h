@@ -57,6 +57,9 @@ int                extern const  DefaultBaseLayerThickness;
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 
+int    constexpr          const  FirmwareLogPathCount          =    6;
+char               extern const* FirmwareLogPaths[DebugLogPathCount];
+
 #   if defined XDLP471020UM
 
 double constexpr          const  ProjectorPixelSize         =    0.0200; // mm
