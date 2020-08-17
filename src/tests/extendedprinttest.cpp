@@ -19,8 +19,15 @@ void ExtendedPrintTest::start() {
 
     prepareSliceButtonClick();
 
-    if(!g_settings.pretendPrinterIsPrepared) {
-        prepareClickPrepare();
+    QLabel* prepareMsg = findWidget<QLabel*>("preparePrepareMessage");
+
+    TDEBUG(prepareMsg->text().toUtf8().data());
+    if(!g_settings.pretendPrinterIsPrepared && prepareMsg->text() != "Preparation completed.") {
+        QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
+
+        if(prepareButton->text() == "Prepare...")
+            prepareClickPrepare();
+
         prepareClickContinue();
     } else {
         //switch to print tab

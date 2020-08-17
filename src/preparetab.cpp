@@ -444,6 +444,8 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
         _layerThickness100Button->setChecked(true);
     }
 
+    dialog->deleteLater();
+
     _initAfterSelect = false;
     _checkSliceDirectories();
 }

@@ -77,7 +77,9 @@ public:
 
                 try {
                     test->start();
-                } catch (QException e) { }
+                } catch (QException e) {
+                    QTest::qWait(2000);
+                }
             }
         });
 

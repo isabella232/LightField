@@ -59,7 +59,6 @@ public:
 #define TDEBUG(...) tDebug(__PRETTY_FUNCTION__, __VA_ARGS__)
 
     bool ASSERT(bool arg1, bool halt=true, QString msg = "", QString file="", QString line="") {
-        TDEBUG( "%d", arg1 );
         if(arg1 && halt)
         {
             QString alert = QString("false predicate: [%1]:%2 %3").arg(file).arg(line).arg(msg);
@@ -212,7 +211,7 @@ public:
         int modelHeight = fileTab->modelSelection()->z.size * 1000;
 
         mouseClick(resliceButton);
-        QTest::qWait(1000);
+        QTest::qWait(3000);
         QTest::qWaitFor([imageGeneratorStatus, siceStatus]() {
             return imageGeneratorStatus->text() == "idle" && siceStatus->text() == "idle";
         }, 500000);
@@ -224,7 +223,11 @@ public:
         S_ASSERT(rx.cap(1).toInt() > 0);
         S_ASSERT(rx.cap(2).toInt() > 0);
 
-        int overallCount = ((modelHeight - (numberBase * baseThickness)) / bodyThickness) + numberBase;
+        int overallCount = ceil((
+            (float)modelHeight -
+            (float)(numberBase * baseThickness)) / bodyThickness) +
+            (float)numberBase;
+
         TDEBUG("overallCount: %d, modelHeight: %d, numberBase: %d, baseThickness: %d, bodyThickness: %d",
               overallCount, modelHeight, numberBase, baseThickness, bodyThickness);
         S_ASSERT(overallCount == rx.cap(2).toInt());
@@ -288,6 +291,7 @@ public:
 
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
         QProgressBar* progressBar = findWidget<QProgressBar*>("preparePrepareProgress");
+
         mouseClick(prepareButton);
         QTest::qWait(1000);
         QTest::qWaitFor([progressBar]() {
@@ -359,7 +363,8 @@ public:
         QLabel* statusLabel = findWidget<QLabel*>("statusDispensePrintSolution");
         Spoiler* printAdvancedExpoTime = findWidget<Spoiler*>("printAdvancedExpoTime");
 
-        mouseClick(&printAdvancedExpoTime->toggleButton());
+        if(!printAdvancedExpoTime->isCollapsed())
+            mouseClick(&printAdvancedExpoTime->toggleButton());
 
         QTest::qWait(2000);
 
@@ -396,6 +401,9 @@ public:
         auto next = iter.next();
         int capBase = (int)(next.captured(1).toDouble() * 1000);
 
+        TDEBUG("capBase = %d", capBase);
+        TDEBUG("baseSum = %d", baseSum);
+
         S_ASSERT(capBase == baseSum);
 
         next = iter.next();
@@ -414,11 +422,13 @@ public:
 
         mouseClick(statusStartPrint);
 
-        QTest::qWait(4000);
+        QTest::qWaitFor([pause]() {
+            return pause->isEnabled();
+        }, 50000);
 
         mouseClick(pause);
 
-        QTest::qWait(500);
+        QTest::qWait(1000);
 
         S_ASSERT((pause->text() == "Pausing..."));
 
