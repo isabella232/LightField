@@ -62,7 +62,9 @@ void TabBase::setPrintProfileManager(PrintProfileManager* printProfileManager)
 }
 
 void TabBase::setFirmwareController(FirmwareController *controller) {
+    _disconnectFirmwareController();
     _firmwareController = controller;
+    _connectFirmwareController();
 }
 
 void TabBase::setUsbMountManager( UsbMountManager* usbMountManager ) {

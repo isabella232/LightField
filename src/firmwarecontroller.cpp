@@ -27,7 +27,7 @@ FirmwareController::FirmwareController(QObject *parent, QString const & portPath
     QObject::connect(&_serial, &QSerialPort::bytesWritten, this,
         &FirmwareController::serialBytesWritten);
     QObject::connect(&_serial, &QSerialPort::readyRead, this, &FirmwareController::serialDataReady);
-    QObject::connect(this, &FirmwareController::serialResetCompleted, this,
+    QObject::connect(this, &FirmwareController::printerOnline, this,
         &FirmwareController::printerInitialize);
 #if defined _DEBUG
     QObject::connect(&_tempReportTimer, &QTimer::timeout, this, &FirmwareController::mockTempAutoreport);
@@ -65,7 +65,7 @@ void FirmwareController::close()
 
 void FirmwareController::moveRelative(double dist, double speed)
 {
-    QStringList args = {QString("%.2f").arg(dist), QString("%.2f").arg(speed)};
+    QStringList args = {QString::number(dist, 'f', 2), QString::number(speed, 'f', 2)};
     sendComplexCommand(FirmwareComplexCommandType::MOVE_RELATIVE, args);
     debug("+ FirmwareController::moveRelative: command queued - distance: %.2f, speed: %.2f\n",
         dist, speed);
@@ -73,7 +73,7 @@ void FirmwareController::moveRelative(double dist, double speed)
 
 void FirmwareController::moveAbsolute(double position, double speed)
 {
-    QStringList args = {QString("%.2f").arg(position), QString("%.2f").arg(speed)};
+    QStringList args = {QString::number(position, 'f', 2), QString::number(speed, 'f', 2)};
     sendComplexCommand(FirmwareComplexCommandType::MOVE_ABSOLUTE, args);
     debug("+ FirmwareController::moveAbsolute: command queued - position: %.2f, speed: %.2f\n",
         position, speed);
@@ -88,7 +88,7 @@ void FirmwareController::moveHome()
 void FirmwareController::setTemperature(int temp)
 {
     QStringList args = {QString::number(temp)};
-    sendComplexCommand(FirmwareComplexCommandType::MOVE_ABSOLUTE, args);
+    sendComplexCommand(FirmwareComplexCommandType::SET_BED_TEMPERATURE, args);
     debug("+ FirmwareController::setTemperature: command queued - temperature: %d\n", temp);
 }
 
@@ -116,7 +116,7 @@ int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args)
 {
     const FirmwareCommand cmd = FirmwareCommand(type, args);
 
-    firmware_debug(cmd.getCommand().toUtf8());
+    firmware_debug(cmd.getCommand().toUtf8().data());
 
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
@@ -129,10 +129,10 @@ int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args)
     if (_serial.isOpen()) {
         _cmdQueue.enqueue(cmd);
         _serial.write(cmd.getCommand().toUtf8());
-        debug("+ FirmwareController::sendCommand: command queued: %s\n", cmd.getCommand());
+        debug("+ FirmwareController::sendCommand: command queued: %s\n", cmd.getCommand().toUtf8().data());
     } else {
         debug("+ FirmwareController::sendCommand: discarding command: %s - serial port closed\n",
-            cmd.getCommand());
+            cmd.getCommand().toUtf8().data());
 
         resetFirmware();
         return -1;
@@ -209,9 +209,21 @@ void FirmwareController::printerInitialize()
     debug("+ FirmwareController::printerInitialize: command queued\n");
 }
 
+FirmwareCommand & FirmwareController::getFirstUnsent()
+{
+    QQueue<FirmwareCommand>::iterator i = _cmdQueue.begin();
+
+    for (; i != _cmdQueue.end(); ++i) {
+        if (!i->isSent())
+            break;
+    }
+
+    return *i;
+}
+
 void FirmwareController::serialBytesWritten(int bytes)
 {
-    FirmwareCommand &next_cmd = _cmdQueue.head();
+    FirmwareCommand &next_cmd = getFirstUnsent();
     _writeCount += bytes;
 
     debug("+ FirmwareController::serialBytesWritten: %d bytes written to serial port\n", bytes);
@@ -223,7 +235,8 @@ void FirmwareController::serialBytesWritten(int bytes)
         next_cmd.setSent();
         _writeCount -= next_cmd.getLength();
 
-        debug("+ FirmwareController::serialBytesWritten: %s command sent\n", next_cmd.getCommand());
+        debug("+ FirmwareController::serialBytesWritten: command sent %s %s",
+            next_cmd.getCommandName(), next_cmd.getCommand().toUtf8().data());
     }
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
@@ -273,7 +286,6 @@ void FirmwareController::serialBytesWritten(int bytes)
 void FirmwareController::serialDataReady()
 {
     QString line;
-    FirmwareCommand &next_cmd = _cmdQueue.head();
 
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
@@ -283,19 +295,22 @@ void FirmwareController::serialDataReady()
         }
         
         if (_reportTemp) {
-            line = QString(" T:25.00 /0.00 B:%1 /%2 @:0 B@:0\n");
-            line = line.arg(QString("%.2f").arg(_targetTemp > 0 ? _targetTemp : 25.0));
-            line = line.arg(QString("%.2f").arg(_targetTemp));
+            line = QString(" T:25.00 /0.00 B:%1 /%2 @:0 B@:127\n");
+            line = line.arg(QString::number(_targetTemp > 0 ? _targetTemp : 25.0, 'f', 2));
+            line = line.arg(QString::number(_targetTemp, 'f', 2));
             _reportTemp = false;
             goto skip_serial;
         }
 
         if (_reportPosition) {
             line = QString("X:%1 Y:0.00 Z:0.00 E:0.00 Count X:0 Y:0 Z:0\n");
-            line = line.arg(QString("%.2f").arg(_zPosition));
+            line = line.arg(QString::number(_zPosition, 'f', 2));
             _reportPosition = false;
             goto skip_serial;
         }
+
+        Q_ASSERT(!_cmdQueue.empty());
+        FirmwareCommand &next_cmd = _cmdQueue.head();
 
         switch (next_cmd.getType()) {
         case (FirmwareCommandType::LINEAR_MOVE):
@@ -311,8 +326,8 @@ void FirmwareController::serialDataReady()
             break;
         case (FirmwareCommandType::REPORT_TEMPERATURES):
             line = QString("ok T:25.00 /0.00 B:%1 /%2 @:0 B@:0\n");
-            line = line.arg(QString("%.2f").arg(_targetTemp > 0 ? _targetTemp : 25.0));
-            line = line.arg(QString("%.2f").arg(_targetTemp));
+            line = line.arg(QString::number(_targetTemp > 0 ? _targetTemp : 25.0, 'f', 2));
+            line = line.arg(QString::number(_targetTemp, 'f', 2));
             break;
         case (FirmwareCommandType::GET_CURRENT_POSITION):
             line = QString("ok\n");
@@ -330,8 +345,8 @@ void FirmwareController::serialDataReady()
 
     line = _serial.readLine();
 skip_serial:
-    debug("+ FirmwareController::serialDataReady: firmware response: %s", line);
-    firmware_debug(line.toUtf8());
+    debug("+ FirmwareController::serialDataReady: firmware response: %s", line.toUtf8().data());
+    firmware_debug(line.toUtf8().data());
 
     if (!_online) {
         if (line.startsWith("start") || line.startsWith("Grbl") || line.startsWith("ok")) {
@@ -343,6 +358,9 @@ skip_serial:
     }
 
     if (line.startsWith("ok")) {
+        Q_ASSERT(!_cmdQueue.empty());
+        FirmwareCommand &next_cmd = _cmdQueue.head();
+
         if (!next_cmd.isSent()) {
             debug("+ FirmwareController::serialDataReady: printer firmware sent unexpected 'ok' response - discarding\n");
             return;
@@ -355,14 +373,14 @@ skip_serial:
             parseTemperatureReport(line);
         }
 
-        debug("+ FirmwareController::serialDataReady: command %s completed: %s\n",
-            next_cmd.getCommandName(), next_cmd.getCommand());
+        debug("+ FirmwareController::serialDataReady: command %s completed: %s",
+            next_cmd.getCommandName(), next_cmd.getCommand().toUtf8().data());
 
-        FirmwareComplexCommand next_cplx_cmd = _cplxCmdQueue.head();
+        FirmwareComplexCommand &next_cplx_cmd = _cplxCmdQueue.head();
         FirmwareCommandType expected_command = next_cplx_cmd.popNextSubcommand();
         if (expected_command != next_cmd.getType()) {
-            debug("+ FirmwareController::serialDataReady: command mismatch during %s - expected %s, got %s\n",
-                next_cplx_cmd.getCommandName(), expected_command, next_cmd.getCommandName());
+            debug("+ FirmwareController::serialDataReady: command mismatch during %s - expected %d, got %d\n",
+                next_cplx_cmd.getCommandName(), expected_command, next_cmd.getType());
             resetFirmware();
             return;
         }
@@ -401,11 +419,11 @@ skip_serial:
     } else if (line.startsWith("X:")) {
         parsePosition(line);
     } else if (line.startsWith("Error")) {
-        debug("+ FirmwareController::serialDataReady: firmware error: %s\n", line);
+        debug("+ FirmwareController::serialDataReady: firmware error: %s\n", line.toUtf8().data());
         resetFirmware();
         return;
     } else if (line.startsWith("echo:")) {
-        debug("+ FirmwareController::serialDataReady: firmware debug print: %s\n", line);
+        debug("+ FirmwareController::serialDataReady: firmware debug print: %s\n", line.toUtf8().data());
     } else {
         QRegularExpressionMatch match = FirmwareVersionMatcher.match(line);
 
@@ -416,7 +434,7 @@ skip_serial:
             return;
         }
 
-        debug("+ FirmwareController::serialDataReady: unhandled firmware data output: %s\n", line);
+        debug("+ FirmwareController::serialDataReady: unhandled firmware data output: %s\n", line.toUtf8().data());
     }
 }
 
@@ -443,7 +461,7 @@ void FirmwareController::parseTemperatureReport(QString const &line)
             emit printerTemperatureReport(bed_temp, bed_target_temp, bed_pwm);
         } else {
             debug("+ FirmwareController::parseTemperatureReport: temperature data missing in report: %s\n",
-                line);
+                line.toUtf8().data());
         }
     }
 }
@@ -459,7 +477,7 @@ void FirmwareController::parsePosition(const QString &line)
         debug("+ FirmwareController::parsePosition: position px: %.2f, cx: %d\n",
               px, cx);
     } else
-        debug("+ FirmwareController::parsePosition: position data missing in report: %s\n", line);
+        debug("+ FirmwareController::parsePosition: position data missing in report: %s\n", line.toUtf8().data());
 }
 
 #if defined _DEBUG

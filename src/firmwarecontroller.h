@@ -75,7 +75,7 @@ static const QMap<FirmwareComplexCommandType, QList<FirmwareCommandType>> comple
 
 class FirmwareCommand {
 public:
-    FirmwareCommand(FirmwareCommandType type, QStringList const & args): _args(args), _type(type) {
+   FirmwareCommand(FirmwareCommandType type, QStringList const & args): _args(args), _type(type) {
         _command = firmwareCommands[type];
 
         foreach (const QString &i, args)
@@ -135,7 +135,7 @@ public:
 
     void setSent() {
         _sent = true;
-        debug("+ FirmwareCommand::setSent: command sent: %s\n", _command);
+        debug("+ FirmwareCommand::setSent: command sent: %s", _command.toUtf8().data());
     }
 
 protected:
@@ -229,6 +229,7 @@ protected:
     void resetFirmware();
     void parseTemperatureReport(QString const &line);
     void parsePosition(QString const &line);
+    FirmwareCommand & getFirstUnsent();
 
 signals:
     void printerOnline();
