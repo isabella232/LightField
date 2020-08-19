@@ -3,7 +3,7 @@
 #include "systemtab.h"
 
 #include "debuglogcopier.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "upgrademanager.h"
 #include "upgradeselector.h"
 #include "usbmountmanager.h"
@@ -89,11 +89,14 @@ SystemTab::~SystemTab( ) {
     /*empty*/
 }
 
-void SystemTab::_connectShepherd( ) {
-    if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,                this, &SystemTab::printer_online                 );
-        QObject::connect( _shepherd, &Shepherd::printer_offline,               this, &SystemTab::printer_offline                );
-        QObject::connect( _shepherd, &Shepherd::printer_firmwareVersionReport, this, &SystemTab::shepherd_firmwareVersionReport );
+void SystemTab::_connectFirmwareController() {
+    if (_firmwareController) {
+        QObject::connect(_firmwareController, &FirmwareController::printerOnline, this,
+            &SystemTab::printer_online);
+        QObject::connect(_firmwareController, &FirmwareController::printerOffline, this,
+            &SystemTab::printer_offline);
+        QObject::connect(_firmwareController, &FirmwareController::printerFirmwareVersionReport,
+            this, &SystemTab::firmwareVersionReport);
     }
 }
 
@@ -158,7 +161,7 @@ void SystemTab::usbMountManager_filesystemUnmounted( QString const& mountPoint )
     _updateButtons( );
 }
 
-void SystemTab::shepherd_firmwareVersionReport( QString const& version ) {
+void SystemTab::firmwareVersionReport( QString const& version ) {
     _versionLabel->setText(
         VersionMessage
         .arg( QCoreApplication::applicationName( )    )

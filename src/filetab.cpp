@@ -12,7 +12,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "processrunner.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "timinglogger.h"
 #include "usbmountmanager.h"
 #include "printprofilemanager.h"

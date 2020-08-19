@@ -7,17 +7,11 @@
 #include "ordermanifestmanager.h"
 #include "printjob.h"
 #include "printmanager.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 
 namespace {
 
     double const PrintSolutionRecommendedScaleFactor = 2.0;
-
-    QStringList const PrinterInitializationCommands {
-        "M18",
-        "M106",
-        "M155 S5",
-    };
 
     void _HideAndClear( QLabel* label ) {
         label->setVisible( false );
@@ -209,12 +203,6 @@ StatusTab::StatusTab(QWidget* parent): InitialShowEventMixin<StatusTab, TabBase>
     _updatePrintTimeInfo->setTimerType( Qt::PreciseTimer );
     QObject::connect( _updatePrintTimeInfo, &QTimer::timeout, this, &StatusTab::updatePrintTimeInfo_timeout );
 
-
-    _printerOnlineTimer = new QTimer( this );
-    _printerOnlineTimer->setInterval( 2000 );
-    _printerOnlineTimer->setSingleShot( true );
-    _printerOnlineTimer->setTimerType( Qt::PreciseTimer );
-    QObject::connect( _printerOnlineTimer, &QTimer::timeout, this, &StatusTab::printerOnlineTimer_timeout );
 }
 
 StatusTab::~StatusTab( ) {
@@ -259,14 +247,8 @@ void StatusTab::printer_online( ) {
     _isPrinterOnline = true;
     debug( "+ StatusTab::printer_online: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
-    _printerStateDisplay->setText( "Printer is online" );
-    update( );
-
-    if ( PrinterInitializationCommands.isEmpty( ) || _isFirstOnlineTaskDone ) {
-        return;
-    }
-    debug( "+ StatusTab::printer_online: printer has come online for the first time; starting timer\n" );
-    _printerOnlineTimer->start( );
+    _printerStateDisplay->setText("Printer is online");
+    update();
 }
 
 void StatusTab::printer_offline( ) {
@@ -274,7 +256,7 @@ void StatusTab::printer_offline( ) {
     debug( "+ StatusTab::printer_offline: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _printerStateDisplay->setText( "Printer is OFFLINE" );
-    update( );
+    update();
 }
 
 void StatusTab::pauseButton_clicked(bool)
@@ -558,15 +540,6 @@ void StatusTab::printer_positionReport( double const px, int const cx ) {
     update( );
 }
 
-
-
-void StatusTab::initializationCommands_sendComplete( bool const success ) {
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
-
-    debug( "+ StatusTab::initializationCommands_sendComplete: first-online tasks %s\n", SucceededString( success ) );
-    _isFirstOnlineTaskDone = success;
-}
-
 void StatusTab::updatePrintTimeInfo_timeout( ) {
     if ( !_printManager ) {
         debug( "+ StatusTab::updatePrintTimeInfo_timeout: no print manager. don't know why timer is even running, but stopping it.\n" );
@@ -596,15 +569,6 @@ void StatusTab::updatePrintTimeInfo_timeout( ) {
     update();
 }
 
-void StatusTab::printerOnlineTimer_timeout()
-{
-    _printerOnlineTimer->stop( );
-
-    debug( "+ StatusTab::printerOnlineTimer_timeout: sending initialization commands\n" );
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &StatusTab::initializationCommands_sendComplete );
-    _shepherd->doSend( PrinterInitializationCommands );
-}
-
 void StatusTab::startThePrintButton_clicked( bool ) {
     _dispensePrintSolutionGroup->setVisible( false );
     _dispensePrintSolutionTitle->setVisible( false );
@@ -631,12 +595,16 @@ void StatusTab::_connectPrintManager( ) {
     }
 }
 
-void StatusTab::_connectShepherd( ) {
-    if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &StatusTab::printer_online            );
-        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &StatusTab::printer_offline           );
-        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &StatusTab::printer_temperatureReport );
-        QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &StatusTab::printer_positionReport    );
+void StatusTab::_connectFirmwareController() {
+    if (_firmwareController) {
+        QObject::connect(_firmwareController, &FirmwareController::printerOnline, this,
+            &StatusTab::printer_online);
+        QObject::connect(_firmwareController, &FirmwareController::printerOffline, this,
+            &StatusTab::printer_offline);
+        QObject::connect(_firmwareController, &FirmwareController::printerTemperatureReport, this,
+            &StatusTab::printer_temperatureReport);
+        QObject::connect(_firmwareController, &FirmwareController::printerPositionReport, this,
+            &StatusTab::printer_positionReport);
     }
 }
 

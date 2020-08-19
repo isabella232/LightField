@@ -1,7 +1,11 @@
 #ifndef __MOVEMENTSEQUENCER_H__
 #define __MOVEMENTSEQUENCER_H__
 
-class Shepherd;
+#include <QtCore>
+#include <QTimer>
+#include "debug.h"
+#include "firmwarecontroller.h"
+#include "constants.h"
 
 enum class MoveType {
     Absolute,
@@ -52,7 +56,7 @@ class MovementSequencer: public QObject {
 
 public:
 
-    MovementSequencer( Shepherd* shepherd, QObject* parent = nullptr );
+    MovementSequencer(FirmwareController* controller, QObject* parent = nullptr);
     virtual ~MovementSequencer( ) override;
 
     MovementSequencer( MovementSequencer const& ) = delete;
@@ -107,7 +111,7 @@ protected:
 
 private:
 
-    Shepherd*           _shepherd;
+    FirmwareController* _firmwareController;
     QTimer*             _timer;
     QList<MovementInfo> _movements;
 
@@ -130,8 +134,8 @@ protected slots:
 private slots:
     ;
 
-    void shepherd_moveAbsoluteComplete( bool const success );
-    void shepherd_moveRelativeComplete( bool const success );
+    void moveAbsoluteComplete( bool const success );
+    void moveRelativeComplete( bool const success );
     void timer_timeout( );
 
 };

@@ -37,12 +37,12 @@ QString                   const  JobWorkingDirectoryPath       { "/var/cache/lig
 QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
-QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
 QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };
 QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
+QString                   const  FirmwarePath                  { "/dev/lumen-arduino"                                     };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };

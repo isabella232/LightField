@@ -11,7 +11,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "printprofile.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "slicesorderpopup.h"
 #include "thicknesswindow.h"
 #include "slicertask.h"
@@ -213,11 +213,14 @@ void PrepareTab::_connectPrintManager( ) {
     }
 }
 
-void PrepareTab::_connectShepherd( ) {
-    if ( _shepherd ) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &PrepareTab::printer_online            );
-        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &PrepareTab::printer_offline           );
-        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &PrepareTab::printer_temperatureReport );
+void PrepareTab::_connectFirmwareController() {
+    if (_firmwareController) {
+        QObject::connect(_firmwareController, &FirmwareController::printerOnline, this,
+            &PrepareTab::printer_online);
+        QObject::connect(_firmwareController, &FirmwareController::printerOffline, this,
+            &PrepareTab::printer_offline);
+        QObject::connect(_firmwareController, &FirmwareController::printerTemperatureReport, this,
+            &PrepareTab::printer_temperatureReport);
     }
 }
 
@@ -739,10 +742,10 @@ void PrepareTab::prepareButton_clicked(bool)
     _prepareButton->setText("Continue...");
     _prepareButton->setEnabled(false);
 
-    QObject::connect(_shepherd, &Shepherd::action_homeComplete, this,
-        &PrepareTab::shepherd_homeComplete);
+    QObject::connect(_firmwareController, &FirmwareController::printerHomeCompleted, this,
+        &PrepareTab::homeComplete);
 
-    _shepherd->doHome();
+    _firmwareController->moveHome();
 
     setPrinterAvailable(false);
     emit printerAvailabilityChanged(false);
@@ -751,14 +754,14 @@ void PrepareTab::prepareButton_clicked(bool)
     update();
 }
 
-void PrepareTab::shepherd_homeComplete( bool const success ) {
-    debug( "+ PrepareTab::shepherd_homeComplete: success: %s\n", success ? "true" : "false" );
+void PrepareTab::homeComplete(bool const success) {
+    debug( "+ PrepareTab::homeComplete: success: %s\n", success ? "true" : "false" );
 
-    QObject::disconnect( _shepherd, nullptr, this, nullptr );
-    _prepareProgress->hide( );
+    QObject::disconnect(_firmwareController, nullptr, this, nullptr);
+    _prepareProgress->hide();
 
-    if ( !success ) {
-        _handlePrepareFailed( );
+    if (!success) {
+        _handlePrepareFailed();
         return;
     }
 
@@ -780,16 +783,17 @@ void PrepareTab::adjustBuildPlatform_complete( bool ) {
     _prepareMessage->setText( "Raising the build platform" );
     _prepareProgress->show( );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrepareTab::shepherd_raiseBuildPlatformMoveToComplete );
-    _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
+    QObject::connect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted, this,
+        &PrepareTab::raiseBuildPlatformMoveToComplete);
+    _firmwareController->moveAbsolute(PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed);
 
     update( );
 }
 
-void PrepareTab::shepherd_raiseBuildPlatformMoveToComplete( bool const success ) {
-    debug( "+ PrepareTab::shepherd_raiseBuildPlatformMoveToComplete: success: %s\n", success ? "true" : "false" );
+void PrepareTab::raiseBuildPlatformMoveToComplete(bool const success) {
+    debug( "+ PrepareTab::raiseBuildPlatformMoveToComplete: success: %s\n", success ? "true" : "false" );
 
-    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+    QObject::disconnect(_firmwareController, nullptr, this, nullptr);
     _prepareProgress->hide( );
 
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );

@@ -18,7 +18,7 @@ static QRegularExpression TemperatureReport2Matcher {
     "^T:(-?\\d+\\.\\d\\d)\\s*/(-?\\d+\\.\\d\\d) @:(-?\\d+)",
     QRegularExpression::CaseInsensitiveOption };
 
-FirmwareController::FirmwareController(QString const & portPath, int baudrate, QObject *parent):
+FirmwareController::FirmwareController(QObject *parent, QString const & portPath, int baudrate):
     QObject(parent),
     _portPath(portPath),
     _baudrate(baudrate)
@@ -50,32 +50,50 @@ void FirmwareController::init()
     resetFirmware();
 }
 
-void FirmwareController::moveRelative(double dist, double speed) {
+void FirmwareController::close()
+{
+    _online = false;
+    emit printerOffline();
+
+#if defined _DEBUG
+    if (g_settings.pretendPrinterIsOnline) {
+        return;
+    }
+#endif // defined _DEBUG
+    _serial.close();
+}
+
+void FirmwareController::moveRelative(double dist, double speed)
+{
     QStringList args = {QString("%.2f").arg(dist), QString("%.2f").arg(speed)};
     sendComplexCommand(FirmwareComplexCommandType::MOVE_RELATIVE, args);
     debug("+ FirmwareController::moveRelative: command queued - distance: %.2f, speed: %.2f\n",
         dist, speed);
 }
 
-void FirmwareController::moveAbsolute(double position, double speed) {
+void FirmwareController::moveAbsolute(double position, double speed)
+{
     QStringList args = {QString("%.2f").arg(position), QString("%.2f").arg(speed)};
     sendComplexCommand(FirmwareComplexCommandType::MOVE_ABSOLUTE, args);
     debug("+ FirmwareController::moveAbsolute: command queued - position: %.2f, speed: %.2f\n",
         position, speed);
 }
 
-void FirmwareController::moveHome() {
+void FirmwareController::moveHome()
+{
     sendComplexCommand(FirmwareComplexCommandType::MOVE_HOME, QStringList());
     debug("+ FirmwareController::moveHome: command queued");
 }
 
-void FirmwareController::setTemperature(int temp) {
+void FirmwareController::setTemperature(int temp)
+{
     QStringList args = {QString::number(temp)};
     sendComplexCommand(FirmwareComplexCommandType::MOVE_ABSOLUTE, args);
     debug("+ FirmwareController::setTemperature: command queued - temperature: %d\n", temp);
 }
 
-void FirmwareController::sendComplexCommand(FirmwareComplexCommandType type, QStringList args) {
+void FirmwareController::sendComplexCommand(FirmwareComplexCommandType type, QStringList args)
+{
     QRegExp arg_rx("%\\d{1,2}(?!\\d)");
     int arg_pos = 0;
 
@@ -87,14 +105,15 @@ void FirmwareController::sendComplexCommand(FirmwareComplexCommandType type, QSt
         arg_pos += arg_cnt;
 
         if (sendCommand(command, sub_args) != 0) {
-            _cplxCmdQueue.takeLast();
             debug("+ FirmwareController::sendComplexCommand: command discarded\n");
+            resetFirmware();
             return;
         }
     }
 }
 
-int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args) {
+int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args)
+{
     const FirmwareCommand cmd = FirmwareCommand(type, args);
 
     firmware_debug(cmd.getCommand().toUtf8());
@@ -122,14 +141,39 @@ int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args) 
     return 0;
 }
 
-void FirmwareController::resetFirmware() {
+void FirmwareController::resetFirmware()
+{
     if (_online) {
         _online = false;
         debug("+ FirmwareController::resetFirmware: printer offline\n");
         emit printerOffline();
     }
 
+    foreach (const FirmwareComplexCommand &cmd, _cplxCmdQueue) {
+        switch (cmd.getType()) {
+        case (FirmwareComplexCommandType::MOVE_RELATIVE):
+            emit printerMoveRelativeCompleted(false);
+            break;
+        case (FirmwareComplexCommandType::MOVE_ABSOLUTE):
+            emit printerMoveAbsoluteCompleted(false);
+            break;
+        case (FirmwareComplexCommandType::MOVE_HOME):
+            emit printerHomeCompleted(false);
+            break;
+        case (FirmwareComplexCommandType::INITIALIZE):
+            emit printerInitCompleted(false);
+            break;
+        case (FirmwareComplexCommandType::SET_BED_TEMPERATURE):
+            emit printerSetTemperatureCompleted(false);
+            break;
+        }
+
+        emit printerComplexCommandCompleted(cmd.getType(), false);
+    }
     _cplxCmdQueue.clear();
+
+    foreach (const FirmwareCommand &cmd, _cmdQueue)
+        emit printerCommandCompleted(cmd.getType(), false);
     _cmdQueue.clear();
     debug("+ FirmwareController::resetFirmware: resetting firmware - DTR active\n");
 #if defined _DEBUG
@@ -143,7 +187,8 @@ void FirmwareController::resetFirmware() {
     QTimer::singleShot(200, this, SLOT(serialDTRTimerTimeout()));
 }
 
-void FirmwareController::serialDTRTimerTimeout() {
+void FirmwareController::serialDTRTimerTimeout()
+{
     debug("+ FirmwareController::serialDTRTimerTimeout: firmware reset completed - DTR inactive\n");
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
@@ -158,12 +203,14 @@ void FirmwareController::serialDTRTimerTimeout() {
     emit serialResetCompleted();
 }
 
-void FirmwareController::printerInitialize() {
+void FirmwareController::printerInitialize()
+{
     sendComplexCommand(FirmwareComplexCommandType::INITIALIZE, QStringList("5"));
     debug("+ FirmwareController::printerInitialize: command queued\n");
 }
 
-void FirmwareController::serialBytesWritten(int bytes) {
+void FirmwareController::serialBytesWritten(int bytes)
+{
     FirmwareCommand &next_cmd = _cmdQueue.head();
     _writeCount += bytes;
 
@@ -223,7 +270,8 @@ void FirmwareController::serialBytesWritten(int bytes) {
 #endif // defined _DEBUG
 }
 
-void FirmwareController::serialDataReady() {
+void FirmwareController::serialDataReady()
+{
     QString line;
     FirmwareCommand &next_cmd = _cmdQueue.head();
 
@@ -322,10 +370,31 @@ skip_serial:
         if (next_cplx_cmd.isFinished()) {
             debug("+ FirmwareController::serialDataReady: complex command %s completed\n",
                 next_cplx_cmd.getCommandName());
+            switch (next_cplx_cmd.getType()) {
+            case (FirmwareComplexCommandType::MOVE_RELATIVE):
+                emit printerMoveRelativeCompleted(true);
+                break;
+            case (FirmwareComplexCommandType::MOVE_ABSOLUTE):
+                emit printerMoveAbsoluteCompleted(true);
+                break;
+            case (FirmwareComplexCommandType::MOVE_HOME):
+                emit printerHomeCompleted(true);
+                break;
+            case (FirmwareComplexCommandType::INITIALIZE):
+                emit printerInitCompleted(true);
+                break;
+            case (FirmwareComplexCommandType::SET_BED_TEMPERATURE):
+                emit printerSetTemperatureCompleted(true);
+                break;
+            }
+
+            emit printerComplexCommandCompleted(next_cplx_cmd.getType(), true);
             _cplxCmdQueue.dequeue();
         }
 
+        emit printerCommandCompleted(next_cmd.getType(), true);
         _cmdQueue.dequeue();
+
     } else if (line.contains("T:")) {
         line = line.mid(line.indexOf('T'));
         parseTemperatureReport(line);
@@ -351,7 +420,8 @@ skip_serial:
     }
 }
 
-void FirmwareController::parseTemperatureReport(QString const &line) {
+void FirmwareController::parseTemperatureReport(QString const &line)
+{
     QRegularExpressionMatch match = TemperatureReport1Matcher.match(line);
 
     if (match.hasMatch()) {
@@ -378,7 +448,8 @@ void FirmwareController::parseTemperatureReport(QString const &line) {
     }
 }
 
-void FirmwareController::parsePosition(const QString &line) {
+void FirmwareController::parsePosition(const QString &line)
+{
     QRegularExpressionMatch match = PositionReportMatcher.match(line);
 
     if (match.hasMatch()) {
@@ -392,7 +463,8 @@ void FirmwareController::parsePosition(const QString &line) {
 }
 
 #if defined _DEBUG
-void FirmwareController::mockTempAutoreport() {
+void FirmwareController::mockTempAutoreport()
+{
     _reportTemp = true;
     serialDataReady();
 }

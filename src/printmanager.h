@@ -9,7 +9,7 @@ class MovementSequencer;
 class PngDisplayer;
 class PrintJob;
 class ProcessRunner;
-class Shepherd;
+class FirmwareController;
 class OrderManifestManager;
 
 enum class PrintResult {
@@ -38,7 +38,7 @@ class PrintManager: public QObject {
 
 public:
 
-    PrintManager(Shepherd* shepherd, QObject* parent = nullptr);
+    PrintManager(FirmwareController* firmwareController, QObject* parent = nullptr);
     virtual ~PrintManager() override;
 
     int currentLayer() const
@@ -58,7 +58,7 @@ public:
 
 
 private:
-    Shepherd*           _shepherd                 { };
+    FirmwareController* _firmwareController       { };
     MovementSequencer*  _movementSequencer        { };
     PngDisplayer*       _pngDisplayer             { };
     ProcessRunner*      _setProjectorPowerProcess { };

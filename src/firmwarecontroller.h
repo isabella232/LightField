@@ -193,13 +193,14 @@ protected:
 class FirmwareController: public QObject {
     Q_OBJECT
 public:
-    FirmwareController(QString const& portPath, int baudrate, QObject *parent);
+    FirmwareController(QObject *parent, QString const& portPath, int baudrate);
 
     void moveRelative(double dist, double speed);
     void moveAbsolute(double position, double speed);
     void moveHome();
     void setTemperature(int temp);
     void init();
+    void close();
 
 protected:
     DebugManager firmwareDebugManager {DebugType::FIRMWARE, FirmwareLogPaths};
@@ -209,7 +210,6 @@ protected:
     QQueue<FirmwareComplexCommand> _cplxCmdQueue;
     int _baudrate;
     int _writeCount { 0 };
-    bool _online { false };
 #if defined _DEBUG
 
     QTimer _tempReportTimer;
@@ -221,6 +221,7 @@ protected:
 
     void mockTempAutoreport();
 #endif // defined _DEBUG
+    bool _online { false };
 
     void sendComplexCommand(FirmwareComplexCommandType type, QStringList args);
     int sendCommand(FirmwareCommandType type, QStringList args);
@@ -242,8 +243,8 @@ signals:
     void printerInitCompleted(bool successful);
     void printerSetTemperatureCompleted(bool succesful);
 
-    void printerCommandCompleted(FirmwareCommandType cmd);
-    void printerComplexCommandCompleted(FirmwareComplexCommandType cmd);
+    void printerCommandCompleted(FirmwareCommandType cmd, bool successful);
+    void printerComplexCommandCompleted(FirmwareComplexCommandType cmd, bool successful);
     void serialResetCompleted();
 
 protected slots:

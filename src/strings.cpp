@@ -2,7 +2,6 @@
 
 #include "printmanager.h"
 #include "printtab.h"
-#include "shepherd.h"
 #include "version.h"
 #include "window.h"
 
@@ -31,14 +30,6 @@ namespace {
     char const* DialogCodeStrings[] {
         "Rejected",
         "Accepted",
-    };
-
-    char const* PendingCommandStrings[] {
-        "none",
-        "moveRelative",
-        "moveAbsolute",
-        "home",
-        "send",
     };
 
     char const* TabIndexStrings[] {
@@ -96,7 +87,7 @@ namespace {
         seconds = totalSeconds % 60; totalSeconds /= 60;
         minutes = totalSeconds % 60; totalSeconds /= 60;
         hours   = totalSeconds % 24;
-        days    = totalSeconds / 24;
+        days    = static_cast<int>(totalSeconds / 24);
     }
 
 }
@@ -183,18 +174,6 @@ QString ToString( QSizeF const value ) {
 
 QString ToString( QRectF const value ) {
     return QString( "%1-%2 [%3]" ).arg( ToString( value.topLeft( ) ) ).arg( ToString( value.bottomRight( ) ) ).arg( ToString( value.size( ) ) );
-}
-
-char const* ToString( PendingCommand const value ) {
-#if defined _DEBUG
-    if ( ( value >= PendingCommand::none ) && ( value <= PendingCommand::send ) ) {
-#endif
-        return PendingCommandStrings[static_cast<int>( value )];
-#if defined _DEBUG
-    } else {
-        return nullptr;
-    }
-#endif
 }
 
 char const* ToString( TabIndex const value ) {
@@ -288,7 +267,7 @@ QString GroupDigits( QString const& input, char const groupSeparator_, char cons
 
 QString TimeDeltaToString( double delta ) {
     int days, hours, minutes, seconds;
-    _BreakDownTime( delta + 0.5, days, hours, minutes, seconds );
+    _BreakDownTime(static_cast<uint64_t>(delta + 0.5), days, hours, minutes, seconds);
 
     QString timeString { };
     if ( days > 0 ) {

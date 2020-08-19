@@ -12,7 +12,7 @@ class ModelSelectionInfo;
 class PngDisplayer;
 class PrintManager;
 class PrintProfileManager;
-class Shepherd;
+class FirmwareController;
 class SignalHandler;
 class UpgradeManager;
 class UsbMountManager;
@@ -47,7 +47,7 @@ private:
     PngDisplayer*        _pngDisplayer        { };
     PrintManager*        _printManager        { };
     PrintProfileManager* _printProfileManager { };
-    Shepherd*            _shepherd            { };
+    FirmwareController*  _firmwareController  { };
     UiState              _uiState             { };
     UpgradeManager*      _upgradeManager      { };
     UsbMountManager*     _usbMountManager     { };
@@ -72,7 +72,7 @@ private:
 signals:
 
     void printManagerChanged(PrintManager* printManager);
-    void shepherdChanged(Shepherd* shepherd);
+    void firmwareControllerChanged(FirmwareController* controller);
 
     void modelRendered(bool const value);
     void printerPrepared(bool const value);
@@ -94,10 +94,6 @@ private slots:
     void tab_uiStateChanged( TabIndex const sender, UiState const state );
     void tabs_currentChanged( int index );
     void helpButton_clicked( bool );
-
-    void shepherd_started( );
-    void shepherd_startFailed( );
-    void shepherd_terminated( bool const expected, bool const cleanExit );
 
     void printManager_printStarting( );
     void printManager_printComplete( bool const success );

@@ -4,7 +4,7 @@
 
 #include "printjob.h"
 #include "printmanager.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "ordermanifestmanager.h"
 #include "spoiler.h"
 
@@ -151,9 +151,11 @@ void PrintTab::printJobChanged()
     update( );
 }
 
-void PrintTab::_connectShepherd( ) {
-    QObject::connect( _shepherd, &Shepherd::printer_online,  this, &PrintTab::printer_online  );
-    QObject::connect( _shepherd, &Shepherd::printer_offline, this, &PrintTab::printer_offline );
+void PrintTab::_connectFirmwareController() {
+    QObject::connect(_firmwareController, &FirmwareController::printerOnline, this,
+        &PrintTab::printer_online);
+    QObject::connect(_firmwareController, &FirmwareController::printerOffline, this,
+        &PrintTab::printer_offline);
 }
 
 void PrintTab::_updateUiState( ) {
@@ -314,17 +316,19 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
         case BuildPlatformState::Raising:
             _buildPlatformState = BuildPlatformState::Raising;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
-            _shepherd->doMoveAbsolute( PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed );
+            QObject::connect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted,
+                this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete);
+            _firmwareController->moveAbsolute(PrinterRaiseToMaximumZ, PrinterDefaultHighSpeed);
             break;
 
         case BuildPlatformState::Raised:
         case BuildPlatformState::Lowering:
             _buildPlatformState = BuildPlatformState::Lowering;
 
-            QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
+            QObject::connect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted,
+                this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete);
 
-            _shepherd->doMoveAbsolute(std::max(100, printJob.getLayerThicknessAt(0)) / 1000.0,
+            _firmwareController->moveAbsolute(std::max(100, printJob.getLayerThicknessAt(0)) / 1000.0,
                 PrinterDefaultHighSpeed);
             break;
     }
@@ -337,7 +341,8 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
 
 void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
     debug( "+ PrintTab::raiseBuildPlatform_moveAbsoluteComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete );
+    QObject::disconnect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted,
+        this, &PrintTab::raiseBuildPlatform_moveAbsoluteComplete);
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Raised;
@@ -355,7 +360,8 @@ void PrintTab::raiseBuildPlatform_moveAbsoluteComplete( bool const success ) {
 
 void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
     debug( "+ PrintTab::lowerBuildPlatform_moveAbsoluteComplete: %s\n", success ? "succeeded" : "failed" );
-    QObject::disconnect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
+    QObject::disconnect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted,
+        this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete);
 
     if ( success ) {
         _buildPlatformState = BuildPlatformState::Lowered;
@@ -374,8 +380,9 @@ void PrintTab::lowerBuildPlatform_moveAbsoluteComplete( bool const success ) {
 void PrintTab::homeButton_clicked( bool ) {
     debug( "+ PrintTab::homeButton_clicked\n" );
 
-    QObject::connect( _shepherd, &Shepherd::action_homeComplete, this, &PrintTab::home_homeComplete );
-    _shepherd->doHome( );
+    QObject::connect(_firmwareController, &FirmwareController::printerHomeCompleted, this,
+        &PrintTab::home_homeComplete);
+    _firmwareController->moveHome();
 
     setPrinterAvailable( false );
     emit printerAvailabilityChanged( false );
