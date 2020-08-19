@@ -44,6 +44,8 @@ TilingExpoTimePopup::TilingExpoTimePopup()
             WrapWidgetsInHBox(_okButton, _cancelButton)
         )
     );
+
+    setWidgetsIds();
 }
 
 void TilingExpoTimePopup::confirm(bool)
@@ -58,6 +60,15 @@ void TilingExpoTimePopup::cancel(bool)
     this->setResult(QDialog::Rejected);
     this->reject();
     this->close();
+}
+
+void TilingExpoTimePopup::setWidgetsIds() {
+    _minExposureBase->setObjectName("tilingExpoMinBase");
+    _stepBase->setObjectName("tilingExpoStepBase");
+    _minExposureBody->setObjectName("tilingExpoMinBody");
+    _stepBody->setObjectName("tilingExpoStepBody");
+    _okButton->setObjectName("tilingExpoOk");
+    _cancelButton->setObjectName("tilingExpoCancel");
 }
 
 TilingTab::TilingTab(QWidget* parent): TabBase(parent)
@@ -202,7 +213,6 @@ void TilingTab::setStepValue()
 
     auto area = QPixmap(_currentLayerImage->width(), _currentLayerImage->height());
     int maxCount = _getMaxCount();
-    debug("+ TilingTab::setCount %d\n", maxCount);
     _count->setMaxValue(maxCount);
 
     int wCount = _count->getValue();
@@ -373,6 +383,8 @@ void TilingTab::confirmButton_clicked(bool)
     TilingManager* tilingMgr = new TilingManager();
     ProgressDialog* dialog = new ProgressDialog(this);
 
+    dialog->setObjectName("tilingProgressDialog");
+
     QObject::connect(tilingMgr, &TilingManager::statusUpdate, dialog, &ProgressDialog::setMessage);
     QObject::connect(tilingMgr, &TilingManager::progressUpdate, dialog,
         &ProgressDialog::setProgress);
@@ -422,8 +434,6 @@ int TilingTab::_getMaxCount()
          i < (_areaWidth - (TilingMargin * _wRatio)); i += _pixmapWidth, wCount++) {
         if (wCount > 0)
             i+=space;
-
-        debug(" i: %d wCount: %d \n", i, wCount);
     }
 
     wCount--;

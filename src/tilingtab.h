@@ -34,6 +34,7 @@ private:
 
     void confirm( bool );
     void cancel( bool );
+    void setWidgetsIds( );
 };
 
 class TilingTab: public TabBase {

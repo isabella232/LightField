@@ -31,6 +31,8 @@ public:
     void   setMinValue(int value);
     void   setStep(int step);
     void   setMaxValue(int value);
+    int    getMaxValue();
+    int    getMinValue();
     inline QSlider* innerSlider() { return _slider; }
     void   setFontColor(QString font);
 

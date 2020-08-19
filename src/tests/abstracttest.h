@@ -13,6 +13,7 @@
 #include "../thicknesswindow.h"
 #include "../canvas.h"
 #include "../spoiler.h"
+#include "../progressdialog.h"
 #include <iostream>
 
 extern FILE* TestLog;
@@ -414,6 +415,8 @@ public:
     }
 
     void pauseStopPrintTest() {
+        TDEBUG("pause stop status tab");
+
         QPushButton* statusStartPrint = findWidget<QPushButton*>("statusStartThePrint");
         QPushButton* pause = findWidget<QPushButton*>("statusPause");
         QPushButton* stop = findWidget<QPushButton*>("statusStop");
@@ -457,9 +460,13 @@ public:
 
         S_ASSERT(!reprint->isVisible() && stop->isVisible());
         S_ASSERT(statusLabel->isVisible());
+
+
+        TDEBUG("pause stop status tab - PASSED");
     }
 
     void setupBasicExposureTime() {
+        TDEBUG("baisc exposure time setup");
 
         ParamSlider* bodyExpoSlider = findWidget<ParamSlider*>("printBodyExposureTime");
 
@@ -467,7 +474,208 @@ public:
         bodyExpoSlider->onValueChanged(1000);
 
         QTest::qWait(1000);
+        TDEBUG("baisc exposure time setup - PASSED");
     }
+
+    void tilingSwitchToTilingWindow() {
+        TDEBUG("switch to tiling tab");
+
+        QPushButton* setupTiling = findWidget<QPushButton*>("tilingSetupTiling");
+        QPushButton* tilingSetupExpoTime = findWidget<QPushButton*>("tilingSetupExpoTime");
+        QPushButton* tilingConfirm = findWidget<QPushButton*>("tilingConfirm");
+        ParamSlider* tilingSpace = findWidget<ParamSlider*>("tilingSpace");
+        ParamSlider* tilingCount = findWidget<ParamSlider*>("tilingCount");
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        QLabel* fileNameLabel = findWidget<QLabel*>("tilingFileName");
+
+        tabs->setCurrentIndex(2);
+
+        S_ASSERT(setupTiling->isEnabled());
+        S_ASSERT(!tilingSetupExpoTime->isEnabled());
+        S_ASSERT(!tilingConfirm->isEnabled());
+        S_ASSERT(!tilingSpace->isEnabled());
+        S_ASSERT(!tilingCount->isEnabled());
+        S_ASSERT(fileNameLabel->text() == "");
+
+        TDEBUG("switch to tiling tab - PASSED");
+    }
+
+    void tilingSetupTilingButton() {
+        TDEBUG("setup tiling button click");
+
+
+        QPushButton* setupTiling = findWidget<QPushButton*>("tilingSetupTiling");
+        QPushButton* tilingSetupExpoTime = findWidget<QPushButton*>("tilingSetupExpoTime");
+        QPushButton* tilingConfirm = findWidget<QPushButton*>("tilingConfirm");
+        ParamSlider* tilingSpace = findWidget<ParamSlider*>("tilingSpace");
+        ParamSlider* tilingCount = findWidget<ParamSlider*>("tilingCount");
+        QLabel* fileNameLabel = findWidget<QLabel*>("tilingFileName");
+
+        mouseClick(setupTiling);
+
+        QTest::qWait(1000);
+
+        S_ASSERT(!setupTiling->isEnabled());
+        S_ASSERT(tilingSetupExpoTime->isEnabled());
+        S_ASSERT(tilingConfirm->isEnabled());
+        S_ASSERT(tilingSpace->isEnabled());
+        S_ASSERT(tilingCount->isEnabled());
+        S_ASSERT(fileNameLabel->text() == GetFileBaseName(printJob.getModelFilename()));
+
+        TDEBUG("setup tiling button click - PASSED");
+    }
+
+    /* returns expected max tiles w count */
+    int tilingSetSpacing() {
+        TDEBUG("set tiling spacing");
+
+        ParamSlider* tilingSpace = findWidget<ParamSlider*>("tilingSpace");
+        ParamSlider* tilingCount = findWidget<ParamSlider*>("tilingCount");
+        QLabel* tilitngLayerImage =  findWidget<QLabel*>("tilingCurrentLayerImage");
+        auto random = QRandomGenerator::system();
+        int spacing = random->bounded(1, 10);
+        tilingSpace->setValue(spacing);
+
+        QTest::qWait(3000);
+
+        QPixmap* pixmap = new QPixmap(QString("%1/%2").arg(printJob.getLayerDirectory(0))
+            .arg(printJob.getLayerFileName(0)));
+
+        int areaWidth = tilitngLayerImage->width();
+        int areaHeight = tilitngLayerImage->width();
+
+        double wRatio = (static_cast<double>(areaWidth)) / ProjectorWindowSize.width();
+        double hRatio = (static_cast<double>(areaHeight)) / ProjectorWindowSize.height();
+
+        pixmap = new QPixmap(pixmap->scaled(static_cast<int>(pixmap->width() * wRatio),
+                                            static_cast<int>(pixmap->height() * hRatio)));
+        int pixmapWidth = pixmap->width();
+
+        int wCount=0;
+        int space = static_cast<int>(tilingSpace->getValue() / ProjectorPixelSize * wRatio);
+
+        for (int i = static_cast<int>(TilingMargin * wRatio);
+             i < (areaWidth - (TilingMargin * wRatio)); i += pixmapWidth, wCount++) {
+            if (wCount > 0)
+                i+=space;
+        }
+        wCount--;
+
+        TDEBUG("Tiling max count slider=%d | calculated wCount=%d | space=%d | pixmapWidth=%d | wRatio = %f",
+               tilingCount->getMaxValue(),
+               wCount,
+               tilingSpace->getValue(),
+               pixmapWidth,
+               wRatio
+        );
+
+        S_ASSERT(tilingSpace->getValue() == spacing);
+        S_ASSERT(tilingCount->getMaxValue() == wCount);
+        S_ASSERT(tilingCount->getMinValue() == 1);
+
+        TDEBUG("set tiling spacing - PASSED");
+
+        return wCount;
+    }
+
+    void tilingSetCount(int maxWCount) {
+        TDEBUG("set tiling count");
+
+        ParamSlider* tilingCount = findWidget<ParamSlider*>("tilingCount");
+        auto random = QRandomGenerator::system();
+        int count = random->bounded(1, maxWCount);
+
+        dispatchToMainThread([tilingCount, count]() {
+            tilingCount->setValue(count);
+        });
+
+        QTest::qWait(3000);
+
+        S_ASSERT(tilingCount->getValue() == count);
+
+        TDEBUG("set tiling count - PASSED");
+    }
+
+    void tilingSetExposureTime() {
+        TDEBUG("set tiling set exposure time");
+        QPushButton* tilingSetupExpoTime = findWidget<QPushButton*>("tilingSetupExpoTime");
+        mouseClick(tilingSetupExpoTime);
+
+        TilingExpoTimePopup* expoTimePopup = findWidgetInTopLevel<TilingExpoTimePopup*>("tilingExpoTimePopup");
+        S_ASSERT(expoTimePopup->isVisible());
+
+        ParamSlider* tilingExpoMinBase = findWidget<ParamSlider*>(expoTimePopup, "tilingExpoMinBase");
+        ParamSlider* tilingExpoStepBase = findWidget<ParamSlider*>(expoTimePopup, "tilingExpoStepBase");
+        ParamSlider* tilingExpoMinBody = findWidget<ParamSlider*>(expoTimePopup, "tilingExpoMinBody");
+        ParamSlider* tilingExpoStepBody = findWidget<ParamSlider*>(expoTimePopup, "tilingExpoStepBody");
+        QPushButton* tilingOkButton = findWidget<QPushButton*>(expoTimePopup, "tilingExpoOk");
+        QLabel* tilingMinExposureBaseLabel = findWidget<QLabel*>("tilingMinExposureBase");
+        QLabel* tilingStepBaseLabel = findWidget<QLabel*>("tilingStepBase");
+        QLabel* tilingMinExposureBodyLabel = findWidget<QLabel*>("tilingMinExposureBody");
+        QLabel* tilingStepBodyLabel = findWidget<QLabel*>("tilingStepBody");
+
+        auto random = QRandomGenerator::system();
+        int minBase = random->bounded(1, 40);
+        int stepBase = random->bounded(1, 16);
+        int minBody = random->bounded(1, 16);
+        int stepBody = random->bounded(1, 16);
+
+        dispatchToMainThread([
+            tilingExpoMinBase, minBase,
+            tilingExpoStepBase, stepBase,
+            tilingExpoMinBody, minBody,
+            tilingExpoStepBody, stepBody
+        ]() {
+            tilingExpoMinBase->setValue(minBase);
+            tilingExpoStepBase->setValue(stepBase);
+            tilingExpoMinBody->setValue(minBody);
+            tilingExpoStepBody->setValue(stepBody);
+        });
+
+        QTest::qWait(1000);
+
+        mouseClick(tilingOkButton);
+
+        QTest::qWait(1000);
+
+        QRegularExpression rx("(\\d+(\\.\\d+)?)s");
+        auto iter = rx.globalMatch(tilingMinExposureBaseLabel->text());
+        auto next = iter.next();
+
+        S_ASSERT(next.captured(1) == QString::number((double)minBase / 4));
+
+        iter = rx.globalMatch(tilingStepBaseLabel->text());
+        next = iter.next();
+        S_ASSERT(next.captured(1) == QString::number((double)stepBase / 4));
+
+        iter = rx.globalMatch(tilingMinExposureBodyLabel->text());
+        next = iter.next();
+        S_ASSERT(next.captured(1) == QString::number((double)minBody / 4));
+
+        iter = rx.globalMatch(tilingStepBodyLabel->text());
+        next = iter.next();
+        S_ASSERT(next.captured(1) == QString::number((double)stepBody / 4));
+
+        TDEBUG("set tiling set exposure time - PASSED");
+    }
+
+    void tilingCreateTiles() {
+        TDEBUG("create tiles click");
+
+        QPushButton* tilingConfirm = findWidget<QPushButton*>("tilingConfirm");
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+
+        mouseClick(tilingConfirm);
+
+        QTest::qWaitFor([tabs]() {
+            return tabs->currentIndex() == 1;
+        }, 50000);
+
+        S_ASSERT(tabs->currentIndex() == 1);
+
+        TDEBUG("create tiles click - PASSED");
+    }
+
 
 signals:
     void successed();

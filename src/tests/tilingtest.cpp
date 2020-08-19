@@ -17,7 +17,17 @@ void TilingTest::start() {
 
     fileClickSelectButton();
 
-    prepareSliceButtonClick();
+    tilingSwitchToTilingWindow();
+
+    tilingSetupTilingButton();
+
+    int expectedMaxWCount = tilingSetSpacing();
+
+    tilingSetCount(expectedMaxWCount);
+
+    tilingSetExposureTime();
+
+    tilingCreateTiles();
 
     if(!g_settings.pretendPrinterIsPrepared) {
         prepareClickPrepare();

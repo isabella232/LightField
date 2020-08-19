@@ -76,6 +76,14 @@ void ParamSlider::setMinValue(int value)
    }
 }
 
+int ParamSlider::getMaxValue() {
+    return _slider->maximum();
+}
+
+int ParamSlider::getMinValue() {
+    return _slider->minimum();
+}
+
 void ParamSlider::setStep(int step)
 {
     int stepRemainder = _slider->value() % step;
