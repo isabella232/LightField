@@ -21,9 +21,11 @@ extern FILE* TestLog;
 class AbstractTest: public QObject {
     Q_OBJECT
 public:
+    AbstractTest() = default;
+
     virtual QString testName() = 0;
 
-    virtual void start() = 0;
+    virtual void start(QString modelName = nullptr) = 0;
 
     void tDebug( char const* function, char const* str ) {
         time_t timeNow = std::time(nullptr);
@@ -145,7 +147,7 @@ public:
     }
 
     //selecting model on list
-    void fileSelectModelOnList() {
+    void fileSelectModelOnList(QString modelName = nullptr, bool folder = false) {
         TDEBUG("file select model on list ");
         GestureListView* availableFilesListView = findWidget<GestureListView*>("fileAvailableFiles");
         FileTab* fileTab = findWidget<FileTab*>("file");
@@ -157,8 +159,9 @@ public:
         QLabel* fileDimensions = findWidget<QLabel*>("fileDimensions");
 
         QFileSystemModel* model = fileTab->libraryFsModel();
-        QModelIndex index = model->index("/var/lib/lightfield/model-library/Menger_sponge_sample.stl");
-        availableFilesListView->setCurrentIndex(model->index("/var/lib/lightfield/model-library/Menger_sponge_sample.stl"));
+        QString fullPath = QString("/var/lib/lightfield/model-library/%1").arg(modelName != nullptr ? modelName : "Menger_sponge_sample.stl");
+        QModelIndex index = model->index(fullPath);
+        availableFilesListView->setCurrentIndex(model->index(fullPath));
         availableFilesListView->clicked(index);
 
         QTest::qWait(1000);
@@ -166,12 +169,15 @@ public:
         S_ASSERT(!canvas->objectName().isEmpty());
         S_ASSERT(deleteButton->isEnabled());
         S_ASSERT(selectButton->isEnabled());
-        S_ASSERT(fileViewSolid->isEnabled());
-        S_ASSERT(fileViewWireframe->isEnabled());
 
-        QRegExp rx("\\d+\\.\\d+ mm × \\d+\\.\\d+ mm × \\d+\\.\\d+ mm, \\d+\\.\\d+ µL");
-        S_ASSERT(rx.indexIn(fileDimensions->text()) != -1);
-        TDEBUG("file select model on list - PASSED ");
+        if (!folder) {
+            S_ASSERT(fileViewSolid->isEnabled());
+            S_ASSERT(fileViewWireframe->isEnabled());
+
+            QRegExp rx("\\d+\\.\\d+ mm × \\d+\\.\\d+ mm × \\d+\\.\\d+ mm, \\d+\\.\\d+ µL");
+            S_ASSERT(rx.indexIn(fileDimensions->text()) != -1);
+            TDEBUG("file select model on list - PASSED ");
+        }
     }
 
     void fileClickSelectButton() {
@@ -194,7 +200,6 @@ public:
         }, 5000);
 
         S_ASSERT(currentIdx == 1);
-        S_ASSERT(resliceButton->isEnabled());
         TDEBUG("select button file tab - PASSED ");
     }
 
@@ -680,6 +685,8 @@ public:
 signals:
     void successed();
     void failed(QString message);
+protected:
+    QString _modelName;
 };
 
 #endif // ABSTRACTTEST_H

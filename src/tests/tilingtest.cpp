@@ -7,7 +7,7 @@
 
 QString TilingTest::testNameString = "tilingtest";
 
-void TilingTest::start() {
+void TilingTest::start(QString modelName = nullptr) {
 
     debug("=================================Tiling Test=================================!\n");
 

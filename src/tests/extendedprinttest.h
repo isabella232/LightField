@@ -17,7 +17,7 @@ public:
     ExtendedPrintTest() = default;
 
 private slots:
-    void start();
+    void start(QString modelName);
 };
 
 #endif // EXTENDEDPRINTTEST_H

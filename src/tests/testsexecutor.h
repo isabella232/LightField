@@ -7,6 +7,7 @@
 #include "simpleprinttest.h"
 #include "extendedprinttest.h"
 #include "tilingtest.h"
+#include "folderofimagestest.h"
 #include <iostream>
 
 class TestExecutor: public QObject {
@@ -16,7 +17,8 @@ public:
     QMap<QString, AbstractTest*> testList {
         { SimplePrintTest::testNameString, new SimplePrintTest()},
         { ExtendedPrintTest::testNameString, new ExtendedPrintTest()},
-        { TilingTest::testNameString, new TilingTest()}
+        { TilingTest::testNameString, new TilingTest()},
+        { FolderOfImagesTest::testNameString, new FolderOfImagesTest()}
     };
 
     TestExecutor() {
@@ -44,9 +46,9 @@ public:
         ::setvbuf(TestLog, nullptr, _IONBF, 0);
     }
 
-    void startTests(QStringList testNames) {
+    void startTests(QStringList testNames, QString modelName=nullptr) {
         debug(("+TestExecutor::startTests requested tests: " + testNames.join(", ") + "\n").toUtf8().data());
-        QThread* thread = QThread::create([this, testNames]{
+        QThread* thread = QThread::create([this, testNames, modelName]{
             debug("+TestExecutor::startTests thread started\n");
             for(const auto name: testNames) {
                 if(!this->testList.contains(name)) {
@@ -76,7 +78,7 @@ public:
                 });
 
                 try {
-                    test->start();
+                    test->start(modelName);
                 } catch (QException e) {
                     QTest::qWait(2000);
                 }

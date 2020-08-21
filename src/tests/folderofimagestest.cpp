@@ -1,27 +1,23 @@
 #if defined _DEBUG
-
-#include "extendedprinttest.h"
+#include "folderofimagestest.h"
+#include "../window.h"
+#include "../filetab.h"
 #include "../printtab.h"
 
-QString ExtendedPrintTest::testNameString = "extendedtest";
+QString FolderOfImagesTest::testNameString = "folderofimagestest";
 
+void FolderOfImagesTest::start(QString modelName = nullptr) {
 
-void ExtendedPrintTest::start(QString modelName = nullptr) {
-
-    TDEBUG("=================================Extended Print Test=================================!\n");
+    TDEBUG("=================================Folder Of Images Test=================================!\n");
+    TDEBUG("MODEL: %s", modelName.toUtf8().data());
     waitForMainWindow();
 
-    fileSelectModelOnList();
+    fileSelectModelOnList(modelName, true);
 
     fileClickSelectButton();
 
-    setCustomThickness();
-
-    prepareSliceButtonClick();
-
     QLabel* prepareMsg = findWidget<QLabel*>("preparePrepareMessage");
 
-    TDEBUG(prepareMsg->text().toUtf8().data());
     if(!g_settings.pretendPrinterIsPrepared && prepareMsg->text() != "Preparation completed.") {
         QPushButton* prepareButton = findWidget<QPushButton*>("preparePrepare");
 
@@ -36,13 +32,14 @@ void ExtendedPrintTest::start(QString modelName = nullptr) {
         QTest::qWait(1000);
     }
 
-    setupExposureTime();
+    setupBasicExposureTime();
 
-    pauseStopPrintTest();
+    printContinueButtonClick();
 
     statusStartPrint();
 
     emit successed();
-    TDEBUG("===============================Extended Print Test Finished============================!\n");
+    TDEBUG("===============================Folder Of Images Test finished============================!\n");
 }
-#endif
+
+#endif //_DEBUG

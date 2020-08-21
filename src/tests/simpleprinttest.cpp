@@ -7,7 +7,7 @@
 
 QString SimplePrintTest::testNameString = "simpletest";
 
-void SimplePrintTest::start() {
+void SimplePrintTest::start(QString modelName = nullptr) {
 
     TDEBUG("=================================Simple Print Test=================================!\n");
 

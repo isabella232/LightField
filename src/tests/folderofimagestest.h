@@ -1,25 +1,22 @@
 #if defined _DEBUG
 
-#ifndef SIMPLEPRINTTEST_H
-#define SIMPLEPRINTTEST_H
+#ifndef FOLDEROFIMAGESTEST_H
+#define FOLDEROFIMAGESTEST_H
 
-#include <QtWidgets>
-#include <QtTest/QtTest>
 #include "abstracttest.h"
 
-class SimplePrintTest: public AbstractTest
+class FolderOfImagesTest : public AbstractTest
 {
 public:
+    FolderOfImagesTest() = default;
+
     static QString testNameString;
     QString testName() override {
         return testNameString;
     }
-
-    SimplePrintTest() = default;
-
 private slots:
     void start(QString modelName);
 };
 
-#endif // SIMPLEPRINTTEST_H
+#endif // FOLDEROFIMAGESTEST_H
 #endif //_DEBUG

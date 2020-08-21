@@ -18,7 +18,7 @@ public:
     TilingTest() = default;
 
 private slots:
-    void start();
+    void start(QString modelName);
 };
 
 #endif // TILINGTEST_H

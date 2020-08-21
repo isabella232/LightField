@@ -93,18 +93,26 @@ SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>
         QDialog* dialog  { new QDialog };
         QPushButton* ok { new QPushButton("ok") };
         QPushButton* cancel { new QPushButton("cancel") };
+        QLabel* testLabel { new QLabel("Choose test from list:") };
+        QLabel* modelListLabel { new QLabel("Pick model to use in test:") };
+
+        QComboBox* modelPicker { new QComboBox };
+
         QListView* qList {new QListView };
         QStringListModel* qModel { new QStringListModel };
         TestExecutor* executor { new TestExecutor };
+
         qModel->setStringList( executor->testList.keys() );
         qList->setEditTriggers(QAbstractItemView::NoEditTriggers);
         qList->setFont(font22pt);
         qList->setModel(qModel);
-
-        connect(ok, &QPushButton::clicked, [dialog, qList, qModel, executor]() {
+        qList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        modelPicker->setFont(font22pt);
+        connect(ok, &QPushButton::clicked, [dialog, qList, qModel, executor, modelPicker]() {
             auto idx = qList->currentIndex();
             QString testName = qModel->data(idx).toString();
-            executor->startTests({testName});
+            QString modelName = modelPicker->currentText();
+            executor->startTests({testName}, modelName);
             dialog->done(1);
         });
 
@@ -113,9 +121,21 @@ SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>
         });
 
         QVBoxLayout* _layout = WrapWidgetsInVBox(
+            testLabel,
             qList,
+            modelListLabel,
+            modelPicker,
             WrapWidgetsInHBox(ok, cancel)
         );
+
+        QDir modelLibray = QDir(StlModelLibraryPath);
+
+        QStringList list = modelLibray.entryList();
+
+        foreach (QString file, list) {
+              modelPicker->addItem(file);
+        }
+
         dialog->setLayout(_layout);
         dialog->exec();
     });
