@@ -13,7 +13,7 @@ void SimplePrintTest::start(QString modelName = nullptr) {
 
     waitForMainWindow();
 
-    fileSelectModelOnList();
+    fileSelectModelOnList(modelName);
 
     fileClickSelectButton();
 

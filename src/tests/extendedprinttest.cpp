@@ -11,7 +11,7 @@ void ExtendedPrintTest::start(QString modelName = nullptr) {
     TDEBUG("=================================Extended Print Test=================================!\n");
     waitForMainWindow();
 
-    fileSelectModelOnList();
+    fileSelectModelOnList(modelName);
 
     fileClickSelectButton();
 
