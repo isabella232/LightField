@@ -418,6 +418,16 @@ public:
         return _printProfile;
     }
 
+    void setPrintOffset(QPoint offset) {
+        _printOffset = offset;
+
+        emit printOffsetChanged(offset);
+    }
+
+    QPoint getPrintOffset() {
+        return _printOffset;
+    }
+
     void printJobData() {
         const auto& baseLayerParameters = this->baseLayerParameters();
         const auto& bodyLayerParameters = this->bodyLayerParameters();
@@ -522,9 +532,9 @@ public:
         );
     }
 
-
 signals:
     void printJobChanged();
+    void printOffsetChanged(QPoint offset);
     ;
 
 protected:
@@ -535,6 +545,7 @@ protected:
     QString _directoryPath;
     QString _modelHash;
     bool _directoryMode;
+    QPoint _printOffset {0, 0};
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
     QSharedPointer<PrintProfile>&        _printProfile;

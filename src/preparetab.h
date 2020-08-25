@@ -7,6 +7,7 @@
 #include "ordermanifestmanager.h"
 #include "printprofile.h"
 #include "printjob.h"
+#include "paramslider.h"
 
 class Hasher;
 class SvgRenderer;
@@ -77,6 +78,19 @@ private:
     QWidget*          _optionsContainer            { new QWidget          };
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
+
+
+    QGroupBox*        _adjustGroup                 { new QGroupBox        };
+    QGridLayout*      _adjustlayout                { new QGridLayout      };
+    QPushButton*      _adjustProjection            { new QPushButton      };
+
+    QPushButton*      _adjustUp                    { new QPushButton      };
+    QPushButton*      _adjustLeft                  { new QPushButton      };
+    QPushButton*      _adjustRight                 { new QPushButton      };
+    QPushButton*      _adjustDown                  { new QPushButton      };
+    QPushButton*      _adjustReset                 { new QPushButton      };
+    ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
+    QLabel*           _printOffsetLabel            { new QLabel("")       };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
