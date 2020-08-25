@@ -315,3 +315,16 @@ void Keyboard::paintEvent(QPaintEvent*)
         k->draw(&painter,style());
     }
 }
+
+key* Keyboard::getKey(QString label) {
+    for(int i=0; i<keys.length(); ++i) {
+        QVector line = keys[i];
+
+        for(int j=0; j<line.length(); ++j) {
+            key* k = line[j];
+            if(k->objectName() == label) {
+                return k;
+            }
+        }
+    }
+}

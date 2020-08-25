@@ -8,17 +8,18 @@
 #include "extendedprinttest.h"
 #include "tilingtest.h"
 #include "folderofimagestest.h"
-#include <iostream>
+#include "printprofiletest.h"
 
 class TestExecutor: public QObject {
     Q_OBJECT
 
 public:
     QMap<QString, AbstractTest*> testList {
-        { SimplePrintTest::testNameString, new SimplePrintTest()},
-        { ExtendedPrintTest::testNameString, new ExtendedPrintTest()},
-        { TilingTest::testNameString, new TilingTest()},
-        { FolderOfImagesTest::testNameString, new FolderOfImagesTest()}
+        {SimplePrintTest::testNameString, new SimplePrintTest()},
+        {ExtendedPrintTest::testNameString, new ExtendedPrintTest()},
+        {TilingTest::testNameString, new TilingTest()},
+        {FolderOfImagesTest::testNameString, new FolderOfImagesTest()},
+        {PrintProfileTest::testNameString, new PrintProfileTest()}
     };
 
     TestExecutor() {

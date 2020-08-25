@@ -12,8 +12,11 @@
 #include "../filetab.h"
 #include "../thicknesswindow.h"
 #include "../canvas.h"
+#include "../keyboard.h"
+#include "../key.h"
 #include "../spoiler.h"
 #include "../progressdialog.h"
+#include "../inputdialog.h"
 #include <iostream>
 
 extern FILE* TestLog;
@@ -130,6 +133,35 @@ public:
         }
 
         return result;
+    }
+
+    void clickOkMsgBoxTopLevel() {
+        QWidgetList allToplevelWidgets = QApplication::topLevelWidgets();
+        foreach (QWidget *w, allToplevelWidgets) {
+            if (w->inherits("QMessageBox")) {
+                QMessageBox *mb = qobject_cast<QMessageBox *>(w);
+                QTest::keyClick(mb, Qt::Key_Enter);
+            }
+        }
+    }
+
+    QString getRandomString() const
+    {
+       const QString possibleCharacters("abcdefghijklmnopqrstuvwxyz");
+       const int randomStringLength = 5; // assuming you want random strings of 12 characters
+
+       QString randomString;
+       for(int i=0; i<randomStringLength; ++i)
+       {
+           int index = qrand() % possibleCharacters.length();
+           QChar nextChar = possibleCharacters.at(index);
+           randomString.append(nextChar);
+       }
+       return randomString;
+    }
+
+    QString getRandomPrintProfiletName() {
+        return QString("test profile ") % getRandomString();
     }
 
     //waiting until main window is ready
@@ -679,6 +711,66 @@ public:
         S_ASSERT(tabs->currentIndex() == 1);
 
         TDEBUG("create tiles click - PASSED");
+    }
+
+    void switchToPrintProfileTab() {
+        TDEBUG("switch to print profile tab");
+
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        QPushButton* profilesRename = findWidget<QPushButton*>("profilesRename");
+        QPushButton* profilesOverwrite = findWidget<QPushButton*>("profilesOverwrite");
+        QPushButton* profilesDelete = findWidget<QPushButton*>("profilesDelete");
+        QPushButton* profilesLoad = findWidget<QPushButton*>("profilesLoad");
+        QPushButton* profilesNew = findWidget<QPushButton*>("profilesNew");
+
+        tabs->setCurrentIndex(6);
+
+        S_ASSERT(profilesLoad->isEnabled());
+        S_ASSERT(!profilesDelete->isEnabled());
+        S_ASSERT(profilesNew->isEnabled());
+        S_ASSERT(!profilesRename->isEnabled());
+        S_ASSERT(profilesOverwrite->isEnabled());
+
+        TDEBUG("switch to print profile tab - PASSED");
+    }
+
+    void createPrintProfile() {
+        QPushButton* profilesNew = findWidget<QPushButton*>("profilesNew");
+        mouseClick(profilesNew);
+
+        InputDialog* inputDialog = findWidgetInTopLevel<InputDialog*>("inputdialog");
+        Keyboard* keyboard = findWidget<Keyboard*>(inputDialog, "keyboard");
+        QPushButton* okButton = findWidget<QPushButton*>("keyboardOk");
+        QLineEdit* inputLine = findWidget<QLineEdit*>("keyboardInput");
+        QStandardItemModel* profilesModel = findWidget<QStandardItemModel*>("profilesModel");
+
+
+        S_ASSERT(inputDialog->isVisible());
+        QString test = getRandomPrintProfiletName();
+
+        for(int i=0; i<test.length(); ++i) {
+            QString c = test.at(i);
+            key* k = keyboard->getKey(c);
+
+            dispatchToMainThread([keyboard, k]() {
+            QTest::mouseClick(keyboard, Qt::MouseButton::LeftButton, Qt::KeyboardModifier::NoModifier,
+                              QPoint(k->getRect().x(), k->getRect().y()));
+            });
+
+            QTest::qWait(200);
+        }
+
+        //@todo add cancel button test
+        S_ASSERT(inputLine->text() == test);
+        mouseClick(okButton);
+        QTest::qWait(200);
+        auto items = profilesModel->findItems(test);
+        S_ASSERT(items.length() == 1);
+
+        clickOkMsgBoxTopLevel();
+
+        QMessageBox* profilesNewConfirmation = findWidget<QMessageBox*>("profilesNewConfirmation");
+
     }
 
 

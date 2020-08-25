@@ -60,6 +60,8 @@ SOURCES +=                          \
     ../src/tabbase.cpp              \
     ../src/tests/abstracttest.cpp \
     ../src/tests/extendedprinttest.cpp \
+    ../src/tests/folderofimagestest.cpp \
+    ../src/tests/printprofiletest.cpp \
     ../src/tests/simpleprinttest.cpp \
     ../src/tests/tilingtest.cpp \
     ../src/timinglogger.cpp         \
@@ -124,9 +126,11 @@ HEADERS  +=                         \
     ../src/tabbase.h                \
     ../src/tests/abstracttest.h     \
     ../src/tests/extendedprinttest.h \
+    ../src/tests/folderofimagestest.h \
+    ../src/tests/printprofiletest.h \
     ../src/tests/simpleprinttest.h  \
     ../src/tests/testsexecutor.h    \
-    ../src/tests/tilingtest.h \
+    ../src/tests/tilingtest.h       \
     ../src/timinglogger.h           \
     ../src/tilingmanager.h          \
     ../src/tilingtab.h              \

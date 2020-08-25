@@ -15,6 +15,7 @@ class Keyboard : public QWidget
 public:
     Keyboard(QWidget *p);
     void checkKeyStillPressed(key *repetitionKey);
+    key* getKey(QString label);
 
 signals:
     void keyPressed( QString t);

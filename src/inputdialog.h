@@ -18,6 +18,14 @@ private:
         QPushButton* _okButton          { new QPushButton("Ok") };
         QPushButton* _cancelButton      { new QPushButton("Cancel")};
         QWidget*     _widget            { new QWidget };
+
+        void setWidgetIds() {
+            this->setObjectName("inputdialog");
+            _keyboard->setObjectName("keyboard");
+            _input->setObjectName("keyboardInput");
+            _okButton->setObjectName("keyboardOk");
+            _cancelButton->setObjectName("keyboardCancel");
+        }
 public:
         InputDialog() { }
         InputDialog(QString text) {
@@ -64,6 +72,8 @@ public:
             QWidget::connect(_keyboard, &Keyboard::backspacePressed, this, &InputDialog::backspacePressed);
             QWidget::connect(_okButton, &QPushButton::clicked, this, &InputDialog::oklCLicked_clicked);
             QWidget::connect(_cancelButton, &QPushButton::clicked, this, &InputDialog::cancelCLicked_clicked);
+
+            setWidgetIds();
         }
 
         ~InputDialog() {
