@@ -235,8 +235,10 @@ public:
      */
     QString getLayerDirectory(int layer) const
     {
-
-        return isBaseLayer(layer) ? _baseManager->path() : _bodyManager->path();
+        if(_baseManager && _bodyManager)
+            return isBaseLayer(layer) ? _baseManager->path() : _bodyManager->path();
+        else
+            return QString();
     }
 
     /**
