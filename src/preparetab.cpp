@@ -112,7 +112,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustReset->setFont( font22pt );
     _adjustReset->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _adjustReset->setText( "Reset" );
-    QObject::connect( _adjustReset, &QPushButton::clicked, this, [this]() {
+    QObject::connect( _adjustReset, &QPushButton::clicked, this, []() {
         printJob.setPrintOffset(QPoint(0,0));
     });
 
@@ -163,6 +163,29 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
         printJob.setPrintOffset(QPoint(current.x(), current.y() - step));
     });
 
+    _adjustLightBulb->setText("💡");
+    _adjustLightBulb->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustLightBulb->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustLightBulb->setFont( font22pt );
+    _adjustLightBulb->setVisible(true);
+    _adjustLightBulb->setCheckable(true);
+    //_adjustLightBulb->setStyleSheet("QPushButton{background-color:red;} QPushButton:checked{background-color:green;}");
+
+    QObject::connect( _adjustLightBulb, &QPushButton::toggled, [this](bool toggled) {
+
+        if(toggled) {
+            _pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( activeProfileRef->baseLayerParameters().powerLevel() )) } );
+
+        } else {
+            _pngDisplayer->clear();
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( 0 )) } );
+        }
+
+        //_pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
+    });
+
+
     _adjustGroup->setTitle("Digital Projection Offset");
     _adjustGroup->setVisible(false);
     _adjustGroup->setLayout(WrapWidgetsInVBox(
@@ -170,7 +193,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
         WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
         WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustRight),
         WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
-        nullptr,
+        WrapWidgetsInHBox(nullptr, _adjustLightBulb),
         _adjustPrecision,
         _adjustReset
     ));
@@ -178,14 +201,15 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustGroup->setFixedWidth( MainButtonSize.width( ) );
     _adjustGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
-    _adjustProjection->setEnabled(true);
+    _adjustProjection->setEnabled(false);
     _adjustProjection->setFixedSize( 43, 43 );
     _adjustProjection->setFont( font22pt );
     _adjustProjection->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _adjustProjection->setText( "✥" );
-    QObject::connect( _adjustProjection, &QPushButton::clicked, [this]() {
+    _adjustProjection->setCheckable(true);
+    QObject::connect( _adjustProjection, &QPushButton::toggled, [this](bool toggled) {
 
-        if(!_adjustGroup->isVisible()) {
+        if(toggled) {
             _optionsContainer->setVisible(false);
             _prepareButton->setVisible(false);
             _orderButton->setVisible(false);
@@ -274,9 +298,12 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
 
     _setNavigationButtonsEnabled( false );
 
+    QLabel* spacer { new QLabel };
+    spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    spacer->setFixedWidth(170);
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
-        WrapWidgetsInHBox(nullptr, _navigationLayout, nullptr, _printOffsetLabel, nullptr, _adjustProjection)
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr, _printOffsetLabel, nullptr, _adjustProjection)
     );
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
@@ -507,7 +534,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(100);
     printJob.setSelectedBodyLayerThickness(100);
 
-    _adjustProjection->setVisible(false);
+    _adjustProjection->setEnabled(false);
     _checkSliceDirectories();
 }
 
@@ -517,7 +544,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(50);
     printJob.setSelectedBodyLayerThickness(50);
 
-    _adjustProjection->setVisible(false);
+    _adjustProjection->setEnabled(false);
     _checkSliceDirectories();
 }
 
@@ -528,7 +555,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(20);
     printJob.setSelectedBodyLayerThickness(20);
 
-    _adjustProjection->setVisible(true);
+    _adjustProjection->setEnabled(true);
     _checkSliceDirectories();
 }
 #endif // defined EXPERIMENTAL
@@ -541,7 +568,7 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
         _layerThickness100Button->setChecked(true);
     }
 
-    _adjustProjection->setVisible(false);
+    _adjustProjection->setEnabled(false);
     _initAfterSelect = false;
     _checkSliceDirectories();
 }
@@ -1089,4 +1116,10 @@ void PrepareTab::printJobChanged() {
             _printOffsetLabel->setText(QString(""));
         }
     });
+
+    _optionsContainer->setVisible(true);
+    _prepareButton->setVisible(true);
+    _orderButton->setVisible(true);
+    _sliceButton->setVisible(true);
+    _adjustGroup->setVisible(false);
 }

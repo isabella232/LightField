@@ -8,6 +8,7 @@
 #include "printprofile.h"
 #include "printjob.h"
 #include "paramslider.h"
+#include "pngdisplayer.h"
 
 class Hasher;
 class SvgRenderer;
@@ -89,8 +90,10 @@ private:
     QPushButton*      _adjustRight                 { new QPushButton      };
     QPushButton*      _adjustDown                  { new QPushButton      };
     QPushButton*      _adjustReset                 { new QPushButton      };
+    QPushButton*      _adjustLightBulb             { new QPushButton      };
     ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
     QLabel*           _printOffsetLabel            { new QLabel("")       };
+    PngDisplayer*     _pngDisplayer                { new PngDisplayer(this)  };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -104,7 +107,6 @@ private:
     QHBoxLayout*      _navigationLayout            {                      };
 
     QGridLayout*      _layout                      { new QGridLayout      };
-
 
 
     bool _checkPreSlicedFiles(const QString &directory, bool isBody);
