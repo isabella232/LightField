@@ -32,6 +32,7 @@ public slots:
     void clear( );
     bool loadImageFile( QString const& fileName );
     void setPixmap( QPixmap const& pixmap );
+    void printJobChanged();
 
 protected slots:
 

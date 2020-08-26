@@ -26,6 +26,7 @@ public:
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
 
+
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
 
@@ -93,7 +94,7 @@ private:
     QPushButton*      _adjustLightBulb             { new QPushButton      };
     ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
     QLabel*           _printOffsetLabel            { new QLabel("")       };
-    PngDisplayer*     _pngDisplayer                { new PngDisplayer(this)  };
+    PngDisplayer*     _pngDisplayer                {                      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
@@ -132,6 +133,7 @@ signals:
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
     virtual void printJobChanged() override;
+    void setPngDisplayer( PngDisplayer* pngDisplayer );
 
     void setPrinterAvailable( bool const value );
 

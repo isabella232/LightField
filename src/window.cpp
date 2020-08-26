@@ -98,6 +98,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         }
     }
 
+    QObject::connect(&printJob, &PrintJob::printJobChanged, _pngDisplayer, &PngDisplayer::printJobChanged);
+
+
     emit shepherdChanged( _shepherd );
     emit printManagerChanged( _printManager );
 
@@ -107,6 +110,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
     _profilesTab->setUsbMountManager    ( _usbMountManager );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _prepareTab->setPngDisplayer       ( _pngDisplayer        );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 

@@ -201,7 +201,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustGroup->setFixedWidth( MainButtonSize.width( ) );
     _adjustGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
-    _adjustProjection->setEnabled(false);
+    _adjustProjection->setEnabled(true);
     _adjustProjection->setFixedSize( 43, 43 );
     _adjustProjection->setFont( font22pt );
     _adjustProjection->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -534,7 +534,6 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(100);
     printJob.setSelectedBodyLayerThickness(100);
 
-    _adjustProjection->setEnabled(false);
     _checkSliceDirectories();
 }
 
@@ -544,7 +543,6 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(50);
     printJob.setSelectedBodyLayerThickness(50);
 
-    _adjustProjection->setEnabled(false);
     _checkSliceDirectories();
 }
 
@@ -555,7 +553,6 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
     printJob.setSelectedBaseLayerThickness(20);
     printJob.setSelectedBodyLayerThickness(20);
 
-    _adjustProjection->setEnabled(true);
     _checkSliceDirectories();
 }
 #endif // defined EXPERIMENTAL
@@ -1121,5 +1118,12 @@ void PrepareTab::printJobChanged() {
     _prepareButton->setVisible(true);
     _orderButton->setVisible(true);
     _sliceButton->setVisible(true);
+    _adjustProjection->toggled(false);
+
+//#if defined EXPERIMENTAL
     _adjustGroup->setVisible(false);
+//#endif
+}
+void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
+    _pngDisplayer = pngDisplayer;
 }

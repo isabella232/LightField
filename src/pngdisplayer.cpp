@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "pngdisplayer.h"
+#include "printjob.h"
 
 PngDisplayer::PngDisplayer( QWidget* parent ): QMainWindow( parent ) {
     _label->setAlignment( Qt::AlignCenter );
@@ -79,4 +80,22 @@ bool PngDisplayer::loadImageFile( QString const& fileName ) {
 
 void PngDisplayer::setPixmap( QPixmap const& pixmap ) {
     _label->setPixmap( pixmap );
+}
+
+void PngDisplayer::printJobChanged() {
+    connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
+        QPoint topLeft    { g_settings.projectorWindowPosition };
+
+        auto offsetX = g_settings.projectorOffset.x( );
+        auto offsetY = g_settings.projectorOffset.y( );
+
+        if ( offsetX < 0 ) {
+            topLeft.setX( topLeft.x( ) + offsetX + offset.x() );
+        }
+        if ( offsetY < 0 ) {
+            topLeft.setY( topLeft.y( ) + offsetY + offset.y() );
+        }
+
+        move( topLeft );
+    });
 }
