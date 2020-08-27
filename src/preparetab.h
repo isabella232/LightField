@@ -92,6 +92,7 @@ private:
     QPushButton*      _adjustDown                  { new QPushButton      };
     QPushButton*      _adjustReset                 { new QPushButton      };
     QPushButton*      _adjustLightBulb             { new QPushButton      };
+    QLabel*           _adjustValue                 { new QLabel("0, 0")   };
     ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
     QLabel*           _printOffsetLabel            { new QLabel("")       };
     PngDisplayer*     _pngDisplayer                {                      };
@@ -136,6 +137,8 @@ public slots:
     void setPngDisplayer( PngDisplayer* pngDisplayer );
 
     void setPrinterAvailable( bool const value );
+
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 private slots:
     void usbMountManager_filesystemMounted( QString const& mountPoint );

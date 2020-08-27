@@ -186,12 +186,14 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     });
 
 
+    _adjustValue->setFont(boldFont);
+
     _adjustGroup->setTitle("Digital Projection Offset");
     _adjustGroup->setVisible(false);
     _adjustGroup->setLayout(WrapWidgetsInVBox(
         nullptr,
         WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
-        WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustRight),
+        WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustValue, nullptr, _adjustRight),
         WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
         WrapWidgetsInHBox(nullptr, _adjustLightBulb),
         _adjustPrecision,
@@ -201,7 +203,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustGroup->setFixedWidth( MainButtonSize.width( ) );
     _adjustGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
-    _adjustProjection->setEnabled(true);
+    _adjustProjection->setEnabled(false);
     _adjustProjection->setFixedSize( 43, 43 );
     _adjustProjection->setFont( font22pt );
     _adjustProjection->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
@@ -221,6 +223,9 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
             _orderButton->setVisible(true);
             _sliceButton->setVisible(true);
             _adjustGroup->setVisible(false);
+            if(_adjustLightBulb->isChecked()) {
+                _adjustLightBulb->click();
+            }
         }
     });
 
@@ -600,6 +605,10 @@ void PrepareTab::_showLayerImage(const QString &path)
             Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
 
+    if (_adjustLightBulb->isChecked()) {
+        _pngDisplayer->loadImageFile(path);
+    }
+
     _currentLayerImage->setPixmap(pixmap);
     update();
 }
@@ -842,6 +851,8 @@ void PrepareTab::_restartPreview()
 
     if (printJob.totalLayerCount())
         _setNavigationButtonsEnabled(true);
+
+    _adjustProjection->setEnabled(true);
 }
 
 void PrepareTab::_showWarning(const QString& content)
@@ -1109,21 +1120,39 @@ void PrepareTab::printJobChanged() {
     connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
         if(offset.x() != 0 || offset.y() != 0) {
             _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+            _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
         } else {
             _printOffsetLabel->setText(QString(""));
+            _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
         }
     });
 
-    _optionsContainer->setVisible(true);
-    _prepareButton->setVisible(true);
-    _orderButton->setVisible(true);
-    _sliceButton->setVisible(true);
-    _adjustProjection->toggled(false);
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
 
-//#if defined EXPERIMENTAL
+#if defined EXPERIMENTAL
+    _adjustProjection->setEnabled(false);
     _adjustGroup->setVisible(false);
-//#endif
+#endif
 }
 void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
     _pngDisplayer = pngDisplayer;
+}
+
+void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+    QPoint offset = printJob.getPrintOffset();
+
+    if(offset.x() != 0 || offset.y() != 0) {
+        _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+        _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
+    } else {
+        _printOffsetLabel->setText(QString(""));
+        _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
+    }
+
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
 }

@@ -421,13 +421,14 @@ public:
     }
 
     void setPrintOffset(QPoint offset) {
-        _printOffset = offset;
+        printProfile()->setDigitalOffsetX(offset.x());
+        printProfile()->setDigitalOffsetY(offset.y());
 
         emit printOffsetChanged(offset);
     }
 
     QPoint getPrintOffset() {
-        return _printOffset;
+        return QPoint(printProfile()->getDigitalOffsetX(), printProfile()->getDigitalOffsetY());
     }
 
     void printJobData() {
@@ -547,7 +548,6 @@ protected:
     QString _directoryPath;
     QString _modelHash;
     bool _directoryMode;
-    QPoint _printOffset {0, 0};
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
     QSharedPointer<PrintProfile>&        _printProfile;

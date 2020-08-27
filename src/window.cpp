@@ -137,7 +137,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable            );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable            );
-
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _prepareTab, &PrepareTab::activeProfileChanged);
     //
     // "Tiling" tab
     //
