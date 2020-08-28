@@ -1027,6 +1027,10 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         setPrinterAvailable(false);
         _orderButton->setEnabled(false);
         emit printerAvailabilityChanged(false);
+        if(_adjustProjection->isChecked()) {
+            _adjustProjection->click();
+        }
+        _adjustProjection->setEnabled(false);
         break;
 
     case UiState::PrintCompleted:
@@ -1034,6 +1038,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         _orderButton->setEnabled(printJob.getDirectoryMode());
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
+        _adjustProjection->setEnabled(true);
         break;
 
     default:
