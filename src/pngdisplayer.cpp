@@ -44,12 +44,14 @@ void PngDisplayer::closeEvent( QCloseEvent* event ) {
 }
 
 void PngDisplayer::clear( ) {
-    _label->clear( );
+    _label->clear();
+    image = QImage();
 }
 
 bool PngDisplayer::loadImageFile( QString const& fileName ) {
     if ( !image.load(fileName) ) {
         _label->clear( );
+        image = QImage();
         return false;
     }
     QPoint offset = printJob.getPrintOffset();
