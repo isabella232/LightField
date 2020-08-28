@@ -19,7 +19,7 @@ public:
         {ExtendedPrintTest::testNameString, new ExtendedPrintTest()},
         {TilingTest::testNameString, new TilingTest()},
         {FolderOfImagesTest::testNameString, new FolderOfImagesTest()},
-        {PrintProfileTest::testNameString, new PrintProfileTest()}
+        //{PrintProfileTest::testNameString, new PrintProfileTest()}
     };
 
     TestExecutor() {
@@ -80,7 +80,7 @@ public:
 
                 try {
                     test->start(modelName);
-                } catch (QException e) {
+                } catch (QException*) {
                     QTest::qWait(2000);
                 }
             }

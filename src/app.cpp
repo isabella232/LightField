@@ -30,7 +30,8 @@ namespace {
         QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                                 },
         QCommandLineOption {               "m",            "Pretend printer is online."                                                             },
         QCommandLineOption {               "n",            "Ignore USB."                                                                            },
-        QCommandLineOption {               "t",            "Launch tests.", "\"testName1,testName2,testName3 ...\""                                 },
+        QCommandLineOption {               "t",            "Launch tests.",                                                  "testName"             },
+        QCommandLineOption {               "d",            "Model name used for test.",                                      "modelName"            },
 #endif // defined _DEBUG
     };
 
@@ -93,6 +94,9 @@ namespace {
         [] ( ) { // -t
             debug("  +App test mode enabled\n");
             g_settings.enableTests = true;
+        },
+        [] ( ) { // -d
+            //do nothing
         }
 #endif // defined _DEBUG
     };
@@ -295,11 +299,16 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
     _window->show( );
 #if defined _DEBUG
     if(g_settings.enableTests) {
-        auto value = CommandLineParser.value( CommandLineOptions[11] );
-        QStringList testsNames = value.split(",");
-        TestExecutor* testExecutor = new TestExecutor();
+        auto testName = CommandLineParser.values( CommandLineOptions[11] );
+        auto testModelList = CommandLineParser.values( CommandLineOptions[12] );
 
-        testExecutor->startTests(testsNames);
+        QString modelName = nullptr;
+
+        if(testModelList.length() > 0)
+            modelName = testModelList[0];
+
+        TestExecutor* testExecutor = new TestExecutor();
+        testExecutor->startTests(testName, modelName);
     }
 #endif
 }

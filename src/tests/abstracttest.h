@@ -214,11 +214,9 @@ public:
 
     void fileClickSelectButton() {
         TDEBUG("select button file tab ");
-        Window* window = App::mainWindow();
         QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
 
         QWidget* selectButton = findWidget<QPushButton*>("fileSelect");
-        QPushButton* resliceButton = findWidget<QPushButton*>("prepareSlice");
 
         QTest::qWaitFor([selectButton]() {
             return selectButton->isEnabled();
@@ -769,7 +767,7 @@ public:
 
         clickOkMsgBoxTopLevel();
 
-        QMessageBox* profilesNewConfirmation = findWidget<QMessageBox*>("profilesNewConfirmation");
+        //QMessageBox* profilesNewConfirmation = findWidget<QMessageBox*>("profilesNewConfirmation");
 
     }
 

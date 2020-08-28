@@ -327,4 +327,6 @@ key* Keyboard::getKey(QString label) {
             }
         }
     }
+
+    return nullptr;
 }

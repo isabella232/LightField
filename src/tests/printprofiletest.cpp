@@ -8,7 +8,7 @@
 QString PrintProfileTest::testNameString = "printprofiletest";
 
 void PrintProfileTest::start(QString modelName = nullptr) {
-
+    (void)modelName;
     TDEBUG("=================================Print Profile Test=================================!\n");
 
     waitForMainWindow();
