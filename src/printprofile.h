@@ -26,6 +26,8 @@ public:
         _advancedExposureControlsEnabled = profile._advancedExposureControlsEnabled;
         _baseLayerParameters = profile._baseLayerParameters;
         _bodyLayerParameters = profile._bodyLayerParameters;
+        digitalOffsetX = profile.digitalOffsetX;
+        digitalOffsetY = profile.digitalOffsetY;
     }
 
     virtual ~PrintProfile() override
@@ -172,6 +174,22 @@ public:
         _advancedExposureControlsEnabled = value;
     }
 
+    void setDigitalOffsetX(int offset) {
+        digitalOffsetX = offset;
+    }
+
+    void setDigitalOffsetY(int offset) {
+        digitalOffsetY = offset;
+    }
+
+    int getDigitalOffsetX() {
+        return digitalOffsetX;
+    }
+
+    int getDigitalOffsetY() {
+        return digitalOffsetY;
+    }
+
 private:
 
     QString _name;
@@ -184,6 +202,8 @@ private:
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
     bool _defaultProfile;
+    int digitalOffsetX=0;
+    int digitalOffsetY=0;
 
 signals:
     void profileNameChanged(const QString& newName);

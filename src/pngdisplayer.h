@@ -11,7 +11,6 @@ class PngDisplayer: public QMainWindow
 public:
 
     PngDisplayer( QWidget* parent = nullptr );
-
     virtual ~PngDisplayer( ) override;
 
 protected:
@@ -21,8 +20,7 @@ protected:
 private:
 
     QLabel* _label { new QLabel };
-    QPixmap _png;
-
+    QImage  image;
 signals:
 
     void terminationRequested( );
@@ -32,6 +30,8 @@ public slots:
     void clear( );
     bool loadImageFile( QString const& fileName );
     void setPixmap( QPixmap const& pixmap );
+    void printJobChanged();
+    void moveToOffset(QPoint offset);
 
 protected slots:
 

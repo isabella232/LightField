@@ -98,6 +98,9 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         }
     }
 
+    QObject::connect(&printJob, &PrintJob::printJobChanged, _pngDisplayer, &PngDisplayer::printJobChanged);
+
+
     emit shepherdChanged( _shepherd );
     emit printManagerChanged( _printManager );
 
@@ -107,6 +110,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _prepareTab ->setUsbMountManager    ( _usbMountManager );
     _profilesTab->setUsbMountManager    ( _usbMountManager );
     _advancedTab->setPngDisplayer       ( _pngDisplayer        );
+    _prepareTab->setPngDisplayer       ( _pngDisplayer        );
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 
@@ -133,7 +137,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _statusTab,   &StatusTab::setPrinterAvailable            );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _advancedTab, &AdvancedTab::setPrinterAvailable          );
     QObject::connect( _prepareTab, &PrepareTab::printerAvailabilityChanged, _systemTab,   &SystemTab::setPrinterAvailable            );
-
+    QObject::connect(_printProfileManager, &PrintProfileManager::activeProfileChanged,
+        _prepareTab, &PrepareTab::activeProfileChanged);
     //
     // "Tiling" tab
     //
