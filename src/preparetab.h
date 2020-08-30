@@ -81,7 +81,7 @@ private:
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
 
-
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     QGroupBox*        _adjustGroup                 { new QGroupBox        };
     QGridLayout*      _adjustlayout                { new QGridLayout      };
     QPushButton*      _adjustProjection            { new QPushButton      };
@@ -94,7 +94,9 @@ private:
     QPushButton*      _adjustLightBulb             { new QPushButton      };
     QLabel*           _adjustValue                 { new QLabel("0, 0")   };
     ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
+
     QLabel*           _printOffsetLabel            { new QLabel("")       };
+ #endif
     PngDisplayer*     _pngDisplayer                {                      };
 
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };

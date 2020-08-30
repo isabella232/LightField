@@ -55,7 +55,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layerThickness20Button->setText( "High Res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
-#endif
+#endif // defined XDLP471020UM
 
     _sliceStatusLabel->setText( "Slicer:" );
 
@@ -107,6 +107,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _prepareButton->setText( "Prepare..." );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _adjustReset->setEnabled( true );
     _adjustReset->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
     _adjustReset->setFont( font22pt );
@@ -169,7 +170,6 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustLightBulb->setFont( font22pt );
     _adjustLightBulb->setVisible(true);
     _adjustLightBulb->setCheckable(true);
-    //_adjustLightBulb->setStyleSheet("QPushButton{background-color:red;} QPushButton:checked{background-color:green;}");
 
     QObject::connect( _adjustLightBulb, &QPushButton::toggled, [this](bool toggled) {
 
@@ -182,7 +182,6 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
             QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( 0 )) } );
         }
 
-        //_pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
     });
 
 
@@ -228,6 +227,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
             }
         }
     });
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 
     //_copyToUSBButton->setEnabled( false );
     //_copyToUSBButton->setFixedSize( MainButtonSize );
@@ -306,10 +306,17 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     QLabel* spacer { new QLabel };
     spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     spacer->setFixedWidth(170);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
         WrapWidgetsInHBox(spacer, _navigationLayout, nullptr, _printOffsetLabel, nullptr, _adjustProjection)
     );
+#else
+    _currentLayerLayout = WrapWidgetsInVBox(
+        _currentLayerImage,
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr)
+    );
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
     _currentLayerGroup->setTitle( "Current layer" );
@@ -322,7 +329,9 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layout->addWidget( _orderButton, 2, 0, 1, 1 );
     _layout->addWidget( _sliceButton, 3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _layout->addWidget( _adjustGroup, 0, 0, 4, 1);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
 
@@ -570,7 +579,9 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
         _layerThickness100Button->setChecked(true);
     }
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _initAfterSelect = false;
     _checkSliceDirectories();
 }
@@ -605,9 +616,11 @@ void PrepareTab::_showLayerImage(const QString &path)
             Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     if (_adjustLightBulb->isChecked()) {
         _pngDisplayer->loadImageFile(path);
     }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 
     _currentLayerImage->setPixmap(pixmap);
     update();
@@ -851,8 +864,9 @@ void PrepareTab::_restartPreview()
 
     if (printJob.totalLayerCount())
         _setNavigationButtonsEnabled(true);
-
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }
 
 void PrepareTab::_showWarning(const QString& content)
@@ -1027,10 +1041,12 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         setPrinterAvailable(false);
         _orderButton->setEnabled(false);
         emit printerAvailabilityChanged(false);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         if(_adjustProjection->isChecked()) {
             _adjustProjection->click();
         }
         _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     case UiState::PrintCompleted:
@@ -1038,7 +1054,9 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         _orderButton->setEnabled(printJob.getDirectoryMode());
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     default:
@@ -1122,6 +1140,7 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
 }
 
 void PrepareTab::printJobChanged() {
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
         if(offset.x() != 0 || offset.y() != 0) {
             _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
@@ -1136,10 +1155,9 @@ void PrepareTab::printJobChanged() {
         _adjustProjection->click();
     }
 
-#if defined EXPERIMENTAL
     _adjustProjection->setEnabled(false);
     _adjustGroup->setVisible(false);
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }
 void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
     _pngDisplayer = pngDisplayer;
@@ -1147,6 +1165,7 @@ void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
 
 void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
     (void)newProfile;
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     QPoint offset = printJob.getPrintOffset();
 
     if(offset.x() != 0 || offset.y() != 0) {
@@ -1160,4 +1179,5 @@ void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
     if(_adjustProjection->isChecked()) {
         _adjustProjection->click();
     }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }
