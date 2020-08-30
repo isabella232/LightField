@@ -49,7 +49,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layerThicknessCustomButton->setFont( font12pt );
     QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setEnabled( false );
     _layerThickness20Button->setChecked( false );
     _layerThickness20Button->setText( "High Res (20 µm)" );
@@ -240,7 +240,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( WrapWidgetsInVBox(
         _layerThicknessLabel,
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
          WrapWidgetsInVBox(
              _layerThickness100Button,
              _layerThickness50Button,
@@ -253,7 +253,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
               _layerThickness50Button,
               _layerThicknessCustomButton
           ),
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         _prepareGroup,
@@ -551,7 +551,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _checkSliceDirectories();
 }
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
     printJob.setBaseLayerCount(2);
@@ -560,7 +560,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
     _checkSliceDirectories();
 }
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
     ThicknessWindow *dialog = new ThicknessWindow(_initAfterSelect, this);
@@ -620,9 +620,9 @@ void PrepareTab::_setSliceControlsEnabled(bool const enabled)
     _layerThickness100Button->setEnabled(enabled);
     _layerThickness50Button->setEnabled(enabled);
     _layerThicknessCustomButton->setEnabled(enabled);
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setEnabled(enabled);
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
 
     update( );
 }
@@ -951,9 +951,9 @@ void PrepareTab::_updateSliceControls() {
     _layerThickness100Button->setChecked(false);
     _layerThickness50Button->setChecked(false);
     _layerThicknessCustomButton->setChecked(false);
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setChecked(false);
-#endif
+#endif // defined XDLP471020UM
 
     if (printJob.getSelectedBaseLayerThickness() == printJob.getSelectedBodyLayerThickness() &&
         printJob.getBaseLayerCount() == 2) {
@@ -966,11 +966,11 @@ void PrepareTab::_updateSliceControls() {
             _layerThickness50Button->setChecked(true);
             return;
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
         case 20:
             _layerThickness20Button->setChecked(true);
             return;
-#endif
+#endif // defined XDLP471020UM
         }
     }
 
@@ -1139,7 +1139,7 @@ void PrepareTab::printJobChanged() {
 #if defined EXPERIMENTAL
     _adjustProjection->setEnabled(false);
     _adjustGroup->setVisible(false);
-#endif
+#endif // defined EXPERIMENTAL
 }
 void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
     _pngDisplayer = pngDisplayer;
