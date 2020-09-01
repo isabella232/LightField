@@ -4,8 +4,8 @@ variables:
   VERSION: 2.0.3
 
 stages:
-  - build_xdlp4710_20um
   - build_xdlp4710
+  - build_xdlp4710_20um
   - build_dlp4710
   - build_xbase
   - build_base
