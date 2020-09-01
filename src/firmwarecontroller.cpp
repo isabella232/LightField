@@ -24,8 +24,6 @@ FirmwareController::FirmwareController(QObject *parent, QString const & portPath
     _baudrate(baudrate)
 {
 
-    QObject::connect(&_serial, &QSerialPort::bytesWritten, this,
-        &FirmwareController::serialBytesWritten);
     QObject::connect(&_serial, &QSerialPort::readyRead, this, &FirmwareController::serialDataReady);
     QObject::connect(this, &FirmwareController::printerOnline, this,
         &FirmwareController::printerInitialize);
@@ -38,15 +36,18 @@ void FirmwareController::init()
 {
     _serial.setPortName(_portPath);
     _serial.setBaudRate(_baudrate);
-
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
+        debug("+ FirmwareController::init: mocking reset\n");
         resetFirmware();
         return;
     }
 
 #endif // defined _DEBUG
     Q_ASSERT(_serial.open(QIODevice::ReadWrite));
+    debug("+ FirmwareController::init: serial port open - baud %d, path %s\n", _serial.baudRate(),
+        _serial.portName().toUtf8().data());
+    debug("+ FirmwareController::init: serial port open - resetting firmware\n");
     resetFirmware();
 }
 
@@ -116,19 +117,58 @@ int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args)
 {
     const FirmwareCommand cmd = FirmwareCommand(type, args);
 
-    firmware_debug(cmd.getCommand().toUtf8().data());
-
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
+        int resp_delay = 100;
+        double shift = 1;
+        double speed = 1;
+
         _cmdQueue.enqueue(cmd);
-        QTimer::singleShot(100, this, [=]() {serialBytesWritten(cmd.getLength());});
+
+        if (type == FirmwareCommandType::LINEAR_MOVE) {
+            double position = args[0].toDouble();
+            speed = args[1].toDouble();
+
+            if (_cplxCmdQueue.head().getType() == FirmwareComplexCommandType::MOVE_ABSOLUTE) {
+                shift = abs(_zPosition - position);
+                _zPosition = position;
+            } else {
+                shift = _zPosition + position;
+                _zPosition = shift;
+            }
+
+        } else if (type == FirmwareCommandType::AUTO_HOME) {
+            shift = _zPosition;
+            speed = PrinterDefaultHighSpeed;
+            _zPosition = 0;
+
+        } else if (type == FirmwareCommandType::SET_BED_TEMPERATURE) {
+            _targetTemp = args[0].toDouble();
+
+        } else if (type == FirmwareCommandType::TEMPERATURE_AUTO_REPORT) {
+            _tempReportInterval = args[0].toInt();
+
+            if (_tempReportInterval == 0)
+                _tempReportTimer.stop();
+            else
+                _tempReportTimer.start(_tempReportInterval * 1000);
+        }
+
+        if ((type == FirmwareCommandType::LINEAR_MOVE) || (type == FirmwareCommandType::AUTO_HOME))
+            resp_delay = static_cast<int>((shift / speed) * 60000);
+
+        QTimer::singleShot(resp_delay, this, SLOT(serialDataReady()));
         return 0;
     }
 
 #endif // defined _DEBUG
     if (_serial.isOpen()) {
+        if (_cmdQueue.isEmpty()) {
+            _serial.write(cmd.getCommand().toUtf8());
+            firmware_debug(cmd.getCommand().toUtf8().data());
+        }
+
         _cmdQueue.enqueue(cmd);
-        _serial.write(cmd.getCommand().toUtf8());
         debug("+ FirmwareController::sendCommand: command queued: %s\n", cmd.getCommand().toUtf8().data());
     } else {
         debug("+ FirmwareController::sendCommand: discarding command: %s - serial port closed\n",
@@ -175,7 +215,7 @@ void FirmwareController::resetFirmware()
     foreach (const FirmwareCommand &cmd, _cmdQueue)
         emit printerCommandCompleted(cmd.getType(), false);
     _cmdQueue.clear();
-    debug("+ FirmwareController::resetFirmware: resetting firmware - DTR active\n");
+    debug("+ FirmwareController::resetFirmware: resetting firmware - DTR inactive\n");
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
         QTimer::singleShot(200, this, SLOT(serialDTRTimerTimeout()));
@@ -183,13 +223,13 @@ void FirmwareController::resetFirmware()
     }
 #endif // defined _DEBUG
 
-    _serial.setDataTerminalReady(true);
+    _serial.setDataTerminalReady(false);
     QTimer::singleShot(200, this, SLOT(serialDTRTimerTimeout()));
 }
 
 void FirmwareController::serialDTRTimerTimeout()
 {
-    debug("+ FirmwareController::serialDTRTimerTimeout: firmware reset completed - DTR inactive\n");
+    debug("+ FirmwareController::serialDTRTimerTimeout: firmware reset completed - DTR active\n");
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
         emit serialResetCompleted();
@@ -199,7 +239,7 @@ void FirmwareController::serialDTRTimerTimeout()
     }
 #endif // defined _DEBUG
 
-    _serial.setDataTerminalReady(false);
+    _serial.setDataTerminalReady(true);
     emit serialResetCompleted();
 }
 
@@ -209,83 +249,10 @@ void FirmwareController::printerInitialize()
     debug("+ FirmwareController::printerInitialize: command queued\n");
 }
 
-FirmwareCommand & FirmwareController::getFirstUnsent()
-{
-    QQueue<FirmwareCommand>::iterator i = _cmdQueue.begin();
-
-    for (; i != _cmdQueue.end(); ++i) {
-        if (!i->isSent())
-            break;
-    }
-
-    return *i;
-}
-
-void FirmwareController::serialBytesWritten(int bytes)
-{
-    FirmwareCommand &next_cmd = getFirstUnsent();
-    _writeCount += bytes;
-
-    debug("+ FirmwareController::serialBytesWritten: %d bytes written to serial port\n", bytes);
-
-    if (next_cmd.isSent())
-        return;
-
-    if (_writeCount >= next_cmd.getLength()) {
-        next_cmd.setSent();
-        _writeCount -= next_cmd.getLength();
-
-        debug("+ FirmwareController::serialBytesWritten: command sent %s %s",
-            next_cmd.getCommandName(), next_cmd.getCommand().toUtf8().data());
-    }
-#if defined _DEBUG
-    if (g_settings.pretendPrinterIsOnline) {
-        int resp_delay = 100;
-        double shift = 1;
-        double speed = 1;
-        FirmwareCommandType type = next_cmd.getType();
-
-        if (type == FirmwareCommandType::LINEAR_MOVE) {
-            QStringList args = next_cmd.getArgs();
-            double position = args[0].toDouble();
-            speed = args[1].toDouble();
-
-            if (_cplxCmdQueue.head().getType() == FirmwareComplexCommandType::MOVE_ABSOLUTE) {
-                shift = abs(_zPosition - position);
-                _zPosition = position;
-            } else {
-                shift = _zPosition + position;
-                _zPosition = shift;
-            }
-
-        } else if (type == FirmwareCommandType::AUTO_HOME) {
-            shift = _zPosition;
-            speed = PrinterDefaultHighSpeed;
-            _zPosition = 0;
-
-        } else if (type == FirmwareCommandType::SET_BED_TEMPERATURE) {
-            _targetTemp = next_cmd.getArgs()[0].toDouble();
-
-        } else if (type == FirmwareCommandType::TEMPERATURE_AUTO_REPORT) {
-            _tempReportInterval = next_cmd.getArgs()[0].toInt();
-
-            if (_tempReportInterval == 0)
-                _tempReportTimer.stop();
-            else
-                _tempReportTimer.start(_tempReportInterval * 1000);
-        }
-
-        if ((type == FirmwareCommandType::LINEAR_MOVE) || (type == FirmwareCommandType::AUTO_HOME))
-            resp_delay = static_cast<int>((shift / speed) * 60000);
-
-        QTimer::singleShot(resp_delay, this, SLOT(serialDataReady()));
-    }
-#endif // defined _DEBUG
-}
-
 void FirmwareController::serialDataReady()
 {
     QString line;
+    QByteArray raw_data;
 
 #if defined _DEBUG
     if (g_settings.pretendPrinterIsOnline) {
@@ -340,101 +307,110 @@ void FirmwareController::serialDataReady()
     }
 #endif // defined _DEBUG
 
-    if (!_serial.canReadLine())
-        return;
+    while (_serial.canReadLine()) {
 
-    line = _serial.readLine();
+        raw_data = _serial.readLine();
+        debug("+ FirmwareController::serialDataReady: raw_data - %s", raw_data.constData());
+        line = QString::fromUtf8(raw_data);
 skip_serial:
-    debug("+ FirmwareController::serialDataReady: firmware response: %s", line.toUtf8().data());
-    firmware_debug(line.toUtf8().data());
+        debug("+ FirmwareController::serialDataReady: firmware response: %s", line.toUtf8().data());
+        firmware_debug(line.toUtf8().data());
 
-    if (!_online) {
-        if (line.startsWith("start") || line.startsWith("Grbl") || line.startsWith("ok")) {
-            debug("+ FirmwareController::serialDataReady: printer online\n");
-            _online = true;
-            emit printerOnline();
-            return;
-        }
-    }
-
-    if (line.startsWith("ok")) {
-        Q_ASSERT(!_cmdQueue.empty());
-        FirmwareCommand &next_cmd = _cmdQueue.head();
-
-        if (!next_cmd.isSent()) {
-            debug("+ FirmwareController::serialDataReady: printer firmware sent unexpected 'ok' response - discarding\n");
-            return;
+        if (!_online) {
+            if (line.contains("start") || line.contains("Grbl") || line.contains("ok")) {
+                debug("+ FirmwareController::serialDataReady: printer online\n");
+                _online = true;
+                emit printerOnline();
+                return;
+            }
         }
 
-        FirmwareCommandType cmd_type = next_cmd.getType();
+        if (line.startsWith("ok")) {
+            Q_ASSERT(!_cmdQueue.empty());
+            FirmwareCommand &next_cmd = _cmdQueue.head();
+            FirmwareCommandType cmd_type = next_cmd.getType();
 
-        if (cmd_type == FirmwareCommandType::REPORT_TEMPERATURES) {
-            line = line.mid(3);
-            parseTemperatureReport(line);
-        }
-
-        debug("+ FirmwareController::serialDataReady: command %s completed: %s",
-            next_cmd.getCommandName(), next_cmd.getCommand().toUtf8().data());
-
-        FirmwareComplexCommand &next_cplx_cmd = _cplxCmdQueue.head();
-        FirmwareCommandType expected_command = next_cplx_cmd.popNextSubcommand();
-        if (expected_command != next_cmd.getType()) {
-            debug("+ FirmwareController::serialDataReady: command mismatch during %s - expected %d, got %d\n",
-                next_cplx_cmd.getCommandName(), expected_command, next_cmd.getType());
-            resetFirmware();
-            return;
-        }
-
-        if (next_cplx_cmd.isFinished()) {
-            debug("+ FirmwareController::serialDataReady: complex command %s completed\n",
-                next_cplx_cmd.getCommandName());
-            switch (next_cplx_cmd.getType()) {
-            case (FirmwareComplexCommandType::MOVE_RELATIVE):
-                emit printerMoveRelativeCompleted(true);
-                break;
-            case (FirmwareComplexCommandType::MOVE_ABSOLUTE):
-                emit printerMoveAbsoluteCompleted(true);
-                break;
-            case (FirmwareComplexCommandType::MOVE_HOME):
-                emit printerHomeCompleted(true);
-                break;
-            case (FirmwareComplexCommandType::INITIALIZE):
-                emit printerInitCompleted(true);
-                break;
-            case (FirmwareComplexCommandType::SET_BED_TEMPERATURE):
-                emit printerSetTemperatureCompleted(true);
-                break;
+            if (cmd_type == FirmwareCommandType::REPORT_TEMPERATURES) {
+                line = line.mid(3);
+                parseTemperatureReport(line);
             }
 
-            emit printerComplexCommandCompleted(next_cplx_cmd.getType(), true);
-            _cplxCmdQueue.dequeue();
-        }
+            debug("+ FirmwareController::serialDataReady: command %s completed: %s",
+                next_cmd.getCommandName(), next_cmd.getCommand().toUtf8().data());
 
-        emit printerCommandCompleted(next_cmd.getType(), true);
-        _cmdQueue.dequeue();
+            FirmwareComplexCommand &next_cplx_cmd = _cplxCmdQueue.head();
+            FirmwareCommandType expected_command = next_cplx_cmd.popNextSubcommand();
+            if (expected_command != next_cmd.getType()) {
+                debug("+ FirmwareController::serialDataReady: command mismatch during %s - expected %d, got %d\n",
+                    next_cplx_cmd.getCommandName(), expected_command, next_cmd.getType());
+                resetFirmware();
+                return;
+            }
 
-    } else if (line.contains("T:")) {
-        line = line.mid(line.indexOf('T'));
-        parseTemperatureReport(line);
-    } else if (line.startsWith("X:")) {
-        parsePosition(line);
-    } else if (line.startsWith("Error")) {
-        debug("+ FirmwareController::serialDataReady: firmware error: %s\n", line.toUtf8().data());
-        resetFirmware();
-        return;
-    } else if (line.startsWith("echo:")) {
-        debug("+ FirmwareController::serialDataReady: firmware debug print: %s\n", line.toUtf8().data());
-    } else {
-        QRegularExpressionMatch match = FirmwareVersionMatcher.match(line);
+            if (next_cplx_cmd.isFinished()) {
+                debug("+ FirmwareController::serialDataReady: complex command %s completed\n",
+                    next_cplx_cmd.getCommandName());
+                switch (next_cplx_cmd.getType()) {
+                case (FirmwareComplexCommandType::MOVE_RELATIVE):
+                    emit printerMoveRelativeCompleted(true);
+                    break;
+                case (FirmwareComplexCommandType::MOVE_ABSOLUTE):
+                    emit printerMoveAbsoluteCompleted(true);
+                    break;
+                case (FirmwareComplexCommandType::MOVE_HOME):
+                    emit printerHomeCompleted(true);
+                    break;
+                case (FirmwareComplexCommandType::INITIALIZE):
+                    emit printerInitCompleted(true);
+                    break;
+                case (FirmwareComplexCommandType::SET_BED_TEMPERATURE):
+                    emit printerSetTemperatureCompleted(true);
+                    break;
+                }
 
-        if (match.hasMatch()) {
-            QString firmwareVersion = match.captured(1);
-            debug("+ FirmwareController::serialDataReady: firmware version: %s\n", firmwareVersion);
-            emit printerFirmwareVersionReport(firmwareVersion);
+                emit printerComplexCommandCompleted(next_cplx_cmd.getType(), true);
+                _cplxCmdQueue.dequeue();
+            }
+
+            emit printerCommandCompleted(next_cmd.getType(), true);
+            _cmdQueue.dequeue();
+#if defined _DEBUG
+            if (g_settings.pretendPrinterIsOnline)
+                return;
+#endif // defined _DEBUG
+            if (!_cmdQueue.isEmpty()) {
+                const FirmwareCommand &next_cmd = _cmdQueue.head();
+                _serial.write(next_cmd.getCommand().toUtf8());
+                firmware_debug(next_cmd.getCommand().toUtf8().data());
+            }
+
+        } else if (line.contains("T:")) {
+            line = line.mid(line.indexOf('T'));
+            parseTemperatureReport(line);
+        } else if (line.startsWith("X:")) {
+            parsePosition(line);
+        } else if (line.startsWith("Error")) {
+            debug("+ FirmwareController::serialDataReady: firmware error: %s\n",
+                line.toUtf8().data());
+            resetFirmware();
             return;
-        }
+        } else if (line.startsWith("echo:")) {
+            debug("+ FirmwareController::serialDataReady: firmware debug print: %s\n",
+                line.toUtf8().data());
+        } else {
+            QRegularExpressionMatch match = FirmwareVersionMatcher.match(line);
 
-        debug("+ FirmwareController::serialDataReady: unhandled firmware data output: %s\n", line.toUtf8().data());
+            if (match.hasMatch()) {
+                QString firmwareVersion = match.captured(1);
+                debug("+ FirmwareController::serialDataReady: firmware version: %s\n",
+                    firmwareVersion);
+                emit printerFirmwareVersionReport(firmwareVersion);
+                return;
+            }
+
+            debug("+ FirmwareController::serialDataReady: unhandled firmware data output: %s\n",
+                line.toUtf8().data());
+        }
     }
 }
 

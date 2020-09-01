@@ -88,7 +88,7 @@ namespace {
 
 }
 
-Window* App::_window { };
+Window* App::_window {};
 
 void App::_parseCommandLine( ) {
     CommandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );

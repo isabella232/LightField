@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QtWidgets>
+#include "debug.h"
 
 class Window;
 

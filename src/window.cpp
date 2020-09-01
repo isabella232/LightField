@@ -50,8 +50,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     _signalHandler->subscribe( signalList );
 
-    _firmwareController = new FirmwareController { parent, FirmwarePath, FirmwareBaudrate };
-
+    _firmwareController = new FirmwareController(this, FirmwarePath, FirmwareBaudrate);
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
     _upgradeManager      = new UpgradeManager;

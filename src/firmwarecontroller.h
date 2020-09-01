@@ -129,20 +129,10 @@ public:
         return _command.length();
     }
 
-    bool isSent() const {
-        return _sent;
-    }
-
-    void setSent() {
-        _sent = true;
-        debug("+ FirmwareCommand::setSent: command sent: %s", _command.toUtf8().data());
-    }
-
 protected:
     QString _command;
     QStringList _args;
     FirmwareCommandType _type;
-    bool _sent { false };
 };
 
 class FirmwareComplexCommand {
@@ -209,7 +199,6 @@ protected:
     QQueue<FirmwareCommand> _cmdQueue;
     QQueue<FirmwareComplexCommand> _cplxCmdQueue;
     int _baudrate;
-    int _writeCount { 0 };
 #if defined _DEBUG
 
     QTimer _tempReportTimer;
@@ -249,7 +238,6 @@ signals:
     void serialResetCompleted();
 
 protected slots:
-    void serialBytesWritten(int bytes);
     void serialDataReady();
     void serialDTRTimerTimeout();
     void printerInitialize();

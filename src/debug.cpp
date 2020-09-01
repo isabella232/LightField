@@ -23,7 +23,7 @@ void DebugManager::rotate() {
         ::rename(_paths[n - 1], _paths[n]);
     }
 
-    FILE **log = &DebugLog;;
+    FILE **log = &DebugLog;
 
     switch (_type) {
     case (DebugType::APP):
@@ -39,20 +39,10 @@ void DebugManager::rotate() {
         error_t err = errno;
         ::fprintf(stderr, "failed to open log file '%s': %s [%d]", _paths[0], strerror(err),
             err);
-    } else {
-        // save the original stderr
-        int fd = ::dup(2);
-
-        // redirect stderr to the debug log
-        ::dup2(::fileno(*log), 2);
-
-        // get a FILE* for the original stderr
-        OriginalStderr = ::fdopen(fd, "wt");
-
-        // disable buffering on both FILE*:s
-        ::setvbuf(*log, nullptr, _IONBF, 0);
-        ::setvbuf(OriginalStderr, nullptr, _IONBF, 0);
     }
+
+    ::setvbuf(*log, nullptr, _IONBF, 0);
+    ::setvbuf(OriginalStderr, nullptr, _IONBF, 0);
 }
 
 DebugManager::~DebugManager() {
