@@ -169,7 +169,7 @@ int FirmwareController::sendCommand(FirmwareCommandType type, QStringList args)
         }
 
         _cmdQueue.enqueue(cmd);
-        debug("+ FirmwareController::sendCommand: command queued: %s\n", cmd.getCommand().toUtf8().data());
+        debug("+ FirmwareController::sendCommand: command queued: %s", cmd.getCommand().toUtf8().data());
     } else {
         debug("+ FirmwareController::sendCommand: discarding command: %s - serial port closed\n",
             cmd.getCommand().toUtf8().data());
