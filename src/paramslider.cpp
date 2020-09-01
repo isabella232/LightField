@@ -49,6 +49,8 @@ int ParamSlider::getValue()
 void ParamSlider::setValue(int value)
 {
     _slider->setValue(value);
+
+    this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
 }
 
 void ParamSlider::setValueDouble(double value)

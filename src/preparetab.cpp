@@ -49,13 +49,13 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layerThicknessCustomButton->setFont( font12pt );
     QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setEnabled( false );
     _layerThickness20Button->setChecked( false );
     _layerThickness20Button->setText( "High Res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
-#endif
+#endif // defined XDLP471020UM
 
     _sliceStatusLabel->setText( "Slicer:" );
 
@@ -107,6 +107,128 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _prepareButton->setText( "Prepare..." );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustReset->setEnabled( true );
+    _adjustReset->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _adjustReset->setFont( font22pt );
+    _adjustReset->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustReset->setText( "Reset" );
+    QObject::connect( _adjustReset, &QPushButton::clicked, this, []() {
+        printJob.setPrintOffset(QPoint(0,0));
+    });
+
+    _adjustUp->setText("⇧");
+    _adjustUp->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustUp->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustUp->setFont( font22pt );
+    _adjustUp->setVisible(true);
+    QObject::connect( _adjustUp, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x(), current.y() + step));
+    });
+
+    _adjustLeft->setText("⇦");
+    _adjustLeft->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustLeft->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustLeft->setFont( font22pt );
+    _adjustLeft->setVisible(true);
+    QObject::connect( _adjustLeft, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x() - step, current.y()));
+    });
+    _adjustRight->setText("⇨");
+    _adjustRight->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustRight->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustRight->setFont( font22pt );
+    _adjustRight->setVisible(true);
+    QObject::connect( _adjustRight, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x() + step, current.y()));
+    });
+
+    _adjustDown ->setText("⇩");
+    _adjustDown->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustDown->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustDown->setFont( font22pt );
+    _adjustDown->setVisible(true);
+    QObject::connect( _adjustDown, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x(), current.y() - step));
+    });
+
+    _adjustLightBulb->setText("💡");
+    _adjustLightBulb->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustLightBulb->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustLightBulb->setFont( font22pt );
+    _adjustLightBulb->setVisible(true);
+    _adjustLightBulb->setCheckable(true);
+
+    QObject::connect( _adjustLightBulb, &QPushButton::toggled, [this](bool toggled) {
+
+        if(toggled) {
+            _pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( activeProfileRef->baseLayerParameters().powerLevel() )) } );
+
+        } else {
+            _pngDisplayer->clear();
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( 0 )) } );
+        }
+
+    });
+
+
+    _adjustValue->setFont(boldFont);
+
+    _adjustGroup->setTitle("Digital Projection Offset");
+    _adjustGroup->setVisible(false);
+    _adjustGroup->setLayout(WrapWidgetsInVBox(
+        nullptr,
+        WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
+        WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustValue, nullptr, _adjustRight),
+        WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
+        WrapWidgetsInHBox(nullptr, _adjustLightBulb),
+        _adjustPrecision,
+        _adjustReset
+    ));
+
+    _adjustGroup->setFixedWidth( MainButtonSize.width( ) );
+    _adjustGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+    _adjustProjection->setEnabled(false);
+    _adjustProjection->setFixedSize( 43, 43 );
+    _adjustProjection->setFont( font22pt );
+    _adjustProjection->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustProjection->setText( "✥" );
+    _adjustProjection->setCheckable(true);
+    QObject::connect( _adjustProjection, &QPushButton::toggled, [this](bool toggled) {
+
+        if(toggled) {
+            _optionsContainer->setVisible(false);
+            _prepareButton->setVisible(false);
+            _orderButton->setVisible(false);
+            _sliceButton->setVisible(false);
+            _adjustGroup->setVisible(true);
+        } else {
+            _optionsContainer->setVisible(true);
+            _prepareButton->setVisible(true);
+            _orderButton->setVisible(true);
+            _sliceButton->setVisible(true);
+            _adjustGroup->setVisible(false);
+            if(_adjustLightBulb->isChecked()) {
+                _adjustLightBulb->click();
+            }
+        }
+    });
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+
     //_copyToUSBButton->setEnabled( false );
     //_copyToUSBButton->setFixedSize( MainButtonSize );
     //_copyToUSBButton->setFont( font22pt );
@@ -118,7 +240,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( WrapWidgetsInVBox(
         _layerThicknessLabel,
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
          WrapWidgetsInVBox(
              _layerThickness100Button,
              _layerThickness50Button,
@@ -131,7 +253,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
               _layerThickness50Button,
               _layerThicknessCustomButton
           ),
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         _prepareGroup,
@@ -181,10 +303,20 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
 
     _setNavigationButtonsEnabled( false );
 
+    QLabel* spacer { new QLabel };
+    spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    spacer->setFixedWidth(170);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
-        _navigationLayout
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr, _printOffsetLabel, nullptr, _adjustProjection)
     );
+#else
+    _currentLayerLayout = WrapWidgetsInVBox(
+        _currentLayerImage,
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr)
+    );
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
     _currentLayerGroup->setTitle( "Current layer" );
@@ -197,8 +329,12 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layout->addWidget( _orderButton, 2, 0, 1, 1 );
     _layout->addWidget( _sliceButton, 3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _layout->addWidget( _adjustGroup, 0, 0, 4, 1);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
+
 
     setLayout( _layout );
 }
@@ -414,6 +550,7 @@ void PrepareTab::layerThickness100Button_clicked( bool ) {
     printJob.setBaseLayerCount(2);
     printJob.setSelectedBaseLayerThickness(100);
     printJob.setSelectedBodyLayerThickness(100);
+
     _checkSliceDirectories();
 }
 
@@ -422,18 +559,20 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     printJob.setBaseLayerCount(2);
     printJob.setSelectedBaseLayerThickness(50);
     printJob.setSelectedBodyLayerThickness(50);
+
     _checkSliceDirectories();
 }
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
     printJob.setBaseLayerCount(2);
     printJob.setSelectedBaseLayerThickness(20);
     printJob.setSelectedBodyLayerThickness(20);
+
     _checkSliceDirectories();
 }
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
     ThicknessWindow *dialog = new ThicknessWindow(_initAfterSelect, this);
@@ -443,6 +582,9 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
         _layerThickness100Button->setChecked(true);
     }
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _initAfterSelect = false;
     _checkSliceDirectories();
 }
@@ -477,6 +619,12 @@ void PrepareTab::_showLayerImage(const QString &path)
             Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    if (_adjustLightBulb->isChecked()) {
+        _pngDisplayer->loadImageFile(path);
+    }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+
     _currentLayerImage->setPixmap(pixmap);
     update();
 }
@@ -488,9 +636,9 @@ void PrepareTab::_setSliceControlsEnabled(bool const enabled)
     _layerThickness100Button->setEnabled(enabled);
     _layerThickness50Button->setEnabled(enabled);
     _layerThicknessCustomButton->setEnabled(enabled);
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setEnabled(enabled);
-#endif // defined EXPERIMENTAL
+#endif // defined XDLP471020UM
 
     update( );
 }
@@ -719,6 +867,9 @@ void PrepareTab::_restartPreview()
 
     if (printJob.totalLayerCount())
         _setNavigationButtonsEnabled(true);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }
 
 void PrepareTab::_showWarning(const QString& content)
@@ -818,9 +969,9 @@ void PrepareTab::_updateSliceControls() {
     _layerThickness100Button->setChecked(false);
     _layerThickness50Button->setChecked(false);
     _layerThicknessCustomButton->setChecked(false);
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     _layerThickness20Button->setChecked(false);
-#endif
+#endif // defined XDLP471020UM
 
     if (printJob.getSelectedBaseLayerThickness() == printJob.getSelectedBodyLayerThickness() &&
         printJob.getBaseLayerCount() == 2) {
@@ -833,11 +984,11 @@ void PrepareTab::_updateSliceControls() {
             _layerThickness50Button->setChecked(true);
             return;
 
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
         case 20:
             _layerThickness20Button->setChecked(true);
             return;
-#endif
+#endif // defined XDLP471020UM
         }
     }
 
@@ -894,6 +1045,12 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         setPrinterAvailable(false);
         _orderButton->setEnabled(false);
         emit printerAvailabilityChanged(false);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+        if(_adjustProjection->isChecked()) {
+            _adjustProjection->click();
+        }
+        _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     case UiState::PrintCompleted:
@@ -901,6 +1058,9 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         _orderButton->setEnabled(printJob.getDirectoryMode());
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+        _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     default:
@@ -984,5 +1144,44 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
 }
 
 void PrepareTab::printJobChanged() {
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
+        if(offset.x() != 0 || offset.y() != 0) {
+            _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+            _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
+        } else {
+            _printOffsetLabel->setText(QString(""));
+            _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
+        }
+    });
 
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
+
+    _adjustProjection->setEnabled(false);
+    _adjustGroup->setVisible(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+}
+void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
+    _pngDisplayer = pngDisplayer;
+}
+
+void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    QPoint offset = printJob.getPrintOffset();
+
+    if(offset.x() != 0 || offset.y() != 0) {
+        _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+        _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
+    } else {
+        _printOffsetLabel->setText(QString(""));
+        _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
+    }
+
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }

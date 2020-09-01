@@ -502,7 +502,15 @@ void PrintManager::stepB4a2_completed( bool const success ) {
         return;
     }
 
-    if ( _currentBaseLayer == printJob.getBaseLayerCount() ) {
+    if (_currentBaseLayer == printJob.getBaseLayerCount() ||
+         (
+            printJob.isTiled() &&
+            (
+                _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
+            )
+         )
+       )
+    {
         stepC1_start( );
     } else {
         stepB1_start( );
@@ -570,7 +578,15 @@ void PrintManager::stepB4b2_completed( bool const success ) {
     }
 
 
-    if ( _currentBaseLayer == printJob.getBaseLayerCount()) {
+    if (_currentBaseLayer == printJob.getBaseLayerCount() ||
+         (
+            printJob.isTiled() &&
+            (
+                _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
+            )
+         )
+       )
+    {
         stepC1_start( );
     } else {
         stepB1_start( );

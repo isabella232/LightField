@@ -235,8 +235,10 @@ public:
      */
     QString getLayerDirectory(int layer) const
     {
-
-        return isBaseLayer(layer) ? _baseManager->path() : _bodyManager->path();
+        if(_baseManager && _bodyManager)
+            return isBaseLayer(layer) ? _baseManager->path() : _bodyManager->path();
+        else
+            return QString();
     }
 
     /**
@@ -418,6 +420,17 @@ public:
         return _printProfile;
     }
 
+    void setPrintOffset(QPoint offset) {
+        printProfile()->setDigitalOffsetX(offset.x());
+        printProfile()->setDigitalOffsetY(offset.y());
+
+        emit printOffsetChanged(offset);
+    }
+
+    QPoint getPrintOffset() {
+        return QPoint(printProfile()->getDigitalOffsetX(), printProfile()->getDigitalOffsetY());
+    }
+
     void printJobData() {
         const auto& baseLayerParameters = this->baseLayerParameters();
         const auto& bodyLayerParameters = this->bodyLayerParameters();
@@ -522,9 +535,9 @@ public:
         );
     }
 
-
 signals:
     void printJobChanged();
+    void printOffsetChanged(QPoint offset);
     ;
 
 protected:

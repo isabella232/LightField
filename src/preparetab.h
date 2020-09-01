@@ -7,6 +7,8 @@
 #include "ordermanifestmanager.h"
 #include "printprofile.h"
 #include "printjob.h"
+#include "paramslider.h"
+#include "pngdisplayer.h"
 
 class Hasher;
 class SvgRenderer;
@@ -23,6 +25,7 @@ public:
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
+
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
@@ -49,7 +52,7 @@ private:
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };
     QRadioButton*     _layerThickness50Button      { new QRadioButton     };
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     QRadioButton*     _layerThickness20Button      { new QRadioButton     };
 #endif
     QRadioButton*     _layerThicknessCustomButton  { new QRadioButton     };
@@ -78,6 +81,24 @@ private:
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    QGroupBox*        _adjustGroup                 { new QGroupBox        };
+    QGridLayout*      _adjustlayout                { new QGridLayout      };
+    QPushButton*      _adjustProjection            { new QPushButton      };
+
+    QPushButton*      _adjustUp                    { new QPushButton      };
+    QPushButton*      _adjustLeft                  { new QPushButton      };
+    QPushButton*      _adjustRight                 { new QPushButton      };
+    QPushButton*      _adjustDown                  { new QPushButton      };
+    QPushButton*      _adjustReset                 { new QPushButton      };
+    QPushButton*      _adjustLightBulb             { new QPushButton      };
+    QLabel*           _adjustValue                 { new QLabel("0, 0")   };
+    ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
+
+    QLabel*           _printOffsetLabel            { new QLabel("")       };
+ #endif
+    PngDisplayer*     _pngDisplayer                {                      };
+
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
     QVBoxLayout*      _currentLayerLayout          { new QVBoxLayout      };
@@ -90,7 +111,6 @@ private:
     QHBoxLayout*      _navigationLayout            {                      };
 
     QGridLayout*      _layout                      { new QGridLayout      };
-
 
 
     bool _checkPreSlicedFiles(const QString &directory, bool isBody);
@@ -116,8 +136,11 @@ signals:
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
     virtual void printJobChanged() override;
+    void setPngDisplayer( PngDisplayer* pngDisplayer );
 
     void setPrinterAvailable( bool const value );
+
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 private slots:
     void usbMountManager_filesystemMounted( QString const& mountPoint );
@@ -131,7 +154,7 @@ private slots:
     void layerThickness100Button_clicked( bool );
     void layerThickness50Button_clicked( bool );
     void layerThicknessCustomButton_clicked( bool );
-#if defined EXPERIMENTAL
+#if defined XDLP471020UM
     void layerThickness20Button_clicked( bool );
 #endif
 

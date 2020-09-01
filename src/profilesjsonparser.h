@@ -55,6 +55,9 @@ public:
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
                     obj["bodyLayerParameters"]));
+                printProfile->setDigitalOffsetX(obj["digitalOffsetX"].toInt(0));
+                printProfile->setDigitalOffsetY(obj["digitalOffsetY"].toInt(0));
+
                 profilesList.insert(printProfile->profileName(), printProfile);
             }
             catch (const std::exception &ex)
@@ -87,7 +90,9 @@ public:
                 {"heatingTemperature", profile->heatingTemperature()},
                 {"advancedExposureEnabled", profile->advancedExposureControlsEnabled()},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
-                {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())}
+                {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())},
+                {"digitalOffsetX", profile->getDigitalOffsetX()},
+                {"digitalOffsetY", profile->getDigitalOffsetY()}
             };
 
             jsonArray.append(json);
