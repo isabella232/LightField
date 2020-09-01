@@ -52,7 +52,7 @@ private:
     QLabel*           _layerThicknessLabel         { new QLabel           };
     QRadioButton*     _layerThickness100Button     { new QRadioButton     };
     QRadioButton*     _layerThickness50Button      { new QRadioButton     };
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
     QRadioButton*     _layerThickness20Button      { new QRadioButton     };
 #endif
     QRadioButton*     _layerThicknessCustomButton  { new QRadioButton     };
@@ -154,7 +154,7 @@ private slots:
     void layerThickness100Button_clicked( bool );
     void layerThickness50Button_clicked( bool );
     void layerThicknessCustomButton_clicked( bool );
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
     void layerThickness20Button_clicked( bool );
 #endif
 
