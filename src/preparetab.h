@@ -85,6 +85,7 @@ private:
     QGroupBox*        _adjustGroup                 { new QGroupBox        };
     QGridLayout*      _adjustlayout                { new QGridLayout      };
     QPushButton*      _adjustProjection            { new QPushButton      };
+    QPushButton*      _closeAdjustProjection       { new QPushButton      };
 
     QPushButton*      _adjustUp                    { new QPushButton      };
     QPushButton*      _adjustLeft                  { new QPushButton      };

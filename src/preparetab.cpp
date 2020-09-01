@@ -184,13 +184,24 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
 
     });
 
+    _closeAdjustProjection->setText("X");
+    _closeAdjustProjection->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    _closeAdjustProjection->setFixedSize(43,43);
+    _closeAdjustProjection->setFont(font22pt);
+    _closeAdjustProjection->setVisible(true);
+    QObject::connect(_closeAdjustProjection, &QPushButton::clicked, [this](bool checked) {
+
+        (void)checked;
+        _adjustProjection->toggle();
+
+    });
 
     _adjustValue->setFont(boldFont);
 
     _adjustGroup->setTitle("Digital Projection Offset");
     _adjustGroup->setVisible(false);
     _adjustGroup->setLayout(WrapWidgetsInVBox(
-        nullptr,
+        WrapWidgetsInHBox(nullptr, _closeAdjustProjection),
         WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
         WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustValue, nullptr, _adjustRight),
         WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
@@ -608,7 +619,12 @@ void PrepareTab::_showLayerImage(int const layer)
 void PrepareTab::_showLayerImage(const QString &path)
 {
     debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data());
-    QPixmap pixmap { path };
+    QPixmap pixmap_orig { path };
+    QTransform rotate_transform;
+    QPixmap pixmap;
+
+    rotate_transform.rotate(180);
+    pixmap = pixmap_orig.transformed(rotate_transform);
 
     if ((pixmap.width() > _currentLayerImage->width()) ||
         (pixmap.height() > _currentLayerImage->height())) {
