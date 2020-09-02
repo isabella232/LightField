@@ -451,7 +451,13 @@ void StatusTab::printManager_startingLayer(int const layer)
 
     _SetTextAndShow( _percentageCompleteDisplay, QString { "%1% complete" }.arg( static_cast<int>( static_cast<double>( _printManager->currentLayer( ) ) / static_cast<double>( printJob.totalLayerCount() ) * 100.0 + 0.5 ) ) );
 
-    auto pixmap = QPixmap( printJob.getLayerPath( layer ) );
+    QPixmap pixmap_orig = QPixmap(printJob.getLayerPath(layer));
+    QTransform rotate_transform;
+    QPixmap pixmap;
+
+    rotate_transform.rotate(180);
+    pixmap = pixmap_orig.transformed(rotate_transform);
+
     _imageFileNameLabel->setText("Layer image: " % ( printJob.getLayerFileName( layer ) ));
 
     if ( ( pixmap.width( ) > _currentLayerImage->width( ) ) || ( pixmap.height( ) > _currentLayerImage->height( ) ) ) {

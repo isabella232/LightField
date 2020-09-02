@@ -255,13 +255,20 @@ void TilingTab::setStepValue()
         tileSlots.push_back(x1 + deltax);
     }
 
-    //std::reverse(tileSlots.begin(), tileSlots.end());
+    std::vector<int> tileSlotsText = tileSlots;
+
     std::rotate(tileSlots.begin(),
                 tileSlots.end()-1, // this will be the new first element
                 tileSlots.end());
 
+    std::reverse(tileSlotsText.begin(),tileSlotsText.end());
+    std::rotate(tileSlotsText.begin(),
+                tileSlotsText.end()-1, // this will be the new first element
+                tileSlotsText.end());
+
     for (int i = 0; i < wCount; ++i) {
         int x = tileSlots[static_cast<unsigned int>(i)];
+        int text_x = tileSlotsText[static_cast<unsigned int>(i)];
 
         double minExposureBase = _minExposureBase;
         double stepBase = _stepBase;
@@ -272,15 +279,21 @@ void TilingTab::setStepValue()
         double eBody = minExposureBody + ((wCount - (i + 1)) * stepBody);
 
         if (i == 0) {
-            painter.drawPixmap(x, y - deltaY, *_pixmap);
-             _renderText(&painter, QPoint(x, y - deltaY), eBase, eBody);
+            painter.drawPixmap(x, y + deltaY, *_pixmap);
+             _renderText(&painter, QPoint(text_x, y - deltaY), eBase, eBody);
         } else {
             painter.drawPixmap(x, y, *_pixmap);
-             _renderText(&painter, QPoint(x, y), eBase, eBody);
+             _renderText(&painter, QPoint(text_x, y), eBase, eBody);
         }
     }
 
-    _currentLayerImage->setPixmap(area);
+    QTransform rotate_transform;
+    QPixmap rotated_area;
+
+    rotate_transform.rotate(180);
+    rotated_area = area.transformed(rotate_transform);
+
+    _currentLayerImage->setPixmap(rotated_area);
     update();
 }
 
@@ -291,8 +304,12 @@ void TilingTab::_renderText(QPainter* painter, QPoint pos, double expoBase, doub
     QString bodyText = QString("Body %2s").arg(expoBody);
     int textHeight = fm.height();
 
+    painter->scale(-1,-1);
+    painter->translate(-_currentLayerImage->width(), -_currentLayerImage->height());
     painter->drawText(QPoint(pos.x(), pos.y() - textHeight), baseText);
     painter->drawText(QPoint(pos.x(), pos.y() - (0.25*textHeight)), bodyText);
+    painter->scale(-1,-1);
+    painter->translate(-_currentLayerImage->width(), -_currentLayerImage->height());
 }
 
 void TilingTab::_showLayerImage()
