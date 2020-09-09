@@ -94,10 +94,13 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         )
     );
 
+    _advBodyLbl->setFixedWidth(68);
+    _advBaseLbl->setFixedWidth(68);
+
     QVBoxLayout* container =
         WrapWidgetsInVBox(
-                  WrapWidgetsInHBox(_advBodyExpoCorse, _advBodyExpoFine),
-                  WrapWidgetsInHBox(_advBaseExpoCorse, _advBaseExpoFine)
+                  WrapWidgetsInHBox(_advBodyExpoCorse, _advBodyExpoFine, _advBodyLbl),
+                  WrapWidgetsInHBox(_advBaseExpoCorse, _advBaseExpoFine, _advBaseLbl)
         );
 
     _advancedExpoTimeGroup->setCollapsed(true);
@@ -242,6 +245,9 @@ void PrintTab::advancedExposureTime_update( ) {
 
     int bodyExpoTime = _advBodyExpoCorse->getValue() + _advBodyExpoFine->getValue();
     int baseExpoTime = _advBaseExpoCorse->getValue() + _advBaseExpoFine->getValue();
+
+    _advBodyLbl->setText( QString("%1 s").arg(bodyExpoTime / 1000.0));
+    _advBaseLbl->setText( QString("%1 s").arg(baseExpoTime / 1000.0));
 
     int bodyExpoTimeRounded = round((bodyExpoTime * 4)/1000) * 250;
     int baseMultiplier = baseExpoTime / bodyExpoTimeRounded;
