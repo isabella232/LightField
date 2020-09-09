@@ -454,8 +454,8 @@ void Window::fileTab_modelSelected(ModelSelectionInfo const* modelSelection)
     );
 
     printJob.setDirectoryMode(false);
-    //printJob.getBodyManager()->setVolume(_modelSelection->estimatedVolume);
     printJob.setModelFilename(_modelSelection->fileName);
+    printJob.setEstimatedVolume(_modelSelection->estimatedVolume);
 
     _setModelRendered( false );
 }

@@ -197,6 +197,10 @@ public:
         this->_calculateArea = true;
     }
 
+    void setMainfestVolume(double volume) {
+        this->_estimatedVolume = volume;
+    }
+
     inline int baseLayerThickness()        { return _baseLayerThickNess; }
     inline int bodyLayerThickness()        { return _bodyLayerThickNess; }
     inline int baseLayerCount()            { return tiled() ? _baseLayerCount * _tilingCount : _baseLayerCount; }

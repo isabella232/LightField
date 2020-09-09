@@ -403,8 +403,19 @@ public:
     double getEstimatedVolume() const
     {
 
-        Q_ASSERT(_bodyManager);
-        return _bodyManager->manifestVolume();
+        if(_bodyManager) {
+            return _bodyManager->manifestVolume();
+        } else {
+            return _estimatedVolume;
+        }
+    }
+
+    void setEstimatedVolume (double value) {
+        _estimatedVolume = value;
+
+        if(_bodyManager) {
+            _bodyManager->setVolume(value);
+        }
     }
 
     int getAdvancedExposureControlsEnabled() const {
@@ -551,6 +562,7 @@ protected:
     QSharedPointer<OrderManifestManager> _bodyManager {};
     QSharedPointer<OrderManifestManager> _baseManager {};
     QSharedPointer<PrintProfile>&        _printProfile;
+    double                               _estimatedVolume { 0 };
 
     int baseLayerStart() const
     {
