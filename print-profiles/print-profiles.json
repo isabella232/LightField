@@ -7,6 +7,8 @@
         "heatingTemperature": 50,
         "baseLayerCount": 2,
         "advancedExposureEnabled": false,
+    	"shimX": 0,
+    	"shimY": 0,
         "baseLayerParameters": {
             "pumpingEnabled": true,
             "pumpUpDistance": 2.00,
@@ -21,7 +23,7 @@
             "powerLevel": 50.0,
             "layerThickness": 100,
             "tilingDefaultExposure": 10000,
-            "tilingDefaultExposureStep": 2000
+            "tilingDefaultExposureStep": 2000,
         },
         "bodyLayerParameters": {
             "pumpingEnabled": true,
