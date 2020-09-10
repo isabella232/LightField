@@ -94,13 +94,34 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         )
     );
 
-    _advBodyLbl->setFixedWidth(68);
-    _advBaseLbl->setFixedWidth(68);
+
+    _advBodyLbl->setFixedWidth(73);
+    _advBodyLbl->setFont(boldFont);
+    _advBodyLbl->setStyleSheet("color: green");
+    _advBaseLbl->setFixedWidth(73);
+    _advBaseLbl->setFont(boldFont);
+    _advBaseLbl->setStyleSheet("color: green");
+
+    QLabel* addition1 {new QLabel("+")};
+    QLabel* addition2 {new QLabel("+")};
+    QLabel* eq1 {new QLabel("=")};
+    QLabel* eq2 {new QLabel("=")};
+    QFrame* hr {new QFrame};
+    hr->setFrameShape(QFrame::HLine);
+    hr->setFrameShadow(QFrame::Sunken);
+    hr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    hr->setFixedHeight(1);
+
+    _advBodyExpoCorse->setCounterBold(false);
+    _advBaseExpoCorse->setCounterBold(false);
+    _advBodyExpoFine->setCounterBold(false);
+    _advBaseExpoFine->setCounterBold(false);
 
     QVBoxLayout* container =
         WrapWidgetsInVBox(
-                  WrapWidgetsInHBox(_advBodyExpoCorse, _advBodyExpoFine, _advBodyLbl),
-                  WrapWidgetsInHBox(_advBaseExpoCorse, _advBaseExpoFine, _advBaseLbl)
+                  WrapWidgetsInHBox(_advBodyExpoCorse, addition1, _advBodyExpoFine, eq1, _advBodyLbl),
+                  hr,
+                  WrapWidgetsInHBox(_advBaseExpoCorse, addition2, _advBaseExpoFine, eq2, _advBaseLbl)
         );
 
     _advancedExpoTimeGroup->setCollapsed(true);
