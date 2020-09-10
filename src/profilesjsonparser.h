@@ -55,8 +55,8 @@ public:
                     obj["baseLayerParameters"]));
                 printProfile->setBodyLayerParameters(_parsePrintParameters(
                     obj["bodyLayerParameters"]));
-                printProfile->setDigitalOffsetX(obj["digitalOffsetX"].toInt(0));
-                printProfile->setDigitalOffsetY(obj["digitalOffsetY"].toInt(0));
+                printProfile->setDigitalOffsetX(obj["shimX"].toInt(0));
+                printProfile->setDigitalOffsetY(obj["shimY"].toInt(0));
 
                 profilesList.insert(printProfile->profileName(), printProfile);
             }
@@ -91,8 +91,8 @@ public:
                 {"advancedExposureEnabled", profile->advancedExposureControlsEnabled()},
                 {"baseLayerParameters", _serializePrintParameters(profile->baseLayerParameters())},
                 {"bodyLayerParameters", _serializePrintParameters(profile->bodyLayerParameters())},
-                {"digitalOffsetX", profile->getDigitalOffsetX()},
-                {"digitalOffsetY", profile->getDigitalOffsetY()}
+                {"shimX", profile->getDigitalOffsetX()},
+                {"shimY", profile->getDigitalOffsetY()}
             };
 
             jsonArray.append(json);

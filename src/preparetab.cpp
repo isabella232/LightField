@@ -198,7 +198,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
 
     _adjustValue->setFont(boldFont);
 
-    _adjustGroup->setTitle("Digital Projection Offset");
+    _adjustGroup->setTitle("Digital Projection Shim");
     _adjustGroup->setVisible(false);
     _adjustGroup->setLayout(WrapWidgetsInVBox(
         WrapWidgetsInHBox(nullptr, _closeAdjustProjection),
@@ -1161,7 +1161,7 @@ void PrepareTab::printJobChanged() {
 #if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
         if(offset.x() != 0 || offset.y() != 0) {
-            _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+            _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
             _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
         } else {
             _printOffsetLabel->setText(QString(""));
@@ -1187,7 +1187,7 @@ void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
     QPoint offset = printJob.getPrintOffset();
 
     if(offset.x() != 0 || offset.y() != 0) {
-        _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+        _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
         _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
     } else {
         _printOffsetLabel->setText(QString(""));
