@@ -94,19 +94,24 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         )
     );
 
+    auto boldFontBigger = ModifyFont( boldFont, 13);
+    _advBodyLbl->setFixedWidth(82);
+    _advBodyLbl->setFont(boldFontBigger);
+    _advBaseLbl->setFixedWidth(82);
+    _advBaseLbl->setFont(boldFontBigger);
 
-    _advBodyLbl->setFixedWidth(73);
-    _advBodyLbl->setFont(boldFont);
-    _advBodyLbl->setStyleSheet("color: green");
-    _advBaseLbl->setFixedWidth(73);
-    _advBaseLbl->setFont(boldFont);
-    _advBaseLbl->setStyleSheet("color: green");
 
     QLabel* addition1 {new QLabel("+")};
     QLabel* addition2 {new QLabel("+")};
     QLabel* eq1 {new QLabel("=")};
     QLabel* eq2 {new QLabel("=")};
     QFrame* hr {new QFrame};
+
+    addition1->setFont(boldFontBigger);
+    addition2->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+
     hr->setFrameShape(QFrame::HLine);
     hr->setFrameShadow(QFrame::Sunken);
     hr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -116,6 +121,9 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
     _advBaseExpoCorse->setCounterBold(false);
     _advBodyExpoFine->setCounterBold(false);
     _advBaseExpoFine->setCounterBold(false);
+
+    _advBodyExpoFine->setFixedWidth(340);
+    _advBaseExpoFine->setFixedWidth(340);
 
     QVBoxLayout* container =
         WrapWidgetsInVBox(
@@ -129,21 +137,16 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         container
     );
 
-
-    int scrolbarWidth = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
-    int contentWidth = MainWindowSize.width() - ButtonPadding.width() - scrolbarWidth;
-
-    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-    _advancedExpoTimeGroup->setMinimumWidth(contentWidth);
-    _basicExpoTimeGroup->setMinimumWidth(contentWidth);
+    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    _advancedExpoTimeGroup->setFixedWidth(1000);
+    _basicExpoTimeGroup->setFixedWidth(1000);
 
     QWidget* widget = new QWidget(advArea);
     widget->setLayout( WrapWidgetsInVBox(_basicExpoTimeGroup, _advancedExpoTimeGroup, nullptr));
-
+    widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    widget->setFixedWidth(1000);
 
     advArea->setWidget(widget);
-
     _optionsGroup->setLayout(
         WrapWidgetsInVBox(
               advArea,
