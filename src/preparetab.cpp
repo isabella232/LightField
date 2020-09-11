@@ -419,7 +419,6 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
     manifestMgr->setPath(directory);
-    manifestMgr->setVolume(printJob.getEstimatedVolume());
 
     QStringList errors;
     QStringList warnings;
@@ -446,6 +445,8 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
             break;
         }
     }
+
+    manifestMgr->setVolume(printJob.getEstimatedVolume());
 
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
