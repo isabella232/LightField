@@ -23,7 +23,7 @@
             "powerLevel": 50.0,
             "layerThickness": 100,
             "tilingDefaultExposure": 10000,
-            "tilingDefaultExposureStep": 2000,
+            "tilingDefaultExposureStep": 2000
         },
         "bodyLayerParameters": {
             "pumpingEnabled": true,
