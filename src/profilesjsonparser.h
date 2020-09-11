@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include "constants.h"
 #include "printprofile.h"
+#include "window.h"
 
 #define DEBUG_LOGS
 
@@ -21,11 +22,13 @@ public:
         if (!jsonFile.exists()) {
             // Show message when not found a profile in path
             // TODO: Create file with default profile
-            QMessageBox msgBox;
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setText("File print profile does not exist\n" );
-            msgBox.open();
-            msgBox.exec();
+            QTimer::singleShot(1000, []{
+                Window* window = App::mainWindow();
+                QMessageBox msgBox (window);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setText("File print profile does not exist\n" );
+                msgBox.exec();
+            });
 
             debug( "ProfilesJsonParser::loadProfiles: File %s does not exist\n", PrintProfilesPath.toUtf8( ).data( ) );
             return profilesList;
@@ -35,6 +38,67 @@ public:
 
         debug( "ProfilesJsonParser::loadProfiles: building document\n" );
         QJsonDocument jsonDocument=QJsonDocument().fromJson(jsonFile.readAll());
+
+        if(jsonDocument.isNull()) {
+
+            QTimer::singleShot(1000, []{
+                Window* window = App::mainWindow();
+                QMessageBox msgBox (window);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setText("File print profile is corrupted.  The file has been restored to its default state.\n" );
+                msgBox.setWindowFlags(msgBox.windowFlags());
+                msgBox.exec();
+            });
+
+            QSharedPointer<PrintProfile> printProfile { new PrintProfile };
+
+            PrintParameters baseParams;
+
+            baseParams.setLayerExposureTime(8000);
+            baseParams.setPowerLevel(50);
+            baseParams.setPumpingEnabled(false);
+            baseParams.setPumpUpDistance(2);
+            baseParams.setPumpUpVelocity(50);
+            baseParams.setPumpUpPause(2000);
+            baseParams.setPumpDownVelocity(50);
+            baseParams.setPumpDownPause(2000);
+            baseParams.setNoPumpUpVelocity(200);
+            baseParams.setPumpEveryNthLayer(1);
+            baseParams.setLayerThickness(100);
+            baseParams.setTilingDefaultExposure(10000);
+            baseParams.setTilingDefaultExposureStep(2000);
+
+            PrintParameters bodyParams;
+
+            bodyParams.setLayerExposureTime(8000);
+            bodyParams.setPowerLevel(50);
+            bodyParams.setPumpingEnabled(false);
+            bodyParams.setPumpUpDistance(2);
+            bodyParams.setPumpUpVelocity(50);
+            bodyParams.setPumpUpPause(2000);
+            bodyParams.setPumpDownVelocity(50);
+            bodyParams.setPumpDownPause(2000);
+            bodyParams.setNoPumpUpVelocity(200);
+            bodyParams.setPumpEveryNthLayer(1);
+            bodyParams.setLayerThickness(100);
+            bodyParams.setTilingDefaultExposure(10000);
+            bodyParams.setTilingDefaultExposureStep(2000);
+
+            printProfile->setProfileName("default");
+            printProfile->setDefault(true);
+            printProfile->setActive(true);
+            printProfile->setBuildPlatformOffset(300);
+            printProfile->setDisregardFirstLayerHeight(false);
+            printProfile->setAdvancedExposureControlsEnabled(false);
+            printProfile->setBaseLayerParameters(baseParams);
+            printProfile->setBodyLayerParameters(bodyParams);
+            printProfile->setDigitalOffsetX(0);
+            printProfile->setDigitalOffsetY(0);
+
+            profilesList.insert(printProfile->profileName(), printProfile);
+            saveProfiles(profilesList);
+            return profilesList;
+        }
 
         debug( "ProfilesJsonParser::loadProfiles: get root array\n" );
         QJsonArray array = jsonDocument.array();
