@@ -15,7 +15,10 @@ void PrintProfileTest::start(QString modelName = nullptr) {
 
     switchToPrintProfileTab();
 
-    createPrintProfile();
+    QString profileName = createPrintProfile();
+
+    PrintProfile* printProfileCpy = modifyAdvancedSettingsSimple(profileName);
+
 
 
     emit successed();

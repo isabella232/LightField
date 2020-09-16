@@ -17,9 +17,29 @@
 #include "../spoiler.h"
 #include "../progressdialog.h"
 #include "../inputdialog.h"
+#include "../profilestab.h"
 #include <iostream>
 
 extern FILE* TestLog;
+
+struct PrintParametersTestValues {
+    bool offsetDisregardFirstLayer;
+    int offset;
+    bool bedHeating;
+    int bedTemperature;
+    bool addBasePump;
+    int baseDistance;
+    int basePumpUpVelocity;
+    int basePumpDownVelocity;
+    int baseUpPause;
+    int baseNoPumpUpVelocity;
+    bool addBodyPump;
+    int bodyDistance;
+    int bodyPumpUpVelocity;
+    int bodyPumpDownVelocity;
+    int bodyUpPause;
+    int bodyNoPumpUpVelocity;
+};
 
 class AbstractTest: public QObject {
     Q_OBJECT
@@ -732,22 +752,27 @@ public:
         TDEBUG("switch to print profile tab - PASSED");
     }
 
-    void createPrintProfile() {
+    /*
+     * @returns print profile name
+     */
+    QString createPrintProfile() {
+        TDEBUG("create profile");
         QPushButton* profilesNew = findWidget<QPushButton*>("profilesNew");
         mouseClick(profilesNew);
 
         InputDialog* inputDialog = findWidgetInTopLevel<InputDialog*>("inputdialog");
         Keyboard* keyboard = findWidget<Keyboard*>(inputDialog, "keyboard");
-        QPushButton* okButton = findWidget<QPushButton*>("keyboardOk");
-        QLineEdit* inputLine = findWidget<QLineEdit*>("keyboardInput");
-        QStandardItemModel* profilesModel = findWidget<QStandardItemModel*>("profilesModel");
 
 
         S_ASSERT(inputDialog->isVisible());
         QString test = getRandomPrintProfiletName();
 
+        TDEBUG("%s", test.toUtf8().data());
         for(int i=0; i<test.length(); ++i) {
             QString c = test.at(i);
+            if(c == " ")
+                c = "space";
+
             key* k = keyboard->getKey(c);
 
             dispatchToMainThread([keyboard, k]() {
@@ -758,6 +783,11 @@ public:
             QTest::qWait(200);
         }
 
+        QLineEdit* inputLine = findWidget<QLineEdit*>(inputDialog, "keyboardInput");
+        QPushButton* okButton = findWidget<QPushButton*>(inputDialog, "keyboardOk");
+        QListView* profilesList = findWidget<QListView*>("profilesProfilesList");
+        QStandardItemModel* profilesModel = (QStandardItemModel*)profilesList->model();
+
         //@todo add cancel button test
         S_ASSERT(inputLine->text() == test);
         mouseClick(okButton);
@@ -767,8 +797,273 @@ public:
 
         clickOkMsgBoxTopLevel();
 
-        //QMessageBox* profilesNewConfirmation = findWidget<QMessageBox*>("profilesNewConfirmation");
+        verifyButtonsAviability();
+        TDEBUG("create profile - PASSED");
 
+        return test;
+    }
+
+    PrintProfile* modifyAdvancedSettingsSimple(QString printProfileName) {
+        TDEBUG("advanced print settings modification test - simple version");
+
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(5);
+
+        QCheckBox* advancedOffsetDisregardFirstLayer = findWidget<QCheckBox*>("advancedOffsetDisregardFirstLayer");
+        ParamSlider* advancedOffset = findWidget<ParamSlider*>("advancedOffset");
+        QPushButton* advancedBedHeating = findWidget<QPushButton*>("advancedBedHeating");
+        QListView* advancedLeftMenu = findWidget<QListView*>("advancedLeftMenu");
+        QSlider* advancedBedTemperature = findWidget<QSlider*>("advancedBedTemperature");
+        QCheckBox* advancedAddBasePump = findWidget<QCheckBox*>("advancedAddBasePump");
+        ParamSlider* advancedDistance = findWidget<ParamSlider*>("advancedDistance");
+        ParamSlider* advancedBasePumpUpVelocity = findWidget<ParamSlider*>("advancedBasePumpUpVelocity");
+        ParamSlider* advancedBasePumpDownVelocity = findWidget<ParamSlider*>("advancedBasePumpDownVelocity");
+        ParamSlider* advancedUpPause = findWidget<ParamSlider*>("advancedUpPause");
+        ParamSlider* advancedDownPause = findWidget<ParamSlider*>("advancedDownPause");
+        ParamSlider* advancedBaseNoPumpUpVelocity = findWidget<ParamSlider*>("advancedBaseNoPumpUpVelocity");
+
+
+        QCheckBox* advancedAddBodyPump = findWidget<QCheckBox*>("advancedAddBodyPump");
+        ParamSlider* advancedBodyDistance = findWidget<ParamSlider*>("advancedBodyDistance");
+        ParamSlider* advancedBodyPumpUpVelocity = findWidget<ParamSlider*>("advancedBodyPumpUpVelocity");
+        ParamSlider* advancedBodyPumpDownVelocity = findWidget<ParamSlider*>("advancedBodyPumpDownVelocity");
+        ParamSlider* advancedBodyUpPause = findWidget<ParamSlider*>("advancedBodyUpPause");
+        ParamSlider* advancedBodyDownPause = findWidget<ParamSlider*>("advancedBodyDownPause");
+
+        auto random = QRandomGenerator::system();
+        int aodfl = random->bounded(0, 1);
+
+        if(aodfl)
+            mouseClick(advancedOffsetDisregardFirstLayer);
+
+        QTest::qWait(100);
+        int bpo = random->bounded(0, 20) * 50;
+        dispatchToMainThread([bpo, advancedOffset] {
+            advancedOffset->setValue(bpo);
+        });
+
+        QTest::qWait(100);
+        int bh = random->bounded(0, 1);
+        int pl = random->bounded(30, 75);
+        if(bh) {
+            mouseClick(advancedBedHeating);
+
+            dispatchToMainThread([pl, advancedBedTemperature] {
+                advancedBedTemperature->setValue(pl);
+            });
+
+        }
+
+        QTest::qWait(100);
+        //change view to basePump
+        QStandardItemModel* model = (QStandardItemModel*)advancedLeftMenu->model();
+        QStandardItem* basePump = model->item(1);
+        auto idx = basePump->index();
+        auto rect = advancedLeftMenu->visualRect(idx);
+
+        dispatchToMainThread([advancedLeftMenu, rect] {
+            QTest::mouseClick(advancedLeftMenu->viewport(), Qt::MouseButton::LeftButton, Qt::KeyboardModifier::NoModifier,
+                              rect.center());
+        });
+
+        /*dispatchToMainThread([idx, advancedLeftMenu] {
+            advancedLeftMenu->setCurrentIndex(idx);
+            advancedLeftMenu->clicked(idx);
+        });*/
+
+        QTest::qWait(100);
+
+        if(!advancedAddBasePump->isChecked()) {
+            dispatchToMainThread([advancedAddBasePump] {
+                advancedAddBasePump->setChecked(true);
+            });
+        }
+
+        QTest::qWait(100);
+
+        int ad = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([ad, advancedDistance] {
+            advancedDistance->setValue(ad);
+        });
+
+        QTest::qWait(100);
+
+        int bpus = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([bpus, advancedBasePumpUpVelocity] {
+            advancedBasePumpUpVelocity->setValue(bpus);
+        });
+
+        QTest::qWait(100);
+
+
+        int bpup = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([bpup, advancedUpPause] {
+            advancedUpPause->setValue(bpup);
+        });
+
+        QTest::qWait(100);
+
+        int bpdp = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([bpdp, advancedDownPause] {
+            advancedDownPause->setValue(bpdp);
+        });
+
+        QTest::qWait(100);
+
+        int bpds = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([bpds, advancedBasePumpDownVelocity] {
+            advancedBasePumpDownVelocity->setValue(bpds);
+        });
+
+        QTest::qWait(100);
+
+        int bps = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([bps, advancedBaseNoPumpUpVelocity] {
+            advancedBaseNoPumpUpVelocity->setValue(bps);
+        });
+
+        QTest::qWait(100);
+
+        QStandardItem* bodyPump = model->item(2);
+        auto idx2 = bodyPump->index();
+        auto rect2 = advancedLeftMenu->visualRect(idx2);
+
+        dispatchToMainThread([advancedLeftMenu, rect2] {
+            QTest::mouseClick(advancedLeftMenu->viewport(), Qt::MouseButton::LeftButton, Qt::KeyboardModifier::NoModifier,
+                              rect2.center());
+        });
+
+        if(!advancedAddBodyPump->isChecked()) {
+            dispatchToMainThread([advancedAddBodyPump] {
+                advancedAddBodyPump->setChecked(true);
+            });
+        }
+
+
+        QTest::qWait(100);
+
+        int oad = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([oad, advancedBodyDistance] {
+            advancedBodyDistance->setValue(oad);
+        });
+
+        QTest::qWait(100);
+
+        int opus = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([opus, advancedBodyPumpUpVelocity] {
+            advancedBodyPumpUpVelocity->setValue(opus);
+        });
+
+        QTest::qWait(100);
+
+
+        int opup = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([opup, advancedBodyUpPause] {
+            advancedBodyUpPause->setValue(opup);
+        });
+
+        QTest::qWait(100);
+
+        int opdp = random->bounded(1, 32) * 250;
+
+        dispatchToMainThread([opdp, advancedBodyDownPause] {
+            advancedBodyDownPause->setValue(opdp);
+        });
+
+        QTest::qWait(100);
+
+        int opds = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([opds, advancedBodyPumpDownVelocity] {
+            advancedBodyPumpDownVelocity->setValue(opds);
+        });
+
+        QTest::qWait(100);
+
+        /*int ops = random->bounded(1, 10) * 5;
+
+        dispatchToMainThread([ops, advancedBodyNoPumpUpVelocity] {
+            advancedBodyNoPumpUpVelocity->setValue(ops);
+        });*/
+
+        S_ASSERT(activeProfileRef->profileName() == printProfileName);
+        S_ASSERT(activeProfileRef->buildPlatformOffset() == bpo);
+        S_ASSERT(activeProfileRef->disregardFirstLayerHeight() == aodfl);
+
+        if(aodfl)
+            S_ASSERT(activeProfileRef->heatingTemperature() == pl);
+
+        PrintParameters& bodyParams = activeProfileRef->bodyLayerParameters();
+        PrintParameters& baseParams = activeProfileRef->baseLayerParameters();
+
+        S_ASSERT(baseParams.isPumpingEnabled() == true);
+        S_ASSERT( ((int)(baseParams.pumpUpDistance() * 1000)) == ad);
+        S_ASSERT(baseParams.pumpUpVelocity_Effective() == bpus);
+        S_ASSERT(baseParams.pumpUpPause() == bpup);
+        S_ASSERT(baseParams.pumpDownPause() == bpdp);
+        S_ASSERT(baseParams.noPumpUpVelocity() == bps);
+        S_ASSERT(baseParams.pumpEveryNthLayer() == 1);
+
+
+        S_ASSERT(bodyParams.isPumpingEnabled() == true);
+        S_ASSERT(((int)(bodyParams.pumpUpDistance() * 1000)) == oad);
+        S_ASSERT(bodyParams.pumpUpVelocity_Effective() == opus);
+        S_ASSERT(bodyParams.pumpUpPause() == opup);
+        S_ASSERT(bodyParams.pumpDownPause() == opdp);
+        //S_ASSERT(bodyParams.noPumpUpVelocity() == ops);
+        S_ASSERT(bodyParams.pumpEveryNthLayer() == 1);
+
+        PrintProfile* ppcpy = new PrintProfile(*activeProfileRef);
+
+
+        TDEBUG("advanced print settings modification test - simple version - PASSED");
+
+        return ppcpy;
+    }
+
+    void verifyButtonsAviability() {
+        TDEBUG("buttons aviability");
+
+        ProfilesTab* profilesTab = findWidget<ProfilesTab*>("profiles");
+        QPushButton* profilesNew = findWidget<QPushButton*>("profilesNew");
+        QPushButton* profilesRename = findWidget<QPushButton*>("profilesRename");
+        QPushButton* profilesOverwrite = findWidget<QPushButton*>("profilesOverwrite");
+        QPushButton* profilesDelete = findWidget<QPushButton*>("profilesDelete");
+        QPushButton* profilesLoad = findWidget<QPushButton*>("profilesLoad");
+
+        QListView* profilesList = findWidget<QListView*>("profilesProfilesList");
+        QStandardItemModel* model = (QStandardItemModel*)profilesList->model();
+        auto sel = profilesList->currentIndex();
+        auto profileName = model->data(sel).toString();
+
+        PrintProfileManager* profileMgr = profilesTab->printProfileManager();
+        PrintProfile* selectedProfile = profileMgr->getProfile(profileName).get();
+
+
+        if(selectedProfile->isDefault() || selectedProfile->isActive()) {
+            S_ASSERT(profilesNew->isEnabled());
+            S_ASSERT(!profilesRename->isEnabled());
+            S_ASSERT(profilesOverwrite->isEnabled());
+            S_ASSERT(!profilesDelete->isEnabled());
+            S_ASSERT(profilesLoad->isEnabled());
+        } else {
+            S_ASSERT(profilesNew->isEnabled());
+            S_ASSERT(profilesRename->isEnabled());
+            S_ASSERT(profilesOverwrite->isEnabled());
+            S_ASSERT(profilesDelete->isEnabled());
+            S_ASSERT(profilesLoad->isEnabled());
+        }
+
+        TDEBUG("buttons aviability - PASSED");
     }
 
 

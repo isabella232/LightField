@@ -591,7 +591,7 @@ void AdvancedTab::updatePrintProfile()
     baseParams.setPumpDownVelocity(_basePumpDownVelocitySlider->getValue());
     baseParams.setPumpDownPause(_downPauseSlider->getValue());
     baseParams.setNoPumpUpVelocity((static_cast<double>(_baseNoPumpUpVelocitySlider->getValue())));
-    baseParams.setPumpEveryNthLayer(0);
+    baseParams.setPumpEveryNthLayer(1);
     baseParams.setPowerLevel(_powerLevelSlider->value());
 
     activeProfile->setBaseLayerParameters(baseParams);
