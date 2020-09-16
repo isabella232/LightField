@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="images/">
+        <file alias="focus-image.png">dlp4710-focus-image.png</file>
+        <file alias="white-field.png">dlp4710-white-field.png</file>
+        <file>new-version-available.png</file>
+        <file>transparent-dark-logo.png</file>
+        <file>warning-hot.png</file>
+        <file>warning-uv.png</file>
+        <file>backspace.png</file>
+        <file>shift.png</file>
+        <file>backspace-white.png</file>
+        <file>shift-white.png</file>
+    </qresource>
+</RCC>

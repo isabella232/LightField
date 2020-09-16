@@ -12,16 +12,26 @@ set(CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
 
 # Set the version number
-set (LF_VERSION_MAJOR "1")
-set (LF_VERSION_MINOR "0")
-set (LF_VERSION_PATCH "0")
-set (PROJECT_VERSION "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_PATCH}")
+set(LF_VERSION_MAJOR "1")
+set(LF_VERSION_MINOR "0")
+set(LF_VERSION_TEENY "12")
+set(LF_VERSION_BUILD "7")
+set(LF_VERSION_STRING "${LF_VERSION_MAJOR}.${LF_VERSION_MINOR}.${LF_VERSION_TEENY}.${LF_VERSION_BUILD}")
+set(LF_RELEASE_TRAIN "base" CACHE STRING "Release train")
 
 project(lf)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
+
+configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/src/version.h @ONLY)
+
+if((${LF_RELEASE_TRAIN} EQUAL "dlp4710") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+  set(LF_PROJECTOR_TYPE "dlp4710")
+else()
+  set(LF_PROJECTOR_TYPE "dlpc350")
+endif()
 
 set(Project_Sources
         src/advancedtab.cpp
@@ -135,12 +145,12 @@ set(Project_Headers
         src/upgradeselector.h
         src/usbmountmanager.h
         src/utils.h
-        src/version.h
         src/vertex.h
-        src/window.h)
+        src/window.h
+        ${CMAKE_BINARY_DIR}/src/version.h)
 
 set(Project_Resources
-        images/images.qrc
+        images/images-${LF_PROJECTOR_TYPE}.qrc
         gl/gl.qrc
         text/text.qrc)
 
@@ -159,28 +169,20 @@ qt5_add_resources(Project_Resources_RCC ${Project_Resources})
 set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 
 #include opengl files. 
-include_directories(${OPENGL_INCLUDE_DIR})
+include_directories(${CMAKE_BINARY_DIR}/src ${OPENGL_INCLUDE_DIR})
 
-add_executable(lf WIN32 ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
+add_executable(lf ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
 target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-if(WIN32)
-  set(Lf_LINK_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/${Icon_Resource})
-  set_target_properties(lf PROPERTIES LINK_FLAGS ${Lf_LINK_FLAGS})
-endif(WIN32)
 
 # Add version definitions to use within the code. 
-target_compile_definitions(lf PRIVATE -DLF_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")
 
-if(CMAKE_BUILD_TYPE EQUAL Debug)
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   target_compile_definitions(lf PRIVATE -D_DEBUG)
-else()
-  target_compile_definitions(lf PRIVATE -DNDEBUG)
 endif()
 
-#installer information that is platform independent
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Lumen X printer user interface software.")
-set(CPACK_PACKAGE_VERSION_MAJOR ${LF_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${LF_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${LF_VERSION_PATCH})
+if((${LF_RELEASE_TRAIN} EQUAL "xbase") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+  target_compile_definitions(lf PRIVATE -DEXPERIMENTAL)
+endif()
 
 install(TARGETS lf RUNTIME DESTINATION bin)

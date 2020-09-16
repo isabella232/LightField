@@ -1,11 +1,11 @@
 <RCC>
     <qresource prefix="images/">
-        <file>focus-image.png</file>
+        <file alias="focus-image.png">dlpc350-focus-image.png</file>
+        <file alias="white-field.png">dlpc350-white-field.png</file>
         <file>new-version-available.png</file>
         <file>transparent-dark-logo.png</file>
         <file>warning-hot.png</file>
         <file>warning-uv.png</file>
-        <file>white-field.png</file>
         <file>backspace.png</file>
         <file>shift.png</file>
         <file>backspace-white.png</file>

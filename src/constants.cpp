@@ -33,15 +33,15 @@ int                       const  DefaultBaseLayerThickness     { 100        }; /
 
 
 QString                   const  AptSourcesFilePath            { "/etc/apt/sources.list.d/volumetric-lightfield.list"     };
-QString                   const  JobWorkingDirectoryPath       { "/var/cache/lightfield/print-jobs"                       };
+QString                   const  JobWorkingDirectoryPath       { "/data/print-jobs"                       };
 QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
-QString                   const  StlModelLibraryPath           { "/var/lib/lightfield/model-library"                      };
-QString                   const  UpdatesRootPath               { "/var/lib/lightfield/software-updates"                   };
+QString                   const  StlModelLibraryPath           { "/data/model-library"                      };
+QString                   const  UpdatesRootPath               { "/data/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };
-QString                   const  PrintProfilesPath             { "/var/lib/lightfield/print-profiles.json"                };
+QString                   const  PrintProfilesPath             { "/data/print-profiles.json"                };
 QString                   const  FirmwarePath                  { "/dev/lumen-arduino"                                     };
 
 QChar                     const  LineFeed                      { L'\u000A' };

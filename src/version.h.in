@@ -21,11 +21,11 @@ inline constexpr void DecodeVersionCode(unsigned versionCode, int& major, int& m
     build = static_cast<int>(versionCode  & 0xFFu);
 }
 
-const char* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@@VERSION_STRING@@";
-const unsigned int LIGHTFIELD_VERSION_MAJOR = @@VERSION_MAJOR@@;
-const unsigned int LIGHTFIELD_VERSION_MINOR = @@VERSION_MINOR@@;
-const unsigned int LIGHTFIELD_VERSION_TEENY = @@VERSION_TEENY@@;
-const unsigned int LIGHTFIELD_VERSION_BUILD = @@VERSION_BUILD@@;
+const char* LIGHTFIELD_VERSION_STRING __attribute__(( weak )) = "@LF_VERSION_STRING@";
+const unsigned int LIGHTFIELD_VERSION_MAJOR = @LF_VERSION_MAJOR@;
+const unsigned int LIGHTFIELD_VERSION_MINOR = @LF_VERSION_MINOR@;
+const unsigned int LIGHTFIELD_VERSION_TEENY = @LF_VERSION_TEENY@;
+const unsigned int LIGHTFIELD_VERSION_BUILD = @LF_VERSION_BUILD@;
 const unsigned int LIGHTFIELD_VERSION_CODE = MakeVersionCode(LIGHTFIELD_VERSION_MAJOR, LIGHTFIELD_VERSION_MINOR,
     LIGHTFIELD_VERSION_TEENY, LIGHTFIELD_VERSION_BUILD);
 
@@ -37,7 +37,7 @@ const BuildType LIGHTFIELD_VERSION_BUILD_TYPE = BuildType::Release;
 #error Unknown build type: Neither _DEBUG nor NDEBUG are #defined
 #endif
 
-const char* LIGHTFIELD_VERSION_GITHASH __attribute__((weak)) = "@@VERSION_GITHASH@@";
-const char* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__((weak)) = "@@RELEASE_TRAIN@@";
+const char* LIGHTFIELD_VERSION_RELEASE_TRAIN __attribute__(( weak )) = "@RELEASE_TRAIN@";
+const char* LIGHTFIELD_VERSION_GITHASH __attribute__((weak)) = "@VERSION_GITHASH@";
 
 #endif // __VERSION_H__
