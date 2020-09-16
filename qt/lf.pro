@@ -1,4 +1,4 @@
-QT += core gui widgets xml
+QT += core gui widgets xml serialport
 
 TARGET   = lf
 TEMPLATE = app
@@ -47,7 +47,6 @@ SOURCES +=                          \
     ../src/processrunner.cpp        \
     ../src/profilestab.cpp          \
     ../src/progressdialog.cpp       \
-    ../src/shepherd.cpp             \
     ../src/signalhandler.cpp        \
     ../src/slicesorderpopup.cpp	    \
     ../src/slicertask.cpp           \
@@ -67,7 +66,8 @@ SOURCES +=                          \
     ../src/usbmountmanager.cpp      \
     ../src/utils.cpp                \
     ../src/window.cpp \
-    ../src/thicknesswindow.cpp
+    ../src/thicknesswindow.cpp \
+    ../src/firmwarecontroller.cpp
 
 HEADERS  +=                         \
     ../src/advancedtab.h            \
@@ -108,7 +108,6 @@ HEADERS  +=                         \
     ../src/profilesjsonparser.h     \
     ../src/profilestab.h            \
     ../src/progressdialog.h         \
-    ../src/shepherd.h               \
     ../src/signalhandler.h          \
     ../src/slicesorderpopup.h	    \
     ../src/slicertask.h             \
@@ -129,7 +128,8 @@ HEADERS  +=                         \
     ../src/version.h                \
     ../src/vertex.h                 \
     ../src/window.h \
-    ../src/thicknesswindow.h
+    ../src/thicknesswindow.h \
+    ../src/firmwarecontroller.h
 
 CONFIG += c++1z precompile_header link_pkgconfig
 PKGCONFIG = GraphicsMagick++

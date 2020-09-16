@@ -1,25 +1,27 @@
 #include "pch.h"
 
 #include "movementsequencer.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 
-MovementSequencer::MovementSequencer( Shepherd* shepherd, QObject* parent ):
-    QObject   { parent             },
-    _shepherd { shepherd           },
-    _timer    { new QTimer( this ) }
+MovementSequencer::MovementSequencer(FirmwareController* controller, QObject* parent):
+    QObject   { parent },
+    _firmwareController { controller },
+    _timer    { new QTimer(this) }
 {
     _timer->setSingleShot( true );
     _timer->setTimerType( Qt::PreciseTimer );
 
-    QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &MovementSequencer::shepherd_moveAbsoluteComplete );
-    QObject::connect( _shepherd, &Shepherd::action_moveRelativeComplete, this, &MovementSequencer::shepherd_moveRelativeComplete );
-    QObject::connect( _timer,    &QTimer::timeout,                       this, &MovementSequencer::timer_timeout                 );
+    QObject::connect(_firmwareController, &FirmwareController::printerMoveAbsoluteCompleted, this,
+        &MovementSequencer::moveAbsoluteComplete);
+    QObject::connect(_firmwareController, &FirmwareController::printerMoveRelativeCompleted, this,
+        &MovementSequencer::moveRelativeComplete);
+    QObject::connect(_timer, &QTimer::timeout, this, &MovementSequencer::timer_timeout);
 }
 
-MovementSequencer::~MovementSequencer( ) {
-    if ( _shepherd ) {
-        QObject::disconnect( _shepherd, nullptr, this, nullptr );
-        _shepherd = nullptr;
+MovementSequencer::~MovementSequencer() {
+    if (_firmwareController) {
+        QObject::disconnect(_firmwareController, nullptr, this, nullptr );
+        _firmwareController = nullptr;
     }
 
     if ( _timer ) {
@@ -52,13 +54,13 @@ void MovementSequencer::_startNextMovement( ) {
         case MovementInfo::moveAbsolute:
             debug( "+ MovementSequencer::_startNextMovement: starting Move Absolute: distance %.2f mm, speed %.2f mm/min\n", movement.distance, movement.speed );
 
-            _shepherd->doMoveAbsolute( movement.distance, movement.speed );
+            _firmwareController->moveAbsolute(movement.distance, movement.speed);
             break;
 
         case MovementInfo::moveRelative:
             debug( "+ MovementSequencer::_startNextMovement: starting Move Relative: distance %.2f mm, speed %.2f mm/min\n", movement.distance, movement.speed );
 
-            _shepherd->doMoveRelative( movement.distance, movement.speed );
+            _firmwareController->moveRelative(movement.distance, movement.speed);
             break;
 
         case MovementInfo::delay:
@@ -95,8 +97,8 @@ void MovementSequencer::abort( ) {
     }
 }
 
-void MovementSequencer::shepherd_moveAbsoluteComplete( bool const success ) {
-    debug( "+ MovementSequencer::shepherd_moveAbsoluteComplete: success? %s\n", YesNoString( success ) );
+void MovementSequencer::moveAbsoluteComplete( bool const success ) {
+    debug( "+ MovementSequencer::moveAbsoluteComplete: success? %s\n", YesNoString( success ) );
 
     if ( success ) {
         _startNextMovement( );
@@ -105,8 +107,8 @@ void MovementSequencer::shepherd_moveAbsoluteComplete( bool const success ) {
     }
 }
 
-void MovementSequencer::shepherd_moveRelativeComplete( bool const success ) {
-    debug( "+ MovementSequencer::shepherd_moveRelativeComplete: success? %s\n", YesNoString( success ) );
+void MovementSequencer::moveRelativeComplete( bool const success ) {
+    debug( "+ MovementSequencer::moveRelativeComplete: success? %s\n", YesNoString( success ) );
 
     if ( success ) {
         _startNextMovement( );

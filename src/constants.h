@@ -25,12 +25,12 @@ QString            extern const  JobWorkingDirectoryPath;
 QString            extern const  MountmonCommand;
 QString            extern const  ResetLumenArduinoPortCommand;
 QString            extern const  SetProjectorPowerCommand;
-QString            extern const  ShepherdPath;
 QString            extern const  SlicedSvgFileName;
 QString            extern const  StlModelLibraryPath;
 QString            extern const  UpdatesRootPath;
 QString            extern const  PrintProfilesPath;
 QString            extern const  ManifestFilename;
+QString            extern const  FirmwarePath;
 
 QChar              extern const  LineFeed;
 QChar              extern const  CarriageReturn;
@@ -54,8 +54,13 @@ int                extern const  KeyboardRepeatDelay;
 int                extern const  DefaultBodyLayerThickness;
 int                extern const  DefaultBaseLayerThickness;
 
+int    constexpr          const  FirmwareBaudrate = 250000;
+
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
+
+int    constexpr          const  FirmwareLogPathCount          =    6;
+char               extern const* FirmwareLogPaths[DebugLogPathCount];
 
 #   if defined XDLP471020UM
 

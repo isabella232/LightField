@@ -5,42 +5,52 @@
 
 namespace {
 
-    FILE* DebugLog       {        };
+    FILE* DebugLog { };
+    FILE* FirmwareLog { };
     FILE* OriginalStderr { stderr };
 
 }
 
-DebugManager::DebugManager( ) {
-    ::unlink( DebugLogPaths[5] );
-    for ( int n = 5; n > 0; --n ) {
-        ::rename( DebugLogPaths[n - 1], DebugLogPaths[n] );
-    }
+DebugManager::DebugManager(DebugType type, const char **paths) {
+    _type = type;
+    _paths = paths;
 
-    DebugLog = ::fopen( DebugLogPaths[0], "wtx" );
-    if ( !DebugLog ) {
-        error_t err = errno;
-        ::fprintf( stderr, "failed to open log file '%s': %s [%d]", DebugLogPaths[0], strerror( err ), err );
-    } else {
-        // save the original stderr
-        int fd = ::dup( 2 );
-
-        // redirect stderr to the debug log
-        ::dup2( ::fileno( DebugLog ), 2 );
-
-        // get a FILE* for the original stderr
-        OriginalStderr = ::fdopen( fd, "wt" );
-
-        // disable buffering on both FILE*:s
-        ::setvbuf( DebugLog,       nullptr, _IONBF, 0 );
-        ::setvbuf( OriginalStderr, nullptr, _IONBF, 0 );
-    }
+    rotate();
 }
 
-DebugManager::~DebugManager( ) {
+void DebugManager::rotate() {
+    ::unlink(_paths[5]);
+    for (int n = 5; n > 0; --n) {
+        ::rename(_paths[n - 1], _paths[n]);
+    }
+
+    FILE **log = &DebugLog;
+
+    switch (_type) {
+    case (DebugType::APP):
+        log = &DebugLog;
+        break;
+    case (DebugType::FIRMWARE):
+        log = &FirmwareLog;
+        break;
+    }
+
+    *log = ::fopen(_paths[0], "wtx");
+    if (!*log) {
+        error_t err = errno;
+        ::fprintf(stderr, "failed to open log file '%s': %s [%d]", _paths[0], strerror(err),
+            err);
+    }
+
+    ::setvbuf(*log, nullptr, _IONBF, 0);
+    ::setvbuf(OriginalStderr, nullptr, _IONBF, 0);
+}
+
+DebugManager::~DebugManager() {
     /*empty*/
 }
 
-void debug( char const* str ) {
+void debug(char const* str) {
     time_t timeNow = std::time(nullptr);
 
     std::stringstream ss;
@@ -50,8 +60,25 @@ void debug( char const* str ) {
     const std::string formattedOutput = ss.str();
     const char* cstr = formattedOutput.c_str();
 
-    if ( DebugLog ) {
+    if (DebugLog) {
         ::fputs(cstr, DebugLog);
+    }
+
+    ::fputs(cstr, OriginalStderr);
+}
+
+void firmware_debug(char const* str) {
+    time_t timeNow = std::time(nullptr);
+
+    std::stringstream ss;
+
+    ss << std::put_time(std::localtime(&timeNow), "%OH:%OM:%OS | ") << str;
+
+    const std::string formattedOutput = ss.str();
+    const char* cstr = formattedOutput.c_str();
+
+    if (FirmwareLog) {
+        ::fputs(cstr, FirmwareLog);
     }
 
     ::fputs(cstr, OriginalStderr);

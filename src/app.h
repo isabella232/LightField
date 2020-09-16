@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QtWidgets>
+#include "debug.h"
 
 class Window;
 
@@ -26,7 +27,6 @@ public:
 
 #if defined _DEBUG
     bool   pretendPrinterIsPrepared { false  };
-    bool   ignoreShepherdFailures   { false  };
     bool   pretendPrinterIsOnline   { false  };
     bool   ignoreUsb                { false  };
 #endif // defined _DEBUG

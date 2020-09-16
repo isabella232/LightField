@@ -25,7 +25,6 @@ namespace {
         QCommandLineOption {               "h",            "Positions main window at (0, 0)."                                                       },
         QCommandLineOption {               "i",            "Sets FramelessWindowHint instead of BypassWindowManagerHint on windows."                },
         QCommandLineOption {               "j",            "Pretend printer preparation is complete."                                               },
-        QCommandLineOption {               "k",            "Ignore stdio-shepherd failure reports."                                                 },
         QCommandLineOption {               "m",            "Pretend printer is online."                                                             },
         QCommandLineOption {               "n",            "Ignore USB."                                                                            },
 #endif // defined _DEBUG
@@ -78,9 +77,6 @@ namespace {
         [] ( ) { // -j
             g_settings.pretendPrinterIsPrepared = true;
         },
-        [] ( ) { // -k
-            g_settings.ignoreShepherdFailures = true;
-        },
         [] ( ) { // -m
             g_settings.pretendPrinterIsOnline = true;
         },
@@ -92,7 +88,7 @@ namespace {
 
 }
 
-Window* App::_window { };
+Window* App::_window {};
 
 void App::_parseCommandLine( ) {
     CommandLineParser.setOptionsAfterPositionalArgumentsMode( QCommandLineParser::ParseAsOptions );
@@ -243,7 +239,7 @@ void App::_setTheme( ) {
 }
 
 App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
-    _debugManager = new DebugManager;
+    _debugManager = new DebugManager(DebugType::APP, DebugLogPaths);
     debug(
         "LightField starting at %s (pid: %d).\n"
         "  + Version:         %s\n"

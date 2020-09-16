@@ -5,7 +5,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "printprofilemanager.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "signalhandler.h"
 #include "upgrademanager.h"
 #include "usbmountmanager.h"
@@ -50,17 +50,13 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     QObject::connect( _signalHandler, &SignalHandler::signalReceived, this, &Window::signalHandler_signalReceived );
     _signalHandler->subscribe( signalList );
 
-    _shepherd = new Shepherd { parent };
-    QObject::connect( _shepherd, &Shepherd::shepherd_started,     this, &Window::shepherd_started     );
-    QObject::connect( _shepherd, &Shepherd::shepherd_startFailed, this, &Window::shepherd_startFailed );
-    QObject::connect( _shepherd, &Shepherd::shepherd_terminated,  this, &Window::shepherd_terminated  );
-
+    _firmwareController = new FirmwareController(this, FirmwarePath, FirmwareBaudrate);
     _printProfileManager = new PrintProfileManager;
     _printProfileManager->reload();
     _upgradeManager      = new UpgradeManager;
     _usbMountManager     = new UsbMountManager;
 
-    _printManager = new PrintManager( _shepherd, this );
+    _printManager = new PrintManager( _firmwareController, this );
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
@@ -84,7 +80,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     for (const auto &tabA: tabs) {
         QObject::connect(&printJob, &PrintJob::printJobChanged, tabA, &TabBase::printJobChanged);
         QObject::connect(this, &Window::printManagerChanged, tabA, &TabBase::setPrintManager);
-        QObject::connect(this, &Window::shepherdChanged, tabA, &TabBase::setShepherd);
+        QObject::connect(this, &Window::firmwareControllerChanged, tabA, &TabBase::setFirmwareController);
         QObject::connect(tabA, &TabBase::uiStateChanged, this, &Window::tab_uiStateChanged, Qt::QueuedConnection);
         QObject::connect(tabA, &TabBase::iconChanged,
             [this] (TabIndex const sender, QIcon const& icon) {
@@ -98,10 +94,8 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
         }
     }
 
+    emit firmwareControllerChanged( _firmwareController );
     QObject::connect(&printJob, &PrintJob::printJobChanged, _pngDisplayer, &PngDisplayer::printJobChanged);
-
-
-    emit shepherdChanged( _shepherd );
     emit printManagerChanged( _printManager );
 
     printJob.printJobChanged();
@@ -114,7 +108,7 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
     _systemTab  ->setUpgradeManager     ( _upgradeManager      );
     _systemTab  ->setUsbMountManager    ( _usbMountManager     );
 
-    _shepherd->start( );
+    _firmwareController->init();
 
     //
     // "File" tab
@@ -270,8 +264,8 @@ void Window::closeEvent( QCloseEvent* event ) {
 
 void Window::terminate( ) {
     debug( "+ Window::terminate\n" );
-    if ( _shepherd ) {
-        _shepherd->doTerminate( );
+    if ( _firmwareController ) {
+        _firmwareController->close();
     }
 
     if ( _printManager ) {
@@ -327,7 +321,7 @@ void Window::startPrinting()
     printJob.setBuildPlatformOffset(_printProfileManager->activeProfile()->buildPlatformOffset());
     PrintManager* oldPrintManager = _printManager;
 
-    _printManager = new PrintManager( _shepherd, this );
+    _printManager = new PrintManager( _firmwareController, this );
     _printManager->setPngDisplayer( _pngDisplayer );
 
     QObject::connect( _printManager, &PrintManager::printStarting, this, &Window::printManager_printStarting );
@@ -394,20 +388,6 @@ void Window::tabs_currentChanged(int index)
 
 void Window::helpButton_clicked( bool ) {
     debug( "+ Window::helpButton_clicked\n" );
-    // TODO
-}
-
-void Window::shepherd_started( ) {
-    debug( "+ Window::shepherd_started\n" );
-}
-
-void Window::shepherd_startFailed( ) {
-    debug( "+ Window::shepherd_startFailed\n" );
-    // TODO
-}
-
-void Window::shepherd_terminated( bool const expected, bool const cleanExit ) {
-    debug( "+ Window::shepherd_terminated: expected? %s; clean? %s\n", ToString( expected ), ToString( cleanExit ) );
     // TODO
 }
 

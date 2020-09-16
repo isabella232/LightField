@@ -37,15 +37,12 @@ QString                   const  JobWorkingDirectoryPath       { "/data/print-jo
 QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
 QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
-QString                   const  ShepherdPath                  { "/usr/share/lightfield/libexec/stdio-shepherd"           };
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/data/model-library"                      };
 QString                   const  UpdatesRootPath               { "/data/software-updates"                   };
 QString                   const  ManifestFilename              { "manifest.json"                                          };
 QString                   const  PrintProfilesPath             { "/data/print-profiles.json"                };
-//QString                   const  PrintProfilesPath             { "/home/lumen/Volumetric/LightField/print-profiles/print-profiles.json"};
-
-//QString                   const  PrintProfilesSchemaPath       { "/var/lib/lightfield/print-profiles-schema.json"         };
+QString                   const  FirmwarePath                  { "/dev/lumen-arduino"                                     };
 
 QChar                     const  LineFeed                      { L'\u000A' };
 QChar                     const  CarriageReturn                { L'\u000D' };
@@ -75,4 +72,14 @@ char                      const* DebugLogPaths[DebugLogPathCount]
     "/var/log/lightfield/debug.3.log",
     "/var/log/lightfield/debug.4.log",
     "/var/log/lightfield/debug.5.log",
+};
+
+char                      const* FirmwareLogPaths[FirmwareLogPathCount]
+{
+    "/var/log/lightfield/firmware.log",
+    "/var/log/lightfield/firmware.1.log",
+    "/var/log/lightfield/firmware.2.log",
+    "/var/log/lightfield/firmware.3.log",
+    "/var/log/lightfield/firmware.4.log",
+    "/var/log/lightfield/firmware.5.log",
 };

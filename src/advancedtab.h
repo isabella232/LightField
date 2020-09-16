@@ -25,7 +25,7 @@ public:
     }
 
 protected:
-    virtual void _connectShepherd() override;
+    virtual void _connectFirmwareController() override;
 
 private:
     QCheckBox* _offsetDisregardFirstLayer { new QCheckBox("Disregard first layer height") };
@@ -159,7 +159,7 @@ private slots:
     void powerLevelSlider_sliderReleased( );
     void powerLevelSlider_valueChanged( int percentage );
 
-    void shepherd_sendComplete( bool const success );
+    void setTemperatureComplete( bool const success );
 
     void chbox_addBodyPumpChanged(int);
 

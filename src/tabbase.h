@@ -7,7 +7,7 @@
 
 class PrintManager;
 class PrintProfileManager;
-class Shepherd;
+class FirmwareController;
 class UsbMountManager;
 class OrderManifestManager;
 
@@ -16,7 +16,7 @@ class TabBase: public QWidget {
     Q_OBJECT;
     Q_PROPERTY( PrintManager*        printManager        READ printManager        WRITE setPrintManager        );
     Q_PROPERTY( PrintProfileManager* printProfileManager READ printProfileManager WRITE setPrintProfileManager );
-    Q_PROPERTY( Shepherd*            shepherd            READ shepherd            WRITE setShepherd            );
+    Q_PROPERTY( FirmwareController*  firmwareController  READ firmwareController  WRITE setFirmwareController  );
     Q_PROPERTY( UsbMountManager*     usbMountManager     READ usbMountManager     WRITE setUsbMountManager     );
     Q_PROPERTY( TabIndex             tabIndex            READ tabIndex                                         );
     Q_PROPERTY( UiState              uiState             READ uiState                                          );
@@ -52,7 +52,7 @@ public:
 
     PrintManager*        printManager( )        const { return _printManager;        }
     PrintProfileManager* printProfileManager( ) const { return _printProfileManager; }
-    Shepherd*            shepherd( )            const { return _shepherd;            }
+    FirmwareController*  firmwareController( )  const { return _firmwareController;  }
     UiState              uiState( )             const { return _uiState;             }
     UsbMountManager*     usbMountManager( )     const { return _usbMountManager;     }
 
@@ -62,7 +62,7 @@ protected:
 
     PrintManager*             _printManager             { };
     PrintProfileManager*      _printProfileManager      { };
-    Shepherd*                 _shepherd                 { };
+    FirmwareController*       _firmwareController       { };
     UiState                   _uiState                  { };
     UsbMountManager*          _usbMountManager          { };
 
@@ -72,8 +72,8 @@ protected:
     virtual void _disconnectPrintProfileManager( );
     virtual void _connectPrintProfileManager( );
 
-    virtual void _disconnectShepherd( );
-    virtual void _connectShepherd( );
+    virtual void _connectFirmwareController( );
+    virtual void _disconnectFirmwareController( );
 
     virtual void _disconnectUsbMountManager( );
     virtual void _connectUsbMountManager( );
@@ -90,7 +90,7 @@ signals:
 public slots:
     virtual void setPrintManager( PrintManager* printManager );
     virtual void setPrintProfileManager( PrintProfileManager* printProfileManager );
-    virtual void setShepherd( Shepherd* shepherd );
+    virtual void setFirmwareController( FirmwareController* controller );
     virtual void setUsbMountManager( UsbMountManager* mountManager );
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) = 0;
     virtual void printJobChanged() = 0;

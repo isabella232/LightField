@@ -6,7 +6,7 @@
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "processrunner.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "timinglogger.h"
 
 // ================================
@@ -112,14 +112,15 @@ namespace {
 
 }
 
-PrintManager::PrintManager( Shepherd* shepherd, QObject* parent ):
-    QObject   ( parent   ),
-    _shepherd ( shepherd )
+PrintManager::PrintManager(FirmwareController* controller, QObject* parent):
+    QObject   (parent),
+    _firmwareController (controller)
 {
-    _movementSequencer        = new MovementSequencer { shepherd, this };
+    _movementSequencer        = new MovementSequencer { controller, this };
     _setProjectorPowerProcess = new ProcessRunner     { this };
 
-    QObject::connect( _shepherd, &Shepherd::printer_positionReport, this, &PrintManager::printer_positionReport );
+    QObject::connect(_firmwareController, &FirmwareController::printerPositionReport, this,
+        &PrintManager::printer_positionReport);
 }
 
 PrintManager::~PrintManager( ) {

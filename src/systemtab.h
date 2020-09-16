@@ -24,7 +24,7 @@ public:
 
 protected:
 
-    virtual void _connectShepherd( )                    override;
+    virtual void _connectFirmwareController( )          override;
     virtual void _initialShowEvent( QShowEvent* event ) override;
 
     virtual void _connectUsbMountManager( )             override;
@@ -89,7 +89,7 @@ private slots:
     void printer_online( );
     void printer_offline( );
 
-    void shepherd_firmwareVersionReport( QString const& version );
+    void firmwareVersionReport( QString const& version );
 
     void updateSoftwareButton_clicked( bool );
     void copyLogsButton_clicked( bool );

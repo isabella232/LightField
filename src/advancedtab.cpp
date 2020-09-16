@@ -5,7 +5,7 @@
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "advancedtabselectionmodel.h"
 #include "paramslider.h"
 #include "ordermanifestmanager.h"
@@ -92,13 +92,17 @@ void AdvancedTab::chbox_addBasePumpCheckChanged(int state)
     _baseNoPumpUpVelocitySlider->setEnabled(state);
 }
 
-void AdvancedTab::_connectShepherd()
+void AdvancedTab::_connectFirmwareController()
 {
-    if (_shepherd) {
-        QObject::connect( _shepherd, &Shepherd::printer_online,            this, &AdvancedTab::printer_online            );
-        QObject::connect( _shepherd, &Shepherd::printer_offline,           this, &AdvancedTab::printer_offline           );
-        QObject::connect( _shepherd, &Shepherd::printer_positionReport,    this, &AdvancedTab::printer_positionReport    );
-        QObject::connect( _shepherd, &Shepherd::printer_temperatureReport, this, &AdvancedTab::printer_temperatureReport );
+    if (_firmwareController) {
+        QObject::connect(_firmwareController, &FirmwareController::printerOnline, this,
+            &AdvancedTab::printer_online);
+        QObject::connect(_firmwareController, &FirmwareController::printerOffline, this,
+            &AdvancedTab::printer_offline);
+        QObject::connect(_firmwareController, &FirmwareController::printerPositionReport, this,
+            &AdvancedTab::printer_positionReport);
+        QObject::connect(_firmwareController, &FirmwareController::printerTemperatureReport, this,
+            &AdvancedTab::printer_temperatureReport);
     }
 }
 
@@ -168,22 +172,24 @@ void AdvancedTab::printBedHeatingButton_clicked( bool checked ) {
     _bedTemperatureValueLayout->setEnabled( checked );
 #endif
 
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
+    QObject::connect(_firmwareController, &FirmwareController::printerSetTemperatureCompleted, this,
+        &AdvancedTab::setTemperatureComplete);
 
 #if defined ENABLE_TEMPERATURE_SETTING
-    _shepherd->doSend( QString { "M140 S%1" }.arg( checked ? _bedTemperatureSlider->value( ) : 0 ) );
+    _firmwareController->setTemperature(checked ? _bedTemperatureSlider->value() : 0);
 #else
-    _shepherd->doSend( QString { "M140 S%1" }.arg( checked ? DefaultPrintBedTemperature : 0 ) );
+    _firmwareController->setTemperature(checked ? DefaultPrintBedTemperature : 0);
 #endif
 
-    update( );
+    update();
 }
 
 #if defined ENABLE_TEMPERATURE_SETTING
 void AdvancedTab::printBedTemperatureSlider_sliderReleased()
 {
-    QObject::connect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
-    _shepherd->doSend( QString { "M140 S%1" }.arg( _bedTemperatureSlider->value( ) ) );
+    QObject::connect(_firmwareController, &FirmwareController::printerSetTemperatureCompleted, this,
+        &AdvancedTab::setTemperatureComplete);
+    _firmwareController->setTemperature(_bedTemperatureSlider->value());
 }
 
 void AdvancedTab::printBedTemperatureSlider_valueChanged( int value ) {
@@ -267,13 +273,14 @@ void AdvancedTab::projectorPowerLevel_changed( int const percentage ) {
     update( );
 }
 
-void AdvancedTab::shepherd_sendComplete( bool const success ) {
-    debug( "+ AdvancedTab::shepherd_sendComplete: action %s\n", SucceededString( success ) );
-    QObject::disconnect( _shepherd, &Shepherd::action_sendComplete, this, &AdvancedTab::shepherd_sendComplete );
+void AdvancedTab::setTemperatureComplete(bool const success) {
+    debug( "+ AdvancedTab::setTemperatureComplete: action %s\n", SucceededString(success));
+    QObject::disconnect(_firmwareController, &FirmwareController::printerSetTemperatureCompleted,
+        this, &AdvancedTab::setTemperatureComplete);
 }
 
 void AdvancedTab::_updateControlGroups( ) {
-    _projectImageButtonsGroup->setEnabled( _isProjectorOn || ( _isPrinterOnline && _isPrinterAvailable && ( _shepherd != nullptr ) && ( _pngDisplayer != nullptr ) ) );
+    _projectImageButtonsGroup->setEnabled( _isProjectorOn || ( _isPrinterOnline && _isPrinterAvailable && ( _firmwareController != nullptr ) && ( _pngDisplayer != nullptr ) ) );
 
     update( );
 }

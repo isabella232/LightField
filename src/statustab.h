@@ -22,9 +22,9 @@ public:
 
 protected:
 
-    virtual void _connectPrintManager( )                override;
-    virtual void _connectShepherd( )                    override;
-    virtual void _initialShowEvent( QShowEvent* event ) override;
+    virtual void _connectPrintManager() override;
+    virtual void _connectFirmwareController() override;
+    virtual void _initialShowEvent(QShowEvent* event) override;
 
 private:
 
@@ -66,12 +66,10 @@ private:
     QWidget*            _rightColumn                { new QWidget     };
 
     QTimer*             _updatePrintTimeInfo        { };
-    QTimer*             _printerOnlineTimer         { };
 
     QFont               _boldFont;
     QFont               _italicFont;
 
-    bool                _isFirstOnlineTaskDone      { false };
     bool                _isPrinterOnline            { false };
     bool                _isPrinterAvailable         { true  };
     bool                _isPrinterPrepared          { false };
@@ -122,10 +120,7 @@ private slots:
 
     void printer_temperatureReport( double const bedCurrentTemperature, double const bedTargetTemperature, int const bedPwm );
 
-    void initializationCommands_sendComplete( bool const success );
-
     void updatePrintTimeInfo_timeout( );
-    void printerOnlineTimer_timeout( );
 
     void pauseButton_clicked( bool );
     void stopButton_clicked( bool );

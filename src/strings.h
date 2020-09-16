@@ -2,6 +2,8 @@
 #define __LWSTRINGS_H__
 
 #include <QtCore>
+#include <QDialog>
+#include <QSwipeGesture>
 
 enum class BuildType;
 

@@ -32,10 +32,10 @@ public:
 
 protected:
 
-    virtual void     _connectPrintManager( )                      override;
-    virtual void     _connectShepherd( )                          override;
-    virtual void     _initialShowEvent( QShowEvent* event )       override;
-    virtual void     _connectUsbMountManager( )                   override;
+    virtual void _connectPrintManager() override;
+    virtual void _connectFirmwareController() override;
+    virtual void _initialShowEvent(QShowEvent* event) override;
+    virtual void _connectUsbMountManager() override;
 
 private:
 
@@ -177,9 +177,9 @@ private slots:
     void slicingDone(bool success);
 
     void prepareButton_clicked( bool );
-    void shepherd_homeComplete( bool const success );
+    void homeComplete( bool const success );
     void adjustBuildPlatform_complete( bool );
-    void shepherd_raiseBuildPlatformMoveToComplete( bool const success );
+    void raiseBuildPlatformMoveToComplete( bool const success );
 
     //void copyToUSB_clicked( bool );
 

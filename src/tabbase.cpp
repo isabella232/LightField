@@ -5,7 +5,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "printprofilemanager.h"
-#include "shepherd.h"
+#include "firmwarecontroller.h"
 #include "usbmountmanager.h"
 
 TabBase::TabBase(QWidget* parent): QWidget( parent ) {
@@ -32,11 +32,11 @@ void TabBase::_connectPrintProfileManager( ) {
     /*empty*/
 }
 
-void TabBase::_disconnectShepherd( ) {
-    QObject::disconnect( _shepherd, nullptr, this, nullptr );
+void TabBase::_disconnectFirmwareController( ) {
+    QObject::disconnect( _firmwareController, nullptr, this, nullptr );
 }
 
-void TabBase::_connectShepherd( ) {
+void TabBase::_connectFirmwareController( ) {
     /*empty*/
 }
 
@@ -61,10 +61,10 @@ void TabBase::setPrintProfileManager(PrintProfileManager* printProfileManager)
     _connectPrintProfileManager( );
 }
 
-void TabBase::setShepherd( Shepherd* shepherd ) {
-    _disconnectShepherd( );
-    _shepherd = shepherd;
-    _connectShepherd( );
+void TabBase::setFirmwareController(FirmwareController *controller) {
+    _disconnectFirmwareController();
+    _firmwareController = controller;
+    _connectFirmwareController();
 }
 
 void TabBase::setUsbMountManager( UsbMountManager* usbMountManager ) {
