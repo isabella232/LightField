@@ -63,14 +63,18 @@ private:
                                                                               "s",    1000, 30000, 250, 250, 1000 ) };
 
     ParamSlider*       _advBodyExpoCorse                   { new ParamSlider( "Body exposure time coarse", "s",
-                                                                              1000, 29000, 1000, 1000, 1000 ) };
+                                                                              1000, 30000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBodyExpoFine                    { new ParamSlider( "Body exposure time fine", "ms",
-                                                                              50, 1000, 50, 0) };
+                                                                              50, 950, 50, 0) };
 
     ParamSlider*       _advBaseExpoCorse                   { new ParamSlider( "Base exposure time coarse", "s",
-                                                                              1000, 149000, 1000, 1000, 1000 ) };
+                                                                              1000, 150000, 1000, 1000, 1000 ) };
     ParamSlider*       _advBaseExpoFine                    { new ParamSlider( "Base exposure time fine", "ms",
-                                                                             50, 1000, 50, 0) };
+                                                                             50, 950, 50, 0) };
+
+    QLabel*             _advBodyLbl                        { new QLabel };
+    QLabel*             _advBaseLbl                        { new QLabel };
+
     Spoiler*           _basicExpoTimeGroup;
     Spoiler*           _advancedExpoTimeGroup;
 

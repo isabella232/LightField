@@ -61,8 +61,8 @@ bool PngDisplayer::loadImageFile( QString const& fileName ) {
     int offsetX = g_settings.projectorOffset.x( );
     int offsetY = g_settings.projectorOffset.y( );
 
-    int absOffsetX = (ProjectorWindowSize.width() / 2) + offsetX + offset.x() - (imgWidth/2);
-    int absOffsetY = (ProjectorWindowSize.height() / 2) + offsetY - offset.y() - (imgHeight/2);
+    int absOffsetX = (ProjectorWindowSize.width() / 2) + offsetX - offset.x() - (imgWidth/2);
+    int absOffsetY = (ProjectorWindowSize.height() / 2) + offsetY + offset.y() - (imgHeight/2);
 
     QPixmap png { ProjectorWindowSize };
     QPainter painter (&png);
@@ -90,8 +90,8 @@ void PngDisplayer::moveToOffset(QPoint offset) {
     int offsetX = g_settings.projectorOffset.x( );
     int offsetY = g_settings.projectorOffset.y( );
 
-    int absOffsetX = (ProjectorWindowSize.width() / 2) + offsetX + offset.x() - (imgWidth/2);
-    int absOffsetY = (ProjectorWindowSize.height() / 2) + offsetY - offset.y() - (imgHeight/2);
+    int absOffsetX = (ProjectorWindowSize.width() / 2) + offsetX - offset.x() - (imgWidth/2);
+    int absOffsetY = (ProjectorWindowSize.height() / 2) + offsetY + offset.y() - (imgHeight/2);
 
     QPixmap png { ProjectorWindowSize };
     QPainter painter (&png);

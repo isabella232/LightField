@@ -49,7 +49,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _layerThicknessCustomButton->setFont( font12pt );
     QObject::connect( _layerThicknessCustomButton, &QPushButton::clicked, this, &PrepareTab::layerThicknessCustomButton_clicked );
 
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled( false );
     _layerThickness20Button->setChecked( false );
     _layerThickness20Button->setText( "High Res (20 µm)" );
@@ -184,13 +184,24 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
 
     });
 
+    _closeAdjustProjection->setText("X");
+    _closeAdjustProjection->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    _closeAdjustProjection->setFixedSize(43,43);
+    _closeAdjustProjection->setFont(font22pt);
+    _closeAdjustProjection->setVisible(true);
+    QObject::connect(_closeAdjustProjection, &QPushButton::clicked, [this](bool checked) {
+
+        (void)checked;
+        _adjustProjection->toggle();
+
+    });
 
     _adjustValue->setFont(boldFont);
 
-    _adjustGroup->setTitle("Digital Projection Offset");
+    _adjustGroup->setTitle("Digital Projection Shim");
     _adjustGroup->setVisible(false);
     _adjustGroup->setLayout(WrapWidgetsInVBox(
-        nullptr,
+        WrapWidgetsInHBox(nullptr, _closeAdjustProjection),
         WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
         WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustValue, nullptr, _adjustRight),
         WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
@@ -240,7 +251,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _optionsContainer->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
     _optionsContainer->setLayout( WrapWidgetsInVBox(
         _layerThicknessLabel,
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
          WrapWidgetsInVBox(
              _layerThickness100Button,
              _layerThickness50Button,
@@ -253,7 +264,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
               _layerThickness50Button,
               _layerThicknessCustomButton
           ),
-#endif // defined XDLP471020UM
+#endif // defined EXPERIMENTAL
         WrapWidgetsInHBox( _sliceStatusLabel,          nullptr, _sliceStatus          ),
         WrapWidgetsInHBox( _imageGeneratorStatusLabel, nullptr, _imageGeneratorStatus ),
         _prepareGroup,
@@ -411,6 +422,7 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
     manifestMgr->setPath(directory);
+
     QStringList errors;
     QStringList warnings;
 
@@ -436,6 +448,8 @@ bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
             break;
         }
     }
+
+    manifestMgr->setVolume(printJob.getEstimatedVolume());
 
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
@@ -563,7 +577,7 @@ void PrepareTab::layerThickness50Button_clicked( bool ) {
     _checkSliceDirectories();
 }
 
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
     printJob.setBaseLayerCount(2);
@@ -572,7 +586,7 @@ void PrepareTab::layerThickness20Button_clicked( bool ) {
 
     _checkSliceDirectories();
 }
-#endif // defined XDLP471020UM
+#endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
     ThicknessWindow *dialog = new ThicknessWindow(_initAfterSelect, this);
@@ -611,7 +625,12 @@ void PrepareTab::_showLayerImage(int const layer)
 void PrepareTab::_showLayerImage(const QString &path)
 {
     debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data());
-    QPixmap pixmap { path };
+    QPixmap pixmap_orig { path };
+    QTransform rotate_transform;
+    QPixmap pixmap;
+
+    rotate_transform.rotate(180);
+    pixmap = pixmap_orig.transformed(rotate_transform);
 
     if ((pixmap.width() > _currentLayerImage->width()) ||
         (pixmap.height() > _currentLayerImage->height())) {
@@ -636,9 +655,9 @@ void PrepareTab::_setSliceControlsEnabled(bool const enabled)
     _layerThickness100Button->setEnabled(enabled);
     _layerThickness50Button->setEnabled(enabled);
     _layerThicknessCustomButton->setEnabled(enabled);
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
     _layerThickness20Button->setEnabled(enabled);
-#endif // defined XDLP471020UM
+#endif // defined EXPERIMENTAL
 
     update( );
 }
@@ -969,9 +988,9 @@ void PrepareTab::_updateSliceControls() {
     _layerThickness100Button->setChecked(false);
     _layerThickness50Button->setChecked(false);
     _layerThicknessCustomButton->setChecked(false);
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
     _layerThickness20Button->setChecked(false);
-#endif // defined XDLP471020UM
+#endif
 
     if (printJob.getSelectedBaseLayerThickness() == printJob.getSelectedBodyLayerThickness() &&
         printJob.getBaseLayerCount() == 2) {
@@ -984,11 +1003,11 @@ void PrepareTab::_updateSliceControls() {
             _layerThickness50Button->setChecked(true);
             return;
 
-#if defined XDLP471020UM
+#if defined EXPERIMENTAL
         case 20:
             _layerThickness20Button->setChecked(true);
             return;
-#endif // defined XDLP471020UM
+#endif
         }
     }
 
@@ -1147,7 +1166,7 @@ void PrepareTab::printJobChanged() {
 #if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
         if(offset.x() != 0 || offset.y() != 0) {
-            _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+            _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
             _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
         } else {
             _printOffsetLabel->setText(QString(""));
@@ -1173,7 +1192,7 @@ void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
     QPoint offset = printJob.getPrintOffset();
 
     if(offset.x() != 0 || offset.y() != 0) {
-        _printOffsetLabel->setText(QString("offset (%1, %2)").arg(offset.x()).arg(offset.y()));
+        _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
         _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
     } else {
         _printOffsetLabel->setText(QString(""));

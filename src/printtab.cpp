@@ -94,10 +94,42 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         )
     );
 
+    auto boldFontBigger = ModifyFont( boldFont, 13);
+    _advBodyLbl->setFixedWidth(82);
+    _advBodyLbl->setFont(boldFontBigger);
+    _advBaseLbl->setFixedWidth(82);
+    _advBaseLbl->setFont(boldFontBigger);
+
+
+    QLabel* addition1 {new QLabel("+")};
+    QLabel* addition2 {new QLabel("+")};
+    QLabel* eq1 {new QLabel("=")};
+    QLabel* eq2 {new QLabel("=")};
+    QFrame* hr {new QFrame};
+
+    addition1->setFont(boldFontBigger);
+    addition2->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+
+    hr->setFrameShape(QFrame::HLine);
+    hr->setFrameShadow(QFrame::Sunken);
+    hr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    hr->setFixedHeight(1);
+
+    _advBodyExpoCorse->setCounterBold(false);
+    _advBaseExpoCorse->setCounterBold(false);
+    _advBodyExpoFine->setCounterBold(false);
+    _advBaseExpoFine->setCounterBold(false);
+
+    _advBodyExpoFine->setFixedWidth(340);
+    _advBaseExpoFine->setFixedWidth(340);
+
     QVBoxLayout* container =
         WrapWidgetsInVBox(
-                  WrapWidgetsInHBox(_advBodyExpoCorse, _advBodyExpoFine),
-                  WrapWidgetsInHBox(_advBaseExpoCorse, _advBaseExpoFine)
+                  WrapWidgetsInHBox(_advBodyExpoCorse, addition1, _advBodyExpoFine, eq1, _advBodyLbl),
+                  hr,
+                  WrapWidgetsInHBox(_advBaseExpoCorse, addition2, _advBaseExpoFine, eq2, _advBaseLbl)
         );
 
     _advancedExpoTimeGroup->setCollapsed(true);
@@ -105,21 +137,16 @@ PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(pa
         container
     );
 
-
-    int scrolbarWidth = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
-    int contentWidth = MainWindowSize.width() - ButtonPadding.width() - scrolbarWidth;
-
-    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-    _advancedExpoTimeGroup->setMinimumWidth(contentWidth);
-    _basicExpoTimeGroup->setMinimumWidth(contentWidth);
+    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    _advancedExpoTimeGroup->setFixedWidth(1000);
+    _basicExpoTimeGroup->setFixedWidth(1000);
 
     QWidget* widget = new QWidget(advArea);
     widget->setLayout( WrapWidgetsInVBox(_basicExpoTimeGroup, _advancedExpoTimeGroup, nullptr));
-
+    widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    widget->setFixedWidth(1000);
 
     advArea->setWidget(widget);
-
     _optionsGroup->setLayout(
         WrapWidgetsInVBox(
               advArea,
@@ -244,6 +271,9 @@ void PrintTab::advancedExposureTime_update( ) {
 
     int bodyExpoTime = _advBodyExpoCorse->getValue() + _advBodyExpoFine->getValue();
     int baseExpoTime = _advBaseExpoCorse->getValue() + _advBaseExpoFine->getValue();
+
+    _advBodyLbl->setText( QString("%1 s").arg(bodyExpoTime / 1000.0));
+    _advBaseLbl->setText( QString("%1 s").arg(baseExpoTime / 1000.0));
 
     int bodyExpoTimeRounded = round((bodyExpoTime * 4)/1000) * 250;
     int baseMultiplier = baseExpoTime / bodyExpoTimeRounded;
