@@ -20,7 +20,7 @@ namespace {
 
 }
 
-SystemTab::SystemTab( QWidget* parent ): InitialShowEventMixin<SystemTab, TabBase>( parent ) {
+SystemTab::SystemTab(QWidget* parent): InitialShowEventMixin<SystemTab, TabBase>(parent) {
     auto origFont = font( );
     auto font16pt = ModifyFont( origFont, 18.0 );
     auto font22pt = ModifyFont( origFont, LargeFontSize );
@@ -288,4 +288,8 @@ void SystemTab::setUpgradeManager( UpgradeManager* upgradeManager ) {
         QObject::disconnect( _upgradeManager, nullptr, this, nullptr );
         _upgradeManager = nullptr;
     }
+}
+
+void SystemTab::printJobChanged() {
+
 }

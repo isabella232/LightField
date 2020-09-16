@@ -54,6 +54,7 @@ private:
 
 public slots:
     virtual void tab_uiStateChanged(TabIndex const sender, UiState const state) override;
+    virtual void printJobChanged() override;
 
     void importParamsClicked(bool);
     void exportParamsClicked(bool);

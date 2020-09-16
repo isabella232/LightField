@@ -54,7 +54,7 @@ class FileTab: public InitialShowEventMixin<FileTab, TabBase> {
 
 public:
 
-    FileTab( QWidget* parent = nullptr );
+    FileTab(QWidget* parent = nullptr);
     virtual ~FileTab( ) override;
 
     virtual TabIndex          tabIndex( )       const override { return TabIndex::File;   }
@@ -115,6 +115,7 @@ signals:
 public slots:
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
 protected slots:
 

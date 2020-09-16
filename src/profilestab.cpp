@@ -127,6 +127,8 @@ void ProfilesTab::_connectPrintProfileManager()
 
 void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
 {
+    (void)writable;
+
     QMessageBox msgBox { this };
     QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
         &ProfilesTab::_usbRemounted);
@@ -354,7 +356,6 @@ void ProfilesTab::_updateProfile()
         return;
     }
 
-    profile->setBaseLayerCount(_printJob->baseSlices.layerCount);
     _printProfileManager->saveProfile(profileName);
     profile->debugPrint();
 }
@@ -389,7 +390,7 @@ void ProfilesTab::_loadPrintProfile()
         msgBox.exec();
     }
 
-    _printJob->setPrintProfile(_printProfileManager->activeProfile());
+    printJob.setPrintProfile(_printProfileManager->activeProfile());
 }
 
 void ProfilesTab::loadProfiles()
@@ -509,4 +510,8 @@ void ProfilesTab::printManager_printAborted()
     _enableButtonProfile(true, *profile);
 
     update();
+}
+
+void ProfilesTab::printJobChanged() {
+
 }

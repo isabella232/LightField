@@ -7,10 +7,12 @@
 #include "ordermanifestmanager.h"
 #include "printprofile.h"
 #include "printjob.h"
+#include "paramslider.h"
+#include "pngdisplayer.h"
 
 class Hasher;
-class SliceInformation;
 class SvgRenderer;
+
 
 class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
@@ -18,12 +20,12 @@ class PrepareTab: public InitialShowEventMixin<PrepareTab, TabBase> {
 
 public:
 
-    PrepareTab( QWidget* parent = nullptr );
+    PrepareTab(QWidget* parent = nullptr );
     virtual ~PrepareTab( ) override;
 
     bool             isPrepareButtonEnabled( )              const          { return _prepareButton->isEnabled( ); }
     bool             isSliceButtonEnabled( )                const          { return _sliceButton->isEnabled( );   }
-    void             loadPrintProfile(QSharedPointer<PrintProfile> profile);
+
 
     virtual TabIndex tabIndex( )                            const override { return TabIndex::Prepare;            }
 
@@ -79,6 +81,25 @@ private:
     QPushButton*      _sliceButton                 { new QPushButton      };
     QPushButton*      _orderButton                 { new QPushButton      };
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    QGroupBox*        _adjustGroup                 { new QGroupBox        };
+    QGridLayout*      _adjustlayout                { new QGridLayout      };
+    QPushButton*      _adjustProjection            { new QPushButton      };
+    QPushButton*      _closeAdjustProjection       { new QPushButton      };
+
+    QPushButton*      _adjustUp                    { new QPushButton      };
+    QPushButton*      _adjustLeft                  { new QPushButton      };
+    QPushButton*      _adjustRight                 { new QPushButton      };
+    QPushButton*      _adjustDown                  { new QPushButton      };
+    QPushButton*      _adjustReset                 { new QPushButton      };
+    QPushButton*      _adjustLightBulb             { new QPushButton      };
+    QLabel*           _adjustValue                 { new QLabel("0, 0")   };
+    ParamSlider*      _adjustPrecision             { new ParamSlider("Step size", "px", 1, 10, 5, 1)      };
+
+    QLabel*           _printOffsetLabel            { new QLabel("")       };
+ #endif
+    PngDisplayer*     _pngDisplayer                {                      };
+
     QGroupBox*        _currentLayerGroup           { new QGroupBox        };
     QLabel*           _currentLayerImage           { new QLabel           };
     QVBoxLayout*      _currentLayerLayout          { new QVBoxLayout      };
@@ -93,9 +114,8 @@ private:
     QGridLayout*      _layout                      { new QGridLayout      };
 
 
-
-    bool _checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody );
-    void _checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices );
+    bool _checkPreSlicedFiles(const QString &directory, bool isBody);
+    bool _checkOneSliceDirectory(const QString &directory, bool isBody);
     bool _checkSliceDirectories( );
     void _setNavigationButtonsEnabled( bool const enabled );
     void _showLayerImage(int const layer);
@@ -116,7 +136,12 @@ signals:
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
+    void setPngDisplayer( PngDisplayer* pngDisplayer );
+
     void setPrinterAvailable( bool const value );
+
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 private slots:
     void usbMountManager_filesystemMounted( QString const& mountPoint );

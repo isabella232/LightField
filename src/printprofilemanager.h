@@ -6,6 +6,8 @@
 
 using PrintProfileCollection = QMap<QString, QSharedPointer<PrintProfile>>;
 
+extern QSharedPointer<PrintProfile> activeProfileRef;
+
 class PrintProfileManager: public QObject
 {
     Q_OBJECT
@@ -23,15 +25,21 @@ public:
         return _profiles;
     }
 
-    QSharedPointer<PrintProfile> activeProfile()
+    QSharedPointer<PrintProfile>& activeProfile()
     {
         return _activeProfile;
     }
 
-    QSharedPointer<PrintProfile> getProfile(const QString& name)
+    QSharedPointer<PrintProfile>& getProfile(const QString& name)
     {
         auto iter = _profiles.find(name);
-        return iter == _profiles.end() ? QSharedPointer<PrintProfile>() : *iter;
+        QSharedPointer<PrintProfile>& profile = *iter;
+
+        if(iter == _profiles.end()) {
+            return *(new QSharedPointer<PrintProfile>());
+        }
+
+        return profile;
     }
 
     bool addProfile(QSharedPointer<PrintProfile> newProfile);
@@ -47,10 +55,10 @@ public:
 
 private:
     PrintProfileCollection _profiles;
-    QSharedPointer<PrintProfile> _activeProfile;
+    QSharedPointer<PrintProfile>& _activeProfile;
 
 signals:
-    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
+    void activeProfileChanged(QSharedPointer<PrintProfile>& newProfile);
     void reloadProfiles(PrintProfileCollection& profiles);
 };
 

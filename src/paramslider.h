@@ -33,6 +33,7 @@ public:
     void   setMaxValue(int value);
     inline QSlider* innerSlider() { return _slider; }
     void   setFontColor(QString font);
+    void   setCounterBold(bool bold);
 
 signals:
     void valueChanged();

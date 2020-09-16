@@ -6,6 +6,7 @@
 #include "printmanager.h"
 #include "shepherd.h"
 #include "ordermanifestmanager.h"
+#include "spoiler.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ namespace {
 
 }
 
-PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>( parent ) {
+PrintTab::PrintTab(QWidget* parent): InitialShowEventMixin<PrintTab, TabBase>(parent) {
 #if defined _DEBUG
     _isPrinterPrepared = g_settings.pretendPrinterIsPrepared;
 #endif // _DEBUG
@@ -22,27 +23,16 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 
     QObject::connect( _powerLevelSlider, &ParamSlider::valueChanged,   this, &PrintTab::powerLevelSlider_valueChanged   );
-    QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
-    QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::exposureTime_update   );
 
-
+    connectBasicExpoTimeCallback( true );
 
     _powerLevelSlider->innerSlider()->setPageStep( 5 );
     _powerLevelSlider->innerSlider()->setSingleStep( 1 );
     _powerLevelSlider->innerSlider()->setTickInterval( 5 );
 
     _expoDisabledTilingWarning->setMinimumSize(400, 50);
-    _expoDisabledAdvancedWarning->setMinimumSize(400, 50);
 
     _optionsGroup->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    _optionsGroup->setLayout( WrapWidgetsInVBoxDM(
-        _powerLevelSlider,
-        _bodyExposureTimeSlider,
-        _baseExposureTimeSlider,
-        _expoDisabledTilingWarning,
-        _expoDisabledAdvancedWarning,
-        nullptr
-    ) );
     _optionsGroup->setTitle( "Print settings" );
 
     _printButton->setEnabled( false );
@@ -65,27 +55,126 @@ PrintTab::PrintTab( QWidget* parent ): InitialShowEventMixin<PrintTab, TabBase>(
     _adjustmentsGroup->setLayout( WrapWidgetsInHBox( nullptr, _homeButton, nullptr, _raiseOrLowerButton, nullptr ) );
     _adjustmentsGroup->setTitle( "Adjustments" );
 
-    _layout->setContentsMargins( { } );
-    _layout->addWidget( _optionsGroup,     0, 0, 1, 2 );
-    _layout->addWidget( _printButton,      1, 0, 1, 1 );
-    _layout->addWidget( _adjustmentsGroup, 1, 1, 1, 1 );
-    _layout->setRowStretch( 0, 4 );
-    _layout->setRowStretch( 1, 1 );
 
-    setLayout( _layout );
+    QScrollArea* advArea = new QScrollArea();
+
+    _basicExpoTimeGroup = new Spoiler("Basic exposure time control");
+    _advancedExpoTimeGroup = new Spoiler("Advanced exposure time control");
+
+    QObject::connect(_basicExpoTimeGroup, &Spoiler::collapseStateChanged, [this](bool checked) {
+        _advancedExpoTimeGroup->setCollapsed(checked);
+
+        connectBasicExpoTimeCallback(checked);
+        connectAdvanExpoTimeCallback(!checked);
+
+        if(checked)
+            basicExposureTime_update();
+        else
+            advancedExposureTime_update();
+
+    });
+
+    QObject::connect(_advancedExpoTimeGroup, &Spoiler::collapseStateChanged, [this](bool checked) {
+        _basicExpoTimeGroup->setCollapsed(checked);
+
+        connectBasicExpoTimeCallback(!checked);
+        connectAdvanExpoTimeCallback(checked);
+
+        if(!checked)
+            basicExposureTime_update();
+        else
+            advancedExposureTime_update();
+    });
+
+    _basicExpoTimeGroup->setCollapsed(false);
+    _basicExpoTimeGroup->setContentLayout(
+        WrapWidgetsInVBox(
+            _bodyExposureTimeSlider,
+            _baseExposureTimeSlider
+        )
+    );
+
+    auto boldFontBigger = ModifyFont( boldFont, 13);
+    _advBodyLbl->setFixedWidth(82);
+    _advBodyLbl->setFont(boldFontBigger);
+    _advBaseLbl->setFixedWidth(82);
+    _advBaseLbl->setFont(boldFontBigger);
+
+
+    QLabel* addition1 {new QLabel("+")};
+    QLabel* addition2 {new QLabel("+")};
+    QLabel* eq1 {new QLabel("=")};
+    QLabel* eq2 {new QLabel("=")};
+    QFrame* hr {new QFrame};
+
+    addition1->setFont(boldFontBigger);
+    addition2->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+
+    hr->setFrameShape(QFrame::HLine);
+    hr->setFrameShadow(QFrame::Sunken);
+    hr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    hr->setFixedHeight(1);
+
+    _advBodyExpoCorse->setCounterBold(false);
+    _advBaseExpoCorse->setCounterBold(false);
+    _advBodyExpoFine->setCounterBold(false);
+    _advBaseExpoFine->setCounterBold(false);
+
+    _advBodyExpoFine->setFixedWidth(340);
+    _advBaseExpoFine->setFixedWidth(340);
+
+    QVBoxLayout* container =
+        WrapWidgetsInVBox(
+                  WrapWidgetsInHBox(_advBodyExpoCorse, addition1, _advBodyExpoFine, eq1, _advBodyLbl),
+                  hr,
+                  WrapWidgetsInHBox(_advBaseExpoCorse, addition2, _advBaseExpoFine, eq2, _advBaseLbl)
+        );
+
+    _advancedExpoTimeGroup->setCollapsed(true);
+    _advancedExpoTimeGroup->setContentLayout(
+        container
+    );
+
+    _advancedExpoTimeGroup->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    _advancedExpoTimeGroup->setFixedWidth(1000);
+    _basicExpoTimeGroup->setFixedWidth(1000);
+
+    QWidget* widget = new QWidget(advArea);
+    widget->setLayout( WrapWidgetsInVBox(_basicExpoTimeGroup, _advancedExpoTimeGroup, nullptr));
+    widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    widget->setFixedWidth(1000);
+
+    advArea->setWidget(widget);
+    _optionsGroup->setLayout(
+        WrapWidgetsInVBox(
+              advArea,
+              _expoDisabledTilingWarning,
+              nullptr
+        )
+    );
+
+    setLayout(
+        WrapWidgetsInVBox(
+            _powerLevelSlider,
+            _optionsGroup,
+            nullptr,
+            WrapWidgetsInHBox(_printButton, _adjustmentsGroup)
+        )
+    );
 }
 
 PrintTab::~PrintTab( ) {
     /*empty*/
 }
 
-void PrintTab::_connectPrintJob()
+void PrintTab::printJobChanged()
 {
-    debug( "+ PrintTab::setPrintJob: _printJob %p\n", _printJob );
+    debug( "+ PrintTab::printJobChanged\n" );
 
-    int powerLevelValue = _printJob->baseLayerParameters().powerLevel();
+    syncFormWithPrintProfile();
 
-    _powerLevelSlider->setValue( powerLevelValue );
     update( );
 }
 
@@ -117,13 +206,10 @@ void PrintTab::_initialShowEvent( QShowEvent* event ) {
 
     _raiseOrLowerButton->setFixedSize( size );
     _homeButton        ->setFixedSize( size );
-    //TODO: debug slider itself instead of overwriting it
-    _bodyExposureTimeSlider->setValue(1000);
 
-    _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-    _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-    _expoDisabledTilingWarning->setVisible(_printJob->isTiled());
-    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
+    _baseExposureTimeSlider->setEnabled(printJob.hasExposureControlsEnabled());
+    _bodyExposureTimeSlider->setEnabled(printJob.hasExposureControlsEnabled());
+    _expoDisabledTilingWarning->setVisible(printJob.isTiled());
 
     event->accept( );
 
@@ -134,8 +220,8 @@ void PrintTab::powerLevelSlider_valueChanged()
 {
     double value = _powerLevelSlider->getValue();
 
-    PrintParameters& baseParams = _printJob->baseLayerParameters();
-    PrintParameters& bodyParams = _printJob->bodyLayerParameters();
+    PrintParameters& baseParams = printJob.baseLayerParameters();
+    PrintParameters& bodyParams = printJob.bodyLayerParameters();
 
     baseParams.setPowerLevel( value );
     bodyParams.setPowerLevel( value );
@@ -157,15 +243,84 @@ void PrintTab::projectorPowerLevel_changed(int percentage)
 }
 
 
-void PrintTab::exposureTime_update( ) {
-    _printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValueDouble();
-    _printJob->baseSlices.exposureTime = ( _bodyExposureTimeSlider->getValueDouble() * _baseExposureTimeSlider->getValue() );
+void PrintTab::basicExposureTime_update( ) {
+    auto& bodyParams = printJob.bodyLayerParameters();
+    auto& baseParams = printJob.baseLayerParameters();
+
+    int bodyExpoTime = _bodyExposureTimeSlider->getValue();
+    int baseExpoMulpl = _baseExposureTimeSlider->getValue();
+    int baseExpoTime = baseExpoMulpl * bodyExpoTime;
+
+    _advBodyExpoCorse->setValue(bodyExpoTime - (bodyExpoTime % 1000));
+    _advBodyExpoFine->setValue(bodyExpoTime % 1000);
+
+    _advBaseExpoCorse->setValue(baseExpoTime - (baseExpoTime % 1000));
+    _advBaseExpoFine->setValue(baseExpoTime % 1000);
+
+    bodyParams.setLayerExposureTime(bodyExpoTime);
+    baseParams.setLayerExposureTime(baseExpoTime);
+    printJob.setAdvancedExposureControlsEnabled(false);
     update( );
 }
 
+void PrintTab::advancedExposureTime_update( ) {
+    auto& bodyParams = printJob.bodyLayerParameters();
+    auto& baseParams = printJob.baseLayerParameters();
+
+    int bodyExpoTime = _advBodyExpoCorse->getValue() + _advBodyExpoFine->getValue();
+    int baseExpoTime = _advBaseExpoCorse->getValue() + _advBaseExpoFine->getValue();
+
+    _advBodyLbl->setText( QString("%1 s").arg(bodyExpoTime / 1000.0));
+    _advBaseLbl->setText( QString("%1 s").arg(baseExpoTime / 1000.0));
+
+    int bodyExpoTimeRounded = round((bodyExpoTime * 4)/1000) * 250;
+    int baseMultiplier = baseExpoTime / bodyExpoTimeRounded;
+
+    if(baseMultiplier > 5)
+        baseMultiplier = 5;
+    else if (baseMultiplier < 1)
+        baseMultiplier = 1;
+
+    _bodyExposureTimeSlider->setValue(bodyExpoTimeRounded);
+    _baseExposureTimeSlider->setValue(baseMultiplier);
+
+    bodyParams.setLayerExposureTime(bodyExpoTime);
+    baseParams.setLayerExposureTime(baseExpoTime);
+    printJob.setAdvancedExposureControlsEnabled(true);
+
+    update( );
+}
+
+void PrintTab::connectBasicExpoTimeCallback(bool connect) {
+
+    if(connect) {
+        QObject::connect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::basicExposureTime_update   );
+        QObject::connect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::basicExposureTime_update   );
+    } else {
+        QObject::disconnect( _bodyExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::basicExposureTime_update   );
+        QObject::disconnect( _baseExposureTimeSlider, &ParamSlider::valueChanged,   this, &PrintTab::basicExposureTime_update   );
+    }
+}
+
+void PrintTab::connectAdvanExpoTimeCallback(bool connect) {
+
+    if(connect) {
+        QObject::connect( _advBodyExpoCorse, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::connect( _advBodyExpoFine, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::connect( _advBaseExpoCorse, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::connect( _advBaseExpoFine, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+    } else {
+        QObject::disconnect( _advBodyExpoCorse, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::disconnect( _advBodyExpoFine, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::disconnect( _advBaseExpoCorse, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+        QObject::disconnect( _advBaseExpoFine, &ParamSlider::valueChanged,   this, &PrintTab::advancedExposureTime_update   );
+    }
+}
+
+
 #if defined ENABLE_SPEED_SETTING
 void PrintTab::printSpeedSlider_valueChanged( int value ) {
-    _printJob->printSpeed = value;
+    printJob.printSpeed = value;
     _printSpeedValue->setText( QString( "%1 mm/min" ).arg( value ) );
 
     update( );
@@ -174,7 +329,7 @@ void PrintTab::printSpeedSlider_valueChanged( int value ) {
 
 void PrintTab::printButton_clicked( bool ) {
     debug( "+ PrintTab::printButton_clicked\n" );
-    exposureTime_update();
+    //exposureTime_update();
     emit printRequested( );
     emit uiStateChanged( TabIndex::Print, UiState::PrintStarted );
 
@@ -199,7 +354,7 @@ void PrintTab::raiseOrLowerButton_clicked( bool ) {
 
             QObject::connect( _shepherd, &Shepherd::action_moveAbsoluteComplete, this, &PrintTab::lowerBuildPlatform_moveAbsoluteComplete );
 
-            _shepherd->doMoveAbsolute(std::max(100, _printJob->getLayerThicknessAt(0)) / 1000.0,
+            _shepherd->doMoveAbsolute(std::max(100, printJob.getLayerThicknessAt(0)) / 1000.0,
                 PrinterDefaultHighSpeed);
             break;
     }
@@ -273,28 +428,19 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
     switch (_uiState) {
         case UiState::SelectCompleted:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
-
-            if(!_printJob->isTiled()) {
+            enableExpoTimeSliders(!printJob.isTiled());
+            if(!printJob.isTiled())
                 _expoDisabledTilingWarning->hide();
-            } else {
+            else
                 _expoDisabledTilingWarning->show();
-            }
-
-            _bodyExposureTimeSlider->setValue(_printJob->bodySlices.exposureTime);
-            _baseExposureTimeSlider->setValue(_printJob->baseSlices.exposureTime /
-                _printJob->bodySlices.exposureTime);
 
             break;
 
         case UiState::PrintJobReady:
-            _baseExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _bodyExposureTimeSlider->setEnabled(_printJob->hasBasicControlsEnabled());
-            _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
+            enableExpoTimeSliders(!printJob.isTiled());
+            syncFormWithPrintProfile();
 
-            if(!_printJob->isTiled()) {
+            if(!printJob.isTiled()) {
                 _expoDisabledTilingWarning->hide();
             } else {
                 _expoDisabledTilingWarning->show();
@@ -321,15 +467,16 @@ void PrintTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) 
 
 void PrintTab::changeExpoTimeSliders()
 {
-    bool enable = _printJob->hasBasicControlsEnabled();
+    bool enable = printJob.hasExposureControlsEnabled();
     _baseExposureTimeSlider->setEnabled(enable);
     _bodyExposureTimeSlider->setEnabled(enable);
-    _expoDisabledAdvancedWarning->setVisible(_printJob->hasAdvancedControlsEnabled());
 
     if(enable) {
-        this->_printJob->bodySlices.exposureTime = _bodyExposureTimeSlider->getValue();
-        this->_printJob->baseSlices.exposureTime = _baseExposureTimeSlider->getValue() *
-            _bodyExposureTimeSlider->getValue();
+        auto bodyParams = printJob.bodyLayerParameters();
+        auto baseParams = printJob.baseLayerParameters();
+        bodyParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue());
+        baseParams.setLayerExposureTime(_bodyExposureTimeSlider->getValue() *
+            _baseExposureTimeSlider->getValue());
     }
 }
 
@@ -366,4 +513,74 @@ void PrintTab::setPrinterAvailable( bool const value ) {
     debug( "+ PrintTab::setPrinterAvailable: PO? %s PA? %s PP? %s MR? %s\n", YesNoString( _isPrinterOnline ), YesNoString( _isPrinterAvailable ), YesNoString( _isPrinterPrepared ), YesNoString( _isModelRendered ) );
 
     _updateUiState( );
+}
+
+void PrintTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+
+    syncFormWithPrintProfile();
+}
+
+void PrintTab::syncFormWithPrintProfile() {
+    int powerLevelValue = printJob.baseLayerParameters().powerLevel();
+
+    _powerLevelSlider->setValue( powerLevelValue );
+
+    if(printJob.isTiled()) {
+        connectBasicExpoTimeCallback(false);
+        connectAdvanExpoTimeCallback(false);
+
+        _advancedExpoTimeGroup->setCollapsed(true);
+        _basicExpoTimeGroup->setCollapsed(true);
+    } else {
+        auto& bodyParams = printJob.bodyLayerParameters();
+        auto& baseParams = printJob.baseLayerParameters();
+
+        int bodyExpoTime = bodyParams.layerExposureTime();
+        int baseExpoTime = baseParams.layerExposureTime();
+
+        if(printJob.getAdvancedExposureControlsEnabled()) {
+            _advBodyExpoCorse->setValue(bodyExpoTime - (bodyExpoTime % 1000));
+            _advBodyExpoFine->setValue(bodyExpoTime % 1000);
+
+            _advBaseExpoCorse->setValue(baseExpoTime - (baseExpoTime % 1000));
+            _advBaseExpoFine->setValue(baseExpoTime % 1000);
+
+            _advancedExpoTimeGroup->setCollapsed(false);
+            _basicExpoTimeGroup->setCollapsed(true);
+
+
+            connectBasicExpoTimeCallback(false);
+            connectAdvanExpoTimeCallback(true);
+
+            advancedExposureTime_update();
+        } else {
+            _bodyExposureTimeSlider->setValue(bodyParams.layerExposureTime());
+            _baseExposureTimeSlider->setValue(baseParams.layerExposureTime() /
+                bodyParams.layerExposureTime());
+
+            _advancedExpoTimeGroup->setCollapsed(true);
+            _basicExpoTimeGroup->setCollapsed(false);
+
+            connectBasicExpoTimeCallback(true);
+            connectAdvanExpoTimeCallback(false);
+
+            basicExposureTime_update();
+        }
+    }
+}
+
+void PrintTab::enableExpoTimeSliders(bool enable) {
+    connectAdvanExpoTimeCallback(enable);
+    connectBasicExpoTimeCallback(enable);
+
+    _basicExpoTimeGroup->setEnabled(enable);
+    _advancedExpoTimeGroup->setEnabled(enable);
+
+    _baseExposureTimeSlider->setEnabled(enable);
+    _bodyExposureTimeSlider->setEnabled(enable);
+    _advBaseExpoFine->setEnabled(enable);
+    _advBodyExpoFine->setEnabled(enable);
+    _advBaseExpoCorse->setEnabled(enable);
+    _advBodyExpoCorse->setEnabled(enable);
 }

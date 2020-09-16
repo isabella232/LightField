@@ -19,7 +19,7 @@
 #include "usbmountmanager.h"
 #include "window.h"
 
-PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>( parent ) {
+PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabBase>(parent) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto font12pt    = ModifyFont( origFont, 14.0 );
@@ -55,7 +55,7 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layerThickness20Button->setText( "High Res (20 µm)" );
     _layerThickness20Button->setFont( font12pt );
     QObject::connect( _layerThickness20Button, &QPushButton::clicked, this, &PrepareTab::layerThickness20Button_clicked );
-#endif
+#endif // defined XDLP471020UM
 
     _sliceStatusLabel->setText( "Slicer:" );
 
@@ -106,6 +106,139 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _prepareButton->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     _prepareButton->setText( "Prepare..." );
     QObject::connect( _prepareButton, &QPushButton::clicked, this, &PrepareTab::prepareButton_clicked );
+
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustReset->setEnabled( true );
+    _adjustReset->setFixedSize( MainButtonSize.width(), SmallMainButtonSize.height() );
+    _adjustReset->setFont( font22pt );
+    _adjustReset->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustReset->setText( "Reset" );
+    QObject::connect( _adjustReset, &QPushButton::clicked, this, []() {
+        printJob.setPrintOffset(QPoint(0,0));
+    });
+
+    _adjustUp->setText("⇧");
+    _adjustUp->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustUp->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustUp->setFont( font22pt );
+    _adjustUp->setVisible(true);
+    QObject::connect( _adjustUp, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x(), current.y() + step));
+    });
+
+    _adjustLeft->setText("⇦");
+    _adjustLeft->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustLeft->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustLeft->setFont( font22pt );
+    _adjustLeft->setVisible(true);
+    QObject::connect( _adjustLeft, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x() - step, current.y()));
+    });
+    _adjustRight->setText("⇨");
+    _adjustRight->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustRight->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustRight->setFont( font22pt );
+    _adjustRight->setVisible(true);
+    QObject::connect( _adjustRight, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x() + step, current.y()));
+    });
+
+    _adjustDown ->setText("⇩");
+    _adjustDown->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustDown->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustDown->setFont( font22pt );
+    _adjustDown->setVisible(true);
+    QObject::connect( _adjustDown, &QPushButton::clicked, this, [this]() {
+        QPoint current = printJob.getPrintOffset();
+        int step = _adjustPrecision->getValue();
+
+        printJob.setPrintOffset(QPoint(current.x(), current.y() - step));
+    });
+
+    _adjustLightBulb->setText("💡");
+    _adjustLightBulb->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustLightBulb->setFixedSize( SmallMainButtonSize.height(), SmallMainButtonSize.height() );
+    _adjustLightBulb->setFont( font22pt );
+    _adjustLightBulb->setVisible(true);
+    _adjustLightBulb->setCheckable(true);
+
+    QObject::connect( _adjustLightBulb, &QPushButton::toggled, [this](bool toggled) {
+
+        if(toggled) {
+            _pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( activeProfileRef->baseLayerParameters().powerLevel() )) } );
+
+        } else {
+            _pngDisplayer->clear();
+            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( 0 )) } );
+        }
+
+    });
+
+    _closeAdjustProjection->setText("X");
+    _closeAdjustProjection->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    _closeAdjustProjection->setFixedSize(43,43);
+    _closeAdjustProjection->setFont(font22pt);
+    _closeAdjustProjection->setVisible(true);
+    QObject::connect(_closeAdjustProjection, &QPushButton::clicked, [this](bool checked) {
+
+        (void)checked;
+        _adjustProjection->toggle();
+
+    });
+
+    _adjustValue->setFont(boldFont);
+
+    _adjustGroup->setTitle("Digital Projection Shim");
+    _adjustGroup->setVisible(false);
+    _adjustGroup->setLayout(WrapWidgetsInVBox(
+        WrapWidgetsInHBox(nullptr, _closeAdjustProjection),
+        WrapWidgetsInHBox(nullptr, _adjustUp, nullptr),
+        WrapWidgetsInHBox(_adjustLeft, nullptr, _adjustValue, nullptr, _adjustRight),
+        WrapWidgetsInHBox(nullptr, _adjustDown, nullptr),
+        WrapWidgetsInHBox(nullptr, _adjustLightBulb),
+        _adjustPrecision,
+        _adjustReset
+    ));
+
+    _adjustGroup->setFixedWidth( MainButtonSize.width( ) );
+    _adjustGroup->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+    _adjustProjection->setEnabled(false);
+    _adjustProjection->setFixedSize( 43, 43 );
+    _adjustProjection->setFont( font22pt );
+    _adjustProjection->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+    _adjustProjection->setText( "✥" );
+    _adjustProjection->setCheckable(true);
+    QObject::connect( _adjustProjection, &QPushButton::toggled, [this](bool toggled) {
+
+        if(toggled) {
+            _optionsContainer->setVisible(false);
+            _prepareButton->setVisible(false);
+            _orderButton->setVisible(false);
+            _sliceButton->setVisible(false);
+            _adjustGroup->setVisible(true);
+        } else {
+            _optionsContainer->setVisible(true);
+            _prepareButton->setVisible(true);
+            _orderButton->setVisible(true);
+            _sliceButton->setVisible(true);
+            _adjustGroup->setVisible(false);
+            if(_adjustLightBulb->isChecked()) {
+                _adjustLightBulb->click();
+            }
+        }
+    });
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 
     //_copyToUSBButton->setEnabled( false );
     //_copyToUSBButton->setFixedSize( MainButtonSize );
@@ -181,10 +314,20 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
 
     _setNavigationButtonsEnabled( false );
 
+    QLabel* spacer { new QLabel };
+    spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    spacer->setFixedWidth(170);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout = WrapWidgetsInVBox(
         _currentLayerImage,
-        _navigationLayout
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr, _printOffsetLabel, nullptr, _adjustProjection)
     );
+#else
+    _currentLayerLayout = WrapWidgetsInVBox(
+        _currentLayerImage,
+        WrapWidgetsInHBox(spacer, _navigationLayout, nullptr)
+    );
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _currentLayerLayout->setAlignment( Qt::AlignTop | Qt::AlignHCenter );
 
     _currentLayerGroup->setTitle( "Current layer" );
@@ -197,8 +340,12 @@ PrepareTab::PrepareTab( QWidget* parent ): InitialShowEventMixin<PrepareTab, Tab
     _layout->addWidget( _orderButton, 2, 0, 1, 1 );
     _layout->addWidget( _sliceButton, 3, 0, 1, 1 );
     _layout->addWidget( _currentLayerGroup, 0, 1, 2, 1 );
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _layout->addWidget( _adjustGroup, 0, 0, 4, 1);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _layout->setRowStretch( 0, 4 );
     _layout->setRowStretch( 1, 1 );
+
 
     setLayout( _layout );
 }
@@ -222,27 +369,30 @@ void PrepareTab::_connectShepherd( ) {
 }
 
 void PrepareTab::_initialShowEvent( QShowEvent* event ) {
-    _currentLayerImage->setFixedSize( _currentLayerImage->width( ), _currentLayerImage->width( ) / AspectRatio16to10 + 0.5 );
-    update( );
+    _currentLayerImage->setFixedSize(_currentLayerImage->width( ),
+        static_cast<int>(_currentLayerImage->width( ) / AspectRatio16to10 + 0.5));
+    update();
 
-    event->accept( );
+    event->accept();
 }
 
-void PrepareTab::_connectUsbMountManager( ) {
+void PrepareTab::_connectUsbMountManager()
+{
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted,   this, &PrepareTab::usbMountManager_filesystemMounted   );
     QObject::connect( _usbMountManager, &UsbMountManager::filesystemUnmounted, this, &PrepareTab::usbMountManager_filesystemUnmounted );
 }
 
-bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody ) {
+bool PrepareTab::_checkPreSlicedFiles(const QString &directory, bool isBody)
+{
     debug( "+ PrepareTab::_checkPreSlicedFiles\n" );
 
     // check that the sliced SVG file is newer than the STL file
-    auto modelFile = QFileInfo { _printJob->modelFileName };
+    auto modelFile = QFileInfo {printJob.getModelFilename()};
     if ( !modelFile.exists( ) ) {
         debug( "  + Fail: model file does not exist\n" );
         return false;
     }
-    auto slicedSvgFile = QFileInfo { sliceInfo.sliceDirectory + Slash + SlicedSvgFileName };
+    auto slicedSvgFile = QFileInfo { directory + Slash + SlicedSvgFileName };
     if ( !slicedSvgFile.exists( ) ) {
         debug( "  + Fail: sliced SVG file does not exist\n" );
         return false;
@@ -251,13 +401,13 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
     // check that the sliced SVG file is newer than the STL file
     // disabled
     //auto slicedSvgFileLastModified = slicedSvgFile.lastModified( );
-    if ( !_printJob->modelFileName.isEmpty( ) ) {
-        auto modelFile = QFileInfo { _printJob->modelFileName };
+    if ( !printJob.getModelFilename().isEmpty( ) ) {
+        auto modelFile = QFileInfo { printJob.getModelFilename() };
         if ( !modelFile.exists( ) ) {
             debug( "  + Fail: model file does not exist\n" );
             return false;
         }
-        /*if ( !_printJob->modelFileName.isEmpty( ) && ( modelFile.lastModified( ) > slicedSvgFileLastModified ) ) {
+        /*if ( !printJob.getModelFilename().isEmpty( ) && ( modelFile.lastModified( ) > slicedSvgFileLastModified ) ) {
             debug( "  + Fail: model file is newer than sliced SVG file\n" );
             return false;
         }*/
@@ -268,7 +418,8 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
 
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath( sliceInfo.sliceDirectory);
+    manifestMgr->setPath(directory);
+
     QStringList errors;
     QStringList warnings;
 
@@ -282,10 +433,6 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         /* FALLTHROUGH */
 
     case ManifestParseResult::POSITIVE:
-        if(manifestMgr->tiled()){
-            debug( "+ PrepareTab::_checkPreSlicedFiles ManifestParseResult::POSITIVE\n" );
-            _printJob->estimatedVolume = manifestMgr->manifestVolume();
-        }
         break;
     case ManifestParseResult::FILE_CORRUPTED:
     case ManifestParseResult::FILE_NOT_EXIST: {
@@ -299,10 +446,12 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         }
     }
 
+    manifestMgr->setVolume(printJob.getEstimatedVolume());
+
     OrderManifestManager::Iterator iter = manifestMgr->iterator();
 
     while (iter.hasNext()) {
-        QFileInfo entry(sliceInfo.sliceDirectory % Slash % *iter);
+        QFileInfo entry(directory % Slash % *iter);
         ++iter;
 
         if (!entry.exists()) {
@@ -319,55 +468,53 @@ bool PrepareTab::_checkPreSlicedFiles( SliceInformation& sliceInfo, bool isBody 
         prevLayerNumber = layerNumber;
     }
 
-    if(isBody)
-        _printJob->setBodyManager( manifestMgr );
-    else
-        _printJob->setBaseManager( manifestMgr );
+    if(isBody) {
+        printJob.setBodyManager(manifestMgr);
+    } else {
+        printJob.setBaseManager(manifestMgr);   
+    }
 
-    debug("  + Success: %d layers\n", sliceInfo.layerCount);
+    debug("  + Success\n");
     return true;
 }
 
-void PrepareTab::_checkOneSliceDirectory( SliceDirectoryType type, SliceInformation& slices ) {
-    //debug(" PrepareTab::_checkOneSliceDirectory %s (%d)\n", type, slices.layerCount);
-    if ( type == SliceDirectoryType::SLICE_BASE && slices.layerCount == 0 ) {
-        debug( "  + base layer count is zero, skipping\n");
+bool PrepareTab::_checkOneSliceDirectory(const QString &directory, bool isBody)
+{
+    bool isPreSliced;
 
-        return;
+    QDir slicesDir { directory };
+    isPreSliced = _checkPreSlicedFiles(directory, isBody);
+    debug("  + pre-sliced layers are %sgood\n", isPreSliced ? "" : "NOT ");
+
+    if (!isPreSliced) {
+        slicesDir.removeRecursively();
     }
 
-    if ( QDir slicesDir { slices.sliceDirectory }; !slicesDir.exists( ) ) {
-        slices.isPreSliced = false;
-        debug( "  + no pre-sliced %s layers\n", type == SliceDirectoryType::SLICE_BASE ? "base" : "body" );
-    } else {
-        slices.isPreSliced = _checkPreSlicedFiles( slices, type == SliceDirectoryType::SLICE_BODY );
-        debug( "  + pre-sliced layers are %sgood\n", slices.isPreSliced ? "" : "NOT " );
-
-        if ( !slices.isPreSliced ) {
-            slicesDir.removeRecursively( );
-        }
-    }
+    return isPreSliced;
 }
 
-bool PrepareTab::_checkSliceDirectories( )
+bool PrepareTab::_checkSliceDirectories()
 {
-    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % _printJob->modelHash };
+    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % printJob.getModelHash() };
+    QString baseSliceDirectory;
+    QString bodySliceDirectory;
+    bool preSliced = true;
 
-    if(_printJob->directoryMode) {
+    if(printJob.getDirectoryMode()) {
         debug("+ PrepareTab::_checkSliceDirectories: directory mode, nothing to do\n");
         emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
         return true;
     }
 
-    if(_printJob->hasBaseLayers()) {
-        _printJob->baseSlices.sliceDirectory = QString("%1-%2")
-            .arg( sliceDirectoryBase)
-            .arg(_printJob->baseSlices.layerThickness);
+    if(printJob.hasBaseLayers()) {
+        baseSliceDirectory = QString("%1-%2")
+            .arg(sliceDirectoryBase)
+            .arg(printJob.getSelectedBaseLayerThickness());
     }
 
-    _printJob->bodySlices.sliceDirectory = QString("%1-%2")
+    bodySliceDirectory = QString("%1-%2")
         .arg(sliceDirectoryBase)
-        .arg(_printJob->bodySlices.layerThickness);
+        .arg(printJob.getSelectedBodyLayerThickness());
 
     debug(
         "+ PrepareTab::_checkSliceDirectories:"
@@ -375,17 +522,17 @@ bool PrepareTab::_checkSliceDirectories( )
         "  + base slices directory: '%s'\n"
         "  + body slices directory: '%s'\n"
         "",
-        _printJob->modelFileName.toUtf8().data(),
-        _printJob->baseSlices.sliceDirectory.toUtf8().data(),
-        _printJob->bodySlices.sliceDirectory.toUtf8().data()
+        printJob.getModelFilename().toUtf8().data(),
+        baseSliceDirectory.toUtf8().data(),
+        bodySliceDirectory.toUtf8().data()
     );
 
-    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BASE, _printJob->baseSlices );
-    _checkOneSliceDirectory( SliceDirectoryType::SLICE_BODY, _printJob->bodySlices );
+    if(printJob.hasBaseLayers())
+        preSliced &= _checkOneSliceDirectory(baseSliceDirectory, false);
+    preSliced &= _checkOneSliceDirectory(bodySliceDirectory, true);
 
-    auto preSliced = _printJob->baseSlices.isPreSliced && _printJob->bodySlices.isPreSliced;
-    _setNavigationButtonsEnabled( preSliced );
-    _setSliceControlsEnabled( true );
+    _setNavigationButtonsEnabled(preSliced);
+    _setSliceControlsEnabled(true);
 
     if (preSliced) {
         _sliceButton->setText(_layerThicknessCustomButton->isChecked() ? "Custom reslice..." : "Reslice...");
@@ -411,38 +558,44 @@ bool PrepareTab::_checkSliceDirectories( )
 
 void PrepareTab::layerThickness100Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness100Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 100;
-    _printJob->bodySlices.layerThickness = 100;
+    printJob.setBaseLayerCount(2);
+    printJob.setSelectedBaseLayerThickness(100);
+    printJob.setSelectedBodyLayerThickness(100);
+
     _checkSliceDirectories();
 }
 
 void PrepareTab::layerThickness50Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness50Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 50;
-    _printJob->bodySlices.layerThickness = 50;
+    printJob.setBaseLayerCount(2);
+    printJob.setSelectedBaseLayerThickness(50);
+    printJob.setSelectedBodyLayerThickness(50);
+
     _checkSliceDirectories();
 }
 
 #if defined EXPERIMENTAL
 void PrepareTab::layerThickness20Button_clicked( bool ) {
     debug( "+ PrepareTab::layerThickness20Button_clicked\n" );
-    _printJob->baseSlices.layerCount = 2;
-    _printJob->baseSlices.layerThickness = 20;
-    _printJob->bodySlices.layerThickness = 20;
+    printJob.setBaseLayerCount(2);
+    printJob.setSelectedBaseLayerThickness(20);
+    printJob.setSelectedBodyLayerThickness(20);
+
     _checkSliceDirectories();
 }
 #endif // defined EXPERIMENTAL
 
 void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
-    ThicknessWindow *dialog = new ThicknessWindow(_printJob, _initAfterSelect, this);
+    ThicknessWindow *dialog = new ThicknessWindow(_initAfterSelect, this);
     switch (dialog->exec()) {
     case QDialog::Rejected:
         _layerThicknessCustomButton->setChecked(false);
         _layerThickness100Button->setChecked(true);
     }
 
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
     _initAfterSelect = false;
     _checkSliceDirectories();
 }
@@ -450,8 +603,8 @@ void PrepareTab::layerThicknessCustomButton_clicked( bool ) {
 void PrepareTab::_setNavigationButtonsEnabled( bool const enabled ) {
     _navigateFirst   ->setEnabled( enabled && ( _visibleLayer > 0 ) );
     _navigatePrevious->setEnabled( enabled && ( _visibleLayer > 0 ) );
-    _navigateNext    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->totalLayerCount() ) ) );
-    _navigateLast    ->setEnabled( enabled && ( _printJob && ( _visibleLayer + 1 < _printJob->totalLayerCount() ) ) );
+    _navigateNext    ->setEnabled( enabled && ( _visibleLayer + 1 < printJob.totalLayerCount() ) );
+    _navigateLast    ->setEnabled( enabled && ( _visibleLayer + 1 < printJob.totalLayerCount() ) );
 
     update( );
 }
@@ -460,22 +613,33 @@ void PrepareTab::_showLayerImage(int const layer)
 {
     _navigateCurrentLabel->setText(QString { "%1/%2" }
         .arg(layer + 1)
-        .arg(_printJob->totalLayerCount()));
+        .arg(printJob.totalLayerCount()));
 
-    _showLayerImage(_printJob->getLayerPath(layer));
+    _showLayerImage(printJob.getLayerPath(layer));
     update();
 }
 
 void PrepareTab::_showLayerImage(const QString &path)
 {
     debug("+ PrepareTab::_showLayerImage by path %s\n", path.toUtf8().data());
-    QPixmap pixmap { path };
+    QPixmap pixmap_orig { path };
+    QTransform rotate_transform;
+    QPixmap pixmap;
+
+    rotate_transform.rotate(180);
+    pixmap = pixmap_orig.transformed(rotate_transform);
 
     if ((pixmap.width() > _currentLayerImage->width()) ||
         (pixmap.height() > _currentLayerImage->height())) {
         pixmap = pixmap.scaled(_currentLayerImage->size(),
             Qt::KeepAspectRatio, Qt::SmoothTransformation );
     }
+
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    if (_adjustLightBulb->isChecked()) {
+        _pngDisplayer->loadImageFile(path);
+    }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 
     _currentLayerImage->setPixmap(pixmap);
     update();
@@ -535,7 +699,7 @@ void PrepareTab::navigatePrevious_clicked( bool ) {
 }
 
 void PrepareTab::navigateNext_clicked( bool ) {
-    if ( _visibleLayer + 1 < _printJob->totalLayerCount() ) {
+    if ( _visibleLayer + 1 < printJob.totalLayerCount() ) {
         ++_visibleLayer;
     }
     _setNavigationButtonsEnabled( true );
@@ -545,7 +709,7 @@ void PrepareTab::navigateNext_clicked( bool ) {
 }
 
 void PrepareTab::navigateLast_clicked( bool ) {
-    _visibleLayer = _printJob->totalLayerCount() - 1;
+    _visibleLayer = printJob.totalLayerCount() - 1;
     _setNavigationButtonsEnabled( true );
     _showLayerImage( _visibleLayer );
 
@@ -555,7 +719,7 @@ void PrepareTab::navigateLast_clicked( bool ) {
 void PrepareTab::orderButton_clicked( bool ) {
     QSharedPointer<OrderManifestManager> manifestMgr { new OrderManifestManager() };
 
-    manifestMgr->setPath(_printJob->directoryPath);
+    manifestMgr->setPath(printJob.getDirectoryPath());
 
     SlicesOrderPopup popup { manifestMgr };
     popup.exec();
@@ -563,19 +727,32 @@ void PrepareTab::orderButton_clicked( bool ) {
     emit uiStateChanged(TabIndex::File, UiState::SelectCompleted);
 }
 
-void PrepareTab::sliceButton_clicked( bool ) {
-    debug( "+ PrepareTab::sliceButton_clicked\n" );
-    debug("  + number of base layers: %d\n", _printJob->baseSlices.layerCount);
-    debug("  + base layer thickness: %d\n", _printJob->baseLayerThickness());
-    debug("  + body layer thickness: %d\n", _printJob->bodyLayerThickness());
+void PrepareTab::sliceButton_clicked(bool)
+{
+    debug("+ PrepareTab::sliceButton_clicked\n");
+    debug("  + number of base layers: %d\n", printJob.getBaseLayerCount());
+    debug("  + base layer thickness: %d\n", printJob.getSelectedBaseLayerThickness());
+    debug("  + body layer thickness: %d\n", printJob.getSelectedBodyLayerThickness());
 
-    _sliceStatus->setText( "starting base layers" );
-    _imageGeneratorStatus->setText( "waiting" );
+    QString sliceDirectoryBase { JobWorkingDirectoryPath % Slash % printJob.getModelHash() };
+    QString baseSliceDirectory = QString("%1-%2")
+        .arg(sliceDirectoryBase)
+        .arg(printJob.getSelectedBaseLayerThickness());
+    QString bodySliceDirectory = QString("%1-%2")
+        .arg(sliceDirectoryBase)
+        .arg(printJob.getSelectedBodyLayerThickness());
+
+    _sliceStatus->setText("starting base layers");
+    _imageGeneratorStatus->setText( "waiting");
     _setNavigationButtonsEnabled(false);
 
-    TimingLogger::startTiming( TimingId::SlicingSvg, GetFileBaseName( _printJob->modelFileName ) );
+    TimingLogger::startTiming(TimingId::SlicingSvg, GetFileBaseName(printJob.getModelFilename()));
 
-    SlicerTask *task { new SlicerTask(_printJob, _reslice) };
+    bool basePresliced = _checkOneSliceDirectory(baseSliceDirectory, false);
+    bool bodyPresliced = _checkOneSliceDirectory(bodySliceDirectory, true);
+
+    SlicerTask *task { new SlicerTask(baseSliceDirectory, !basePresliced || _reslice,
+        bodySliceDirectory, !bodyPresliced || _reslice) };
     QObject::connect(task, &SlicerTask::sliceStatus, this, &PrepareTab::slicingStatusUpdate);
     QObject::connect(task, &SlicerTask::renderStatus, this, &PrepareTab::renderingStatusUpdate);
     QObject::connect(task, &SlicerTask::layerCount, this, &PrepareTab::layerCountUpdate);
@@ -583,13 +760,14 @@ void PrepareTab::sliceButton_clicked( bool ) {
     QObject::connect(task, &SlicerTask::done, this, &PrepareTab::slicingDone);
     _threadPool.start(task);
 
-    _setSliceControlsEnabled( false );
-    emit uiStateChanged( TabIndex::Prepare, UiState::SliceStarted );
+    _setSliceControlsEnabled(false);
+    emit uiStateChanged(TabIndex::Prepare, UiState::SliceStarted);
 
-    update( );
+    update();
 }
 
-void PrepareTab::hasher_resultReady( QString const hash ) {
+void PrepareTab::hasher_resultReady(QString const hash)
+{
     debug(
         "+ PrepareTab::hasher_resultReady:\n"
         "  + result hash:           '%s'\n"
@@ -597,7 +775,8 @@ void PrepareTab::hasher_resultReady( QString const hash ) {
         hash.toUtf8( ).data( )
     );
 
-    _printJob->modelHash = hash.isEmpty( ) ? QString( "%1-%2" ).arg( time( nullptr ) ).arg( getpid( ) ) : hash;
+    printJob.setModelHash(
+        hash.isEmpty() ? QString("%1-%2").arg(time(nullptr)).arg(getpid()) : hash);
 
     _sliceStatus->setText("Idle");
     _hasher = nullptr;
@@ -657,7 +836,7 @@ void PrepareTab::_loadDirectoryManifest()
     QStringList warnings;
     QString warningsStr;
 
-    manifestMgr->setPath(_printJob->directoryPath);
+    manifestMgr->setPath(printJob.getDirectoryPath());
 
     switch(manifestMgr->parse(&errors, &warnings))
     {
@@ -667,10 +846,6 @@ void PrepareTab::_loadDirectoryManifest()
         /* FALLTHROUGH */
 
     case ManifestParseResult::POSITIVE:
-        if (manifestMgr->tiled()) {
-            // in case of tiled design volume comes from manifest file instead of model calculation
-            _printJob->estimatedVolume = manifestMgr->manifestVolume();
-        }
         break;
 
     case ManifestParseResult::FILE_CORRUPTED:
@@ -680,9 +855,9 @@ void PrepareTab::_loadDirectoryManifest()
 
             manifestMgr->setTiled(false);
             manifestMgr->requireAreaCalculation();
-            manifestMgr->setBaseLayerCount( 2 );
-            manifestMgr->setBodyLayerThickness( 100 );
-            manifestMgr->setBaseLayerThickness( 100 );
+            printJob.setBaseLayerCount(2);
+            printJob.setSelectedBodyLayerThickness(DefaultBodyLayerThickness);
+            printJob.setSelectedBaseLayerThickness(DefaultBaseLayerThickness);
 
             SlicesOrderPopup slicesOrderPopup { manifestMgr };
             slicesOrderPopup.exec();
@@ -690,25 +865,12 @@ void PrepareTab::_loadDirectoryManifest()
         }
     }
 
-    _printJob->setBaseManager(manifestMgr);
-    _printJob->bodySlices.isPreSliced = true;
-    _printJob->bodySlices.sliceDirectory = manifestMgr->path();
-
-    if (manifestMgr->tiled()) {
-        _printJob->baseSlices.layerCount = manifestMgr->baseLayerCount();
-        _printJob->baseSlices.isPreSliced = true;
-        _printJob->baseSlices.layerThickness = -1;
-        _printJob->baseSlices.sliceDirectory = manifestMgr->path();
-    }
-
-    _printJob->setBodyManager(manifestMgr);
-    if (manifestMgr->tiled())
-        _printJob->bodySlices.layerCount = manifestMgr->getSize() - manifestMgr->baseLayerCount();
+    printJob.setBodyManager(manifestMgr);
 
     _orderButton->setEnabled(!manifestMgr->tiled());
     _setSliceControlsEnabled(false);
 
-    layerCountUpdate(_printJob->totalLayerCount());
+    layerCountUpdate(printJob.totalLayerCount());
 
     _restartPreview();
     emit uiStateChanged(TabIndex::Prepare, UiState::PrintJobReady);
@@ -719,8 +881,11 @@ void PrepareTab::_restartPreview()
     _visibleLayer = 0;
     _showLayerImage(_visibleLayer);
 
-    if (_printJob->totalLayerCount())
+    if (printJob.totalLayerCount())
         _setNavigationButtonsEnabled(true);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }
 
 void PrepareTab::_showWarning(const QString& content)
@@ -823,9 +988,9 @@ void PrepareTab::_updateSliceControls() {
     _layerThickness20Button->setChecked(false);
 #endif
 
-    if (_printJob->baseSlices.layerThickness == _printJob->bodySlices.layerThickness &&
-        _printJob->baseSlices.layerCount == 2) {
-        switch (_printJob->baseSlices.layerThickness) {
+    if (printJob.getSelectedBaseLayerThickness() == printJob.getSelectedBodyLayerThickness() &&
+        printJob.getBaseLayerCount() == 2) {
+        switch (printJob.getSelectedBaseLayerThickness()) {
         case 100:
             _layerThickness100Button->setChecked(true);
             return;
@@ -842,7 +1007,7 @@ void PrepareTab::_updateSliceControls() {
         }
     }
 
-    _layerThicknessCustomButton->setChecked(true);
+    //_layerThicknessCustomButton->setChecked(true);
 }
 
 void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state ) {
@@ -852,9 +1017,14 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
     switch (_uiState) {
     case UiState::SelectCompleted:
 
-        if( !_printJob->directoryMode ) {
-            _setSliceControlsEnabled(false);
+        if (!printJob.getDirectoryMode()) {
+            _layerThickness100Button->click();
 
+            printJob.setBaseLayerCount(printJob.getBaseLayerCount());
+            printJob.setSelectedBaseLayerThickness(printJob.baseLayerParameters().layerThickness());
+            printJob.setSelectedBodyLayerThickness(printJob.bodyLayerParameters().layerThickness());
+
+            _setSliceControlsEnabled(false);
             _sliceStatus->setText("idle");
             _imageGeneratorStatus->setText("idle");
             _currentLayerImage->clear();
@@ -867,7 +1037,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
 
             _hasher = new Hasher;
             QObject::connect(_hasher, &Hasher::resultReady, this, &PrepareTab::hasher_resultReady, Qt::QueuedConnection);
-            _hasher->hash(_printJob->modelFileName, QCryptographicHash::Md5);
+            _hasher->hash(printJob.getModelFilename(), QCryptographicHash::Md5);
 
         } else {
             _setSliceControlsEnabled(false);
@@ -881,7 +1051,7 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         break;
 
     case UiState::SliceCompleted:
-        if ( !_printJob->directoryMode )
+        if (!printJob.getDirectoryMode())
             _setSliceControlsEnabled(true);
         break;
 
@@ -890,13 +1060,22 @@ void PrepareTab::tab_uiStateChanged( TabIndex const sender, UiState const state 
         setPrinterAvailable(false);
         _orderButton->setEnabled(false);
         emit printerAvailabilityChanged(false);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+        if(_adjustProjection->isChecked()) {
+            _adjustProjection->click();
+        }
+        _adjustProjection->setEnabled(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     case UiState::PrintCompleted:
-        _setSliceControlsEnabled(!_printJob->directoryMode && !_printJob->isTiled());
-        _orderButton->setEnabled( _printJob->directoryMode );
+        _setSliceControlsEnabled(!printJob.getDirectoryMode() && !printJob.isTiled());
+        _orderButton->setEnabled(printJob.getDirectoryMode());
         setPrinterAvailable(true);
         emit printerAvailabilityChanged(true);
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+        _adjustProjection->setEnabled(true);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
         break;
 
     default:
@@ -947,36 +1126,6 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     _updatePrepareButtonState( );
 }
 
-void PrepareTab::loadPrintProfile(QSharedPointer<PrintProfile> profile) {
-    _printJob->baseSlices.layerCount = profile->baseLayerCount();
-    _printJob->baseSlices.layerThickness = profile->baseLayerParameters().layerThickness();
-    _printJob->bodySlices.layerThickness = profile->bodyLayerParameters().layerThickness();
-    _updateSliceControls();
-}
-
-//void PrepareTab::copyToUSB_clicked( bool ) {
-//    debug( "+ PrepareTab::copyToUSB_clicked\n" );
-//
-//    QDir jobDir   { _printJob->jobWorkingDirectory };
-//    QDir mediaDir { _usbPath };
-//    mediaDir.mkdir( jobDir.dirName( ) );
-//
-//    QDirIterator it { _printJob->jobWorkingDirectory };
-//    while ( it.hasNext( ) ) {
-//        QString   fileName { it.next( ) };
-//        QFileInfo fileInfo { fileName   };
-//
-//        QString dest { _usbPath % Slash % jobDir.dirName( ) % Slash % fileInfo.fileName( ) };
-//
-//        debug( "  + copying %s\n", dest.toUtf8( ).data( ) );
-//        if ( !QFile::copy( fileName, dest ) ) {
-//            // TODO
-//        }
-//    }
-//
-//    update( );
-//}
-
 void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
     debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
 
@@ -993,10 +1142,6 @@ void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) 
 
     _usbPath = mountPoint;
 
-    //if ( !_directoryMode && _checkPreSlicedFiles( ) ) {
-    //    _copyToUSBButton->setEnabled( true );
-    //}
-
     update( );
 }
 
@@ -1010,7 +1155,48 @@ void PrepareTab::usbMountManager_filesystemUnmounted( QString const& mountPoint 
 
     _usbPath.clear( );
 
-    //_copyToUSBButton->setEnabled( false );
-
     update( );
+}
+
+void PrepareTab::printJobChanged() {
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    connect(&printJob, &PrintJob::printOffsetChanged, this, [this](QPoint offset) {
+        if(offset.x() != 0 || offset.y() != 0) {
+            _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
+            _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
+        } else {
+            _printOffsetLabel->setText(QString(""));
+            _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
+        }
+    });
+
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
+
+    _adjustProjection->setEnabled(false);
+    _adjustGroup->setVisible(false);
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+}
+void PrepareTab::setPngDisplayer( PngDisplayer* pngDisplayer ) {
+    _pngDisplayer = pngDisplayer;
+}
+
+void PrepareTab::activeProfileChanged(QSharedPointer<PrintProfile> newProfile) {
+    (void)newProfile;
+#if defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
+    QPoint offset = printJob.getPrintOffset();
+
+    if(offset.x() != 0 || offset.y() != 0) {
+        _printOffsetLabel->setText(QString("shim (%1, %2)").arg(offset.x()).arg(offset.y()));
+        _adjustValue->setText(QString("%1, %2").arg(offset.x()).arg(offset.y()));
+    } else {
+        _printOffsetLabel->setText(QString(""));
+        _adjustValue->setText(QString("0, 0").arg(offset.x()).arg(offset.y()));
+    }
+
+    if(_adjustProjection->isChecked()) {
+        _adjustProjection->click();
+    }
+#endif // defined XDLP471020UM || (defined DLP4710 && defined EXPERIMENTAL)
 }

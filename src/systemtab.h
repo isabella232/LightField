@@ -17,7 +17,7 @@ class SystemTab: public InitialShowEventMixin<SystemTab, TabBase> {
 
 public:
 
-    SystemTab( QWidget* parent = nullptr );
+    SystemTab(QWidget* parent = nullptr);
     virtual ~SystemTab( ) override;
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::System; }
@@ -68,6 +68,7 @@ public slots:
     void setUpgradeManager( UpgradeManager* upgradeManager );
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
 protected slots:
     ;

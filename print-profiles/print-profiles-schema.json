@@ -52,8 +52,7 @@
  52           "pumpDownPause",
  53           "noPumpUpVelocity",
  54           "pumpEveryNthLayer",
- 55           "layerThickness",
- 56           "layerExposureTime",
+ 56           "basicLayerExposureTime",
  57           "powerLevel"
  58         ],
  59         "properties": {
@@ -111,19 +110,19 @@
 111               1
 112             ]
 113           },
-114           "layerThickness": {
-115             "$id": "#/items/properties/baseLayersPumpingParameters/properties/layerThickness",
-116             "type": "integer",
-117             "title": "The Layerthickness Schema",
-118             "default": 0,
-119             "examples": [
-120               100
-121             ]
-122           },
-123           "layerExposureTime": {
-124             "$id": "#/items/properties/baseLayersPumpingParameters/properties/layerExposureTime",
+123           "basicLayerExposureTime": {
+124             "$id": "#/items/properties/baseLayersPumpingParameters/properties/basicLayerExposureTime",
 125             "type": "integer",
-126             "title": "The Layerexposuretime Schema",
+126             "title": "The Basiclayerexposuretime Schema",
+127             "default": 0,
+128             "examples": [
+129               1000
+130             ]
+131           },
+123           "advancedLayerExposureTime": {
+124             "$id": "#/items/properties/baseLayersPumpingParameters/properties/advancedLayerExposureTime",
+125             "type": "integer",
+126             "title": "The Advancedlayerexposuretime Schema",
 127             "default": 0,
 128             "examples": [
 129               1000
@@ -210,24 +209,24 @@
 210               1
 211             ]
 212           },
-213           "layerThickness": {
-214             "$id": "#/items/properties/bodyLayersPumpingParameters/properties/layerThickness",
-215             "type": "integer",
-216             "title": "The Layerthickness Schema",
-217             "default": 0,
-218             "examples": [
-219               100
-220             ]
-221           },
-222           "layerExposureTime": {
-223             "$id": "#/items/properties/bodyLayersPumpingParameters/properties/layerExposureTime",
-224             "type": "integer",
-225             "title": "The Layerexposuretime Schema",
-226             "default": 0,
-227             "examples": [
-228               1000
-229             ]
-230           },
+123           "basicLayerExposureTime": {
+124             "$id": "#/items/properties/baseLayersPumpingParameters/properties/basicLayerExposureTime",
+125             "type": "integer",
+126             "title": "The Basiclayerexposuretime Schema",
+127             "default": 0,
+128             "examples": [
+129               1000
+130             ]
+131           },
+123           "advancedLayerExposureTime": {
+124             "$id": "#/items/properties/baseLayersPumpingParameters/properties/advancedLayerExposureTime",
+125             "type": "integer",
+126             "title": "The Advancedlayerexposuretime Schema",
+127             "default": 0,
+128             "examples": [
+129               1000
+130             ]
+131           },
 231           "powerLevel": {
 232             "$id": "#/items/properties/bodyLayersPumpingParameters/properties/powerLevel",
 233             "type": "number",

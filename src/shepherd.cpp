@@ -408,7 +408,7 @@ void Shepherd::launchShepherd( ) {
         _process = nullptr;
     }
 
-    _process = new QProcess( parent( ) );
+    _process = new ProcessWrapper( parent( ) );
     QObject::connect( _process, &QProcess::errorOccurred,                                        this, &Shepherd::process_errorOccurred           );
     QObject::connect( _process, &QProcess::started,                                              this, &Shepherd::process_started                 );
     QObject::connect( _process, &QProcess::readyReadStandardError,                               this, &Shepherd::process_readyReadStandardError  );

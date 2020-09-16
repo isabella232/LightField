@@ -2,13 +2,13 @@
 #include "constants.h"
 #include "tilingmanager.h"
 #include "utils.h"
+#include "printjob.h"
 
-TilingManager::TilingManager( PrintJob* printJob )
+TilingManager::TilingManager()
 {
-    _printJob = printJob;
 }
 
-void TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
+OrderManifestManager* TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
     double bodyExpoTime, double bodyStep, int space, int count)
 {
     debug( "+ TilingManager::processImages\n");
@@ -31,7 +31,7 @@ void TilingManager::processImages(int width, int height, double baseExpoTime, do
         .arg(_bodyStep)
         .arg(_count)
         .arg(_space)
-        .arg(_printJob->modelHash);
+        .arg(printJob.getModelHash());
 
     _path = JobWorkingDirectoryPath % Slash % dirName;
 
@@ -42,21 +42,24 @@ void TilingManager::processImages(int width, int height, double baseExpoTime, do
 
     QFile::link(_path, StlModelLibraryPath % Slash % dirName);
 
-    OrderManifestManager manifestMgr;
-    manifestMgr.setFileList(_fileNameList);
-    manifestMgr.setExpoTimeList(_expoTimeList);
-    manifestMgr.setLayerThicknessList(_layerThicknessList);
-    manifestMgr.setBaseLayerThickness(_printJob->baseSlices.layerThickness);
-    manifestMgr.setBodyLayerThickness(_printJob->bodySlices.layerThickness);
-    manifestMgr.setBaseLayerCount(_printJob->baseSlices.layerCount);
-    manifestMgr.setPath(JobWorkingDirectoryPath % Slash % dirName);
+    OrderManifestManager* manifestMgr = new OrderManifestManager ();
 
-    manifestMgr.setTiled(true);
-    manifestMgr.setTilingSpace(_space);
-    manifestMgr.setTilingCount(_count);
-    manifestMgr.setVolume(_count * _printJob->estimatedVolume);
+    manifestMgr->setFileList(_fileNameList);
+    manifestMgr->setExpoTimeList(_expoTimeList);
+    manifestMgr->setLayerThicknessList(_layerThicknessList);
+    manifestMgr->setBaseLayerThickness(printJob.getSelectedBaseLayerThickness());
+    manifestMgr->setBodyLayerThickness(printJob.getSelectedBodyLayerThickness());
+    manifestMgr->setBaseLayerCount(printJob.getBaseLayerCount());
+    manifestMgr->setPath(JobWorkingDirectoryPath % Slash % dirName);
 
-    manifestMgr.save();
+    manifestMgr->setTiled(true);
+    manifestMgr->setTilingSpace(_space);
+    manifestMgr->setTilingCount(_count);
+    manifestMgr->setVolume(_count * printJob.getEstimatedVolume());
+
+    manifestMgr->save();
+
+    return manifestMgr;
 }
 
 void TilingManager::tileImages()
@@ -65,7 +68,7 @@ void TilingManager::tileImages()
 
     QPixmap pixmap;
 
-    pixmap.load(_printJob->getLayerDirectory(0) % Slash % _printJob->getLayerFileName(0));
+    pixmap.load(printJob.getLayerDirectory(0) % Slash % printJob.getLayerFileName(0));
 
     //For now only 1 row
     //_hCount =  floor( _height / (pixmap.height() + pixmap.height() * _space ) );
@@ -91,10 +94,10 @@ void TilingManager::tileImages()
 
 
     /* iterating over slices in manifest */
-    int total = _printJob->totalLayerCount();
+    int total = printJob.totalLayerCount();
 
     for (int i = 0; i < total; i++) {
-        QFileInfo entry ( _printJob->getLayerDirectory(i) % Slash % _printJob->getLayerFileName(i) );
+        QFileInfo entry ( printJob.getLayerDirectory(i) % Slash % printJob.getLayerFileName(i) );
 
         /* render tiles based on slice */
         emit statusUpdate(QString("Tiling layer %1").arg(i));
@@ -140,12 +143,12 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
         file.open(QIODevice::WriteOnly);
         pixmap.save( &file, "PNG" );
 
-        if( sequence < _printJob->baseSlices.layerCount ) {
+        if( sequence < printJob.getBaseLayerCount() ) {
             _expoTimeList.push_back(e == _wCount ? _baseExpoTime : _baseStep );
-            _layerThicknessList.push_back(e == 1 ? _printJob->baseSlices.layerThickness : 0);
+            _layerThicknessList.push_back(e == 1 ? printJob.getSelectedBaseLayerThickness() : 0);
         } else {
             _expoTimeList.push_back(e == _wCount ? _bodyExpoTime : _bodyStep );
-            _layerThicknessList.push_back(e == 1 ? _printJob->bodySlices.layerThickness : 0);
+            _layerThicknessList.push_back(e == 1 ? printJob.getSelectedBodyLayerThickness() : 0);
         }
 
         _fileNameList.push_back( GetFileBaseName( filename ) );
@@ -155,6 +158,7 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
 }
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
+    (void)j;
 
     int x = _tileSlots[i];
     // For now only 1 row

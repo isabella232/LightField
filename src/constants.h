@@ -51,6 +51,9 @@ QChar              extern const  FA_FastForward;
 int                extern const  KeyboardRepeatDelayStart;
 int                extern const  KeyboardRepeatDelay;
 
+int                extern const  DefaultBodyLayerThickness;
+int                extern const  DefaultBaseLayerThickness;
+
 int    constexpr          const  DebugLogPathCount          =    6;
 char               extern const* DebugLogPaths[DebugLogPathCount];
 

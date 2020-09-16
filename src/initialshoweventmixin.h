@@ -7,7 +7,7 @@ class InitialShowEventMixin: public Base {
 public:
 
     template<typename ParentType>
-    InitialShowEventMixin( ParentType* parent ): Base( parent ) {
+    InitialShowEventMixin(ParentType* parent): Base(parent) {
         _initialShowEventFunc = std::bind( &InitialShowEventMixin<T, Base>::_initialShowEvent, this, std::placeholders::_1 );
     }
 

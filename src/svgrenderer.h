@@ -19,7 +19,6 @@ public:
     virtual ~SvgRenderer() = default;
 
     void render(const QString& svgFileName, const QString& outputDirectory,
-        QSharedPointer<PrintJob> printJob,
         QSharedPointer<OrderManifestManager> orderManager);
 
 protected:

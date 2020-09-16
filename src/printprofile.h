@@ -22,11 +22,12 @@ public:
         _name = profile._name;
         _buildPlatformOffset = profile._buildPlatformOffset;
         _disregardFirstLayerHeight = profile._disregardFirstLayerHeight;
-        _baseLayerCount = profile._baseLayerCount;
         _buildPlatformOffset = profile._buildPlatformOffset;
-        _layerSettingsEnabled = profile._layerSettingsEnabled;
+        _advancedExposureControlsEnabled = profile._advancedExposureControlsEnabled;
         _baseLayerParameters = profile._baseLayerParameters;
         _bodyLayerParameters = profile._bodyLayerParameters;
+        digitalOffsetX = profile.digitalOffsetX;
+        digitalOffsetY = profile.digitalOffsetY;
     }
 
     virtual ~PrintProfile() override
@@ -40,7 +41,6 @@ public:
         debug("PrintProfile %s: \n", _name.toUtf8( ).data( ));
         debug("#############################################\n");
         debug("     objectAddress:                  %d\n", this);
-        debug("     baseLayerCount                  %d\n", _baseLayerCount);
         //debug("     baseLayersParametersEnabled        %d\n", _baseLayersParametersEnabled);
         debug("     baseLayersParameters:    \n");
         debug("     objectAddress:                  %d\n", &_baseLayerParameters);
@@ -49,10 +49,8 @@ public:
         debug("         pumpUpPause:                %d\n", _baseLayerParameters.pumpUpPause());
         debug("         pumpDownVelocity:           %d\n", _baseLayerParameters.pumpDownVelocity_Effective());
         debug("         pumpDownPause:              %d\n", _baseLayerParameters.pumpDownPause());
-        debug("         layerThickness:             %d\n", _baseLayerParameters.layerThickness());
         debug("         pumpUpDistance:             %d\n", _baseLayerParameters.pumpUpDistance());
         debug("         noPumpUpVelocity:           %d\n", _baseLayerParameters.noPumpUpVelocity());
-        debug("         layerExposureTime:          %d\n", _baseLayerParameters.layerExposureTime());
         debug("         pumpEveryNthLayer:          %d\n", _baseLayerParameters.pumpEveryNthLayer());
         /*debug("         pumpDownTime_Effective:     %d\n", _baseLayersPumpingParameters.pumpDownTime_Effective());
         debug("         pumpUpVelocity_Effective:   %d\n", _baseLayersPumpingParameters.pumpUpVelocity_Effective());
@@ -66,10 +64,8 @@ public:
         debug("         pumpUpPause:                %d\n", _bodyLayerParameters.pumpUpPause());
         debug("         pumpDownVelocity:           %d\n", _bodyLayerParameters.pumpDownVelocity_Effective());
         debug("         pumpDownPause:              %d\n", _bodyLayerParameters.pumpDownPause());
-        debug("         layerThickness:             %d\n", _bodyLayerParameters.layerThickness());
         debug("         pumpUpDistance:             %d\n", _bodyLayerParameters.pumpUpDistance());
         debug("         noPumpUpVelocity:           %d\n", _bodyLayerParameters.noPumpUpVelocity());
-        debug("         layerExposureTime:          %d\n", _bodyLayerParameters.layerExposureTime());
         debug("         pumpEveryNthLayer:          %d\n", _bodyLayerParameters.pumpEveryNthLayer());
         /*debug("         pumpDownTime_Effective:     %d\n", _bodyLayersPumpingParameters.pumpDownTime_Effective());
         debug("         pumpUpVelocity_Effective:   %d\n", _bodyLayersPumpingParameters.pumpUpVelocity_Effective());
@@ -106,11 +102,6 @@ public:
     int heatingTemperature() const
     {
         return _heatingTemperature;
-    }
-
-    int baseLayerCount() const
-    {
-        return _baseLayerCount;
     }
 
     PrintParameters& baseLayerParameters()
@@ -164,11 +155,6 @@ public:
         _heatingTemperature = temperature;
     }
 
-    void setBaseLayerCount(int newCount)
-    {
-        _baseLayerCount = newCount;
-    }
-
     void setBaseLayerParameters(const PrintParameters& newParameters)
     {
         _baseLayerParameters = newParameters;
@@ -179,13 +165,29 @@ public:
         _bodyLayerParameters = newParameters;
     }
 
-    int layerSettingsEnabled() const {
-        return _layerSettingsEnabled;
+    bool advancedExposureControlsEnabled() const {
+        return _advancedExposureControlsEnabled;
     }
 
     // unit: boolean (true/false)
-    void setLayerSettingsEnabled(bool value) {
-        _layerSettingsEnabled = value;
+    void setAdvancedExposureControlsEnabled(bool value) {
+        _advancedExposureControlsEnabled = value;
+    }
+
+    void setDigitalOffsetX(int offset) {
+        digitalOffsetX = offset;
+    }
+
+    void setDigitalOffsetY(int offset) {
+        digitalOffsetY = offset;
+    }
+
+    int getDigitalOffsetX() {
+        return digitalOffsetX;
+    }
+
+    int getDigitalOffsetY() {
+        return digitalOffsetY;
     }
 
 private:
@@ -193,14 +195,15 @@ private:
     QString _name;
     bool _default;
     bool _active;
-    int _baseLayerCount;
     int _buildPlatformOffset;
     bool _disregardFirstLayerHeight;
     int _heatingTemperature;
-    bool   _layerSettingsEnabled { false }; //boolean (true/false)
+    bool   _advancedExposureControlsEnabled { false }; //boolean (true/false)
     PrintParameters _baseLayerParameters;
     PrintParameters _bodyLayerParameters;
     bool _defaultProfile;
+    int digitalOffsetX=0;
+    int digitalOffsetY=0;
 
 signals:
     void profileNameChanged(const QString& newName);

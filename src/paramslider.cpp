@@ -49,6 +49,8 @@ int ParamSlider::getValue()
 void ParamSlider::setValue(int value)
 {
     _slider->setValue(value);
+
+    this->_valueLabel->setText( QString::number(_slider->value() / _factor) + " " + QString(_unit) );
 }
 
 void ParamSlider::setValueDouble(double value)
@@ -135,10 +137,21 @@ ParamSlider::ParamSlider(QString name, int maxValue)
     this->init(name, "", 0, maxValue, 1, 0);
 }
 
-void   ParamSlider::setFontColor(QString font)
+void ParamSlider::setFontColor(QString font)
 {
     this->_nameLabel->setStyleSheet(QString("QLabel { color : %1; }").arg(font));
     this->_valueLabel->setStyleSheet(QString("QLabel { color : %1; }").arg(font));
+}
+
+void ParamSlider::setCounterBold(bool bold) {
+    auto origFont = font( );
+
+    if(bold) {
+        _valueLabel->setFont(origFont);
+    } else {
+        auto boldFont = ModifyFont( origFont, QFont::Bold );
+        _valueLabel->setFont(origFont);
+    }
 }
 
 ParamSlider::~ParamSlider()

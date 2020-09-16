@@ -89,14 +89,6 @@ private:
     ParamSlider*  _downPauseSlider                    { new ParamSlider( "Base Pump Down Pause",      "ms",    1000, 8000,   50, 50 ) };
     ParamSlider*  _baseNoPumpUpVelocitySlider         { new ParamSlider( "Base Prepare Speed",        "mm/min",   5, 50,     5, 5 ) };
 
-
-    //Layer Form
-    QWidget*      _layersForm                          { new QWidget                                                              };
-
-    ParamSlider*  _baseExposureTimeSlider             { new ParamSlider( "Base layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
-    ParamSlider*  _bodyExposureTimeSlider             { new ParamSlider( "Body layers exposure time",        "ms",    1000, 12000,  50, 50 ) };
-    QCheckBox*    _expoTimeEnabled                    { new QCheckBox ( "Enable advanced exposure time control") };
-
     //Body Pump Form
     QScrollArea*  _bodyPumpForm                       { new QScrollArea                                                          };
     QCheckBox*    _addBodyPumpCheckbox                { new QCheckBox( "Enable pumping for body layers" )                        };
@@ -109,7 +101,7 @@ private:
     ParamSlider*  _bodyDownPauseSlider                { new ParamSlider( "Body Pump Down Pause",      "ms",    1000, 8000,   50, 50) };
     ParamSlider*  _bodyNoPumpUpVelocitySlider         { new ParamSlider( "Body Prepare Speed",        "mm/min",   5,   50,   5,      5 ) };
 
-    static const int FORMS_COUNT                      { 4 };
+    static const int FORMS_COUNT                      { 3 };
     QWidget*         _forms[FORMS_COUNT];
 
     PngDisplayer*    _pngDisplayer                    { };
@@ -125,7 +117,6 @@ private:
     void _setUpGeneralForm( QFont fontBold, QFont fontAwesome );
     void _setUpTemperaturelForm( QFont fontBold );
     void _setUpBasePumpForm( QFont fontBold );
-    void _setUpLayersForm( );
     void _setUpBodyPumpForm( QFont fontBold );
     void _setEnabled( bool enabled );
 
@@ -137,6 +128,7 @@ signals:
 
 public slots:
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
+    virtual void printJobChanged() override;
 
     void setPngDisplayer( PngDisplayer* pngDisplayer );
     void setPrinterAvailable( bool const value );
@@ -172,10 +164,6 @@ private slots:
     void chbox_addBodyPumpChanged(int);
 
     void chbox_addBasePumpCheckChanged(int state);
-
-    void setLayersSettingsEnabled(bool enabled);
-
-    void expoTimeEnabled_changed(int state);
 
     void offsetDisregardFirstLayerStateChanged(int state);
 };

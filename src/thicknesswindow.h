@@ -11,10 +11,9 @@ class ThicknessWindow: public QDialog
     Q_OBJECT
 
 public:
-    ThicknessWindow(QSharedPointer<PrintJob> job, bool initValues, QWidget *parent = nullptr);
+    ThicknessWindow(bool initValues, QWidget *parent = nullptr);
 
 protected:
-    QSharedPointer<PrintJob> _printJob;
     QPushButton *_ok;
     QPushButton *_cancel;
     ParamSlider *_baseLayerCount { new ParamSlider("Number of Base Layers", "", 1, 20, 1, 0) };

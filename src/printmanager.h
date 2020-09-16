@@ -56,12 +56,10 @@ public:
         return _running;
     }
 
-    QString& currentLayerImage();
 
 private:
     Shepherd*           _shepherd                 { };
     MovementSequencer*  _movementSequencer        { };
-    QSharedPointer<PrintJob> _printJob;
     PngDisplayer*       _pngDisplayer             { };
     ProcessRunner*      _setProjectorPowerProcess { };
     PrintResult         _printResult              { };
@@ -110,7 +108,7 @@ signals:
 
 public slots:
     void setPngDisplayer(PngDisplayer* pngDisplayer);
-    void print(QSharedPointer<PrintJob> printJob);
+    void print();
     void pause( );
     void resume( );
     void terminate( );

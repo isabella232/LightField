@@ -4,9 +4,9 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "tabbase.h"
-#include "printjob.h"
 #include "ordermanifestmanager.h"
 #include "paramslider.h"
+#include "printjob.h"
 
 class TilingExpoTimePopup: public QDialog {
     Q_OBJECT
@@ -40,7 +40,7 @@ class TilingTab: public TabBase {
     Q_OBJECT
 
 public:
-    TilingTab( QWidget* parent = nullptr );
+    TilingTab(QWidget* parent = nullptr);
     virtual ~TilingTab( ) { }
 
     virtual TabIndex tabIndex( ) const override { return TabIndex::Tiling; }
@@ -79,6 +79,7 @@ private:
     int  _getMaxCount();
     void _renderText(QPainter* painter, QPoint pos, double expoBase, double expoBody);
     void _setEnabled(bool enabled);
+    void _updateExposureTiming();
 signals:
     ;
 
@@ -88,10 +89,12 @@ public slots:
     void setStepValue();
 
     void setupExpoTimeClicked(bool);
-    ;
+
+    void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
     virtual void tab_uiStateChanged( TabIndex const sender, UiState const state ) override;
-
+    virtual void printJobChanged() override;
+    ;
 protected slots:
     ;
 
