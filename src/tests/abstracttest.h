@@ -169,11 +169,12 @@ public:
     {
        const QString possibleCharacters("abcdefghijklmnopqrstuvwxyz");
        const int randomStringLength = 5; // assuming you want random strings of 12 characters
+       auto random = QRandomGenerator::system();
 
        QString randomString;
        for(int i=0; i<randomStringLength; ++i)
        {
-           int index = qrand() % possibleCharacters.length();
+           int index = random->bounded(possibleCharacters.length()-1);
            QChar nextChar = possibleCharacters.at(index);
            randomString.append(nextChar);
        }
@@ -1064,6 +1065,50 @@ public:
         }
 
         TDEBUG("buttons aviability - PASSED");
+    }
+
+    void loadSelectedProfileTest(PrintProfile* printProfile) {
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(6);
+
+        QTest::qWait(100);
+        QString profileName = printProfile->profileName();
+        QListView* advancedLeftMenu = findWidget<QListView*>("advancedLeftMenu");
+        QStandardItemModel* model = (QStandardItemModel*)advancedLeftMenu->model();
+        QStandardItem* row;
+        for(int i=0; i<model->rowCount(); ++i) {
+             if(model->item(i)->data().toString() == profileName) {
+                 row = model->item(i);
+
+                 break;
+             }
+        }
+
+        auto idx = row->index();
+        auto rect = advancedLeftMenu->visualRect(idx);
+
+        dispatchToMainThread([advancedLeftMenu, rect] {
+            QTest::mouseClick(advancedLeftMenu->viewport(), Qt::MouseButton::LeftButton, Qt::KeyboardModifier::NoModifier,
+                              rect.center());
+        });
+    }
+
+    void deleteSelectedProfileTest(PrintProfile* printProfile) {
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(6);
+
+    }
+
+    void saveProfileTest(PrintProfile* printProfile) {
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(6);
+
+    }
+
+    void renameProfileTest(PrintProfile* printProfile) {
+        QTabWidget* tabs = findWidget<QTabWidget*>("tabWidget");
+        tabs->setCurrentIndex(6);
+
     }
 
 

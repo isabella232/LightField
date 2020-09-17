@@ -19,7 +19,11 @@ void PrintProfileTest::start(QString modelName = nullptr) {
 
     PrintProfile* printProfileCpy = modifyAdvancedSettingsSimple(profileName);
 
+    QString profileName2 = createPrintProfile();
 
+    PrintProfile* printProfileCpy2 = modifyAdvancedSettingsSimple(profileName);
+
+    loadSelectedProfileTest(printProfileCpy);
 
     emit successed();
     TDEBUG("==============================Print Profile Test finished===========================!\n");
