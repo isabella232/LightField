@@ -8,38 +8,69 @@
 #include "window.h"
 #include "printprofilemanager.h"
 
-TilingExpoTimePopup::TilingExpoTimePopup()
+TilingExpoTimePopup::TilingExpoTimePopup(QWidget* parent): QDialog(parent)
 {
     auto origFont = font();
     auto normalFont = ModifyFont(origFont, "FontAwesome", NormalFontSize );
     auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
     auto font22pt = ModifyFont(origFont, LargeFontSize);
+    auto boldFont = ModifyFont( font( ), QFont::Bold );
 
     this->setModal(true);
+    this->setFixedWidth(MainWindowSize.width());
 
-    QGroupBox* baseLr = new QGroupBox("Base layer");
-    baseLr->setLayout(
-        WrapWidgetsInVBox(
-            _minExposureBase,
-            _stepBase
-        )
-    );
+    QLabel* addition1 {new QLabel("+")};
+    QLabel* addition2 {new QLabel("+")};
+    QLabel* eq1 {new QLabel("=")};
+    QLabel* eq2 {new QLabel("=")};
+    QFrame* hr {new QFrame};
 
-    QGroupBox* bodyLr = new QGroupBox("Body layer");
-    bodyLr->setLayout(
+    auto boldFontBigger = ModifyFont( boldFont, 13);
+    _advBodyLbl->setFixedWidth(82);
+    _advBodyLbl->setFont(boldFontBigger);
+    _advBaseLbl->setFixedWidth(82);
+    _advBaseLbl->setFont(boldFontBigger);
+
+
+    addition1->setFont(boldFontBigger);
+    addition2->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+    eq1->setFont(boldFontBigger);
+
+    hr->setFrameShape(QFrame::HLine);
+    hr->setFrameShadow(QFrame::Sunken);
+    hr->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    hr->setFixedHeight(1);
+
+    _advBodyExpoCorse->setCounterBold(false);
+    _advBaseExpoCorse->setCounterBold(false);
+    _advBodyExpoFine->setCounterBold(false);
+    _advBaseExpoFine->setCounterBold(false);
+
+    _advBodyExpoFine->setFixedWidth(285);
+    _advBaseExpoFine->setFixedWidth(285);
+
+
+    QVBoxLayout* container =
         WrapWidgetsInVBox(
-            _minExposureBody,
-            _stepBody
-        )
-    );
+          WrapWidgetsInHBox(_advBaseExpoCorse, addition2, _advBaseExpoFine, eq2, _advBaseLbl),
+          _stepBase,
+          hr,
+          WrapWidgetsInHBox(_advBodyExpoCorse, addition1, _advBodyExpoFine, eq1, _advBodyLbl),
+          _stepBody
+        );
+
+    QObject::connect(_advBodyExpoCorse, &ParamSlider::valueChanged, this, &TilingExpoTimePopup::updateExposureTimes);
+    QObject::connect(_advBodyExpoFine, &ParamSlider::valueChanged, this, &TilingExpoTimePopup::updateExposureTimes);
+    QObject::connect(_advBaseExpoCorse, &ParamSlider::valueChanged,  this, &TilingExpoTimePopup::updateExposureTimes);
+    QObject::connect(_advBaseExpoFine, &ParamSlider::valueChanged, this, &TilingExpoTimePopup::updateExposureTimes);
 
     QObject::connect(_okButton, &QPushButton::clicked, this, &TilingExpoTimePopup::confirm);
     QObject::connect(_cancelButton, &QPushButton::clicked, this, &TilingExpoTimePopup::cancel);
 
     setLayout(
         WrapWidgetsInVBox(
-            baseLr,
-            bodyLr,
+            container,
             nullptr,
             WrapWidgetsInHBox(_okButton, _cancelButton)
         )
@@ -58,6 +89,15 @@ void TilingExpoTimePopup::cancel(bool)
     this->setResult(QDialog::Rejected);
     this->reject();
     this->close();
+}
+
+void TilingExpoTimePopup::updateExposureTimes()
+{
+    int bodyExpoTime = _advBodyExpoCorse->getValue() + _advBodyExpoFine->getValue();
+    int baseExpoTime = _advBaseExpoCorse->getValue() + _advBaseExpoFine->getValue();
+
+    _advBodyLbl->setText( QString("%1 s").arg(bodyExpoTime / 1000.0));
+    _advBaseLbl->setText( QString("%1 s").arg(baseExpoTime / 1000.0));
 }
 
 TilingTab::TilingTab(QWidget* parent): TabBase(parent)
@@ -467,25 +507,25 @@ void TilingTab::_setEnabled(bool enabled)
 void TilingTab::setupExpoTimeClicked(bool)
 {
     debug("+ TilingTab::setupExpoTimeClicked\n");
-    _expoTimePopup.setMinExposureBase(_minExposureBase);
+    _expoTimePopup.setMinExposureBase(_minExposureBase * 1000.0);
     _expoTimePopup.setStepBase(_stepBase);
-    _expoTimePopup.setMinExposureBody(_minExposureBody);
+    _expoTimePopup.setMinExposureBody(_minExposureBody * 1000.0);
     _expoTimePopup.setStepBody(_stepBody);
 
     if (_expoTimePopup.exec() == QDialog::Accepted) {
-        _minExposureBase = _expoTimePopup.minExposureBase();
+        _minExposureBase = _expoTimePopup.minExposureBase() / 1000.0;
         _stepBase = _expoTimePopup.stepBase();
-        _minExposureBody = _expoTimePopup.minExposureBody();
+        _minExposureBody = _expoTimePopup.minExposureBody() / 1000.0;
         _stepBody = _expoTimePopup.stepBody();
 
         QSharedPointer<PrintProfile>& printProfile = printProfileManager()->activeProfile();
 
-        printProfile->baseLayerParameters().setTilingDefaultExposure(_minExposureBase * 1000);
-        printProfile->baseLayerParameters().setTilingDefaultExposureStep(_stepBase * 1000);
-        printProfile->bodyLayerParameters().setTilingDefaultExposure(_minExposureBody * 1000);
-        printProfile->bodyLayerParameters().setTilingDefaultExposureStep(_stepBody * 1000);
+        printProfile->baseLayerParameters().setTilingDefaultExposure(_minExposureBase* 1000.0);
+        printProfile->baseLayerParameters().setTilingDefaultExposureStep(_stepBase * 1000.0);
+        printProfile->bodyLayerParameters().setTilingDefaultExposure(_minExposureBody * 1000.0);
+        printProfile->bodyLayerParameters().setTilingDefaultExposureStep(_stepBody* 1000.0);
 
-        _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBase));
+        _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBase ));
         _stepBaseLabel->setText(QString("%1s Exposure Step").arg(_stepBase));
         _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBody));
         _stepBodyLabel->setText(QString("%1s Exposure Step").arg(_stepBody));
@@ -541,7 +581,7 @@ void TilingTab::_updateExposureTiming() {
     this->_stepBase = ((double)printJob.baseLayerParameters().tilingDefaultExposureStep()) / 1000.0;
     this->_stepBody = ((double)printJob.bodyLayerParameters().tilingDefaultExposureStep()) / 1000.0;
     this->_minExposureBase = ((double)printJob.baseLayerParameters().tilingDefaultExposure()) / 1000.0;
-    this->_minExposureBody = ((double)printJob.bodyLayerParameters().tilingDefaultExposure()) / 1000.0;
+    this->_minExposureBody = ((double)printJob.bodyLayerParameters().tilingDefaultExposure()) / 1000.0;;
 
     _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBase));
     _stepBaseLabel->setText(QString("%1s Exposure Step").arg(_stepBase));
