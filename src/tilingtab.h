@@ -51,8 +51,8 @@ public:
     }
 
 private:
-    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 1, 16, 1, 0, 4 )};
-    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 1, 16, 1, 0, 4 )};
+    ParamSlider*            _stepBase                     { new ParamSlider ("Base layer exposure step", "sec", 0, 16, 1, 0, 4 )};
+    ParamSlider*            _stepBody                     { new ParamSlider ("Body layer exposure step", "sec", 0, 16, 1, 0, 4 )};
     QPushButton*            _okButton                     { new QPushButton ("Ok" )                };
     QPushButton*            _cancelButton                 { new QPushButton ("Cancel" )            };
 

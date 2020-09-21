@@ -20,8 +20,6 @@ public:
         SIZE,
         SORT_TYPE,
         TILING,
-        MIN_EXPOSURE,
-        STEP,
         SPACE,
         COUNT,
         ENTITIES,
@@ -145,16 +143,6 @@ public:
         this->_layerThickNess = list;
     }
 
-    void setTilingMinExpoTime(double minExoTm)
-    {
-        this->_tilingMinExposure = minExoTm;
-    }
-
-    void setTilingStep (double step)
-    {
-        this->_tilingStep = step;
-    }
-
     void setTilingSpace (int space)
     {
         this->_tilingSpace = space;
@@ -206,8 +194,6 @@ public:
     inline int baseLayerCount()            { return tiled() ? _baseLayerCount * _tilingCount : _baseLayerCount; }
     inline int firstLayerOffset()          { return _firstLayerOffset;  }
     inline bool tiled()                    { return _tiled; }
-    inline double tilingMinExposure()      { return _tilingMinExposure; }
-    inline double tilingStep()             { return _tilingStep; }
     inline int tilingSpace()               { return _tilingSpace; }
     inline int tilingCount()               { return _tilingCount; }
     inline int baseLayerCountBeforeTiled() { return _baseLayerCount; }
@@ -265,8 +251,6 @@ private:
     ManifestSortType    _type;
     int                 _size;
     bool                _tiled             { false };
-    double              _tilingMinExposure { 2L };
-    double              _tilingStep        { 2L };
     int                 _tilingSpace       { 1 };
     int                 _tilingCount       { 1 };
     QStringList         _fileNameList      { };
