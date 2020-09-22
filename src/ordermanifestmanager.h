@@ -27,7 +27,9 @@ public:
         LAYER_THICKNESS,
         EXPOSURE_TIME,
         VOLUME,
-        BASE_LAYER_CNT
+        BASE_LAYER_CNT,
+        ZERO_TILING_BASE,
+        ZERO_TILING_BODY
     };
 
     static const QString strings[13];
@@ -189,15 +191,25 @@ public:
         this->_estimatedVolume = volume;
     }
 
+    void setZeroTilingBaseEn(bool enabled) {
+        this->_zeroTilingBase = enabled;
+    }
+
+    void setZeroTilingBodyEn(bool enabled) {
+        this->_zeroTilingBody = enabled;
+    }
+
     inline int baseLayerThickness()        { return _baseLayerThickNess; }
     inline int bodyLayerThickness()        { return _bodyLayerThickNess; }
-    inline int baseLayerCount()            { return tiled() ? _baseLayerCount * _tilingCount : _baseLayerCount; }
+    inline int baseLayerCount()            { return tiled() && !_zeroTilingBase ? _baseLayerCount * _tilingCount : _baseLayerCount; }
     inline int firstLayerOffset()          { return _firstLayerOffset;  }
     inline bool tiled()                    { return _tiled; }
     inline int tilingSpace()               { return _tilingSpace; }
     inline int tilingCount()               { return _tilingCount; }
     inline int baseLayerCountBeforeTiled() { return _baseLayerCount; }
     inline double manifestVolume()         { return _estimatedVolume; }
+    inline bool isZeroTilingBase()         { return _zeroTilingBase; }
+    inline bool isZeroTilingBody()         { return _zeroTilingBody; }
 
     inline QString getFirstElement()
     {
@@ -263,6 +275,8 @@ private:
     bool                _initialized       { };
     double              _estimatedVolume   { 0L }; // unit: µL
     bool                _calculateArea     {false};
+    bool                _zeroTilingBase    {false};
+    bool                _zeroTilingBody    {false};
 };
 
 #endif // ORDERMANIFESTMANAGER_H

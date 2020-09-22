@@ -133,6 +133,30 @@ public:
         return false;
     }
 
+    /**
+     * @brief isZeroTilingBase
+     * @return special case of tiling with 0s step between each tile per layer for base layer
+     */
+    bool isZeroTilingBase() const
+    {
+        if(_bodyManager)
+            return _bodyManager->isZeroTilingBase();
+
+        return false;
+    }
+
+    /**
+     * @brief isZeroTilingBody
+     * @return special case of tiling with 0s step between each tile per layer for body layer
+     */
+    bool isZeroTilingBody() const
+    {
+        if(_bodyManager)
+            return _bodyManager->isZeroTilingBody();
+
+        return false;
+    }
+
     bool hasExposureControlsEnabled() const
     {
         return !isTiled();

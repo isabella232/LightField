@@ -68,6 +68,8 @@ OrderManifestManager* TilingManager::processImages(int width, int height, double
     manifestMgr->setTilingSpace(_space);
     manifestMgr->setTilingCount(_count);
     manifestMgr->setVolume(_count * printJob.getEstimatedVolume());
+    manifestMgr->setZeroTilingBaseEn(_baseStep == 0);
+    manifestMgr->setZeroTilingBodyEn(_bodyStep == 0);
 
     manifestMgr->save();
 
@@ -108,7 +110,6 @@ void TilingManager::tileImages()
     /* iterating over slices in manifest */
     int total = printJob.totalLayerCount();
 
-    bool zeroTimeStep = _baseStep == 0;
     for (int i = 0; i < total; i++) {
         QFileInfo entry ( printJob.getLayerDirectory(i) % Slash % printJob.getLayerFileName(i) );
 
@@ -116,7 +117,8 @@ void TilingManager::tileImages()
         emit statusUpdate(QString("Tiling layer %1").arg(i));
         emit progressUpdate((double)i / (double)total * 100);
 
-        if(zeroTimeStep)
+        if((i < printJob.getBaseLayerCount() && _baseStep == 0) ||
+           (i >= printJob.getBaseLayerCount() && _bodyStep == 0))
             renderTiles0Step(entry, i);
         else
             renderTiles (entry, i);
