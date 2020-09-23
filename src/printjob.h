@@ -133,6 +133,70 @@ public:
         return false;
     }
 
+    int getLayerNumberTiling(int positionNumber) {
+        if(isTiled()) {
+            if(isBaseLayer(positionNumber)) {
+                if(isZeroTilingBase()) {
+                    return positionNumber+1;
+                } else {
+                    return (positionNumber / tilingCount()) + 1;
+                }
+            } else {
+                if(isZeroTilingBody()) {
+                    return positionNumber+1;
+                } else {
+                    return getBaseLayerCount() + ((positionNumber - getBaseLayerCount()) / tilingCount()) + 1;
+                }
+            }
+        }
+
+        return positionNumber;
+    }
+
+    int getTotalLayerNumberTiling() {
+        if(isTiled()) {
+            int sum=0;
+
+            if(isZeroTilingBase()) {
+                sum += getBaseLayerCount();
+            } else {
+                sum += getBaseLayerCount() / tilingCount();
+            }
+            debug("sum: %d", sum);
+            if(isZeroTilingBody()) {
+                sum += (totalLayerCount() - sum);
+            } else {
+                sum += ((totalLayerCount() - sum) / tilingCount());
+            }
+
+            return sum;
+        }
+
+
+        return totalLayerCount();
+    }
+
+    int getLayerCurrentElementTiling(int layer) {
+        if(isTiled()) {
+            if(isBaseLayer(layer)) {
+                if(isZeroTilingBase()) {
+                    return 1;
+                } else {
+                    return layer % tilingCount() + 1;
+                }
+            } else {
+                if(isZeroTilingBody()) {
+                    return 1;
+                } else {
+                    int positionVsBase = layer - getBaseLayerCount();
+
+                    return positionVsBase % tilingCount() + 1;
+                }
+            }
+        }
+        return layer;
+    }
+
     /**
      * @brief isZeroTilingBase
      * @return special case of tiling with 0s step between each tile per layer for base layer

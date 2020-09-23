@@ -410,13 +410,15 @@ void StatusTab::printManager_printResumed()
 void StatusTab::printManager_startingLayer(int const layer)
 {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, printJob.totalLayerCount());
-    if(printJob.isTiled()){
-        int realLayer = (layer+printJob.tilingCount())/printJob.tilingCount();
-        int realLayersTotal = printJob.totalLayerCount()/printJob.tilingCount();
-        int currentElement = (layer % printJob.tilingCount()) + 1;
-        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( printJob.tilingCount() ) );
+    if(printJob.isTiled()) {
+
+        int realLayer = printJob.getLayerNumberTiling(layer);
+        int realLayersTotal = printJob.getTotalLayerNumberTiling();
+        int currentElement = printJob.getLayerCurrentElementTiling(layer);
+        int layerCount = printJob.isBaseLayer(layer) ? (printJob.isZeroTilingBase() ? 1 : printJob.tilingCount()) : (printJob.isZeroTilingBody() ? 1 : printJob.tilingCount());
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2\nelements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( layerCount ) );
     }else{
- _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( printJob.totalLayerCount() ) );
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( printJob.totalLayerCount() ) );
     }
 
     _previousLayerStartTime = _currentLayerStartTime;
