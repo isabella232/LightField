@@ -143,9 +143,9 @@ public:
                 }
             } else {
                 if(isZeroTilingBody()) {
-                    return positionNumber+1;
+                    return getLayerNumberTiling(baseLayerEnd()) + positionNumber- baseLayerEnd();
                 } else {
-                    return getBaseLayerCount() + ((positionNumber - getBaseLayerCount()) / tilingCount()) + 1;
+                    return getLayerNumberTiling(baseLayerEnd()) + ((positionNumber - getBaseLayerCount()) / tilingCount()) + 1;
                 }
             }
         }
@@ -162,11 +162,12 @@ public:
             } else {
                 sum += getBaseLayerCount() / tilingCount();
             }
-            debug("sum: %d", sum);
+            debug("sum: %d\n", sum);
+            debug("totalLayersCount: %d\n", totalLayerCount());
             if(isZeroTilingBody()) {
-                sum += (totalLayerCount() - sum);
+                sum += (totalLayerCount() - getBaseLayerCount());
             } else {
-                sum += ((totalLayerCount() - sum) / tilingCount());
+                sum += ((totalLayerCount() - getBaseLayerCount()) / tilingCount());
             }
 
             return sum;
