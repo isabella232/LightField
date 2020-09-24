@@ -337,12 +337,12 @@ void PrintManager::stepB2_completed( ) {
     _stopAndCleanUpTimer( _layerExposureTimer );
 
 
-    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
+    if ( IsBadPrintResult( _printResult ) && (!_isTiled || printJob.isZeroTilingBase())) {
         stepD1_start( );
 
         return;
     }
-    if(_isTiled) {
+    if(_isTiled && !printJob.isZeroTilingBase()) {
      stepB2a_start();
     }else{
      stepB3_start( );
@@ -503,7 +503,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
 
     if (_currentBaseLayer == printJob.getBaseLayerCount() ||
          (
-            printJob.isTiled() &&
+            (printJob.isTiled() && printJob.isZeroTilingBody()) &&
             (
                 _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
             )
@@ -579,7 +579,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
 
     if (_currentBaseLayer == printJob.getBaseLayerCount() ||
          (
-            printJob.isTiled() &&
+            (printJob.isTiled() && !printJob.isZeroTilingBase()) &&
             (
                 _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
             )
@@ -666,12 +666,12 @@ void PrintManager::stepC2_completed( ) {
 
     _stopAndCleanUpTimer( _layerExposureTimer );
 
-    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
+    if ( IsBadPrintResult( _printResult ) && (!_isTiled || printJob.isZeroTilingBody())) {
         stepD1_start( );
         return;
     }
 
-    if(_isTiled) {
+    if(_isTiled && !printJob.isZeroTilingBody()) {
         stepC2a_start();
     }else{
         stepC3_start( );
@@ -1176,6 +1176,6 @@ bool PrintManager::_hasLayerMoreElementsBody() {
     if(_currentLayer == 0){
         return (_elementsOnLayerBody>1) ? true : false;
     } else {
-        return (_currentLayer+1) % _elementsOnLayerBody;
+        return (_currentLayer-printJob.getBaseLayerCount()+1) % _elementsOnLayerBody;
     }
 }
