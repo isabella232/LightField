@@ -6,7 +6,7 @@
 #include "printprofile.h"
 #include "printprofilemanager.h"
 #include "ordermanifestmanager.h"
-
+#include "strings.h"
 
 class PrintJob: public QObject
 {

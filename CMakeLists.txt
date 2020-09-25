@@ -43,6 +43,7 @@ set(Project_Sources
         src/constants.cpp
         src/debug.cpp
         src/debuglogcopier.cpp
+        src/firmwarecontroller.cpp
         src/filecopier.cpp
         src/filetab.cpp
         src/gesturelistview.cpp
@@ -60,6 +61,7 @@ set(Project_Sources
         src/paramslider.cpp
         src/pngdisplayer.cpp
         src/preparetab.cpp
+        src/printjob.cpp
         src/printmanager.cpp
         src/printprofile.cpp
         src/printprofilemanager.cpp
@@ -73,6 +75,7 @@ set(Project_Sources
         src/statustab.cpp
         src/stdiologger.cpp
         src/strings.cpp
+        src/spoiler.cpp
         src/svgrenderer.cpp
         src/systemtab.cpp
         src/tabbase.cpp
@@ -103,6 +106,7 @@ set(Project_Headers
         src/gesturelistview.h
         src/glmesh.h
         src/gpgsignaturechecker.h
+        src/firmwarecontroller.h
         src/hasher.h
         src/inputdialog.h
         src/key.h
@@ -128,6 +132,7 @@ set(Project_Headers
         src/signalhandler.h
         src/slicertask.h
         src/slicesorderpopup.h
+        src/spoiler.h
         src/statustab.h
         src/stdiologger.h
         src/strings.h
@@ -153,7 +158,7 @@ set(Project_Resources
         text/text.qrc)
 
 #find required packages. 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml Qt5SerialPort)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml SerialPort)
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
