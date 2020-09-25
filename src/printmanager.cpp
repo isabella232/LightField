@@ -338,12 +338,12 @@ void PrintManager::stepB2_completed( ) {
     _stopAndCleanUpTimer( _layerExposureTimer );
 
 
-    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
+    if ( IsBadPrintResult( _printResult ) && (!_isTiled || printJob.isZeroTilingBase())) {
         stepD1_start( );
 
         return;
     }
-    if(_isTiled) {
+    if(_isTiled && !printJob.isZeroTilingBase()) {
      stepB2a_start();
     }else{
      stepB3_start( );
@@ -359,7 +359,7 @@ void PrintManager::stepB2a_start( ){
 
     // abort would be serviced during B3_completed
 
-    if(_hasLayerMoreElements()) {
+    if(_hasLayerMoreElementsBase()) {
         debug( "+ PrintManager::stepB2a_start: current layer has still more tiled elements to loop over'\n" );
         _currentLayer++;
         _pngDisplayer->clear( );
@@ -477,7 +477,7 @@ void PrintManager::stepB4a2_start()
         {
             MoveType::Relative,
             -baseParameters.pumpDownDistance_Effective() +
-                (printJob.getLayerThicknessAt(_currentLayer - _elementsOnLayer) / 1000.0),
+                (printJob.getLayerThicknessAt(_currentLayer - _elementsOnLayerBase) / 1000.0),
             baseParameters.pumpDownVelocity_Effective()
         },
         {
@@ -504,7 +504,7 @@ void PrintManager::stepB4a2_completed( bool const success ) {
 
     if (_currentBaseLayer == printJob.getBaseLayerCount() ||
          (
-            printJob.isTiled() &&
+            (printJob.isTiled() && printJob.isZeroTilingBody()) &&
             (
                 _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
             )
@@ -580,7 +580,7 @@ void PrintManager::stepB4b2_completed( bool const success ) {
 
     if (_currentBaseLayer == printJob.getBaseLayerCount() ||
          (
-            printJob.isTiled() &&
+            (printJob.isTiled() && !printJob.isZeroTilingBase()) &&
             (
                 _currentBaseLayer == printJob.getBaseLayerCount() / printJob.tilingCount()
             )
@@ -667,12 +667,12 @@ void PrintManager::stepC2_completed( ) {
 
     _stopAndCleanUpTimer( _layerExposureTimer );
 
-    if ( IsBadPrintResult( _printResult ) && !_isTiled ) {
+    if ( IsBadPrintResult( _printResult ) && (!_isTiled || printJob.isZeroTilingBody())) {
         stepD1_start( );
         return;
     }
 
-    if(_isTiled) {
+    if(_isTiled && !printJob.isZeroTilingBody()) {
         stepC2a_start();
     }else{
         stepC3_start( );
@@ -685,7 +685,7 @@ void PrintManager::stepC2a_start( ){
 
     // abort would be serviced during C3_completed
 
-    if(_hasLayerMoreElements()){
+    if(_hasLayerMoreElementsBody()){
         debug( "+ PrintManager::stepC2a_start: current layer has still more tiled elements to loop over'\n" );
         _currentLayer++;
         _pngDisplayer->clear( );
@@ -768,7 +768,7 @@ void PrintManager::stepC4a2_start( )
 {
     const auto& bodyParameters = printJob.bodyLayerParameters();
     double pumpDownDistance = -bodyParameters.pumpDownDistance_Effective() +
-        (printJob.getLayerThicknessAt(_currentLayer - _elementsOnLayer + 1) / 1000.0);
+        (printJob.getLayerThicknessAt(_currentLayer - _elementsOnLayerBody + 1) / 1000.0);
 
     QList<MovementInfo> movements = {
         { MoveType::Relative, bodyParameters.pumpUpDistance(), bodyParameters.pumpUpVelocity_Effective() },
@@ -1047,7 +1047,8 @@ void PrintManager::print()
     }
 
     _isTiled = printJob.isTiled();
-    _elementsOnLayer = printJob.tilingCount();
+    _elementsOnLayerBase = printJob.isZeroTilingBase() ? 1 : printJob.tilingCount();
+    _elementsOnLayerBody = printJob.isZeroTilingBody() ? 1 : printJob.tilingCount();
 
     _pngDisplayer->clear();
 
@@ -1156,14 +1157,26 @@ void PrintManager::printer_positionReport( double px, int /*cx*/ ) {
     debug( "+ PrintManager::printer_positionReport: new position %.2f mm, new threshold %.2f mm\n", _position, _threshold );
 }
 
-bool PrintManager::_hasLayerMoreElements() {
+bool PrintManager::_hasLayerMoreElementsBase() {
     if (_currentLayer+1 == printJob.totalLayerCount()) {
-    return false;
+        return false;
     }
 
     if(_currentLayer == 0){
-      return (_elementsOnLayer>1) ? true : false;
-    }else{
-      return (_currentLayer+1) % _elementsOnLayer;
+        return (_elementsOnLayerBase>1) ? true : false;
+    } else {
+        return (_currentLayer+1) % _elementsOnLayerBase;
+    }
+}
+
+bool PrintManager::_hasLayerMoreElementsBody() {
+    if (_currentLayer+1 == printJob.totalLayerCount()) {
+        return false;
+    }
+
+    if(_currentLayer == 0){
+        return (_elementsOnLayerBody>1) ? true : false;
+    } else {
+        return (_currentLayer-printJob.getBaseLayerCount()+1) % _elementsOnLayerBody;
     }
 }

@@ -14,17 +14,19 @@ public:
     TilingManager();
     ~TilingManager() = default;
 
-    OrderManifestManager* processImages( int width, int height, double baseExpoTime, double baseStep, double bodyExpoTime, double bodyStep, int space, int count );
-    inline QString getPath ( ) { return _path; }
+    OrderManifestManager* processImages(int width, int height, double baseExpoTime,
+        double baseStep, double bodyExpoTime, double bodyStep, int space, int count);
+    inline QString getPath () { return _path; }
 
 signals:
   void statusUpdate(const QString &messgae);
   void progressUpdate(int percentage);
 
 protected:
-  void tileImages ( );
-  void renderTiles ( QFileInfo info, int sequence );
-  void putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j );
+  void tileImages ();
+  void renderTiles0Step(QFileInfo info, int sequence);
+  void renderTiles (QFileInfo info, int sequence);
+  void putImageAt (QPixmap pixmap, QPainter* painter, int i, int j);
 private:
         QString               _path;
         int                   _width;

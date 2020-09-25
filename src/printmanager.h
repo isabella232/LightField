@@ -70,7 +70,8 @@ private:
     PrintStep           _pausedStep               { };
     int                 _currentLayer             { };
     int                 _currentBaseLayer         { };
-    int                 _elementsOnLayer          { };
+    int                 _elementsOnLayerBase      { };
+    int                 _elementsOnLayerBody      { };
     bool                _isTiled                  { false };
     bool                _running                  { false };
     bool                _paused                   { false };
@@ -91,7 +92,8 @@ private:
     void    _stopAndCleanUpTimer( QTimer*& timer );
     void    _pausePrinting( );
     void    _cleanUp( );
-    bool    _hasLayerMoreElements();
+    bool    _hasLayerMoreElementsBase();
+    bool    _hasLayerMoreElementsBody();
 
 signals:
 
