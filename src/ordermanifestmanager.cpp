@@ -11,8 +11,6 @@ const QString ManifestKeys::strings[13] = {
         "size",
         "sort_type",
         "tiling",
-        "minExposure",
-        "step",
         "space",
         "count",
         "entities",
@@ -20,7 +18,9 @@ const QString ManifestKeys::strings[13] = {
         "layerThickness",
         "exposureTime",
         "estimatedVolume",
-        "baseLayerCnt"
+        "baseLayerCnt",
+        "zeroTilingBase",
+        "zeroTilingBody",
 };
 
 const QString ManifestSortType::strings[3] = {
@@ -79,11 +79,11 @@ ManifestParseResult OrderManifestManager::parse(QStringList *errors=nullptr, QSt
             debug( "+ OrderManifestManager::parse: checking tiled \n" );
             _tiled = true;
             tilingNested = root.value(ManifestKeys(ManifestKeys::TILING).toQString()).toObject();
-            _tilingStep = tilingNested.value(ManifestKeys(ManifestKeys::STEP).toQString()).toDouble();
-            _tilingMinExposure = tilingNested.value(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString()).toDouble();
             _tilingSpace = tilingNested.value(ManifestKeys(ManifestKeys::SPACE).toQString()).toInt();
             _tilingCount = tilingNested.value(ManifestKeys(ManifestKeys::COUNT).toQString()).toInt();
             _baseLayerCount = tilingNested.value(ManifestKeys(ManifestKeys::BASE_LAYER_CNT).toQString()).toInt();
+            _zeroTilingBase = tilingNested.value(ManifestKeys(ManifestKeys::ZERO_TILING_BASE).toQString()).toBool();
+            _zeroTilingBody = tilingNested.value(ManifestKeys(ManifestKeys::ZERO_TILING_BODY).toQString()).toBool();
 
             QJsonArray expoTimes = tilingNested.value(ManifestKeys(ManifestKeys::EXPOSURE_TIME).toQString()).toArray();
 
@@ -142,11 +142,11 @@ bool OrderManifestManager::save() {
     if (_tiled) {
         QJsonObject tiling;
 
-        tiling.insert(ManifestKeys(ManifestKeys::MIN_EXPOSURE).toQString(), QJsonValue {_tilingMinExposure});
-        tiling.insert(ManifestKeys(ManifestKeys::STEP).toQString(), QJsonValue {_tilingStep});
         tiling.insert(ManifestKeys(ManifestKeys::SPACE).toQString(), QJsonValue {_tilingSpace});
         tiling.insert(ManifestKeys(ManifestKeys::COUNT).toQString(), QJsonValue {_tilingCount});
         tiling.insert(ManifestKeys(ManifestKeys::BASE_LAYER_CNT).toQString(), QJsonValue {_baseLayerCount});
+        tiling.insert(ManifestKeys(ManifestKeys::ZERO_TILING_BASE).toQString(), QJsonValue {_zeroTilingBase});
+        tiling.insert(ManifestKeys(ManifestKeys::ZERO_TILING_BODY).toQString(), QJsonValue {_zeroTilingBody});
 
         QJsonArray expoArray;
         for(int i=0; i<_tilingExpoTime.size(); ++i)

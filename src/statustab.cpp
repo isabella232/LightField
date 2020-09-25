@@ -410,13 +410,15 @@ void StatusTab::printManager_printResumed()
 void StatusTab::printManager_startingLayer(int const layer)
 {
     debug( "+ StatusTab::printManager_startingLayer: layer %d/%d\n", layer + 1, printJob.totalLayerCount());
-    if(printJob.isTiled()){
-        int realLayer = (layer+printJob.tilingCount())/printJob.tilingCount();
-        int realLayersTotal = printJob.totalLayerCount()/printJob.tilingCount();
-        int currentElement = (layer % printJob.tilingCount()) + 1;
-        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2, elements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( printJob.tilingCount() ) );
+    if(printJob.isTiled()) {
+
+        int realLayer = printJob.getLayerNumberTiling(layer);
+        int realLayersTotal = printJob.getTotalLayerNumberTiling();
+        int currentElement = printJob.getLayerCurrentElementTiling(layer);
+        int layerCount = printJob.isBaseLayer(layer) ? (printJob.isZeroTilingBase() ? 1 : printJob.tilingCount()) : (printJob.isZeroTilingBody() ? 1 : printJob.tilingCount());
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2\nelements %3 of %4" }.arg( realLayer ).arg( realLayersTotal ).arg( currentElement ).arg( layerCount ) );
     }else{
- _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( printJob.totalLayerCount() ) );
+        _SetTextAndShow( _currentLayerDisplay, QString { "Printing layer %1 of %2" }.arg( layer + 1 ).arg( printJob.totalLayerCount() ) );
     }
 
     _previousLayerStartTime = _currentLayerStartTime;
@@ -489,39 +491,46 @@ void StatusTab::printManager_requestDispensePrintSolution( ) {
 
     if(!printJob.isTiled()) {
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm - %3 sec</b></li><li>body layers <b>%4 x %5µm - %6 sec</b></li></ul>")
-                .arg( printJob.getBaseLayerCount() )
-                .arg( printJob.getBaseLayerThickness() )
-                .arg( printJob.baseLayerParameters().layerExposureTime() / 1000.0 )
-                .arg( printJob.getBodyLayerCount() )
-                .arg( printJob.getBodyLayerThickness() )
-                .arg( printJob.bodyLayerParameters().layerExposureTime() / 1000.0 );
+                .arg(printJob.getBaseLayerCount())
+                .arg(printJob.getBaseLayerThickness())
+                .arg(printJob.baseLayerParameters().layerExposureTime() / 1000.0)
+                .arg(printJob.getBodyLayerCount())
+                .arg(printJob.getBodyLayerThickness())
+                .arg(printJob.bodyLayerParameters().layerExposureTime() / 1000.0);
 
         dispenseText.append(pjInfo);
     } else {
+        bool zba = printJob.isZeroTilingBase();
+        bool zbo = printJob.isZeroTilingBody();
+
+        int baseLayerCount = zba ? printJob.getBaseLayerCount() : printJob.getBaseLayerCount() / printJob.tilingCount();
+        int bodyLayerCount = zbo ? printJob.getBodyLayerCount() : printJob.getBodyLayerCount() / printJob.tilingCount();
+
+
         QString pjInfo =  QString("<hr><div style=\"width: 300px\" align=\"left\"><ul><li>base layers <b>%1 x %2µm</b></li><li>body layers <b>%4 x %5µm</b></li></ul>")
-                .arg( printJob.getBaseLayerCount() / printJob.tilingCount() )
-                .arg( printJob.getBaseLayerThickness() )
-                .arg( printJob.getBodyLayerCount() / printJob.tilingCount() )
-                .arg( printJob.getBodyLayerThickness() );
+                .arg(baseLayerCount)
+                .arg(printJob.getBaseLayerThickness())
+                .arg(bodyLayerCount)
+                .arg(printJob.getBodyLayerThickness());
 
         int tileCount = printJob.tilingCount();
 
-        double baseMinExpoTime = printJob.getTimeForElementAt(tileCount - 1);
+        double baseMinExpoTime = printJob.getTimeForElementAt(zba ? 0 : tileCount - 1);
         double baseExpoStep =  printJob.getBaseManager()->getTimeForElementAt(0);
         double baseMaxExpoTime = (baseMinExpoTime + (baseExpoStep * (tileCount-1)));
 
-        double bodyMinExpoTime = printJob.getTimeForElementAt(printJob.getBaseLayerCount() + tileCount - 1);
+        double bodyMinExpoTime = printJob.getTimeForElementAt(zbo ? printJob.getBaseLayerCount() : printJob.getBaseLayerCount() + tileCount - 1);
         double bodyExpoStep =  printJob.getBodyManager()->getTimeForElementAt(printJob.getBaseLayerCount());
         double bodyMaxExpoTime = (bodyMinExpoTime + (bodyExpoStep * (tileCount-1)));
 
 
         QString tilingInfoText = QString("<br/><br/>Tiling parameters: <br/><div style=\"width: 300px\" align=\"left\"><ul><li>number of tiles: <b>%1</b></li>"
-                                         "<li>base exposure time: <b>%2 - %3 sec</b></li><li>body exposure time: <b>%4 - %5 sec</li></b><br/></div>")
-                .arg(tileCount )
+                                         "<li>base exposure time: <b>%2%3 sec</b></li><li>body exposure time: <b>%4%5 sec</li></b><br/></div>")
+                .arg(tileCount)
                 .arg(QString::number(baseMinExpoTime, 'f', 2 ))
-                .arg(QString::number(baseMaxExpoTime, 'f', 2 ))
+                .arg(zba ? "" : QString(" - %1").arg(QString::number(baseMaxExpoTime, 'f', 2 )))
                 .arg(QString::number(bodyMinExpoTime, 'f', 2 ))
-                .arg(QString::number(bodyMaxExpoTime, 'f', 2 ));
+                .arg(zbo ? "" : QString(" - %1").arg(QString::number(bodyMaxExpoTime, 'f', 2 )));
 
 
         //_tilingInfoLabel->setText( tilingInfoText );

@@ -379,10 +379,11 @@ void TilingTab::tab_uiStateChanged(TabIndex const sender, UiState const state)
             this->_count->setValue(1);
             this->_currentLayerImage->clear();
 
-            _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(10.0));
-            _stepBaseLabel->setText(QString("%1s Exposure Step").arg(2.0));
-            _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(20.0));
-            _stepBodyLabel->setText(QString("%1s Exposure Step").arg(2.0));
+
+            _minExposureBaseLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBase));
+            _stepBaseLabel->setText(QString("%1s Exposure Step").arg(_stepBase));
+            _minExposureBodyLabel->setText(QString("%1s Minimum Layer Exposure").arg(_minExposureBody));
+            _stepBodyLabel->setText(QString("%1s Exposure Step").arg(_stepBody));
 
             _setEnabled(false);
             _setupTiling->setEnabled(false);

@@ -8,6 +8,18 @@ TilingManager::TilingManager()
 {
 }
 
+/**
+ * @brief TilingManager::processImages
+ * @param width projector window width
+ * @param height projector window hegiht
+ * @param baseExpoTime minimum exposure time for base layers
+ * @param baseStep  time step between each base tile in layer
+ * @param bodyExpoTime minimum exposure time for body layers
+ * @param bodyStep time step between each body tile in layer
+ * @param space space between tiles
+ * @param count number of tiles in layer
+ * @return
+ */
 OrderManifestManager* TilingManager::processImages(int width, int height, double baseExpoTime, double baseStep,
     double bodyExpoTime, double bodyStep, int space, int count)
 {
@@ -56,6 +68,8 @@ OrderManifestManager* TilingManager::processImages(int width, int height, double
     manifestMgr->setTilingSpace(_space);
     manifestMgr->setTilingCount(_count);
     manifestMgr->setVolume(_count * printJob.getEstimatedVolume());
+    manifestMgr->setZeroTilingBaseEn(_baseStep == 0);
+    manifestMgr->setZeroTilingBodyEn(_bodyStep == 0);
 
     manifestMgr->save();
 
@@ -102,7 +116,12 @@ void TilingManager::tileImages()
         /* render tiles based on slice */
         emit statusUpdate(QString("Tiling layer %1").arg(i));
         emit progressUpdate((double)i / (double)total * 100);
-        renderTiles ( entry, i );
+
+        if((i < printJob.getBaseLayerCount() && _baseStep == 0) ||
+           (i >= printJob.getBaseLayerCount() && _bodyStep == 0))
+            renderTiles0Step(entry, i);
+        else
+            renderTiles (entry, i);
     }
 
 }
@@ -155,6 +174,42 @@ void TilingManager::renderTiles ( QFileInfo info, int sequence ) {
 
         _counter++;
     }
+}
+
+void TilingManager::renderTiles0Step(QFileInfo info, int sequence) {
+
+    /* pixmap of single tile */
+    QPixmap pixmap ( _width, _height );
+    QPainter painter ( &pixmap );
+    painter.fillRect(0,0, _width, _height, QBrush("#000000"));
+
+    QPixmap sprite;
+    sprite.load( info.filePath() );
+
+    /* iterating over tiles */
+    for( int r=0; r<_wCount; ++r )
+    {
+        putImageAt (sprite, &painter, r, -1);
+    }
+
+    QString filename = QString( "%1/%2.png" ).arg( _path ).arg( _counter, 6, 10, DigitZero );
+    debug( "+ TilingManager::tileImages save %s\n", filename.toUtf8().data());
+
+    QFile file ( filename );
+    file.open(QIODevice::WriteOnly);
+    pixmap.save( &file, "PNG" );
+
+    if( sequence < printJob.getBaseLayerCount() ) {
+        _expoTimeList.push_back(_baseExpoTime);
+        _layerThicknessList.push_back(printJob.getSelectedBaseLayerThickness());
+    } else {
+        _expoTimeList.push_back(_bodyExpoTime);
+        _layerThicknessList.push_back(printJob.getSelectedBodyLayerThickness());
+    }
+
+    _fileNameList.push_back( GetFileBaseName( filename ) );
+
+    _counter++;
 }
 
 void TilingManager::putImageAt ( QPixmap pixmap, QPainter* painter, int i, int j ) {
