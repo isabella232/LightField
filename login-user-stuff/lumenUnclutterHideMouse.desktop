@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=lumenUnclutterHideMouse
-Exec=unclutter -idle 0.1 -root
-X-GNOME-Autostart-enabled=true
-Terminal=false
-Comment=User 'unclutter -idle 0.01 -root' to make mouse disappear after 0.1 sec
- 

@@ -1,8 +1,0 @@
-files/etc/systemd/system/getty@tty1.service.d/override.conf  etc/systemd/system/getty@tty1.service.d
-files/lib/systemd/system/clean-up-mount-points.service       lib/systemd/system
-files/lib/systemd/system/set-projector-power.service         lib/systemd/system
-files/usr/bin/lf                                             usr/bin
-files/usr/bin/mountmon                                       usr/bin
-files/usr/bin/set-projector-power                            usr/bin
-files/usr/bin/set-projector-power.real                       usr/bin
-files/var/lib/lightfield/print-profiles.json		     var/lib/lightfield

@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=LightField
-Exec=lf 
-X-GNOME-Autostart-enabled=true
-Terminal=true
-Categories=Application;
-Comment[en_US]=launch Volumetric LightField app FTW.
-Comment=launch Volumetric LightField app FTW.
