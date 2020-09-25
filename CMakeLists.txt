@@ -153,7 +153,7 @@ set(Project_Resources
         text/text.qrc)
 
 #find required packages. 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml Qt5SerialPort)
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -170,7 +170,7 @@ set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 include_directories(${CMAKE_BINARY_DIR}/src ${OPENGL_INCLUDE_DIR})
 
 add_executable(lf ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
-target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 # Add version definitions to use within the code. 
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")
