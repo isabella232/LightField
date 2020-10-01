@@ -155,7 +155,9 @@ set(Project_Headers
 set(Project_Resources
         images/images-${LF_PROJECTOR_TYPE}.qrc
         gl/gl.qrc
-        text/text.qrc)
+        text/text.qrc
+        fonts.qrc
+        styles.qrc)
 
 #find required packages. 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Xml SerialPort)
