@@ -397,7 +397,7 @@ void ProfilesTab::loadProfiles()
 {
     QStandardItem* item = nullptr;
     auto origFont = font();
-    auto fontAwesome = ModifyFont(origFont, "Font Awesome 5 Brands", LargeFontSize);
+    auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
     auto boldFont = ModifyFont(fontAwesome, QFont::Bold);
 
     _model->removeRows(0, _model->rowCount());

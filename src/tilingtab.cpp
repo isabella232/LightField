@@ -11,8 +11,8 @@
 TilingExpoTimePopup::TilingExpoTimePopup(QWidget* parent): QDialog(parent)
 {
     auto origFont = font();
-    auto normalFont = ModifyFont(origFont, "Font Awesome 5 Brands", NormalFontSize );
-    auto fontAwesome = ModifyFont(origFont, "Font Awesome 5 Brands", LargeFontSize);
+    auto normalFont = ModifyFont(origFont, "FontAwesome", NormalFontSize );
+    auto fontAwesome = ModifyFont(origFont, "FontAwesome", LargeFontSize);
     auto font22pt = ModifyFont(origFont, LargeFontSize);
     auto boldFont = ModifyFont( font( ), QFont::Bold );
 

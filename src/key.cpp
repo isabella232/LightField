@@ -48,7 +48,7 @@ void key::draw(QPainter *p,QStyle *style)
 {
     QStyleOptionButton opt;
     QFont font;
-    auto fontAwesome = ModifyFont( font, "Font Awesome 5 Brands", 20.0 );
+    auto fontAwesome = ModifyFont( font, "FontAwesome", 20.0 );
 
     opt.palette = QPalette(QColor(0,51,102,127));
     p->setFont(fontAwesome);

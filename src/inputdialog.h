@@ -22,7 +22,7 @@ public:
         InputDialog() { }
         InputDialog(QString text) {
             auto origFont    = font( );
-            auto fontAwesome = ModifyFont( origFont, "Font Awesome 5 Brands", LargeFontSize );
+            auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
 
             Window* win = App::mainWindow();
             QRect r = win->geometry();
