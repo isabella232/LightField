@@ -24,7 +24,7 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
     auto font12pt    = ModifyFont( origFont, 14.0 );
     auto font22pt    = ModifyFont( origFont, LargeFontSize );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome" );
+    auto fontAwesome = ModifyFont( origFont, "Font Awesome 5 Brands" );
 
     _threadPool.setMaxThreadCount(1);
 

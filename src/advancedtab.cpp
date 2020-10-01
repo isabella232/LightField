@@ -21,7 +21,7 @@ namespace {
 AdvancedTab::AdvancedTab(QWidget* parent): TabBase(parent) {
     auto origFont    = font( );
     auto boldFont    = ModifyFont( origFont, QFont::Bold );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
+    auto fontAwesome = ModifyFont( origFont, "Font Awesome 5 Brands", LargeFontSize );
 
     _forms[0] = _generalForm;
     _forms[1] = _basePumpForm;

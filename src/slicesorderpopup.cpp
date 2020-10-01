@@ -11,8 +11,8 @@ SlicesOrderPopup::SlicesOrderPopup(QSharedPointer<OrderManifestManager> manifest
     _manifestManager(manifestManager)
 {
     auto origFont    = font( );
-    auto normalFont = ModifyFont( origFont, "FontAwesome", NormalFontSize );
-    auto fontAwesome = ModifyFont( origFont, "FontAwesome", LargeFontSize );
+    auto normalFont = ModifyFont( origFont, "Font Awesome 5 Brands", NormalFontSize );
+    auto fontAwesome = ModifyFont( origFont, "Font Awesome 5 Brands", LargeFontSize );
 
     resize( 924, 400 );
 
