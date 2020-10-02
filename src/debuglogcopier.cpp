@@ -113,9 +113,9 @@ void DebugLogCopier::_remountRw_start( ) {
     _usbMountManager->remount( true );
 }
 
-void DebugLogCopier::remountRw_finished( bool const succeeded, bool const /*writable*/ ) {
+void DebugLogCopier::remountRw_finished(UsbDevice const &dev, bool succeeded) {
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &DebugLogCopier::remountRw_finished );
-
+    (void)dev;
     debug( "+ DebugLogCopier::remountRw_finished: remounting USB stick read-write %s\n", SucceededString( succeeded ) );
     if ( !succeeded ) {
         _showMessage( "Unable to acquire permission to write to USB stick." );
@@ -224,9 +224,9 @@ void DebugLogCopier::_remountRo_start( ) {
     _usbMountManager->remount( false );
 }
 
-void DebugLogCopier::remountRo_finished( bool const succeeded, bool const /*writable*/ ) {
+void DebugLogCopier::remountRo_finished(UsbDevice const &dev, bool succeeded) {
     debug( "+ DebugLogCopier::remountRo_finished: remount USB stick read-only %s\n", SucceededString( succeeded ) );
-
+    (void)dev;
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &DebugLogCopier::remountRo_finished );
     _showOkButton( );
 }

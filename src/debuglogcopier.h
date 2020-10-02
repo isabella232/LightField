@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include "filecopier.h"
 #include "initialshoweventmixin.h"
+#include "usbmountmanager.h"
 
 class UsbMountManager;
 
@@ -56,7 +57,7 @@ private slots:
     void abortButton_clicked( bool );
     void okButton_clicked( bool );
 
-    void remountRw_finished( bool const succeeded, bool const /*writable*/ );
+    void remountRw_finished(UsbDevice const &dev, bool succeeded);
 
     void fileCopier_fileStarted( int const index, qint64 const totalSize );
     void fileCopier_fileProgress( int const index, qint64 const bytesCopied );
@@ -65,7 +66,7 @@ private slots:
     void fileCopier_notify( int const index, QString const message );
     void fileCopier_finished( int const copiedFiles, int const skippedFiles );
 
-    void remountRo_finished( bool const succeeded, bool const /*writable*/ );
+    void remountRo_finished(UsbDevice const &dev, bool succeeded);
 
 };
 

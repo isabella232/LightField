@@ -357,32 +357,34 @@ void FileTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     }
 }
 
-void FileTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
-    debug( "+ FileTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
+void FileTab::usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable) {
+    debug( "+ FileTab::usbMountManager_filesystemMounted: mount point '%s'\n", dev.getMountpoint().toUtf8().data());
 
+    (void)writable;
+    (void)dev;
     if ( !_usbPath.isEmpty( ) ) {
         debug( "  + We already have a USB storage device at '%s' mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
         return;
     }
 
-    QFileInfo usbPathInfo { mountPoint };
+    QFileInfo usbPathInfo { _usbMountManager->mountPoint() };
     if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
         debug( "  + Unable to access mount point '%s' (uid: %u; gid: %u; mode: 0%03o)\n", _usbPath.toUtf8( ).data( ), usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
         return;
     }
 
-    _usbPath = mountPoint;
+    _usbPath = _usbMountManager->mountPoint();
     _createUsbFsModel( );
     _toggleLocationButton->setEnabled( true );
 
     update( );
 }
 
-void FileTab::usbMountManager_filesystemRemounted( bool const succeeded, bool const writable ) {
-    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s\n", YesNoString( succeeded ), YesNoString( writable ) );
+void FileTab::usbMountManager_filesystemRemounted(UsbDevice const &dev, bool succeeded) {
+    debug( "+ FileTab::usbMountManager_filesystemRemounted: succeeded? %s; writable? %s\n", YesNoString( succeeded ), YesNoString( dev.getWritable() ) );
     QObject::disconnect( _usbMountManager, &UsbMountManager::filesystemRemounted, this, &FileTab::usbMountManager_filesystemRemounted );
 
-    if ( succeeded && writable ) {
+    if ( succeeded && dev.getWritable() ) {
         debug( "+ FileTab::usbMountManager_filesystemRemounted: deleting model\n" );
         _deleteModel( );
         _usbMountManager->remount( false );

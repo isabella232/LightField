@@ -9,6 +9,7 @@
 #include "printjob.h"
 #include "paramslider.h"
 #include "pngdisplayer.h"
+#include "usbmountmanager.h"
 
 class Hasher;
 class SvgRenderer;
@@ -144,7 +145,7 @@ public slots:
     void activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
 
 private slots:
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable);
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void printer_online( );

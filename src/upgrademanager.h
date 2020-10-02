@@ -1,7 +1,9 @@
 #ifndef __UPGRADEMANAGER_H__
 #define __UPGRADEMANAGER_H__
 
+#include <QtCore>
 #include "version.h"
+#include "usbmountmanager.h"
 
 //
 // Forward declarations
@@ -125,7 +127,7 @@ signals:
 public slots:
     ;
 
-    void checkForUpgrades( QString const& upgradesPath );
+    void checkForUpgrades(UsbDevice const &dev, bool writable);
     void installUpgradeKit( UpgradeKitInfo const& kit );
 
 protected slots:

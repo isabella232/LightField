@@ -6,6 +6,7 @@
 #include "coordinate.h"
 #include "gesturelistview.h"
 #include "tabbase.h"
+#include "usbmountmanager.h"
 
 class Canvas;
 class Loader;
@@ -121,8 +122,8 @@ protected slots:
 
 private slots:
 
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
-    void usbMountManager_filesystemRemounted( bool const succeeded, bool const writable );
+    void usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable);
+    void usbMountManager_filesystemRemounted(UsbDevice const &dev, bool succeeded);
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void loader_gotMesh( Mesh* m );

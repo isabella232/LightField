@@ -125,10 +125,10 @@ void ProfilesTab::_connectPrintProfileManager()
     _printProfileManager->reload();
 }
 
-void ProfilesTab::_usbRemounted(const bool succeeded, const bool writable)
+void ProfilesTab::_usbRemounted(UsbDevice const &dev, bool succeeded)
 {
-    (void)writable;
 
+    (void)dev;
     QMessageBox msgBox { this };
     QObject::disconnect(_usbMountManager, &UsbMountManager::filesystemRemounted, this,
         &ProfilesTab::_usbRemounted);
@@ -435,12 +435,14 @@ void ProfilesTab::_connectUsbMountManager()
         &ProfilesTab::_filesystemUnmounted);
 }
 
-void ProfilesTab::_filesystemMounted(const QString& mountPoint)
+void ProfilesTab::_filesystemMounted(UsbDevice const &dev, bool writable)
 {
-    debug( "+ ProfilesTab::_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8().data());
+    (void)writable;
+    (void)dev;
+    debug( "+ ProfilesTab::_filesystemMounted: mount point '%s'\n", _usbMountManager->mountPoint().toUtf8().data());
     _importParams->setEnabled(true);
     _exportParams->setEnabled(true);
-    _usbMountPoint = mountPoint;
+    _usbMountPoint = _usbMountManager->mountPoint();
 }
 
 void ProfilesTab::_filesystemUnmounted(const QString& mountPoint)

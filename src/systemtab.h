@@ -4,6 +4,7 @@
 #include <QtCore>
 #include <QtWidgets>
 #include "tabbase.h"
+#include "usbmountmanager.h"
 
 class DebugLogCopier;
 class UpgradeKitInfo;
@@ -76,7 +77,7 @@ protected slots:
 private slots:
     ;
 
-    void usbMountManager_filesystemMounted( QString const& mountPoint );
+    void usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable);
     void usbMountManager_filesystemUnmounted( QString const& mountPoint );
 
     void upgradeManager_upgradeCheckStarting( );

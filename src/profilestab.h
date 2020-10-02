@@ -5,6 +5,7 @@
 #include <QtWidgets>
 #include "tabbase.h"
 #include "printprofilemanager.h"
+#include "usbmountmanager.h"
 
 class ProfilesTab: public TabBase
 {
@@ -22,7 +23,7 @@ public:
 
 protected:
     virtual void _connectUsbMountManager() override;
-    void _filesystemMounted(QString const& mountPoint);
+    void _filesystemMounted(UsbDevice const &dev, bool writable);
     void _filesystemUnmounted(QString const& mountPoint);
     virtual void _connectPrintManager() override;
 
@@ -47,7 +48,7 @@ private:
     void _deletePrintProfile();
     void _loadPrintProfile();
     void _enableButtonProfile(bool enabled, const PrintProfile& selected);
-    void _usbRemounted(const bool succeeded, const bool writable);
+    void _usbRemounted(UsbDevice const &dev, bool succeeded);
     void _setEnabled(bool enabled);
     void _activeProfileChanged(QSharedPointer<PrintProfile> newProfile);
     virtual void _connectPrintProfileManager() override;

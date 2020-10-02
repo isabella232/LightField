@@ -1,143 +1,192 @@
+#include <errno.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mount.h>
+#include <libudev.h>
+#include <QMap>
+#include <QSocketNotifier>
 #include "pch.h"
-
 #include "usbmountmanager.h"
+#include "debug.h"
 
-#include "processrunner.h"
-#include "stdiologger.h"
+static const QMap<QString, unsigned long> supported_fs_types = {
+    { "vfat", MS_SYNCHRONOUS },
+    { "ntfs", MS_SYNCHRONOUS },
+    { "ext4", MS_SYNCHRONOUS }
+};
 
-// ===============================================
-// Mountmon messages:
-// "error:<verb>:<errorMessage>"
-// "terminate:<reason>"
-// "mount:<mountPoint>"
-// "unmount:<mountPoint>"
-// "remount:(failure|success):r[wo]:<mountPoint>"
-// ===============================================
+UsbMountManager::UsbMountManager(QObject* parent): QObject(parent)
+{
+    struct stat st;
 
-UsbMountManager::UsbMountManager( QObject* parent ): QObject( parent ) {
-    _stderrLogger  = new StdioLogger   { "mountmon/stderr", this };
-    _stdoutLogger  = new StdioLogger   { "mountmon/stdout", this };
-    _processRunner = new ProcessRunner {                    this };
+    Q_ASSERT(unshare(CLONE_FS) == 0);
 
-    QObject::connect( _processRunner, &ProcessRunner::failed,                  this,          &UsbMountManager::mountmon_failed                  );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardError,  _stderrLogger, &StdioLogger::read                                 );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, _stdoutLogger, &StdioLogger::read                                 );
-    QObject::connect( _processRunner, &ProcessRunner::readyReadStandardOutput, this,          &UsbMountManager::mountmon_readyReadStandardOutput );
+    if (stat("/media/lumen", &st) != -1) {
+        mkdir("/media/lumen", 0755);
+    }
 
-    _processRunner->start( QString { "sudo" }, QStringList { MountmonCommand } );
+    _udev = udev_new();
+    Q_ASSERT(_udev);
+
+    _mon = udev_monitor_new_from_netlink(_udev, "udev");
+    Q_ASSERT(_mon);
+
+    udev_monitor_filter_add_match_subsystem_devtype(_mon, UDEV_SUBSYSTEM, UDEV_DEVTYPE);
+    udev_monitor_enable_receiving(_mon);
+
+    _notifier = new QSocketNotifier(udev_monitor_get_fd(_mon), QSocketNotifier::Read);
+    QObject::connect(_notifier, &QSocketNotifier::activated, this, &UsbMountManager::processDevice);
+    _notifier->setEnabled(true);
+
+    emit ready();
 }
 
-UsbMountManager::~UsbMountManager( ) {
-    if ( _stderrLogger ) {
-        QObject::disconnect( _stderrLogger );
-        _stderrLogger->deleteLater( );
-        _stderrLogger = nullptr;
-    }
-    if ( _stdoutLogger ) {
-        QObject::disconnect( _stdoutLogger );
-        _stdoutLogger->deleteLater( );
-        _stdoutLogger = nullptr;
-    }
-    if ( _processRunner ) {
-        _processRunner->write( "terminate\n" );
-        QObject::disconnect( _processRunner );
-        _processRunner->deleteLater( );
-        _processRunner = nullptr;
-    }
-}
+void UsbMountManager::enumerateDevices()
+{
+    struct udev_list_entry *devices;
+    struct udev_list_entry *entry;
+    struct udev_enumerate *enumerate = udev_enumerate_new(_udev);
+    Q_ASSERT(enumerate);
 
-void UsbMountManager::mountmon_failed( int const exitCode, QProcess::ProcessError const error ) {
-    debug( "+ UsbMountManager::mountmon_failed: exit code: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
-}
+    udev_enumerate_add_match_subsystem(enumerate, UDEV_SUBSYSTEM);
+    udev_enumerate_add_match_property(enumerate, UDEV_BUS_PROP, UDEV_BUS_ID);
+    udev_enumerate_scan_devices(enumerate);
 
-void UsbMountManager::mountmon_readyReadStandardOutput( QString const& data ) {
-    _stdoutBuffer += data;
-
-    auto index = _stdoutBuffer.lastIndexOf( '\n' );
-    if ( -1 == index ) {
-        return;
-    }
-
-    auto lines = _stdoutBuffer.left( index ).split( NewLineRegex );
-    _stdoutBuffer.remove( 0, index + 1 );
-    for ( auto const& line : lines ) {
-        auto tokens = line.split( ':' );
-        if ( tokens.count( ) < 2 ) {
-            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: short line\n" );
-            continue;
+    devices = udev_enumerate_get_list_entry(enumerate);
+    udev_list_entry_foreach(entry, devices) {
+        const char *path = udev_list_entry_get_name(entry);
+        struct udev_device* udev_dev = udev_device_new_from_syspath(_udev, path);
+        if (strcmp(UDEV_DEVTYPE, udev_device_get_devtype(udev_dev)) == 0) {
+            UsbDevice dev(udev_dev);
+            _devList.insert(dev.getDevPath(), dev);
+            tryMount(dev);
         }
+    }
 
-        if ( tokens[0] == "terminate" ) {
-            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: mountmon terminated: reason '%s'\n", tokens[1].toUtf8( ).data( ) );
+    udev_enumerate_unref(enumerate);
+}
 
-            _stdoutBuffer.clear( );
-            break;
-        } else if ( tokens[0] == "mount" ) {
-            if ( !_mountPoint.isEmpty( ) ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'mount' notification for mount point '%s', when we already have a mounted filesystem?\n", tokens[1].toUtf8( ).data( ) );
-                continue;
+void UsbMountManager::processDevice(int fd)
+{
+    (void)fd;
+
+    struct udev_device *udev_dev = udev_monitor_receive_device(_mon);
+
+    if (strcmp(UDEV_BUS_ID, udev_device_get_property_value(udev_dev, UDEV_BUS_PROP)) == 0) {
+        const char *action = udev_device_get_action(udev_dev);
+
+        if (strcmp(action, "add") == 0) {
+            UsbDevice dev(udev_dev);
+            _devList.insert(dev.getDevPath(), dev);
+            tryMount(dev);
+        } else if (strcmp(action, "remove") == 0) {
+            struct stat st;
+            const char *path = udev_device_get_property_value(udev_dev, UDEV_DEVNAME);
+            if (!_devList.contains(path))
+                return;
+
+            QString mountpoint = _devList.take(path).getMountpoint();
+
+            if (stat(mountpoint.toUtf8().data(), &st) != -1) {
+                rmdir(mountpoint.toUtf8().data());
             }
-            _mountPoint = tokens[1];
-
-            emit filesystemMounted( _mountPoint );
-        } else if ( tokens[0] == "unmount" ) {
-            if ( _mountPoint.isEmpty( ) ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'unmount' notification for mount point '%s', when we don't have a mounted filesystem?\n", tokens[1].toUtf8( ).data( ) );
-                continue;
-            }
-            if ( _mountPoint != tokens[1] ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'unmount' notification for mount point '%s', which is not the mount point '%s' that we know about?\n", tokens[1].toUtf8( ).data( ), _mountPoint.toUtf8( ).data( ) );
-                continue;
-            }
-
-            auto mountPoint = _mountPoint;
-            _mountPoint.clear( );
-
-            emit filesystemUnmounted( mountPoint );
-        } else if ( tokens[0] == "error" ) {
-            if ( tokens.count( ) < 3 ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received short 'error' notification with only %d fields\n", tokens.count( ) );
-                continue;
-            }
-
-            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received error notification: verb '%s', error message '%s'\n", tokens[1].toUtf8( ).data( ), tokens[2].toUtf8( ).data( ) );
-        } else if ( tokens[0] == "remount" ) {
-            if ( tokens.count( ) < 4 ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received short 'remount' notification with only %d fields\n", tokens.count( ) );
-                continue;
-            }
-            if ( _mountPoint.isEmpty( ) ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount' notification for mount point '%s', when we don't have a mounted filesystem?\n", tokens[3].toUtf8( ).data( ) );
-                continue;
-            }
-            if ( _mountPoint != tokens[3] ) {
-                debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'remount' notification for mount point '%s', which is not the mount point '%s' that we know about?\n", tokens[3].toUtf8( ).data( ), _mountPoint.toUtf8( ).data( ) );
-                continue;
-            }
-
-            bool succeeded = ( tokens[1] == "success" );
-            if ( succeeded ) {
-                _isWritable = ( tokens[2] == "rw" );
-            }
-
-            emit filesystemRemounted( succeeded, _isWritable );
-        } else if ( tokens[0] == "ready" ) {
-            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: received 'ready' notification\n" );
-
-            emit ready( );
-        } else {
-            debug( "+ UsbMountManager::mountmon_readyReadStandardOutput: unknown verb '%s'\n", tokens[0].toUtf8( ).data( ) );
+            emit filesystemUnmounted(mountpoint);
         }
     }
 }
 
-void UsbMountManager::remount( bool const writable ) {
-    if ( _mountPoint.isEmpty( ) ) {
-        debug( "+ UsbMountManager::remount: asked to remount our filesystem, when we don't have one?\n" );
-        emit filesystemRemounted( false, writable );
+void UsbMountManager::tryMount(UsbDevice &dev)
+{
+    struct stat st;
+    QString fstype = dev.getFstype();
+    QString path = dev.getDevPath();
+    QString mountpoint = dev.getMountpoint();
+
+    if (!supported_fs_types.contains(fstype)) {
+        debug("+ UsbMountManager::tryMount: unsupported filesystem type %s at path %s - skipping\n",
+            fstype, path);
+        _devList.remove(path);
+        emit filesystemMountFailed(path, EINVAL);
         return;
     }
 
-    debug( "+ UsbMountManager::remount: asking Mountmon to remount mount point '%s' read-%s\n", _mountPoint.toUtf8( ).data( ), writable ? "write" : "only" );
-    _processRunner->write( QString { "remount-r%1:%2\n" }.arg( writable ? 'w' : 'o' ).arg( _mountPoint ).toUtf8( ) );
+    unsigned long flags = supported_fs_types[fstype] | MS_RDONLY;
+
+    if (stat(mountpoint.toUtf8().data(), &st) == -1) {
+        mkdir(mountpoint.toUtf8().data(), 0755);
+    }
+
+    int ret = mount(path.toUtf8().data(), mountpoint.toUtf8().data(), fstype.toUtf8().data(), flags,
+        nullptr);
+
+    if (ret == 0) {
+        dev.setMounted(true);
+        emit filesystemMounted(dev, false);
+        return;
+    }
+
+    debug("+ UsbMountManager::tryMount: failed to mount %s %s read only: %s - skipping\n",
+        fstype, path, strerror(errno));
+    _devList.remove(path);
+    emit filesystemMountFailed(path, errno);
+}
+
+UsbMountManager::~UsbMountManager()
+{
+    udev_monitor_unref(_mon);
+    udev_unref(_udev);
+    _notifier->deleteLater();
+}
+
+void UsbMountManager::remountDevice(UsbDevice &dev, bool writable)
+{
+    QString fstype = dev.getFstype();
+    QString path = dev.getDevPath();
+    QString mountpoint = dev.getMountpoint();
+    unsigned long flags = supported_fs_types[fstype] | MS_REMOUNT;
+    if (!writable)
+        flags |= MS_RDONLY;
+
+    int ret = mount(path.toUtf8().data(), mountpoint.toUtf8().data(), fstype.toUtf8().data(), flags,
+        nullptr);
+
+    if (ret == 0) {
+        emit filesystemRemounted(dev, true);
+        dev.setWritable(writable);
+        return;
+    }
+
+    emit filesystemRemounted(dev, false);
+    debug("+ UsbMountManager::tryMount: failed to remount %s %s %s\n",
+        fstype, path, writable ? "RW" : "RO");
+}
+
+QList<UsbDevice> UsbMountManager::getDeviceList()
+{
+    return _devList.values();
+}
+
+void UsbMountManager::remount(bool writable)
+{
+    if (_devList.empty())
+        return;
+
+    remountDevice(_devList.first(), writable);
+}
+
+bool UsbMountManager::isWritable()
+{
+    if (_devList.empty())
+        return false;
+
+    return _devList.first().getWritable();
+}
+
+QString UsbMountManager::mountPoint()
+{
+    if (_devList.empty())
+        return QString();
+
+    return _devList.first().getMountpoint();
 }

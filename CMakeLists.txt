@@ -2,7 +2,7 @@
 # Original Project Author: Matt Keeter Copyright 2014 -2017
 # Author: Paul Tsouchlos Copyright 2017
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.13.4)
 
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -166,6 +166,7 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(MAGICK REQUIRED IMPORTED_TARGET GraphicsMagick++)
+pkg_check_modules(UDEV REQUIRED libudev)
 
 #add resources to RCC
 qt5_add_resources(Project_Resources_RCC ${Project_Resources})
@@ -177,7 +178,7 @@ set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 include_directories(${CMAKE_BINARY_DIR}/src ${OPENGL_INCLUDE_DIR})
 
 add_executable(lf ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
-target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${UDEV_LIBRARIES})
 
 # Add version definitions to use within the code. 
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")

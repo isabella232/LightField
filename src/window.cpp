@@ -60,7 +60,6 @@ Window::Window( QWidget* parent ): QMainWindow( parent ) {
 
     QObject::connect( _usbMountManager, &UsbMountManager::ready, _upgradeManager, [this] ( ) {
         QObject::connect( _usbMountManager, &UsbMountManager::filesystemMounted, _upgradeManager, &UpgradeManager::checkForUpgrades );
-        _upgradeManager->checkForUpgrades( _usbMountManager->mountPoint( ) );
     } );
 
     std::vector<TabBase*> tabs {

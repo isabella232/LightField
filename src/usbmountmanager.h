@@ -2,9 +2,75 @@
 #define __USBMOUNTMANAGER_H__
 
 #include <QtCore>
+#include <QSocketNotifier>
+#include <libudev.h>
 
-class ProcessRunner;
-class StdioLogger;
+#define UDEV_SUBSYSTEM "block"
+#define UDEV_DEVTYPE "partition"
+#define UDEV_BUS_PROP "ID_BUS"
+#define UDEV_DEVNAME "DEVNAME"
+#define UDEV_FS_TYPE "ID_FS_TYPE"
+#define UDEV_BUS_ID "usb"
+#define UDEV_DEV_MODEL "ID_MODEL"
+
+class UsbDevice
+{
+public:
+    UsbDevice(): _dev(nullptr) {}
+    UsbDevice(struct udev_device *dev): _dev(dev) {}
+    ~UsbDevice() {
+        udev_device_unref(_dev);
+    }
+
+    QString getDevPath() const {
+        if (_dev == nullptr)
+            return QString();
+        return udev_device_get_property_value(_dev, UDEV_DEVNAME);
+    }
+
+    QString getModel() const {
+        if (_dev == nullptr)
+            return QString();
+        return udev_device_get_property_value(_dev, UDEV_DEV_MODEL);
+    }
+
+    QString getFstype() const {
+        if (_dev == nullptr)
+            return QString();
+        return udev_device_get_property_value(_dev, UDEV_FS_TYPE);
+    }
+
+    QString getDevName() const {
+        return QString(getDevPath()).split('/').takeLast();
+    }
+
+    QString getMountpoint() const {
+
+        return QString("/dev/lumen/%1").arg(getDevName());
+    }
+
+    void setMounted(bool mounted) {
+        _mounted = mounted;
+    }
+
+    bool getMounted() const {
+        return _mounted;
+    }
+
+    void setWritable(bool writable) {
+        _writable = _mounted && writable;
+    }
+
+    bool getWritable() const {
+        return _mounted && _writable;
+    }
+
+protected:
+    struct udev_device *_dev;
+    bool _mounted { false };
+    bool _writable { false };
+};
+
 
 class UsbMountManager: public QObject
 {
@@ -14,43 +80,31 @@ public:
     UsbMountManager(QObject* parent = nullptr);
     virtual ~UsbMountManager( ) override;
 
-    void    remount( bool const writable );
+    void remount(bool writable);
+    bool isWritable();
+    QString mountPoint();
 
-    bool    isWritable( ) { return _isWritable; }
-    QString mountPoint( ) { return _mountPoint; }
+    void remountDevice(UsbDevice &dev, bool writable);
+    QList<UsbDevice> getDeviceList();
 
 protected:
+    QMap<QString, UsbDevice> _devList;
+    QSocketNotifier *_notifier;
+    struct udev *_udev;
+    struct udev_monitor *_mon;
 
-private:
-
-    QString        _mountPoint;
-    bool           _isWritable    { };
-
-    ProcessRunner* _processRunner { };
-    StdioLogger*   _stderrLogger  { };
-    StdioLogger*   _stdoutLogger  { };
-    QString        _stdoutBuffer;
+    void enumerateDevices();
+    void tryMount(UsbDevice &dev);
 
 signals:
-    ;
-
-    void ready( );
-    void filesystemMounted( QString const& mountPoint );
-    void filesystemRemounted( bool const succeeded, bool const writable );
-    void filesystemUnmounted( QString const& mountPoint );
-
-public slots:
-    ;
+    void ready();
+    void filesystemMounted(UsbDevice const &dev, bool writable);
+    void filesystemMountFailed(QString path, int error);
+    void filesystemRemounted(UsbDevice const &dev, bool succeeded);
+    void filesystemUnmounted(QString const& mountPoint);
 
 protected slots:
-    ;
-
-private slots:
-    ;
-
-    void mountmon_failed( int const exitCode, QProcess::ProcessError const error );
-    void mountmon_readyReadStandardOutput( QString const& data );
-
+    void processDevice(int fd);
 };
 
 #endif // __USBMOUNTMANAGER_H__

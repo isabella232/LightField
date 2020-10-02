@@ -1130,21 +1130,22 @@ void PrepareTab::setPrinterAvailable( bool const value ) {
     _updatePrepareButtonState( );
 }
 
-void PrepareTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
-    debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
-
+void PrepareTab::usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable) {
+    debug( "+ PrepareTab::usbMountManager_filesystemMounted: mount point '%s'\n", dev.getMountpoint().toUtf8( ).data( ) );
+    (void)writable;
+    (void)dev;
     if ( !_usbPath.isEmpty( ) ) {
         debug( "  + We already have a USB storage device at '%s' mounted; ignoring new mount\n", _usbPath.toUtf8( ).data( ) );
         return;
     }
 
-    QFileInfo usbPathInfo { mountPoint };
+    QFileInfo usbPathInfo { _usbMountManager->mountPoint() };
     if ( !usbPathInfo.isReadable( ) || !usbPathInfo.isExecutable( ) ) {
         debug( "  + Unable to access mount point '%s' (uid: %u; gid: %u; mode: 0%03o)\n", _usbPath.toUtf8( ).data( ), usbPathInfo.ownerId( ), usbPathInfo.groupId( ), usbPathInfo.permissions( ) & 07777 );
         return;
     }
 
-    _usbPath = mountPoint;
+    _usbPath = _usbMountManager->mountPoint();
 
     update( );
 }

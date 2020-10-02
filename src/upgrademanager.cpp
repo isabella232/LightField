@@ -607,7 +607,8 @@ void UpgradeManager::hasher_hashCheckResult( bool const result ) {
     _checkNextKitsHashes( );
 }
 
-void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
+void UpgradeManager::checkForUpgrades(UsbDevice const &dev, bool writable) {
+    (void)writable;
     if ( _isBusy.test_and_set( ) ) {
         debug( "+ UpgradeManager::checkForUpgrades: already busy performing an upgrade check or upgrade install\n" );
         return;
@@ -617,7 +618,7 @@ void UpgradeManager::checkForUpgrades( QString const& upgradesPath ) {
     debug( "+ UpgradeManager::checkForUpgrades: starting check\n" );
     emit upgradeCheckStarting( );
 
-    _checkForUpgrades( upgradesPath );
+    _checkForUpgrades(dev.getMountpoint());
 }
 
 void UpgradeManager::installUpgradeKit( UpgradeKitInfo const& kit ) {

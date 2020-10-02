@@ -149,9 +149,11 @@ void SystemTab::tab_uiStateChanged( TabIndex const sender, UiState const state )
     }
 }
 
-void SystemTab::usbMountManager_filesystemMounted( QString const& mountPoint ) {
-    debug( "+ SystemTab::usbMountManager_filesystemMounted: mount point '%s'\n", mountPoint.toUtf8( ).data( ) );
-    _mountPoint = mountPoint;
+void SystemTab::usbMountManager_filesystemMounted(UsbDevice const &dev, bool writable) {
+    debug( "+ SystemTab::usbMountManager_filesystemMounted: mount point '%s'\n", _usbMountManager->mountPoint().toUtf8( ).data( ) );
+    (void)writable;
+    (void)dev;
+    _mountPoint = _usbMountManager->mountPoint();
     _updateButtons( );
 }
 
