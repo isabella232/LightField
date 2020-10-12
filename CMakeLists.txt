@@ -4,6 +4,9 @@
 
 cmake_minimum_required(VERSION 3.13.4)
 
+add_subdirectory(libprojector)
+
+
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -178,7 +181,7 @@ set_property(SOURCE ${Project_Resources_RCC} PROPERTY SKIP_AUTOGEN ON)
 include_directories(${CMAKE_BINARY_DIR}/src ${OPENGL_INCLUDE_DIR})
 
 add_executable(lf ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
-target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${UDEV_LIBRARIES})
+target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${UDEV_LIBRARIES} projector)
 
 # Add version definitions to use within the code. 
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")

@@ -1,5 +1,9 @@
 #include "libprojector.h"
 
+#include <getopt.h>
+#include <signal.h>
+#include <unistd.h>
+
 namespace Option
 {
     int const Help = 'h';
@@ -36,7 +40,7 @@ enum class Mode
     exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-void monitorPowerAndTemperature(ProjectorController &pc)
+void monitorPowerAndTemperature(ProjectorController* pc)
 {
     unsigned checksum;
     unsigned brightness;
@@ -60,12 +64,12 @@ void monitorPowerAndTemperature(ProjectorController &pc)
             //
             // Query LED brightness
             //
-            brightness = pc.getLEDBrightness();
+            brightness = pc->getLEDBrightness();
 
             //
             // Query LED temperature
             //
-            temperature = pc.getLEDTemperature();
+            temperature = pc->getLEDTemperature();
 
             printf("\rbrightness: %4u, temperature: %4u °C", brightness, temperature);
         }
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
     unsigned long duration{0};
     unsigned long powerLevel{};
     bool monitor{};
-    ProjectorController pc;
+    ProjectorController* pc  = ProjectorController::getInstance();
 
     setvbuf(stdout, nullptr, _IONBF, 0);
 
@@ -173,7 +177,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if (!pc.openPort())
+    if (!pc->openPort())
     {
         return -1;
     }
@@ -181,22 +185,22 @@ int main(int argc, char **argv)
     switch (mode)
     {
     case Mode::FirstTimeConfiguration:
-        pc.firstTimeConfiguration();
+        pc->firstTimeConfiguration();
 
         break;
 
     case Mode::SetPowerLevel:
-        pc.setPowerLevel(powerLevel);
+        pc->setPowerLevel(powerLevel);
 
         if (duration > 0)
         {
-            pc.setDuration(duration);
+            pc->setDuration(duration);
         }
 
     case Mode::QueryPowerLevel:
         try
         {
-            unsigned long pl = pc.getPowerLevel();
+            unsigned long pl = pc->getPowerLevel();
 
             printf("LED brightness: %lu\n", pl);
         }
