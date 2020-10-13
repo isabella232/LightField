@@ -10,8 +10,10 @@ add_library(projector SHARED
     src/dlpc350impl.cpp
 )
 
+target_link_libraries(projector hidapi-libusb)
+
 add_executable(setprojectorpower 
     src/setprojectorpower.cpp
 )
 
-target_link_libraries(setprojectorpower projector hidapi-libusb)
+target_link_libraries(setprojectorpower projector)
