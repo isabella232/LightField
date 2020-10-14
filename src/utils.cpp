@@ -6,6 +6,7 @@
 #include <ctime>
 
 #include "app.h"
+#include "projectormanager.h"
 #include "window.h"
 
 namespace {
@@ -122,13 +123,13 @@ bool YesNoPrompt( QWidget* parent, QString const& title, QString const& text ) {
 void RebootPrinter( ) {
     PidFile.remove( );
     system( ResetLumenArduinoPortCommand.toUtf8( ).data( ) );
-    system( ( SetProjectorPowerCommand % " 0" ).toUtf8( ).data( ) );
+    projectorManager->turnOffProjector();
     QProcess::startDetached( "sudo", { "systemctl", "reboot" } );
 }
 
 void ShutDownPrinter( ) {
     PidFile.remove( );
     system( ResetLumenArduinoPortCommand.toUtf8( ).data( ) );
-    system( ( SetProjectorPowerCommand % " 0" ).toUtf8( ).data( ) );
+    projectorManager->turnOffProjector();
     QProcess::startDetached( "sudo", { "systemctl", "poweroff" } );
 }

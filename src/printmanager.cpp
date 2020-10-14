@@ -8,6 +8,7 @@
 #include "processrunner.h"
 #include "firmwarecontroller.h"
 #include "timinglogger.h"
+#include "projectormanager.h"
 
 // ================================
 // == Section A: Before printing ==
@@ -287,7 +288,7 @@ void PrintManager::stepB1_start( ) {
 
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
-    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { QString( "%1" ).arg( powerLevel ) } );
+    projectorManager->turnOnProjector(powerLevel);
 
     emit startingLayer( _currentLayer );
 }
@@ -390,7 +391,7 @@ void PrintManager::stepB3_start( ) {
 
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB3_completed );
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB3_failed    );
-    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { "0" } );
+    projectorManager->turnOffProjector();
 }
 
 void PrintManager::stepB3_completed( ) {
@@ -617,7 +618,7 @@ void PrintManager::stepC1_start( ) {
 
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepC1_completed );
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepC1_failed    );
-    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { QString( "%1" ).arg( powerLevel ) } );
+    projectorManager->turnOnProjector(powerLevel);
 
     emit startingLayer( _currentLayer );
 }
@@ -715,7 +716,8 @@ void PrintManager::stepC3_start( ) {
 
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepC3_completed );
     QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepC3_failed    );
-    _setProjectorPowerProcess->start( SetProjectorPowerCommand, { "0" } );
+    projectorManager->turnOffProjector();
+
 }
 
 void PrintManager::stepC3_completed( ) {
@@ -896,7 +898,8 @@ void PrintManager::stepD1_start()
     if ( _lampOn ) {
         debug( "+ PrintManager::stepD1_start: Turning off lamp\n" );
 
-        QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
+        projectorManager->turnOffProjector();
+
         _lampOn = false;
         emit lampStatusChange( false );
     }

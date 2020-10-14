@@ -2,6 +2,7 @@
 
 #include "buildinfo.h"
 #include "lightfieldstyle.h"
+#include "projectormanager.h"
 #include "signalhandler.h"
 #include "version.h"
 #include "window.h"
@@ -276,7 +277,7 @@ App::App( int& argc, char* argv[] ): QApplication( argc, argv ) {
         ::exit( 1 );
     }
 
-    QProcess::startDetached( SetProjectorPowerCommand, { "0" } );
+    projectorManager->turnOffProjector();
 
     _setTheme( );
 
@@ -294,7 +295,7 @@ void App::terminate( ) {
     _window->deleteLater( );
     _window = nullptr;
 
-    QProcess::startDetached( SetProjectorPowerCommand,     { "0" } );
+    projectorManager->turnOffProjector();
     QProcess::startDetached( ResetLumenArduinoPortCommand, {     } );
 
     delete _debugManager;

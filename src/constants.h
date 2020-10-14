@@ -24,7 +24,6 @@ QString            extern const  AptSourcesFilePath;
 QString            extern const  JobWorkingDirectoryPath;
 QString            extern const  MountmonCommand;
 QString            extern const  ResetLumenArduinoPortCommand;
-QString            extern const  SetProjectorPowerCommand;
 QString            extern const  SlicedSvgFileName;
 QString            extern const  StlModelLibraryPath;
 QString            extern const  UpdatesRootPath;

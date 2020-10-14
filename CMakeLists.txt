@@ -72,6 +72,7 @@ set(Project_Sources
         src/processrunner.cpp
         src/progressdialog.cpp
         src/profilestab.cpp
+        src/projectormanager.cpp
         src/signalhandler.cpp
         src/slicertask.cpp
         src/slicesorderpopup.cpp
@@ -132,6 +133,7 @@ set(Project_Headers
         src/processrunner.h
         src/progressdialog.h
         src/profilestab.h
+        src/projectormanager.h
         src/signalhandler.h
         src/slicertask.h
         src/slicesorderpopup.h

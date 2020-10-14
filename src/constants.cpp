@@ -36,7 +36,6 @@ QString                   const  AptSourcesFilePath            { "/etc/apt/sourc
 QString                   const  JobWorkingDirectoryPath       { "/data/print-jobs"                       };
 QString                   const  MountmonCommand               { "mountmon"                                               };
 QString                   const  ResetLumenArduinoPortCommand  { "/usr/share/lightfield/libexec/reset-lumen-arduino-port" };
-QString                   const  SetProjectorPowerCommand      { "set-projector-power"                                    };
 QString                   const  SlicedSvgFileName             { "sliced.svg"                                             };
 QString                   const  StlModelLibraryPath           { "/data/model-library"                      };
 QString                   const  UpdatesRootPath               { "/data/software-updates"                   };

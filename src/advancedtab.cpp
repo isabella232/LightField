@@ -5,6 +5,7 @@
 #include "pngdisplayer.h"
 #include "printjob.h"
 #include "printmanager.h"
+#include "projectormanager.h"
 #include "firmwarecontroller.h"
 #include "advancedtabselectionmodel.h"
 #include "paramslider.h"
@@ -212,7 +213,11 @@ void AdvancedTab::_projectImage( char const* fileName ) {
         _pngDisplayer->clear( );
     }
 
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _isProjectorOn ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+    if(_isProjectorOn) {
+        projectorManager->turnOffProjector();
+    } else {
+        projectorManager->turnOnProjector(_powerLevelSlider->value());
+    }
 
     setPrinterAvailable( !_isProjectorOn );
     emit printerAvailabilityChanged( _isPrinterAvailable );
@@ -243,7 +248,11 @@ void AdvancedTab::projectFocusImageButton_clicked( bool checked ) {
 }
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
-    QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( _isProjectorOn ? PercentagePowerLevelToRawLevel( _powerLevelSlider->value( ) ) : 0 ) } );
+    if(projectorManager->isProjectorOn()) {
+        projectorManager->turnOffProjector();
+    } else {
+        projectorManager->turnOnProjector(_powerLevelSlider->value());
+    }
 
     emit projectorPowerLevelChanged( _powerLevelSlider->value( ) );
 }
