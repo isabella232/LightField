@@ -11,6 +11,7 @@
 #include "printjob.h"
 #include "printmanager.h"
 #include "printprofile.h"
+#include "projectormanager.h"
 #include "firmwarecontroller.h"
 #include "slicesorderpopup.h"
 #include "thicknesswindow.h"
@@ -172,14 +173,12 @@ PrepareTab::PrepareTab(QWidget* parent ): InitialShowEventMixin<PrepareTab, TabB
     _adjustLightBulb->setCheckable(true);
 
     QObject::connect( _adjustLightBulb, &QPushButton::toggled, [this](bool toggled) {
-
         if(toggled) {
             _pngDisplayer->loadImageFile(printJob.getLayerPath(_visibleLayer));
-            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( activeProfileRef->baseLayerParameters().powerLevel() )) } );
-
+            projectorManager->turnOnProjector(PercentagePowerLevelToRawLevel(activeProfileRef->baseLayerParameters().powerLevel()));
         } else {
             _pngDisplayer->clear();
-            QProcess::startDetached( SetProjectorPowerCommand, { QString { "%1" }.arg( PercentagePowerLevelToRawLevel( 0 )) } );
+            projectorManager->turnOffProjector();
         }
 
     });

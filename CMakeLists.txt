@@ -30,10 +30,14 @@ set(CMAKE_AUTOUIC ON)
 
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/src/version.h @ONLY)
 
-if((${LF_RELEASE_TRAIN} EQUAL "dlp4710") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+if(("${LF_RELEASE_TRAIN}" STREQUAL "dlp4710") OR ("${LF_RELEASE_TRAIN}" STREQUAL "xdlp4710"))
   set(LF_PROJECTOR_TYPE "dlp4710")
 else()
   set(LF_PROJECTOR_TYPE "dlpc350")
+endif()
+
+if("${LF_RELEASE_TRAIN}" STREQUAL "xdlp4710-20um")
+  set(LF_PROJECTOR_TYPE "dlp4710")
 endif()
 
 set(Project_Sources
@@ -185,6 +189,15 @@ include_directories(${CMAKE_BINARY_DIR}/src ${OPENGL_INCLUDE_DIR})
 add_executable(lf ${Project_Sources} ${Project_Headers} ${Project_Resources_RCC} ${Icon_Resource})
 target_link_libraries(lf Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::SerialPort PkgConfig::MAGICK ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${UDEV_LIBRARIES} projector)
 
+if(("${LF_RELEASE_TRAIN}" STREQUAL "dlp4710") OR ("${LF_RELEASE_TRAIN}" STREQUAL "xdlp4710"))
+  target_compile_definitions(lf PUBLIC -DDLP4710)
+endif()
+
+if("${LF_RELEASE_TRAIN}" STREQUAL "xdlp4710-20um")
+  target_compile_definitions(lf PUBLIC -DXDLP471020UM)  
+  target_compile_definitions(lf PUBLIC -DEXPERIMENTAL)
+endif()
+
 # Add version definitions to use within the code. 
 target_compile_definitions(lf PRIVATE -DLF_VERSION="${LF_VERSION_STRING}")
 
@@ -192,7 +205,7 @@ if(${CMAKE_BUILD_TYPE} MATCHES Debug)
   target_compile_definitions(lf PRIVATE -D_DEBUG)
 endif()
 
-if((${LF_RELEASE_TRAIN} EQUAL "xbase") OR (${LF_RELEASE_TRAIN} EQUAL "xdlp4710"))
+if(("${LF_RELEASE_TRAIN}" STREQUAL "xbase") OR ("${LF_RELEASE_TRAIN}" STREQUAL "xdlp4710"))
   target_compile_definitions(lf PRIVATE -DEXPERIMENTAL)
 endif()
 

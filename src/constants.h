@@ -62,15 +62,12 @@ int    constexpr          const  FirmwareLogPathCount          =    6;
 char               extern const* FirmwareLogPaths[DebugLogPathCount];
 
 #   if defined XDLP471020UM
-
 double constexpr          const  ProjectorPixelSize         =    0.0200; // mm
 
 #   elif defined DLP4710
-
 double constexpr          const  ProjectorPixelSize         =    0.0355; // mm
 
 #   else // ! defined DLP4710
-
 double constexpr          const  ProjectorPixelSize         =    0.0500; // mm
 
 #   endif // defined DLP4710
