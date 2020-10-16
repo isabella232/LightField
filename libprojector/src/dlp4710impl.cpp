@@ -113,7 +113,7 @@ unsigned int ProjectorDlp4710Impl::getLEDBrightness()
 
 bool ProjectorDlp4710Impl::openPort()
 {
-    fd = open("/dev/lumen-projector", O_RDWR);
+    fd = open(findPort(), O_RDWR);
 
     if (-1 == fd)
     {
@@ -340,3 +340,28 @@ unsigned int ProjectorDlp4710Impl::getLEDTemperature()
 
     return temperature;
 };
+
+const char* ProjectorDlp4710Impl::findPort() {
+        struct udev *_udev;
+        struct udev_list_entry *devices;
+        struct udev_list_entry *entry;
+        struct udev_enumerate *enumerate = udev_enumerate_new(_udev);
+
+        udev_enumerate_add_match_subsystem(enumerate, UDEV_SUBSYSTEM);
+        udev_enumerate_add_match_property(enumerate, UDEV_BUS_PROP, UDEV_BUS_ID);
+        udev_enumerate_add_match_property(enumerate, ID_VENDOR_ID, MY_VID_4710);
+        udev_enumerate_add_match_property(enumerate, ID_MODEL_ID, MY_PID_4710);
+        udev_enumerate_scan_devices(enumerate);
+
+        devices = udev_enumerate_get_list_entry(enumerate);
+        udev_list_entry_foreach(entry, devices) {
+            const char *path = udev_list_entry_get_name(entry);
+            struct udev_device* udev_dev = udev_device_new_from_syspath(_udev, path);
+            const char* devname = udev_device_get_property_value(udev_dev, UDEV_DEVNAME);
+
+            return devname;
+        }
+
+        udev_enumerate_unref(enumerate);
+        return NULL;
+}

@@ -3,6 +3,7 @@
 
 #include "libprojector.h"
 
+#include <libudev.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -15,8 +16,15 @@
 #include <termios.h>
 #include <signal.h>
 #include <unistd.h>
-#include <signal.h>
-#include <unistd.h>
+
+#define UDEV_SUBSYSTEM "tty"
+#define UDEV_BUS_PROP "ID_BUS"
+#define UDEV_DEVNAME "DEVNAME"
+#define UDEV_BUS_ID "usb"
+#define ID_VENDOR_ID "ID_VENDOR_ID"
+#define ID_MODEL_ID "ID_MODEL_ID"
+#define MY_VID_4710 "0403"
+#define MY_PID_4710 "6001"
 
 class ProjectorDlp4710Impl: public ProjectorController {
 public:
@@ -85,6 +93,7 @@ protected:
 
     bool checkChecksum(unsigned const value, unsigned const checksum);
 
+    const char* findPort();
 private:
     termios term{};
     int fd;
