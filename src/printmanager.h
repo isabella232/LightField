@@ -61,7 +61,6 @@ private:
     FirmwareController* _firmwareController       { };
     MovementSequencer*  _movementSequencer        { };
     PngDisplayer*       _pngDisplayer             { };
-    ProcessRunner*      _setProjectorPowerProcess { };
     PrintResult         _printResult              { };
 
     bool                _lampOn                   { };
@@ -133,7 +132,7 @@ private slots:
 
     void stepB1_start( );
     void stepB1_completed( );
-    void stepB1_failed( int const exitCode, QProcess::ProcessError const error );
+    void stepB1_failed();
 
     void stepB2_start( );
     void stepB2_completed( );
@@ -142,7 +141,7 @@ private slots:
 
     void stepB3_start( );
     void stepB3_completed( );
-    void stepB3_failed( int const exitCode, QProcess::ProcessError const error );
+    void stepB3_failed();
 
     void stepB4a1_start( );
     void stepB4a1_completed( );
@@ -158,7 +157,7 @@ private slots:
 
     void stepC1_start( );
     void stepC1_completed( );
-    void stepC1_failed( int const exitCode, QProcess::ProcessError const error );
+    void stepC1_failed();
 
     void stepC2_start( );
     void stepC2_completed( );
@@ -167,7 +166,7 @@ private slots:
 
     void stepC3_start( );
     void stepC3_completed( );
-    void stepC3_failed( int const exitCode, QProcess::ProcessError const error );
+    void stepC3_failed();
 
     void stepC4a1_start( );
     void stepC4a1_completed( );

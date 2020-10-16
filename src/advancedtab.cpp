@@ -213,7 +213,7 @@ void AdvancedTab::_projectImage( char const* fileName ) {
         _pngDisplayer->clear( );
     }
 
-    if(_isProjectorOn) {
+    if(!_isProjectorOn) {
         projectorManager->turnOffProjector();
     } else {
         projectorManager->turnOnProjector(_powerLevelSlider->value());
@@ -248,7 +248,7 @@ void AdvancedTab::projectFocusImageButton_clicked( bool checked ) {
 }
 
 void AdvancedTab::powerLevelSlider_sliderReleased( ) {
-    if(projectorManager->isProjectorOn()) {
+    if(!_isProjectorOn) {
         projectorManager->turnOffProjector();
     } else {
         projectorManager->turnOnProjector(_powerLevelSlider->value());

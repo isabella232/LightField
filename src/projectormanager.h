@@ -3,8 +3,11 @@
 
 #include "../libprojector/src/libprojector.h"
 #include "debug.h"
+#include "qthread.h"
 
-class ProjectorManager {
+class ProjectorManager: public QObject {
+Q_OBJECT
+
 public:
 
     ProjectorManager(ProjectorController* pc) {
@@ -14,25 +17,44 @@ public:
     void turnOnProjector(unsigned int powerLevel) {
         debug("+ ProjectorManager::turnOnProjector %d\n", powerLevel);
 
-        if(portOpen()) {
-            pc->setPowerLevel(powerLevel);
-        }
+        QThread *thread = QThread::create([this, powerLevel] {
+            if(portOpen()) {
+                if(pc->setPowerLevel(powerLevel)) {
+                    emit turnOnProjectorDone();
+                }
+            }
+
+            emit turnOnProjectorFailed();
+        });
+        thread->start();
     }
 
     void turnOnProjector(unsigned int powerLevel, int duration) {
         debug("+ ProjectorManager::turnOnProjector %d, duration:  %d ms\n", powerLevel, duration);
-        if(portOpen()) {
-            pc->setPowerLevel(powerLevel);
-            pc->setDuration(duration);
-        }
+
+        QThread *thread = QThread::create([this, powerLevel, duration] {
+            if(portOpen()) {
+                if(pc->setPowerLevel(powerLevel) && pc->setDuration(duration)) {
+                    emit turnOffProjectorDone();
+                }
+            }
+
+            emit turnOnProjectorFailed();
+        });
+        thread->start();
     }
 
     void turnOffProjector() {
         debug("+ ProjectorManager::turnOffProjector\n");
 
-        if(portOpen()) {
-            pc->setPowerLevel(0);
-        }
+        QThread *thread = QThread::create([this] {
+            if(portOpen() && pc->setPowerLevel(0)) {
+                emit turnOffProjectorDone();
+            }
+
+            emit turnOnProjectorFailed();
+        });
+        thread->start();
     }
 
     bool isProjectorOn() {
@@ -40,6 +62,13 @@ public:
 
         return pc->getPowerLevel() > 0;
     }
+
+signals:
+    void turnOnProjectorDone();
+    void turnOnProjectorFailed();
+    void turnOffProjectorDone();
+    void turnOffProjectorFailed();
+
 private:
     bool portOpen() {
         debug("+ ProjectorManager::portOpen\n");
@@ -50,6 +79,7 @@ private:
 
         return isPortOpen;
     }
+
     bool isPortOpen { false };
 
     ProjectorController* pc;

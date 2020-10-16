@@ -118,7 +118,6 @@ PrintManager::PrintManager(FirmwareController* controller, QObject* parent):
     _firmwareController (controller)
 {
     _movementSequencer        = new MovementSequencer { controller, this };
-    _setProjectorPowerProcess = new ProcessRunner     { this };
 
     QObject::connect(_firmwareController, &FirmwareController::printerPositionReport, this,
         &PrintManager::printer_positionReport);
@@ -164,14 +163,6 @@ void PrintManager::_cleanUp( ) {
     _stopAndCleanUpTimer( _preProjectionTimer );
     _stopAndCleanUpTimer( _layerExposureTimer );
     _stopAndCleanUpTimer( _preLiftTimer       );
-
-    if ( _setProjectorPowerProcess ) {
-        if ( _setProjectorPowerProcess->state( ) != QProcess::NotRunning ) {
-            _setProjectorPowerProcess->kill( );
-        }
-        _setProjectorPowerProcess->deleteLater( );
-        _setProjectorPowerProcess = nullptr;
-    }
 }
 
 // ================================
@@ -286,17 +277,19 @@ void PrintManager::stepB1_start( ) {
         return;
     }
 
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB1_completed );
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB1_failed    );
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorDone, this, &PrintManager::stepB1_completed);
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorFailed, this, &PrintManager::stepB1_failed);
     projectorManager->turnOnProjector(powerLevel);
 
     emit startingLayer( _currentLayer );
+
+    stepB1_completed();
 }
 
 void PrintManager::stepB1_completed( ) {
     debug( "+ PrintManager::stepB1_completed\n" );
 
-    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
+    QObject::disconnect( projectorManager, nullptr, this, nullptr );
 
     if ( IsBadPrintResult( _printResult ) ) {
         stepD1_start( );
@@ -309,8 +302,8 @@ void PrintManager::stepB1_completed( ) {
     stepB2_start( );
 }
 
-void PrintManager::stepB1_failed( int const exitCode, QProcess::ProcessError const error ) {
-    debug( "+ PrintManager::stepB1_completed: exitCode: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
+void PrintManager::stepB1_failed() {
+    debug( "+ PrintManager::stepB1_failed");
     stepB1_completed( );
 }
 
@@ -389,15 +382,17 @@ void PrintManager::stepB3_start( ) {
 
     _pngDisplayer->clear( );
 
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepB3_completed );
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepB3_failed    );
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorDone, this, &PrintManager::stepB3_completed);
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorFailed, this, &PrintManager::stepB3_failed);
     projectorManager->turnOffProjector();
+
+    stepB3_completed();
 }
 
 void PrintManager::stepB3_completed( ) {
     debug( "+ PrintManager::stepB3_completed\n" );
 
-    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
+    QObject::disconnect( projectorManager, nullptr, this, nullptr );
 
     if ( IsBadPrintResult( _printResult ) ) {
         stepD1_start( );
@@ -414,7 +409,7 @@ void PrintManager::stepB3_completed( ) {
     }
 }
 
-void PrintManager::stepB3_failed( int const, QProcess::ProcessError const ) {
+void PrintManager::stepB3_failed() {
     stepB3_completed( );
 }
 
@@ -616,17 +611,18 @@ void PrintManager::stepC1_start( ) {
         return;
     }
 
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepC1_completed );
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepC1_failed    );
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorDone, this, &PrintManager::stepC1_completed);
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorFailed, this, &PrintManager::stepC1_failed);
     projectorManager->turnOnProjector(powerLevel);
-
     emit startingLayer( _currentLayer );
+
+    stepC1_completed();
 }
 
 void PrintManager::stepC1_completed( ) {
     debug( "+ PrintManager::stepC1_completed\n" );
 
-    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
+    QObject::disconnect( projectorManager, nullptr, this, nullptr );
 
     if ( IsBadPrintResult( _printResult ) ) {
         stepD1_start( );
@@ -639,8 +635,8 @@ void PrintManager::stepC1_completed( ) {
     stepC2_start( );
 }
 
-void PrintManager::stepC1_failed( int const exitCode, QProcess::ProcessError const error ) {
-    debug( "+ PrintManager::stepC1_failed: exitCode: %d, error: %s [%d]\n", exitCode, ToString( error ), static_cast<int>( error ) );
+void PrintManager::stepC1_failed() {
+    debug( "+ PrintManager::stepC1_failed");
     stepC1_completed( );
 }
 
@@ -714,16 +710,17 @@ void PrintManager::stepC3_start( ) {
 
     _pngDisplayer->clear( );
 
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::succeeded, this, &PrintManager::stepC3_completed );
-    QObject::connect( _setProjectorPowerProcess, &ProcessRunner::failed,    this, &PrintManager::stepC3_failed    );
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorDone, this, &PrintManager::stepC3_completed);
+    QObject::connect(projectorManager, &ProjectorManager::turnOnProjectorFailed, this, &PrintManager::stepC3_failed);
     projectorManager->turnOffProjector();
 
+    stepC3_completed();
 }
 
 void PrintManager::stepC3_completed( ) {
     debug( "+ PrintManager::stepC3_completed\n" );
 
-    QObject::disconnect( _setProjectorPowerProcess, nullptr, this, nullptr );
+    QObject::disconnect(projectorManager, nullptr, this, nullptr);
 
     if (IsBadPrintResult(_printResult)) {
         stepD1_start();
@@ -739,7 +736,7 @@ void PrintManager::stepC3_completed( ) {
         stepC4b1_start();
 }
 
-void PrintManager::stepC3_failed( int const, QProcess::ProcessError const ) {
+void PrintManager::stepC3_failed() {
     stepC3_completed( );
 }
 
